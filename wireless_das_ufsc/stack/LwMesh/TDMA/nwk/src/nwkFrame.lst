@@ -1,0 +1,594 @@
+   1               		.file	"nwkFrame.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               		.section	.bss.nwkFrameFrames,"aw",@nobits
+  14               	nwkFrameFrames:
+  15 0000 0000 0000 		.zero	2740
+  15      0000 0000 
+  15      0000 0000 
+  15      0000 0000 
+  15      0000 0000 
+  16               		.text
+  17               	.global	nwkFrameInit
+  19               	nwkFrameInit:
+  20               	.LFB66:
+  21               		.file 1 "../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c"
+   1:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** /**
+   2:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * \file nwkFrame.c
+   3:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *
+   4:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * \brief Frame buffers management implementation
+   5:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *
+   6:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * Copyright (C) 2014 Atmel Corporation. All rights reserved.
+   7:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *
+   8:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * \asf_license_start
+   9:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *
+  10:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * Redistribution and use in source and binary forms, with or without
+  11:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * modification, are permitted provided that the following conditions are met:
+  12:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *
+  13:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  14:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *    this list of conditions and the following disclaimer.
+  15:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *
+  16:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  17:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *    this list of conditions and the following disclaimer in the documentation
+  18:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *    and/or other materials provided with the distribution.
+  19:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *
+  20:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  21:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *    from this software without specific prior written permission.
+  22:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *
+  23:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * 4. This software may only be redistributed and used in connection with an
+  24:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *    Atmel microcontroller product.
+  25:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *
+  26:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  27:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  28:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  29:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  30:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  31:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  32:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  33:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  34:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  35:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  36:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  37:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *
+  38:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * \asf_license_stop
+  39:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *
+  40:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *
+  41:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  */
+  42:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 
+  43:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** /*
+  44:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * Copyright (c) 2014, Atmel Corporation All rights reserved.
+  45:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  *
+  46:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  * Licensed under Atmel's Limited License Agreement --> EULA.txt
+  47:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c ****  */
+  48:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 
+  49:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** /*- Includes ---------------------------------------------------------------*/
+  50:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** #include <stdlib.h>
+  51:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** #include <stdint.h>
+  52:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** #include <stdbool.h>
+  53:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** #include <string.h>
+  54:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** #include "sysConfig.h"
+  55:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** #include "nwk.h"
+  56:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** #include "nwkFrame.h"
+  57:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 
+  58:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** /*- Types ------------------------------------------------------------------*/
+  59:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** enum {
+  60:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	NWK_FRAME_STATE_FREE = 0x00,
+  61:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** };
+  62:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 
+  63:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** /*- Variables --------------------------------------------------------------*/
+  64:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** static NwkFrame_t nwkFrameFrames[NWK_BUFFERS_AMOUNT];
+  65:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 
+  66:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** /*- Implementations --------------------------------------------------------*/
+  67:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 
+  68:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** /*************************************************************************//**
+  69:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *  @brief Initializes the Frame module
+  70:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *****************************************************************************/
+  71:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** void nwkFrameInit(void)
+  72:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** {
+  22               		.loc 1 72 0
+  23               		.cfi_startproc
+  24 0000 CF93      		push r28
+  25               	.LCFI0:
+  26               		.cfi_def_cfa_offset 3
+  27               		.cfi_offset 28, -2
+  28 0002 DF93      		push r29
+  29               	.LCFI1:
+  30               		.cfi_def_cfa_offset 4
+  31               		.cfi_offset 29, -3
+  32 0004 1F92      		push __zero_reg__
+  33               	.LCFI2:
+  34               		.cfi_def_cfa_offset 5
+  35 0006 CDB7      		in r28,__SP_L__
+  36 0008 DEB7      		in r29,__SP_H__
+  37               	.LCFI3:
+  38               		.cfi_def_cfa_register 28
+  39               	/* prologue: function */
+  40               	/* frame size = 1 */
+  41               	/* stack size = 3 */
+  42               	.L__stack_usage = 3
+  43               	.LBB2:
+  73:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	for (uint8_t i = 0; i < NWK_BUFFERS_AMOUNT; i++) {
+  44               		.loc 1 73 0
+  45 000a 1982      		std Y+1,__zero_reg__
+  46 000c 00C0      		rjmp .L2
+  47               	.L3:
+  74:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 		nwkFrameFrames[i].state = NWK_FRAME_STATE_FREE;
+  48               		.loc 1 74 0 discriminator 3
+  49 000e 8981      		ldd r24,Y+1
+  50 0010 282F      		mov r18,r24
+  51 0012 30E0      		ldi r19,0
+  52 0014 49E8      		ldi r20,lo8(-119)
+  53 0016 429F      		mul r20,r18
+  54 0018 C001      		movw r24,r0
+  55 001a 439F      		mul r20,r19
+  56 001c 900D      		add r25,r0
+  57 001e 1124      		clr __zero_reg__
+  58 0020 8050      		subi r24,lo8(-(nwkFrameFrames))
+  59 0022 9040      		sbci r25,hi8(-(nwkFrameFrames))
+  60 0024 FC01      		movw r30,r24
+  61 0026 1082      		st Z,__zero_reg__
+  73:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	for (uint8_t i = 0; i < NWK_BUFFERS_AMOUNT; i++) {
+  62               		.loc 1 73 0 discriminator 3
+  63 0028 8981      		ldd r24,Y+1
+  64 002a 8F5F      		subi r24,lo8(-(1))
+  65 002c 8983      		std Y+1,r24
+  66               	.L2:
+  73:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	for (uint8_t i = 0; i < NWK_BUFFERS_AMOUNT; i++) {
+  67               		.loc 1 73 0 is_stmt 0 discriminator 1
+  68 002e 8981      		ldd r24,Y+1
+  69 0030 8431      		cpi r24,lo8(20)
+  70 0032 00F0      		brlo .L3
+  71               	.LBE2:
+  75:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	}
+  76:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** }
+  72               		.loc 1 76 0 is_stmt 1
+  73 0034 0000      		nop
+  74               	/* epilogue start */
+  75 0036 0F90      		pop __tmp_reg__
+  76 0038 DF91      		pop r29
+  77 003a CF91      		pop r28
+  78 003c 0895      		ret
+  79               		.cfi_endproc
+  80               	.LFE66:
+  82               	.global	nwkFrameAlloc
+  84               	nwkFrameAlloc:
+  85               	.LFB67:
+  77:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 
+  78:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** /*************************************************************************//**
+  79:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *  @brief Allocates an empty frame from the buffer pool
+  80:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *  @return Pointer to the frame or @c NULL if there are no free frames
+  81:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *****************************************************************************/
+  82:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** NwkFrame_t *nwkFrameAlloc(void)
+  83:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** {
+  86               		.loc 1 83 0
+  87               		.cfi_startproc
+  88 003e CF93      		push r28
+  89               	.LCFI4:
+  90               		.cfi_def_cfa_offset 3
+  91               		.cfi_offset 28, -2
+  92 0040 DF93      		push r29
+  93               	.LCFI5:
+  94               		.cfi_def_cfa_offset 4
+  95               		.cfi_offset 29, -3
+  96 0042 1F92      		push __zero_reg__
+  97               	.LCFI6:
+  98               		.cfi_def_cfa_offset 5
+  99 0044 CDB7      		in r28,__SP_L__
+ 100 0046 DEB7      		in r29,__SP_H__
+ 101               	.LCFI7:
+ 102               		.cfi_def_cfa_register 28
+ 103               	/* prologue: function */
+ 104               	/* frame size = 1 */
+ 105               	/* stack size = 3 */
+ 106               	.L__stack_usage = 3
+ 107               	.LBB3:
+  84:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	for (uint8_t i = 0; i < NWK_BUFFERS_AMOUNT; i++) {
+ 108               		.loc 1 84 0
+ 109 0048 1982      		std Y+1,__zero_reg__
+ 110 004a 00C0      		rjmp .L5
+ 111               	.L8:
+  85:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 		if (NWK_FRAME_STATE_FREE == nwkFrameFrames[i].state) {
+ 112               		.loc 1 85 0
+ 113 004c 8981      		ldd r24,Y+1
+ 114 004e 282F      		mov r18,r24
+ 115 0050 30E0      		ldi r19,0
+ 116 0052 49E8      		ldi r20,lo8(-119)
+ 117 0054 429F      		mul r20,r18
+ 118 0056 C001      		movw r24,r0
+ 119 0058 439F      		mul r20,r19
+ 120 005a 900D      		add r25,r0
+ 121 005c 1124      		clr __zero_reg__
+ 122 005e 8050      		subi r24,lo8(-(nwkFrameFrames))
+ 123 0060 9040      		sbci r25,hi8(-(nwkFrameFrames))
+ 124 0062 FC01      		movw r30,r24
+ 125 0064 8081      		ld r24,Z
+ 126 0066 8823      		tst r24
+ 127 0068 01F0      		breq .+2
+ 128 006a 00C0      		rjmp .L6
+  86:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 			memset(&nwkFrameFrames[i], 0, sizeof(NwkFrame_t));
+ 129               		.loc 1 86 0
+ 130 006c 8981      		ldd r24,Y+1
+ 131 006e 282F      		mov r18,r24
+ 132 0070 30E0      		ldi r19,0
+ 133 0072 49E8      		ldi r20,lo8(-119)
+ 134 0074 429F      		mul r20,r18
+ 135 0076 C001      		movw r24,r0
+ 136 0078 439F      		mul r20,r19
+ 137 007a 900D      		add r25,r0
+ 138 007c 1124      		clr __zero_reg__
+ 139 007e 8050      		subi r24,lo8(-(nwkFrameFrames))
+ 140 0080 9040      		sbci r25,hi8(-(nwkFrameFrames))
+ 141 0082 49E8      		ldi r20,lo8(-119)
+ 142 0084 50E0      		ldi r21,0
+ 143 0086 60E0      		ldi r22,0
+ 144 0088 70E0      		ldi r23,0
+ 145 008a 0E94 0000 		call memset
+  87:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 			nwkFrameFrames[i].size = 0;
+ 146               		.loc 1 87 0
+ 147 008e 8981      		ldd r24,Y+1
+ 148 0090 282F      		mov r18,r24
+ 149 0092 30E0      		ldi r19,0
+ 150 0094 49E8      		ldi r20,lo8(-119)
+ 151 0096 429F      		mul r20,r18
+ 152 0098 C001      		movw r24,r0
+ 153 009a 439F      		mul r20,r19
+ 154 009c 900D      		add r25,r0
+ 155 009e 1124      		clr __zero_reg__
+ 156 00a0 8050      		subi r24,lo8(-(nwkFrameFrames+1))
+ 157 00a2 9040      		sbci r25,hi8(-(nwkFrameFrames+1))
+ 158 00a4 FC01      		movw r30,r24
+ 159 00a6 1082      		st Z,__zero_reg__
+  88:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 			nwkFrameFrames[i].payload = nwkFrameFrames[i].data;
+ 160               		.loc 1 88 0
+ 161 00a8 8981      		ldd r24,Y+1
+ 162 00aa 482F      		mov r20,r24
+ 163 00ac 50E0      		ldi r21,0
+ 164 00ae 8981      		ldd r24,Y+1
+ 165 00b0 282F      		mov r18,r24
+ 166 00b2 30E0      		ldi r19,0
+ 167 00b4 69E8      		ldi r22,lo8(-119)
+ 168 00b6 629F      		mul r22,r18
+ 169 00b8 C001      		movw r24,r0
+ 170 00ba 639F      		mul r22,r19
+ 171 00bc 900D      		add r25,r0
+ 172 00be 1124      		clr __zero_reg__
+ 173 00c0 0296      		adiw r24,2
+ 174 00c2 9C01      		movw r18,r24
+ 175 00c4 2050      		subi r18,lo8(-(nwkFrameFrames))
+ 176 00c6 3040      		sbci r19,hi8(-(nwkFrameFrames))
+ 177 00c8 69E8      		ldi r22,lo8(-119)
+ 178 00ca 649F      		mul r22,r20
+ 179 00cc C001      		movw r24,r0
+ 180 00ce 659F      		mul r22,r21
+ 181 00d0 900D      		add r25,r0
+ 182 00d2 1124      		clr __zero_reg__
+ 183 00d4 8050      		subi r24,lo8(-(nwkFrameFrames+129))
+ 184 00d6 9040      		sbci r25,hi8(-(nwkFrameFrames+129))
+ 185 00d8 FC01      		movw r30,r24
+ 186 00da 3183      		std Z+1,r19
+ 187 00dc 2083      		st Z,r18
+  89:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 			nwkIb.lock++;
+ 188               		.loc 1 89 0
+ 189 00de 8091 0000 		lds r24,nwkIb+38
+ 190 00e2 9091 0000 		lds r25,nwkIb+38+1
+ 191 00e6 0196      		adiw r24,1
+ 192 00e8 9093 0000 		sts nwkIb+38+1,r25
+ 193 00ec 8093 0000 		sts nwkIb+38,r24
+  90:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 			return &nwkFrameFrames[i];
+ 194               		.loc 1 90 0
+ 195 00f0 8981      		ldd r24,Y+1
+ 196 00f2 282F      		mov r18,r24
+ 197 00f4 30E0      		ldi r19,0
+ 198 00f6 49E8      		ldi r20,lo8(-119)
+ 199 00f8 429F      		mul r20,r18
+ 200 00fa C001      		movw r24,r0
+ 201 00fc 439F      		mul r20,r19
+ 202 00fe 900D      		add r25,r0
+ 203 0100 1124      		clr __zero_reg__
+ 204 0102 8050      		subi r24,lo8(-(nwkFrameFrames))
+ 205 0104 9040      		sbci r25,hi8(-(nwkFrameFrames))
+ 206 0106 00C0      		rjmp .L7
+ 207               	.L6:
+  84:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 		if (NWK_FRAME_STATE_FREE == nwkFrameFrames[i].state) {
+ 208               		.loc 1 84 0 discriminator 2
+ 209 0108 8981      		ldd r24,Y+1
+ 210 010a 8F5F      		subi r24,lo8(-(1))
+ 211 010c 8983      		std Y+1,r24
+ 212               	.L5:
+  84:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 		if (NWK_FRAME_STATE_FREE == nwkFrameFrames[i].state) {
+ 213               		.loc 1 84 0 is_stmt 0 discriminator 1
+ 214 010e 8981      		ldd r24,Y+1
+ 215 0110 8431      		cpi r24,lo8(20)
+ 216 0112 00F4      		brsh .+2
+ 217 0114 00C0      		rjmp .L8
+ 218               	.LBE3:
+  91:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 		}
+  92:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	}
+  93:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	return NULL;
+ 219               		.loc 1 93 0 is_stmt 1
+ 220 0116 80E0      		ldi r24,0
+ 221 0118 90E0      		ldi r25,0
+ 222               	.L7:
+ 223               	/* epilogue start */
+  94:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** }
+ 224               		.loc 1 94 0
+ 225 011a 0F90      		pop __tmp_reg__
+ 226 011c DF91      		pop r29
+ 227 011e CF91      		pop r28
+ 228 0120 0895      		ret
+ 229               		.cfi_endproc
+ 230               	.LFE67:
+ 232               	.global	nwkFrameFree
+ 234               	nwkFrameFree:
+ 235               	.LFB68:
+  95:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 
+  96:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** /*************************************************************************//**
+  97:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *  @brief Frees a @a frame and returns it to the buffer pool
+  98:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *  @param[in] frame Pointer to the frame to be freed
+  99:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *****************************************************************************/
+ 100:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** void nwkFrameFree(NwkFrame_t *frame)
+ 101:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** {
+ 236               		.loc 1 101 0
+ 237               		.cfi_startproc
+ 238 0122 CF93      		push r28
+ 239               	.LCFI8:
+ 240               		.cfi_def_cfa_offset 3
+ 241               		.cfi_offset 28, -2
+ 242 0124 DF93      		push r29
+ 243               	.LCFI9:
+ 244               		.cfi_def_cfa_offset 4
+ 245               		.cfi_offset 29, -3
+ 246 0126 00D0      		rcall .
+ 247               	.LCFI10:
+ 248               		.cfi_def_cfa_offset 6
+ 249 0128 CDB7      		in r28,__SP_L__
+ 250 012a DEB7      		in r29,__SP_H__
+ 251               	.LCFI11:
+ 252               		.cfi_def_cfa_register 28
+ 253               	/* prologue: function */
+ 254               	/* frame size = 2 */
+ 255               	/* stack size = 4 */
+ 256               	.L__stack_usage = 4
+ 257 012c 9A83      		std Y+2,r25
+ 258 012e 8983      		std Y+1,r24
+ 102:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	frame->state = NWK_FRAME_STATE_FREE;
+ 259               		.loc 1 102 0
+ 260 0130 8981      		ldd r24,Y+1
+ 261 0132 9A81      		ldd r25,Y+2
+ 262 0134 FC01      		movw r30,r24
+ 263 0136 1082      		st Z,__zero_reg__
+ 103:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	nwkIb.lock--;
+ 264               		.loc 1 103 0
+ 265 0138 8091 0000 		lds r24,nwkIb+38
+ 266 013c 9091 0000 		lds r25,nwkIb+38+1
+ 267 0140 0197      		sbiw r24,1
+ 268 0142 9093 0000 		sts nwkIb+38+1,r25
+ 269 0146 8093 0000 		sts nwkIb+38,r24
+ 104:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** }
+ 270               		.loc 1 104 0
+ 271 014a 0000      		nop
+ 272               	/* epilogue start */
+ 273 014c 0F90      		pop __tmp_reg__
+ 274 014e 0F90      		pop __tmp_reg__
+ 275 0150 DF91      		pop r29
+ 276 0152 CF91      		pop r28
+ 277 0154 0895      		ret
+ 278               		.cfi_endproc
+ 279               	.LFE68:
+ 281               	.global	nwkFrameNext
+ 283               	nwkFrameNext:
+ 284               	.LFB69:
+ 105:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 
+ 106:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** /*************************************************************************//**
+ 107:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *  @brief Cycles through the allocated frames starting from the specified @a
+ 108:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** * frame
+ 109:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *  @param[in] frame Pointer to the current frame or @c NULL for the first frame
+ 110:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *  @return Next allocated frame or @c NULL if there are no more frames
+ 111:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *****************************************************************************/
+ 112:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** NwkFrame_t *nwkFrameNext(NwkFrame_t *frame)
+ 113:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** {
+ 285               		.loc 1 113 0
+ 286               		.cfi_startproc
+ 287 0156 CF93      		push r28
+ 288               	.LCFI12:
+ 289               		.cfi_def_cfa_offset 3
+ 290               		.cfi_offset 28, -2
+ 291 0158 DF93      		push r29
+ 292               	.LCFI13:
+ 293               		.cfi_def_cfa_offset 4
+ 294               		.cfi_offset 29, -3
+ 295 015a 00D0      		rcall .
+ 296               	.LCFI14:
+ 297               		.cfi_def_cfa_offset 6
+ 298 015c CDB7      		in r28,__SP_L__
+ 299 015e DEB7      		in r29,__SP_H__
+ 300               	.LCFI15:
+ 301               		.cfi_def_cfa_register 28
+ 302               	/* prologue: function */
+ 303               	/* frame size = 2 */
+ 304               	/* stack size = 4 */
+ 305               	.L__stack_usage = 4
+ 306 0160 9A83      		std Y+2,r25
+ 307 0162 8983      		std Y+1,r24
+ 114:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	if (NULL == frame) {
+ 308               		.loc 1 114 0
+ 309 0164 8981      		ldd r24,Y+1
+ 310 0166 9A81      		ldd r25,Y+2
+ 311 0168 892B      		or r24,r25
+ 312 016a 01F4      		brne .L11
+ 115:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 		frame = nwkFrameFrames;
+ 313               		.loc 1 115 0
+ 314 016c 80E0      		ldi r24,lo8(nwkFrameFrames)
+ 315 016e 90E0      		ldi r25,hi8(nwkFrameFrames)
+ 316 0170 9A83      		std Y+2,r25
+ 317 0172 8983      		std Y+1,r24
+ 318 0174 00C0      		rjmp .L13
+ 319               	.L11:
+ 116:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	} else {
+ 117:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 		frame++;
+ 320               		.loc 1 117 0
+ 321 0176 8981      		ldd r24,Y+1
+ 322 0178 9A81      		ldd r25,Y+2
+ 323 017a 8757      		subi r24,119
+ 324 017c 9F4F      		sbci r25,-1
+ 325 017e 9A83      		std Y+2,r25
+ 326 0180 8983      		std Y+1,r24
+ 118:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	}
+ 119:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 
+ 120:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	for (; frame < &nwkFrameFrames[NWK_BUFFERS_AMOUNT]; frame++) {
+ 327               		.loc 1 120 0
+ 328 0182 00C0      		rjmp .L13
+ 329               	.L16:
+ 121:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 		if (NWK_FRAME_STATE_FREE != frame->state) {
+ 330               		.loc 1 121 0
+ 331 0184 8981      		ldd r24,Y+1
+ 332 0186 9A81      		ldd r25,Y+2
+ 333 0188 FC01      		movw r30,r24
+ 334 018a 8081      		ld r24,Z
+ 335 018c 8823      		tst r24
+ 336 018e 01F0      		breq .L14
+ 122:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 			return frame;
+ 337               		.loc 1 122 0
+ 338 0190 8981      		ldd r24,Y+1
+ 339 0192 9A81      		ldd r25,Y+2
+ 340 0194 00C0      		rjmp .L15
+ 341               	.L14:
+ 120:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 		if (NWK_FRAME_STATE_FREE != frame->state) {
+ 342               		.loc 1 120 0
+ 343 0196 8981      		ldd r24,Y+1
+ 344 0198 9A81      		ldd r25,Y+2
+ 345 019a 8757      		subi r24,119
+ 346 019c 9F4F      		sbci r25,-1
+ 347 019e 9A83      		std Y+2,r25
+ 348 01a0 8983      		std Y+1,r24
+ 349               	.L13:
+ 120:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 		if (NWK_FRAME_STATE_FREE != frame->state) {
+ 350               		.loc 1 120 0 is_stmt 0 discriminator 1
+ 351 01a2 8981      		ldd r24,Y+1
+ 352 01a4 9A81      		ldd r25,Y+2
+ 353 01a6 8050      		subi r24,lo8(nwkFrameFrames+2740)
+ 354 01a8 9040      		sbci r25,hi8(nwkFrameFrames+2740)
+ 355 01aa 00F0      		brlo .L16
+ 123:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 		}
+ 124:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	}
+ 125:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 
+ 126:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	return NULL;
+ 356               		.loc 1 126 0 is_stmt 1
+ 357 01ac 80E0      		ldi r24,0
+ 358 01ae 90E0      		ldi r25,0
+ 359               	.L15:
+ 360               	/* epilogue start */
+ 127:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** }
+ 361               		.loc 1 127 0
+ 362 01b0 0F90      		pop __tmp_reg__
+ 363 01b2 0F90      		pop __tmp_reg__
+ 364 01b4 DF91      		pop r29
+ 365 01b6 CF91      		pop r28
+ 366 01b8 0895      		ret
+ 367               		.cfi_endproc
+ 368               	.LFE69:
+ 370               	.global	nwkFrameCommandInit
+ 372               	nwkFrameCommandInit:
+ 373               	.LFB70:
+ 128:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 
+ 129:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** /*************************************************************************//**
+ 130:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *  @brief Sets default parameters for the the command @a frame
+ 131:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *  @param[in] frame Pointer to the command frame
+ 132:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** *****************************************************************************/
+ 133:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** void nwkFrameCommandInit(NwkFrame_t *frame)
+ 134:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** {
+ 374               		.loc 1 134 0
+ 375               		.cfi_startproc
+ 376 01ba CF93      		push r28
+ 377               	.LCFI16:
+ 378               		.cfi_def_cfa_offset 3
+ 379               		.cfi_offset 28, -2
+ 380 01bc DF93      		push r29
+ 381               	.LCFI17:
+ 382               		.cfi_def_cfa_offset 4
+ 383               		.cfi_offset 29, -3
+ 384 01be 00D0      		rcall .
+ 385               	.LCFI18:
+ 386               		.cfi_def_cfa_offset 6
+ 387 01c0 CDB7      		in r28,__SP_L__
+ 388 01c2 DEB7      		in r29,__SP_H__
+ 389               	.LCFI19:
+ 390               		.cfi_def_cfa_register 28
+ 391               	/* prologue: function */
+ 392               	/* frame size = 2 */
+ 393               	/* stack size = 4 */
+ 394               	.L__stack_usage = 4
+ 395 01c4 9A83      		std Y+2,r25
+ 396 01c6 8983      		std Y+1,r24
+ 135:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	frame->tx.status = NWK_SUCCESS_STATUS;
+ 397               		.loc 1 135 0
+ 398 01c8 8981      		ldd r24,Y+1
+ 399 01ca 9A81      		ldd r25,Y+2
+ 400 01cc 8D57      		subi r24,125
+ 401 01ce 9F4F      		sbci r25,-1
+ 402 01d0 FC01      		movw r30,r24
+ 403 01d2 1082      		st Z,__zero_reg__
+ 136:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	frame->header.nwkSeq = ++nwkIb.nwkSeqNum;
+ 404               		.loc 1 136 0
+ 405 01d4 8091 0000 		lds r24,nwkIb+4
+ 406 01d8 8F5F      		subi r24,lo8(-(1))
+ 407 01da 8093 0000 		sts nwkIb+4,r24
+ 408 01de 2091 0000 		lds r18,nwkIb+4
+ 409 01e2 8981      		ldd r24,Y+1
+ 410 01e4 9A81      		ldd r25,Y+2
+ 411 01e6 FC01      		movw r30,r24
+ 412 01e8 2487      		std Z+12,r18
+ 137:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	frame->header.nwkSrcAddr = nwkIb.addr;
+ 413               		.loc 1 137 0
+ 414 01ea 2091 0000 		lds r18,nwkIb
+ 415 01ee 3091 0000 		lds r19,nwkIb+1
+ 416 01f2 8981      		ldd r24,Y+1
+ 417 01f4 9A81      		ldd r25,Y+2
+ 418 01f6 FC01      		movw r30,r24
+ 419 01f8 3687      		std Z+14,r19
+ 420 01fa 2587      		std Z+13,r18
+ 138:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** #ifdef NWK_ENABLE_SECURE_COMMANDS
+ 139:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** 	frame->header.nwkFcf.security = 1;
+ 140:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** #endif
+ 141:../../../stack/LwMesh/TDMA/nwk/src/nwkFrame.c **** }
+ 421               		.loc 1 141 0
+ 422 01fc 0000      		nop
+ 423               	/* epilogue start */
+ 424 01fe 0F90      		pop __tmp_reg__
+ 425 0200 0F90      		pop __tmp_reg__
+ 426 0202 DF91      		pop r29
+ 427 0204 CF91      		pop r28
+ 428 0206 0895      		ret
+ 429               		.cfi_endproc
+ 430               	.LFE70:
+ 432               	.Letext0:
+ 433               		.file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 434               		.file 3 "../../../stack/LwMesh/TDMA/nwk/inc/nwkFrame.h"
+ 435               		.file 4 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
+ 436               		.file 5 "../../../stack/LwMesh/TDMA/nwk/inc/nwk.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 nwkFrame.c
+C:\Users\guilh\AppData\Local\Temp\ccDU9V2u.s:2      *ABS*:0000003e __SP_H__
+C:\Users\guilh\AppData\Local\Temp\ccDU9V2u.s:3      *ABS*:0000003d __SP_L__
+C:\Users\guilh\AppData\Local\Temp\ccDU9V2u.s:4      *ABS*:0000003f __SREG__
+C:\Users\guilh\AppData\Local\Temp\ccDU9V2u.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\guilh\AppData\Local\Temp\ccDU9V2u.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\guilh\AppData\Local\Temp\ccDU9V2u.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\guilh\AppData\Local\Temp\ccDU9V2u.s:14     .bss.nwkFrameFrames:00000000 nwkFrameFrames
+C:\Users\guilh\AppData\Local\Temp\ccDU9V2u.s:19     .text:00000000 nwkFrameInit
+C:\Users\guilh\AppData\Local\Temp\ccDU9V2u.s:84     .text:0000003e nwkFrameAlloc
+C:\Users\guilh\AppData\Local\Temp\ccDU9V2u.s:234    .text:00000122 nwkFrameFree
+C:\Users\guilh\AppData\Local\Temp\ccDU9V2u.s:283    .text:00000156 nwkFrameNext
+C:\Users\guilh\AppData\Local\Temp\ccDU9V2u.s:372    .text:000001ba nwkFrameCommandInit
+
+UNDEFINED SYMBOLS
+memset
+nwkIb
+__do_clear_bss

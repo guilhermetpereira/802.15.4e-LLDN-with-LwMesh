@@ -1,0 +1,1206 @@
+   1               		.file	"Solver.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               		.section	.bss.n_received,"aw",@nobits
+  14               	n_received:
+  15 0000 00        		.zero	1
+  16               		.section	.bss.received,"aw",@nobits
+  19               	received:
+  20 0000 0000 0000 		.zero	15
+  20      0000 0000 
+  20      0000 0000 
+  20      0000 00
+  21               		.section	.bss.n_colaborative,"aw",@nobits
+  24               	n_colaborative:
+  25 0000 00        		.zero	1
+  26               		.section	.bss.buffer_msg,"aw",@nobits
+  29               	buffer_msg:
+  30 0000 0000 0000 		.zero	960
+  30      0000 0000 
+  30      0000 0000 
+  30      0000 0000 
+  30      0000 0000 
+  31               		.section	.bss.n_equations,"aw",@nobits
+  34               	n_equations:
+  35 0000 00        		.zero	1
+  36               		.section	.bss.matrix,"aw",@nobits
+  39               	matrix:
+  40 0000 0000 0000 		.zero	225
+  40      0000 0000 
+  40      0000 0000 
+  40      0000 0000 
+  40      0000 0000 
+  41               		.section	.bss.combination,"aw",@nobits
+  44               	combination:
+  45 0000 0000 0000 		.zero	960
+  45      0000 0000 
+  45      0000 0000 
+  45      0000 0000 
+  45      0000 0000 
+  46               		.section	.bss.slotNumber,"aw",@nobits
+  49               	slotNumber:
+  50 0000 00        		.zero	1
+  51               		.text
+  52               	.global	solver_init
+  54               	solver_init:
+  55               	.LFB66:
+  56               		.file 1 "Solver.c"
+   1:Solver.c      **** //
+   2:Solver.c      **** // This program is free software: you can redistribute it and/or modify
+   3:Solver.c      **** // it under the terms of the GNU Lesser General Public License as published by
+   4:Solver.c      **** // the Free Software Foundation, either version 3 of the License, or
+   5:Solver.c      **** // (at your option) any later version.
+   6:Solver.c      **** // 
+   7:Solver.c      **** // This program is distributed in the hope that it will be useful,
+   8:Solver.c      **** // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   9:Solver.c      **** // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  10:Solver.c      **** // GNU Lesser General Public License for more details.
+  11:Solver.c      **** // 
+  12:Solver.c      **** // You should have received a copy of the GNU Lesser General Public License
+  13:Solver.c      **** // along with this program.  If not, see http://www.gnu.org/licenses/.
+  14:Solver.c      **** // 
+  15:Solver.c      **** 
+  16:Solver.c      **** #include <stdint.h>
+  17:Solver.c      **** #include <string.h>
+  18:Solver.c      **** #include "config.h"
+  19:Solver.c      **** #include "Solver.h"
+  20:Solver.c      **** 
+  21:Solver.c      **** static uint8_t					n_received					= 0;
+  22:Solver.c      **** static SolverMsgType_t			received[N_MOTES_MAX];						// confirma recebimento
+  23:Solver.c      **** static uint8_t					n_colaborative;								// numero de msg de colaboração
+  24:Solver.c      **** static uint8_t					buffer_msg[N_MOTES_MAX][MSG_SIZE_MAX];		// matriz de armazenamento de msg
+  25:Solver.c      **** static uint8_t					n_equations;								// numero de linhas da matriz
+  26:Solver.c      **** static uint8_t					matrix[N_MOTES_MAX][N_MOTES_MAX];			// matriz
+  27:Solver.c      **** static uint8_t					combination[N_MOTES_MAX][MSG_SIZE_MAX];		// mensagens retransmitidas recebidas
+  28:Solver.c      **** #if APP_ENDDEVICE
+  29:Solver.c      **** 	static uint8_t				slotNumber					= 0;
+  30:Solver.c      **** #endif
+  31:Solver.c      **** 
+  32:Solver.c      **** void solver_init(void)
+  33:Solver.c      **** {
+  57               		.loc 1 33 0
+  58               		.cfi_startproc
+  59 0000 CF93      		push r28
+  60               	.LCFI0:
+  61               		.cfi_def_cfa_offset 3
+  62               		.cfi_offset 28, -2
+  63 0002 DF93      		push r29
+  64               	.LCFI1:
+  65               		.cfi_def_cfa_offset 4
+  66               		.cfi_offset 29, -3
+  67 0004 CDB7      		in r28,__SP_L__
+  68 0006 DEB7      		in r29,__SP_H__
+  69               	.LCFI2:
+  70               		.cfi_def_cfa_register 28
+  71               	/* prologue: function */
+  72               	/* frame size = 0 */
+  73               	/* stack size = 2 */
+  74               	.L__stack_usage = 2
+  34:Solver.c      **** #if APP_COORDINATOR
+  35:Solver.c      **** 	n_colaborative				= 0;
+  36:Solver.c      **** 	n_equations					= 0;
+  37:Solver.c      **** 	n_received					= 0;
+  38:Solver.c      **** #else
+  39:Solver.c      **** 	slotNumber					= 0;
+  75               		.loc 1 39 0
+  76 0008 1092 0000 		sts slotNumber,__zero_reg__
+  40:Solver.c      **** #endif
+  41:Solver.c      **** }
+  77               		.loc 1 41 0
+  78 000c 0000      		nop
+  79               	/* epilogue start */
+  80 000e DF91      		pop r29
+  81 0010 CF91      		pop r28
+  82 0012 0895      		ret
+  83               		.cfi_endproc
+  84               	.LFE66:
+  86               	.global	solver_get_n_received
+  88               	solver_get_n_received:
+  89               	.LFB67:
+  42:Solver.c      **** uint8_t solver_get_n_received(void)
+  43:Solver.c      **** {
+  90               		.loc 1 43 0
+  91               		.cfi_startproc
+  92 0014 CF93      		push r28
+  93               	.LCFI3:
+  94               		.cfi_def_cfa_offset 3
+  95               		.cfi_offset 28, -2
+  96 0016 DF93      		push r29
+  97               	.LCFI4:
+  98               		.cfi_def_cfa_offset 4
+  99               		.cfi_offset 29, -3
+ 100 0018 CDB7      		in r28,__SP_L__
+ 101 001a DEB7      		in r29,__SP_H__
+ 102               	.LCFI5:
+ 103               		.cfi_def_cfa_register 28
+ 104               	/* prologue: function */
+ 105               	/* frame size = 0 */
+ 106               	/* stack size = 2 */
+ 107               	.L__stack_usage = 2
+  44:Solver.c      **** 	return(n_received);
+ 108               		.loc 1 44 0
+ 109 001c 8091 0000 		lds r24,n_received
+ 110               	/* epilogue start */
+  45:Solver.c      **** }
+ 111               		.loc 1 45 0
+ 112 0020 DF91      		pop r29
+ 113 0022 CF91      		pop r28
+ 114 0024 0895      		ret
+ 115               		.cfi_endproc
+ 116               	.LFE67:
+ 118               	.global	solver_get_n_colaborative
+ 120               	solver_get_n_colaborative:
+ 121               	.LFB68:
+  46:Solver.c      **** uint8_t solver_get_n_colaborative(void)
+  47:Solver.c      **** {
+ 122               		.loc 1 47 0
+ 123               		.cfi_startproc
+ 124 0026 CF93      		push r28
+ 125               	.LCFI6:
+ 126               		.cfi_def_cfa_offset 3
+ 127               		.cfi_offset 28, -2
+ 128 0028 DF93      		push r29
+ 129               	.LCFI7:
+ 130               		.cfi_def_cfa_offset 4
+ 131               		.cfi_offset 29, -3
+ 132 002a CDB7      		in r28,__SP_L__
+ 133 002c DEB7      		in r29,__SP_H__
+ 134               	.LCFI8:
+ 135               		.cfi_def_cfa_register 28
+ 136               	/* prologue: function */
+ 137               	/* frame size = 0 */
+ 138               	/* stack size = 2 */
+ 139               	.L__stack_usage = 2
+  48:Solver.c      **** 	return(n_colaborative);
+ 140               		.loc 1 48 0
+ 141 002e 8091 0000 		lds r24,n_colaborative
+ 142               	/* epilogue start */
+  49:Solver.c      **** }
+ 143               		.loc 1 49 0
+ 144 0032 DF91      		pop r29
+ 145 0034 CF91      		pop r28
+ 146 0036 0895      		ret
+ 147               		.cfi_endproc
+ 148               	.LFE68:
+ 151               	solver_mult:
+ 152               	.LFB69:
+  50:Solver.c      **** /****************************************************************************************
+  51:Solver.c      ****                             FUNÇÕES DE CODIFICAÇÃO A 8 BITS
+  52:Solver.c      **** ****************************************************************************************/
+  53:Solver.c      **** //multiplicacao de 2 número num corpo de 8 bits
+  54:Solver.c      **** static uint8_t solver_mult(uint8_t a, uint8_t b)
+  55:Solver.c      **** {
+ 153               		.loc 1 55 0
+ 154               		.cfi_startproc
+ 155 0038 CF93      		push r28
+ 156               	.LCFI9:
+ 157               		.cfi_def_cfa_offset 3
+ 158               		.cfi_offset 28, -2
+ 159 003a DF93      		push r29
+ 160               	.LCFI10:
+ 161               		.cfi_def_cfa_offset 4
+ 162               		.cfi_offset 29, -3
+ 163 003c 00D0      		rcall .
+ 164 003e 00D0      		rcall .
+ 165 0040 00D0      		rcall .
+ 166               	.LCFI11:
+ 167               		.cfi_def_cfa_offset 10
+ 168 0042 CDB7      		in r28,__SP_L__
+ 169 0044 DEB7      		in r29,__SP_H__
+ 170               	.LCFI12:
+ 171               		.cfi_def_cfa_register 28
+ 172               	/* prologue: function */
+ 173               	/* frame size = 6 */
+ 174               	/* stack size = 8 */
+ 175               	.L__stack_usage = 8
+ 176 0046 8D83      		std Y+5,r24
+ 177 0048 6E83      		std Y+6,r22
+  56:Solver.c      **** 	int i;
+  57:Solver.c      **** 	uint16_t result = 0;
+ 178               		.loc 1 57 0
+ 179 004a 1C82      		std Y+4,__zero_reg__
+ 180 004c 1B82      		std Y+3,__zero_reg__
+  58:Solver.c      **** 
+  59:Solver.c      **** 	for (i = 0; i < 8; i++)
+ 181               		.loc 1 59 0
+ 182 004e 1A82      		std Y+2,__zero_reg__
+ 183 0050 1982      		std Y+1,__zero_reg__
+ 184 0052 00C0      		rjmp .L7
+ 185               	.L9:
+  60:Solver.c      **** 	{
+  61:Solver.c      **** 		if ((a >> i) & 1)
+ 186               		.loc 1 61 0
+ 187 0054 8D81      		ldd r24,Y+5
+ 188 0056 882F      		mov r24,r24
+ 189 0058 90E0      		ldi r25,0
+ 190 005a 0980      		ldd r0,Y+1
+ 191 005c 00C0      		rjmp 2f
+ 192               		1:
+ 193 005e 9595      		asr r25
+ 194 0060 8795      		ror r24
+ 195               		2:
+ 196 0062 0A94      		dec r0
+ 197 0064 02F4      		brpl 1b
+ 198 0066 8170      		andi r24,1
+ 199 0068 9927      		clr r25
+ 200 006a 892B      		or r24,r25
+ 201 006c 01F0      		breq .L8
+  62:Solver.c      **** 		{
+  63:Solver.c      **** 			result ^= ((uint16_t) b) << i;
+ 202               		.loc 1 63 0
+ 203 006e 8E81      		ldd r24,Y+6
+ 204 0070 882F      		mov r24,r24
+ 205 0072 90E0      		ldi r25,0
+ 206 0074 0980      		ldd r0,Y+1
+ 207 0076 00C0      		rjmp 2f
+ 208               		1:
+ 209 0078 880F      		lsl r24
+ 210 007a 991F      		rol r25
+ 211               		2:
+ 212 007c 0A94      		dec r0
+ 213 007e 02F4      		brpl 1b
+ 214 0080 2B81      		ldd r18,Y+3
+ 215 0082 3C81      		ldd r19,Y+4
+ 216 0084 8227      		eor r24,r18
+ 217 0086 9327      		eor r25,r19
+ 218 0088 9C83      		std Y+4,r25
+ 219 008a 8B83      		std Y+3,r24
+ 220               	.L8:
+  59:Solver.c      **** 	{
+ 221               		.loc 1 59 0 discriminator 2
+ 222 008c 8981      		ldd r24,Y+1
+ 223 008e 9A81      		ldd r25,Y+2
+ 224 0090 0196      		adiw r24,1
+ 225 0092 9A83      		std Y+2,r25
+ 226 0094 8983      		std Y+1,r24
+ 227               	.L7:
+  59:Solver.c      **** 	{
+ 228               		.loc 1 59 0 is_stmt 0 discriminator 1
+ 229 0096 8981      		ldd r24,Y+1
+ 230 0098 9A81      		ldd r25,Y+2
+ 231 009a 0897      		sbiw r24,8
+ 232 009c 04F0      		brlt .L9
+  64:Solver.c      **** 		}
+  65:Solver.c      **** 	}
+  66:Solver.c      **** 
+  67:Solver.c      **** 	for (i = 6; i >= 0; i--)
+ 233               		.loc 1 67 0 is_stmt 1
+ 234 009e 86E0      		ldi r24,lo8(6)
+ 235 00a0 90E0      		ldi r25,0
+ 236 00a2 9A83      		std Y+2,r25
+ 237 00a4 8983      		std Y+1,r24
+ 238 00a6 00C0      		rjmp .L10
+ 239               	.L12:
+  68:Solver.c      **** 	{
+  69:Solver.c      **** 		if (result & (0x100 << i))
+ 240               		.loc 1 69 0
+ 241 00a8 80E0      		ldi r24,0
+ 242 00aa 91E0      		ldi r25,lo8(1)
+ 243 00ac 0980      		ldd r0,Y+1
+ 244 00ae 00C0      		rjmp 2f
+ 245               		1:
+ 246 00b0 880F      		lsl r24
+ 247 00b2 991F      		rol r25
+ 248               		2:
+ 249 00b4 0A94      		dec r0
+ 250 00b6 02F4      		brpl 1b
+ 251 00b8 9C01      		movw r18,r24
+ 252 00ba 8B81      		ldd r24,Y+3
+ 253 00bc 9C81      		ldd r25,Y+4
+ 254 00be 8223      		and r24,r18
+ 255 00c0 9323      		and r25,r19
+ 256 00c2 892B      		or r24,r25
+ 257 00c4 01F0      		breq .L11
+  70:Solver.c      **** 		{
+  71:Solver.c      **** 			result ^= (0x1A9 << i);
+ 258               		.loc 1 71 0
+ 259 00c6 89EA      		ldi r24,lo8(-87)
+ 260 00c8 91E0      		ldi r25,lo8(1)
+ 261 00ca 0980      		ldd r0,Y+1
+ 262 00cc 00C0      		rjmp 2f
+ 263               		1:
+ 264 00ce 880F      		lsl r24
+ 265 00d0 991F      		rol r25
+ 266               		2:
+ 267 00d2 0A94      		dec r0
+ 268 00d4 02F4      		brpl 1b
+ 269 00d6 9C01      		movw r18,r24
+ 270 00d8 8B81      		ldd r24,Y+3
+ 271 00da 9C81      		ldd r25,Y+4
+ 272 00dc 8227      		eor r24,r18
+ 273 00de 9327      		eor r25,r19
+ 274 00e0 9C83      		std Y+4,r25
+ 275 00e2 8B83      		std Y+3,r24
+ 276               	.L11:
+  67:Solver.c      **** 	{
+ 277               		.loc 1 67 0 discriminator 2
+ 278 00e4 8981      		ldd r24,Y+1
+ 279 00e6 9A81      		ldd r25,Y+2
+ 280 00e8 0197      		sbiw r24,1
+ 281 00ea 9A83      		std Y+2,r25
+ 282 00ec 8983      		std Y+1,r24
+ 283               	.L10:
+  67:Solver.c      **** 	{
+ 284               		.loc 1 67 0 is_stmt 0 discriminator 1
+ 285 00ee 8981      		ldd r24,Y+1
+ 286 00f0 9A81      		ldd r25,Y+2
+ 287 00f2 9923      		tst r25
+ 288 00f4 04F4      		brge .L12
+  72:Solver.c      **** 		}
+  73:Solver.c      **** 	}
+  74:Solver.c      **** 
+  75:Solver.c      **** 	return result;
+ 289               		.loc 1 75 0 is_stmt 1
+ 290 00f6 8B81      		ldd r24,Y+3
+ 291               	/* epilogue start */
+  76:Solver.c      **** }
+ 292               		.loc 1 76 0
+ 293 00f8 2696      		adiw r28,6
+ 294 00fa 0FB6      		in __tmp_reg__,__SREG__
+ 295 00fc F894      		cli
+ 296 00fe DEBF      		out __SP_H__,r29
+ 297 0100 0FBE      		out __SREG__,__tmp_reg__
+ 298 0102 CDBF      		out __SP_L__,r28
+ 299 0104 DF91      		pop r29
+ 300 0106 CF91      		pop r28
+ 301 0108 0895      		ret
+ 302               		.cfi_endproc
+ 303               	.LFE69:
+ 305               	.global	solver_encode_messages
+ 307               	solver_encode_messages:
+ 308               	.LFB70:
+  77:Solver.c      **** #if APP_COORDINATOR
+  78:Solver.c      **** // inverso  do mult
+  79:Solver.c      **** static uint8_t solver_inv(uint8_t a)
+  80:Solver.c      **** {
+  81:Solver.c      ****     int i, j;
+  82:Solver.c      ****     uint16_t result, r[8], p;
+  83:Solver.c      **** 
+  84:Solver.c      ****     if (a == 0)
+  85:Solver.c      **** 		return 0;
+  86:Solver.c      **** 
+  87:Solver.c      ****     for (i = 0; i < 8; i++)
+  88:Solver.c      ****     {
+  89:Solver.c      ****         r[i] = ((uint16_t) a) << i;
+  90:Solver.c      **** 
+  91:Solver.c      ****         for (j = 6; j >= 0; j--)
+  92:Solver.c      **** 		{
+  93:Solver.c      ****             if (r[i] & (0x100 << j))
+  94:Solver.c      **** 			{
+  95:Solver.c      **** 				r[i] ^= (0x1A9 << j);
+  96:Solver.c      **** 			}
+  97:Solver.c      **** 		}
+  98:Solver.c      ****     }
+  99:Solver.c      **** 
+ 100:Solver.c      ****     for (result = 0; result < 0x100; result++)
+ 101:Solver.c      ****     {
+ 102:Solver.c      ****         p = 0;
+ 103:Solver.c      ****         for (i = 0; i < 8; i++)
+ 104:Solver.c      **** 		{
+ 105:Solver.c      ****             if (result & (1 << i))
+ 106:Solver.c      **** 			{
+ 107:Solver.c      **** 				p ^= r[i];
+ 108:Solver.c      **** 			}
+ 109:Solver.c      **** 		}
+ 110:Solver.c      **** 
+ 111:Solver.c      ****         if (p == 1)
+ 112:Solver.c      **** 			return result;
+ 113:Solver.c      ****     }
+ 114:Solver.c      **** 
+ 115:Solver.c      ****     return 0;
+ 116:Solver.c      **** }
+ 117:Solver.c      **** /****************************************************************************************
+ 118:Solver.c      ****                         FUNÇÕES PARA DECIFRAR AS MENSAGENS CODIFICADAS
+ 119:Solver.c      **** ****************************************************************************************/
+ 120:Solver.c      **** static void solver_swap_line(uint16_t i1, uint16_t i2)
+ 121:Solver.c      **** {
+ 122:Solver.c      ****     uint16_t j, k;
+ 123:Solver.c      **** 
+ 124:Solver.c      ****     for (j = i1; j <= N_MOTES_MAX; j++)	// Pode ser reduzido para o número de nodos conectados????
+ 125:Solver.c      ****     {
+ 126:Solver.c      ****         k								= matrix[i1][j];
+ 127:Solver.c      ****         matrix[i1][j]					= matrix[i2][j];
+ 128:Solver.c      ****         matrix[i2][j]					= k;
+ 129:Solver.c      ****     }
+ 130:Solver.c      **** 
+ 131:Solver.c      ****     for (j = 0; j < MSG_SIZE_MAX; j++)// Pode ser reduzido para o tamanho da mensagens????
+ 132:Solver.c      ****     {
+ 133:Solver.c      ****         k								= combination[i1][j];
+ 134:Solver.c      ****         combination[i1][j]				= combination[i2][j];
+ 135:Solver.c      ****         combination[i2][j]				= k;
+ 136:Solver.c      ****     }
+ 137:Solver.c      **** }
+ 138:Solver.c      **** // parte do escalonamento
+ 139:Solver.c      **** static void solver_combine_line(uint8_t c, uint16_t i1, uint16_t i2)
+ 140:Solver.c      **** {
+ 141:Solver.c      ****     uint16_t j;
+ 142:Solver.c      **** 
+ 143:Solver.c      ****     for (j = i1; j <= N_MOTES_MAX; j++)
+ 144:Solver.c      **** 	{
+ 145:Solver.c      ****         matrix[i2][j]					^= solver_mult(c, matrix[i1][j]);
+ 146:Solver.c      **** 	}
+ 147:Solver.c      **** 
+ 148:Solver.c      ****     for (j = 0; j < MSG_SIZE_MAX; j++)
+ 149:Solver.c      **** 	{
+ 150:Solver.c      ****         combination[i2][j]				^= solver_mult(c, combination[i1][j]);
+ 151:Solver.c      **** 	}
+ 152:Solver.c      **** }
+ 153:Solver.c      **** // reduz a ordem da matriz, apos a resolucao de uma mensagem
+ 154:Solver.c      **** static void solver_clear_column(uint16_t row, uint16_t col)
+ 155:Solver.c      **** {
+ 156:Solver.c      ****     uint16_t i;
+ 157:Solver.c      **** 
+ 158:Solver.c      ****     for (i = row + 1; i < n_equations; i++)
+ 159:Solver.c      **** 	{
+ 160:Solver.c      ****         if (matrix[i][col] > 0)
+ 161:Solver.c      **** 		{
+ 162:Solver.c      **** 			solver_combine_line(solver_mult(solver_inv(matrix[row][col]), matrix[i][col]), row, i);
+ 163:Solver.c      **** 		}
+ 164:Solver.c      **** 	}
+ 165:Solver.c      **** }
+ 166:Solver.c      **** //resolve o escalonamento
+ 167:Solver.c      **** int solver_solve_system(void)
+ 168:Solver.c      **** {
+ 169:Solver.c      **** 	if(n_colaborative == 0)
+ 170:Solver.c      **** 		return(0);
+ 171:Solver.c      **** 		
+ 172:Solver.c      **** 	n_equations							= n_colaborative;
+ 173:Solver.c      **** 
+ 174:Solver.c      ****     // buffer_msg = estrutura: linha: endereco do nodo,coluna: os bytes da msg.
+ 175:Solver.c      **** 
+ 176:Solver.c      **** 	int8_t i;
+ 177:Solver.c      ****     uint8_t j, k, notrec_mote, cont, row, sucesso;
+ 178:Solver.c      ****     //Define a listagem de vizinhanca (mensagens recebidas) de determinado nodo cooperante. É uma l
+ 179:Solver.c      ****     //o nodo recebeu a primeira mensagem da tranmissão seta o bit para 1, se não, seta para zero.
+ 180:Solver.c      **** 
+ 181:Solver.c      ****     //RETIRA DA MATRIZ OS ELEMENTOS JÁ CONHECIDOS
+ 182:Solver.c      **** 	//for (j = 0, row = 0; j < N_MOTES_MAX; j++) (NOS TESTES ESTA ASSIM, NO OMNET+ J==2)????
+ 183:Solver.c      ****     for (j = 0; j < N_MOTES_MAX; j++)
+ 184:Solver.c      ****     {
+ 185:Solver.c      ****         if (received[j] != SOLVER_MSG_NONE)
+ 186:Solver.c      **** 		{
+ 187:Solver.c      ****             //EV << "[Conferencia] retirando elemento conhecido da matriz: " << j << endl;
+ 188:Solver.c      ****             for (i = 0; i < n_equations; i++)
+ 189:Solver.c      **** 			{
+ 190:Solver.c      ****                 if (matrix[i][j] > 0)
+ 191:Solver.c      ****                 {
+ 192:Solver.c      ****                     for (k = 0; k < MSG_SIZE_MAX; k++)
+ 193:Solver.c      **** 					{
+ 194:Solver.c      ****                         combination[i][k]	^= solver_mult(matrix[i][j], buffer_msg[j][k]); //matrix[
+ 195:Solver.c      **** 					}
+ 196:Solver.c      ****                     matrix[i][j] = 0;
+ 197:Solver.c      ****                 }
+ 198:Solver.c      **** 			}
+ 199:Solver.c      ****         }
+ 200:Solver.c      ****     }
+ 201:Solver.c      **** 
+ 202:Solver.c      ****     //FAZ O ESCALONAMENTO DA MATRIZ
+ 203:Solver.c      **** 	//for (j = 0, row = 0; j < N_MOTES_MAX; j++) (NOS TESTES ESTA ASSIM, NO OMNET+ J==2)????
+ 204:Solver.c      ****     for (j = 0, row = 0; j < N_MOTES_MAX; j++)
+ 205:Solver.c      ****     {
+ 206:Solver.c      ****         i								= row;
+ 207:Solver.c      ****         if (matrix[i][j] > 0)
+ 208:Solver.c      ****         {
+ 209:Solver.c      ****             solver_clear_column(row, j);
+ 210:Solver.c      ****             ++row;
+ 211:Solver.c      ****         }
+ 212:Solver.c      ****         else
+ 213:Solver.c      ****         {
+ 214:Solver.c      ****             for (++i; i < n_equations; ++i)
+ 215:Solver.c      **** 			{
+ 216:Solver.c      ****                 if (matrix[i][j] > 0)
+ 217:Solver.c      ****                 {
+ 218:Solver.c      ****                     solver_swap_line(row, i);
+ 219:Solver.c      ****                     solver_clear_column(row, j);
+ 220:Solver.c      ****                     
+ 221:Solver.c      **** 					++row;
+ 222:Solver.c      ****                     break;
+ 223:Solver.c      ****                 }
+ 224:Solver.c      **** 			}
+ 225:Solver.c      ****         }
+ 226:Solver.c      ****     }
+ 227:Solver.c      **** 	
+ 228:Solver.c      ****     //ENCONTRA AS INCÓGNITAS POSSÍVEIS DE DECIFRAR
+ 229:Solver.c      **** 	sucesso = 0;
+ 230:Solver.c      ****     for (i = n_equations - 1; i >= 0; i--)
+ 231:Solver.c      ****     {
+ 232:Solver.c      ****         cont = 0;
+ 233:Solver.c      **** 		//for (j = 0; j < N_MESSAGES; j++) (TESTES, OMNET++ j ==2?????)
+ 234:Solver.c      ****         for (j = 0; j < N_MOTES_MAX; j++)
+ 235:Solver.c      **** 		{
+ 236:Solver.c      ****             if (matrix[i][j] > 0)
+ 237:Solver.c      ****             {
+ 238:Solver.c      ****                 cont++;
+ 239:Solver.c      ****                 notrec_mote = j;
+ 240:Solver.c      ****             }
+ 241:Solver.c      **** 		}
+ 242:Solver.c      **** 
+ 243:Solver.c      ****         if (cont == 0)
+ 244:Solver.c      **** 		{
+ 245:Solver.c      **** 			n_equations--;
+ 246:Solver.c      **** 		}
+ 247:Solver.c      ****         else if (cont == 1)         //RESOLVE A INCÓGNITA ENCONTRADA
+ 248:Solver.c      ****         {
+ 249:Solver.c      ****             for (k = 0; k < MSG_SIZE_MAX; k++)
+ 250:Solver.c      **** 			{
+ 251:Solver.c      **** 				buffer_msg[notrec_mote][k] = solver_mult(solver_inv(matrix[i][notrec_mote]), combination[i][k])
+ 252:Solver.c      **** 			}
+ 253:Solver.c      **** 			
+ 254:Solver.c      ****             //EV << "[Conferencia] mensagem decodificada : " << notrec_mote << endl;
+ 255:Solver.c      ****             received[notrec_mote] = SOLVER_MSG_DECODED;
+ 256:Solver.c      ****             --n_equations;
+ 257:Solver.c      ****             ++sucesso;  // Aqui deve-se contabilizar o sucesso na decodificacao das MSG.
+ 258:Solver.c      **** 
+ 259:Solver.c      ****             for (i = 0; i < n_equations; i++)
+ 260:Solver.c      **** 			{
+ 261:Solver.c      ****                 if (matrix[i][notrec_mote] > 0)
+ 262:Solver.c      ****                 {
+ 263:Solver.c      ****                     for (k = 0; k < MSG_SIZE_MAX; k++)
+ 264:Solver.c      **** 					{
+ 265:Solver.c      **** 						combination[i][k] ^= solver_mult(matrix[i][notrec_mote], buffer_msg[notrec_mote][k]);
+ 266:Solver.c      **** 					}
+ 267:Solver.c      **** 					
+ 268:Solver.c      ****                     matrix[i][notrec_mote] = 0;
+ 269:Solver.c      ****                 }
+ 270:Solver.c      **** 			}
+ 271:Solver.c      ****         }
+ 272:Solver.c      ****         else
+ 273:Solver.c      **** 		{
+ 274:Solver.c      **** 			break;
+ 275:Solver.c      **** 		}
+ 276:Solver.c      ****     }
+ 277:Solver.c      **** 
+ 278:Solver.c      ****     return sucesso;
+ 279:Solver.c      **** }
+ 280:Solver.c      **** #else
+ 281:Solver.c      **** /****************************************************************************************
+ 282:Solver.c      ****                 CODIFICAÇÃO E ENVIO DE RETRANSMISSÃO
+ 283:Solver.c      **** ****************************************************************************************/
+ 284:Solver.c      **** //codifica, constroi e transmite mensagens
+ 285:Solver.c      **** void solver_encode_messages(AppMessageFrame_t* frame)
+ 286:Solver.c      **** {
+ 309               		.loc 1 286 0
+ 310               		.cfi_startproc
+ 311 010a CF93      		push r28
+ 312               	.LCFI13:
+ 313               		.cfi_def_cfa_offset 3
+ 314               		.cfi_offset 28, -2
+ 315 010c DF93      		push r29
+ 316               	.LCFI14:
+ 317               		.cfi_def_cfa_offset 4
+ 318               		.cfi_offset 29, -3
+ 319 010e CDB7      		in r28,__SP_L__
+ 320 0110 DEB7      		in r29,__SP_H__
+ 321               	.LCFI15:
+ 322               		.cfi_def_cfa_register 28
+ 323 0112 2897      		sbiw r28,8
+ 324               	.LCFI16:
+ 325               		.cfi_def_cfa_offset 12
+ 326 0114 0FB6      		in __tmp_reg__,__SREG__
+ 327 0116 F894      		cli
+ 328 0118 DEBF      		out __SP_H__,r29
+ 329 011a 0FBE      		out __SREG__,__tmp_reg__
+ 330 011c CDBF      		out __SP_L__,r28
+ 331               	/* prologue: function */
+ 332               	/* frame size = 8 */
+ 333               	/* stack size = 10 */
+ 334               	.L__stack_usage = 10
+ 335 011e 9887      		std Y+8,r25
+ 336 0120 8F83      		std Y+7,r24
+ 287:Solver.c      ****     // 1° para cada frame de algum vizinho recebido, codificar a msg byte a byte com a funcao mult.
+ 288:Solver.c      ****     // Os parametros sao posicao do nodo retransmissor na retransmissao + endereco do vizinho.
+ 289:Solver.c      ****     // Cada vizinho tera a sua msg codificada no formato de um vetor de byte.
+ 290:Solver.c      **** 	//
+ 291:Solver.c      ****     // 2° fazer o xor de todas as msgs codificadas.
+ 292:Solver.c      **** 
+ 293:Solver.c      **** 	memset(frame->collab.coefficients, 0x00, N_MOTES_MAX);
+ 337               		.loc 1 293 0
+ 338 0122 8F81      		ldd r24,Y+7
+ 339 0124 9885      		ldd r25,Y+8
+ 340 0126 0196      		adiw r24,1
+ 341 0128 4FE0      		ldi r20,lo8(15)
+ 342 012a 50E0      		ldi r21,0
+ 343 012c 60E0      		ldi r22,0
+ 344 012e 70E0      		ldi r23,0
+ 345 0130 0E94 0000 		call memset
+ 294:Solver.c      **** 	memset(frame->collab.data_vector, 0x00, MSG_SIZE_MAX);
+ 346               		.loc 1 294 0
+ 347 0134 8F81      		ldd r24,Y+7
+ 348 0136 9885      		ldd r25,Y+8
+ 349 0138 4096      		adiw r24,16
+ 350 013a 40E4      		ldi r20,lo8(64)
+ 351 013c 50E0      		ldi r21,0
+ 352 013e 60E0      		ldi r22,0
+ 353 0140 70E0      		ldi r23,0
+ 354 0142 0E94 0000 		call memset
+ 295:Solver.c      **** 
+ 296:Solver.c      ****     uint8_t coef											= COEFICIENT_BASE + slotNumber;
+ 355               		.loc 1 296 0
+ 356 0146 8091 0000 		lds r24,slotNumber
+ 357 014a 805D      		subi r24,lo8(-(48))
+ 358 014c 8983      		std Y+1,r24
+ 359               	.LBB2:
+ 297:Solver.c      ****     for (int i = 0; i < N_MOTES_MAX; i++)
+ 360               		.loc 1 297 0
+ 361 014e 1B82      		std Y+3,__zero_reg__
+ 362 0150 1A82      		std Y+2,__zero_reg__
+ 363 0152 00C0      		rjmp .L15
+ 364               	.L19:
+ 298:Solver.c      ****     {
+ 299:Solver.c      **** 	    if (received[i] == SOLVER_MSG_RECEIVED)
+ 365               		.loc 1 299 0
+ 366 0154 8A81      		ldd r24,Y+2
+ 367 0156 9B81      		ldd r25,Y+3
+ 368 0158 8050      		subi r24,lo8(-(received))
+ 369 015a 9040      		sbci r25,hi8(-(received))
+ 370 015c FC01      		movw r30,r24
+ 371 015e 8081      		ld r24,Z
+ 372 0160 8130      		cpi r24,lo8(1)
+ 373 0162 01F0      		breq .+2
+ 374 0164 00C0      		rjmp .L16
+ 375               	.LBB3:
+ 300:Solver.c      **** 	    {
+ 301:Solver.c      **** 			frame->collab.coefficients[i]					= coef;				// slotNumber == posição de retransmissão,
+ 376               		.loc 1 301 0
+ 377 0166 2F81      		ldd r18,Y+7
+ 378 0168 3885      		ldd r19,Y+8
+ 379 016a 8A81      		ldd r24,Y+2
+ 380 016c 9B81      		ldd r25,Y+3
+ 381 016e 820F      		add r24,r18
+ 382 0170 931F      		adc r25,r19
+ 383 0172 0196      		adiw r24,1
+ 384 0174 2981      		ldd r18,Y+1
+ 385 0176 FC01      		movw r30,r24
+ 386 0178 2083      		st Z,r18
+ 387               	.LBB4:
+ 302:Solver.c      **** 																				// i == Endereço do Nodo indexado a partir de zero (nodo_1 é 0)
+ 303:Solver.c      **** 			uint8_t byte;
+ 304:Solver.c      **** 			for(int j = 0; j < MSG_SIZE_MAX; j++)
+ 388               		.loc 1 304 0
+ 389 017a 1D82      		std Y+5,__zero_reg__
+ 390 017c 1C82      		std Y+4,__zero_reg__
+ 391 017e 00C0      		rjmp .L17
+ 392               	.L18:
+ 305:Solver.c      **** 			{
+ 306:Solver.c      **** 				// 1°
+ 307:Solver.c      **** 				byte										= solver_mult(frame->collab.coefficients[i], buffer_msg[i][j]);
+ 393               		.loc 1 307 0 discriminator 3
+ 394 0180 8A81      		ldd r24,Y+2
+ 395 0182 9B81      		ldd r25,Y+3
+ 396 0184 9C01      		movw r18,r24
+ 397 0186 0024      		clr __tmp_reg__
+ 398 0188 3695      		lsr r19
+ 399 018a 2795      		ror r18
+ 400 018c 0794      		ror __tmp_reg__
+ 401 018e 3695      		lsr r19
+ 402 0190 2795      		ror r18
+ 403 0192 0794      		ror __tmp_reg__
+ 404 0194 322F      		mov r19,r18
+ 405 0196 202D      		mov r18,__tmp_reg__
+ 406 0198 8C81      		ldd r24,Y+4
+ 407 019a 9D81      		ldd r25,Y+5
+ 408 019c 820F      		add r24,r18
+ 409 019e 931F      		adc r25,r19
+ 410 01a0 8050      		subi r24,lo8(-(buffer_msg))
+ 411 01a2 9040      		sbci r25,hi8(-(buffer_msg))
+ 412 01a4 FC01      		movw r30,r24
+ 413 01a6 4081      		ld r20,Z
+ 414 01a8 2F81      		ldd r18,Y+7
+ 415 01aa 3885      		ldd r19,Y+8
+ 416 01ac 8A81      		ldd r24,Y+2
+ 417 01ae 9B81      		ldd r25,Y+3
+ 418 01b0 820F      		add r24,r18
+ 419 01b2 931F      		adc r25,r19
+ 420 01b4 0196      		adiw r24,1
+ 421 01b6 FC01      		movw r30,r24
+ 422 01b8 8081      		ld r24,Z
+ 423 01ba 642F      		mov r22,r20
+ 424 01bc 0E94 0000 		call solver_mult
+ 425 01c0 8E83      		std Y+6,r24
+ 308:Solver.c      **** 
+ 309:Solver.c      **** 				// 2°
+ 310:Solver.c      **** 				frame->collab.data_vector[j]				^= byte;
+ 426               		.loc 1 310 0 discriminator 3
+ 427 01c2 2F81      		ldd r18,Y+7
+ 428 01c4 3885      		ldd r19,Y+8
+ 429 01c6 8C81      		ldd r24,Y+4
+ 430 01c8 9D81      		ldd r25,Y+5
+ 431 01ca 820F      		add r24,r18
+ 432 01cc 931F      		adc r25,r19
+ 433 01ce 4096      		adiw r24,16
+ 434 01d0 FC01      		movw r30,r24
+ 435 01d2 9081      		ld r25,Z
+ 436 01d4 8E81      		ldd r24,Y+6
+ 437 01d6 492F      		mov r20,r25
+ 438 01d8 4827      		eor r20,r24
+ 439 01da 2F81      		ldd r18,Y+7
+ 440 01dc 3885      		ldd r19,Y+8
+ 441 01de 8C81      		ldd r24,Y+4
+ 442 01e0 9D81      		ldd r25,Y+5
+ 443 01e2 820F      		add r24,r18
+ 444 01e4 931F      		adc r25,r19
+ 445 01e6 4096      		adiw r24,16
+ 446 01e8 FC01      		movw r30,r24
+ 447 01ea 4083      		st Z,r20
+ 304:Solver.c      **** 			{
+ 448               		.loc 1 304 0 discriminator 3
+ 449 01ec 8C81      		ldd r24,Y+4
+ 450 01ee 9D81      		ldd r25,Y+5
+ 451 01f0 0196      		adiw r24,1
+ 452 01f2 9D83      		std Y+5,r25
+ 453 01f4 8C83      		std Y+4,r24
+ 454               	.L17:
+ 304:Solver.c      **** 			{
+ 455               		.loc 1 304 0 is_stmt 0 discriminator 1
+ 456 01f6 8C81      		ldd r24,Y+4
+ 457 01f8 9D81      		ldd r25,Y+5
+ 458 01fa 8034      		cpi r24,64
+ 459 01fc 9105      		cpc r25,__zero_reg__
+ 460 01fe 04F4      		brge .+2
+ 461 0200 00C0      		rjmp .L18
+ 462               	.LBE4:
+ 311:Solver.c      **** 			}
+ 312:Solver.c      **** 
+ 313:Solver.c      **** 			++coef;
+ 463               		.loc 1 313 0 is_stmt 1
+ 464 0202 8981      		ldd r24,Y+1
+ 465 0204 8F5F      		subi r24,lo8(-(1))
+ 466 0206 8983      		std Y+1,r24
+ 467               	.L16:
+ 468               	.LBE3:
+ 297:Solver.c      ****     {
+ 469               		.loc 1 297 0 discriminator 2
+ 470 0208 8A81      		ldd r24,Y+2
+ 471 020a 9B81      		ldd r25,Y+3
+ 472 020c 0196      		adiw r24,1
+ 473 020e 9B83      		std Y+3,r25
+ 474 0210 8A83      		std Y+2,r24
+ 475               	.L15:
+ 297:Solver.c      ****     {
+ 476               		.loc 1 297 0 is_stmt 0 discriminator 1
+ 477 0212 8A81      		ldd r24,Y+2
+ 478 0214 9B81      		ldd r25,Y+3
+ 479 0216 0F97      		sbiw r24,15
+ 480 0218 04F4      		brge .+2
+ 481 021a 00C0      		rjmp .L19
+ 482               	.LBE2:
+ 314:Solver.c      **** 		}
+ 315:Solver.c      ****     }
+ 316:Solver.c      **** }
+ 483               		.loc 1 316 0 is_stmt 1
+ 484 021c 0000      		nop
+ 485               	/* epilogue start */
+ 486 021e 2896      		adiw r28,8
+ 487 0220 0FB6      		in __tmp_reg__,__SREG__
+ 488 0222 F894      		cli
+ 489 0224 DEBF      		out __SP_H__,r29
+ 490 0226 0FBE      		out __SREG__,__tmp_reg__
+ 491 0228 CDBF      		out __SP_L__,r28
+ 492 022a DF91      		pop r29
+ 493 022c CF91      		pop r28
+ 494 022e 0895      		ret
+ 495               		.cfi_endproc
+ 496               	.LFE70:
+ 498               	.global	solver_set_collab_device
+ 500               	solver_set_collab_device:
+ 501               	.LFB71:
+ 317:Solver.c      **** void solver_set_collab_device(uint8_t slot)
+ 318:Solver.c      **** {
+ 502               		.loc 1 318 0
+ 503               		.cfi_startproc
+ 504 0230 CF93      		push r28
+ 505               	.LCFI17:
+ 506               		.cfi_def_cfa_offset 3
+ 507               		.cfi_offset 28, -2
+ 508 0232 DF93      		push r29
+ 509               	.LCFI18:
+ 510               		.cfi_def_cfa_offset 4
+ 511               		.cfi_offset 29, -3
+ 512 0234 1F92      		push __zero_reg__
+ 513               	.LCFI19:
+ 514               		.cfi_def_cfa_offset 5
+ 515 0236 CDB7      		in r28,__SP_L__
+ 516 0238 DEB7      		in r29,__SP_H__
+ 517               	.LCFI20:
+ 518               		.cfi_def_cfa_register 28
+ 519               	/* prologue: function */
+ 520               	/* frame size = 1 */
+ 521               	/* stack size = 3 */
+ 522               	.L__stack_usage = 3
+ 523 023a 8983      		std Y+1,r24
+ 319:Solver.c      **** 	slotNumber					= slot;
+ 524               		.loc 1 319 0
+ 525 023c 8981      		ldd r24,Y+1
+ 526 023e 8093 0000 		sts slotNumber,r24
+ 320:Solver.c      **** }
+ 527               		.loc 1 320 0
+ 528 0242 0000      		nop
+ 529               	/* epilogue start */
+ 530 0244 0F90      		pop __tmp_reg__
+ 531 0246 DF91      		pop r29
+ 532 0248 CF91      		pop r28
+ 533 024a 0895      		ret
+ 534               		.cfi_endproc
+ 535               	.LFE71:
+ 537               	.global	solver_prepare_next_turn
+ 539               	solver_prepare_next_turn:
+ 540               	.LFB72:
+ 321:Solver.c      **** #endif
+ 322:Solver.c      **** 
+ 323:Solver.c      **** /****************************************************************************************
+ 324:Solver.c      ****                 IMPLEMENTAÇÃO REAL COM NODOS
+ 325:Solver.c      **** ****************************************************************************************/
+ 326:Solver.c      **** void solver_prepare_next_turn(void)
+ 327:Solver.c      **** {
+ 541               		.loc 1 327 0
+ 542               		.cfi_startproc
+ 543 024c CF93      		push r28
+ 544               	.LCFI21:
+ 545               		.cfi_def_cfa_offset 3
+ 546               		.cfi_offset 28, -2
+ 547 024e DF93      		push r29
+ 548               	.LCFI22:
+ 549               		.cfi_def_cfa_offset 4
+ 550               		.cfi_offset 29, -3
+ 551 0250 CDB7      		in r28,__SP_L__
+ 552 0252 DEB7      		in r29,__SP_H__
+ 553               	.LCFI23:
+ 554               		.cfi_def_cfa_register 28
+ 555               	/* prologue: function */
+ 556               	/* frame size = 0 */
+ 557               	/* stack size = 2 */
+ 558               	.L__stack_usage = 2
+ 328:Solver.c      **** 	n_colaborative				= 0;
+ 559               		.loc 1 328 0
+ 560 0254 1092 0000 		sts n_colaborative,__zero_reg__
+ 329:Solver.c      **** 	n_equations					= 0;
+ 561               		.loc 1 329 0
+ 562 0258 1092 0000 		sts n_equations,__zero_reg__
+ 330:Solver.c      **** 	n_received					= 0;
+ 563               		.loc 1 330 0
+ 564 025c 1092 0000 		sts n_received,__zero_reg__
+ 331:Solver.c      **** 
+ 332:Solver.c      **** 	memset(received, SOLVER_MSG_NONE, sizeof(received));
+ 565               		.loc 1 332 0
+ 566 0260 4FE0      		ldi r20,lo8(15)
+ 567 0262 50E0      		ldi r21,0
+ 568 0264 60E0      		ldi r22,0
+ 569 0266 70E0      		ldi r23,0
+ 570 0268 80E0      		ldi r24,lo8(received)
+ 571 026a 90E0      		ldi r25,hi8(received)
+ 572 026c 0E94 0000 		call memset
+ 333:Solver.c      **** 	memset(matrix, 0x00, sizeof(matrix));
+ 573               		.loc 1 333 0
+ 574 0270 41EE      		ldi r20,lo8(-31)
+ 575 0272 50E0      		ldi r21,0
+ 576 0274 60E0      		ldi r22,0
+ 577 0276 70E0      		ldi r23,0
+ 578 0278 80E0      		ldi r24,lo8(matrix)
+ 579 027a 90E0      		ldi r25,hi8(matrix)
+ 580 027c 0E94 0000 		call memset
+ 334:Solver.c      **** 	memset(combination, 0x00, sizeof(combination));
+ 581               		.loc 1 334 0
+ 582 0280 40EC      		ldi r20,lo8(-64)
+ 583 0282 53E0      		ldi r21,lo8(3)
+ 584 0284 60E0      		ldi r22,0
+ 585 0286 70E0      		ldi r23,0
+ 586 0288 80E0      		ldi r24,lo8(combination)
+ 587 028a 90E0      		ldi r25,hi8(combination)
+ 588 028c 0E94 0000 		call memset
+ 335:Solver.c      **** }
+ 589               		.loc 1 335 0
+ 590 0290 0000      		nop
+ 591               	/* epilogue start */
+ 592 0292 DF91      		pop r29
+ 593 0294 CF91      		pop r28
+ 594 0296 0895      		ret
+ 595               		.cfi_endproc
+ 596               	.LFE72:
+ 598               	.global	solver_received_data_frame
+ 600               	solver_received_data_frame:
+ 601               	.LFB73:
+ 336:Solver.c      **** 
+ 337:Solver.c      **** /*
+ 338:Solver.c      ****  * Para cada frame recebido, deve-se copiar os dados em buffer_msg e sinalizar em received
+ 339:Solver.c      ****  * qual o endereço do nodos que enviou os dados. Endereços são:
+ 340:Solver.c      ****  *	0 - Coordenador
+ 341:Solver.c      ****  *	1~N - Nodos
+ 342:Solver.c      ****  */
+ 343:Solver.c      **** void solver_received_data_frame(NWK_DataInd_t *ind)
+ 344:Solver.c      **** {
+ 602               		.loc 1 344 0
+ 603               		.cfi_startproc
+ 604 0298 CF93      		push r28
+ 605               	.LCFI24:
+ 606               		.cfi_def_cfa_offset 3
+ 607               		.cfi_offset 28, -2
+ 608 029a DF93      		push r29
+ 609               	.LCFI25:
+ 610               		.cfi_def_cfa_offset 4
+ 611               		.cfi_offset 29, -3
+ 612 029c 00D0      		rcall .
+ 613 029e 00D0      		rcall .
+ 614               	.LCFI26:
+ 615               		.cfi_def_cfa_offset 8
+ 616 02a0 CDB7      		in r28,__SP_L__
+ 617 02a2 DEB7      		in r29,__SP_H__
+ 618               	.LCFI27:
+ 619               		.cfi_def_cfa_register 28
+ 620               	/* prologue: function */
+ 621               	/* frame size = 4 */
+ 622               	/* stack size = 6 */
+ 623               	.L__stack_usage = 6
+ 624 02a4 9C83      		std Y+4,r25
+ 625 02a6 8B83      		std Y+3,r24
+ 345:Solver.c      **** 	// Sanity check!
+ 346:Solver.c      **** 	if(ind->srcAddr == 0 || ind->srcAddr >= N_MOTES_MAX)
+ 626               		.loc 1 346 0
+ 627 02a8 8B81      		ldd r24,Y+3
+ 628 02aa 9C81      		ldd r25,Y+4
+ 629 02ac FC01      		movw r30,r24
+ 630 02ae 8081      		ld r24,Z
+ 631 02b0 9181      		ldd r25,Z+1
+ 632 02b2 892B      		or r24,r25
+ 633 02b4 01F4      		brne .+2
+ 634 02b6 00C0      		rjmp .L26
+ 635               		.loc 1 346 0 is_stmt 0 discriminator 1
+ 636 02b8 8B81      		ldd r24,Y+3
+ 637 02ba 9C81      		ldd r25,Y+4
+ 638 02bc FC01      		movw r30,r24
+ 639 02be 8081      		ld r24,Z
+ 640 02c0 9181      		ldd r25,Z+1
+ 641 02c2 0F97      		sbiw r24,15
+ 642 02c4 00F4      		brsh .L26
+ 347:Solver.c      **** 		return;
+ 348:Solver.c      **** 
+ 349:Solver.c      **** 	AppMessageFrame_t*	frame_struct	= (AppMessageFrame_t*) ind->data;
+ 643               		.loc 1 349 0 is_stmt 1
+ 644 02c6 8B81      		ldd r24,Y+3
+ 645 02c8 9C81      		ldd r25,Y+4
+ 646 02ca FC01      		movw r30,r24
+ 647 02cc 8781      		ldd r24,Z+7
+ 648 02ce 9085      		ldd r25,Z+8
+ 649 02d0 9A83      		std Y+2,r25
+ 650 02d2 8983      		std Y+1,r24
+ 350:Solver.c      **** 
+ 351:Solver.c      **** 	if(frame_struct->frameType == MSG_STATE_DATA)
+ 651               		.loc 1 351 0
+ 652 02d4 8981      		ldd r24,Y+1
+ 653 02d6 9A81      		ldd r25,Y+2
+ 654 02d8 FC01      		movw r30,r24
+ 655 02da 8081      		ld r24,Z
+ 656 02dc 8130      		cpi r24,lo8(1)
+ 657 02de 01F4      		brne .L22
+ 352:Solver.c      **** 	{
+ 353:Solver.c      **** #if APP_COORDINATOR
+ 354:Solver.c      **** 		//if(ind->srcAddr == 1)
+ 355:Solver.c      **** 		//{
+ 356:Solver.c      **** 			++n_received;
+ 357:Solver.c      **** 			received[ind->srcAddr - 1]	= SOLVER_MSG_RECEIVED;
+ 358:Solver.c      **** 			memcpy(buffer_msg[ind->srcAddr - 1], frame_struct->data.data_vector, MSG_SIZE_MAX);			
+ 359:Solver.c      **** 		//}
+ 360:Solver.c      **** #else
+ 361:Solver.c      **** 		++n_received;
+ 658               		.loc 1 361 0
+ 659 02e0 8091 0000 		lds r24,n_received
+ 660 02e4 8F5F      		subi r24,lo8(-(1))
+ 661 02e6 8093 0000 		sts n_received,r24
+ 362:Solver.c      **** 		received[ind->srcAddr - 1]		= SOLVER_MSG_RECEIVED;
+ 662               		.loc 1 362 0
+ 663 02ea 8B81      		ldd r24,Y+3
+ 664 02ec 9C81      		ldd r25,Y+4
+ 665 02ee FC01      		movw r30,r24
+ 666 02f0 8081      		ld r24,Z
+ 667 02f2 9181      		ldd r25,Z+1
+ 668 02f4 0197      		sbiw r24,1
+ 669 02f6 8050      		subi r24,lo8(-(received))
+ 670 02f8 9040      		sbci r25,hi8(-(received))
+ 671 02fa 21E0      		ldi r18,lo8(1)
+ 672 02fc FC01      		movw r30,r24
+ 673 02fe 2083      		st Z,r18
+ 363:Solver.c      **** 		memcpy(buffer_msg[ind->srcAddr - 1], frame_struct->data.data_vector, MSG_SIZE_MAX);
+ 674               		.loc 1 363 0
+ 675 0300 8981      		ldd r24,Y+1
+ 676 0302 9A81      		ldd r25,Y+2
+ 677 0304 9C01      		movw r18,r24
+ 678 0306 2F5F      		subi r18,-1
+ 679 0308 3F4F      		sbci r19,-1
+ 680 030a 8B81      		ldd r24,Y+3
+ 681 030c 9C81      		ldd r25,Y+4
+ 682 030e FC01      		movw r30,r24
+ 683 0310 8081      		ld r24,Z
+ 684 0312 9181      		ldd r25,Z+1
+ 685 0314 0197      		sbiw r24,1
+ 686 0316 0024      		clr __tmp_reg__
+ 687 0318 9695      		lsr r25
+ 688 031a 8795      		ror r24
+ 689 031c 0794      		ror __tmp_reg__
+ 690 031e 9695      		lsr r25
+ 691 0320 8795      		ror r24
+ 692 0322 0794      		ror __tmp_reg__
+ 693 0324 982F      		mov r25,r24
+ 694 0326 802D      		mov r24,__tmp_reg__
+ 695 0328 8050      		subi r24,lo8(-(buffer_msg))
+ 696 032a 9040      		sbci r25,hi8(-(buffer_msg))
+ 697 032c 40E4      		ldi r20,lo8(64)
+ 698 032e 50E0      		ldi r21,0
+ 699 0330 B901      		movw r22,r18
+ 700 0332 0E94 0000 		call memcpy
+ 701 0336 00C0      		rjmp .L22
+ 702               	.L26:
+ 347:Solver.c      **** 
+ 703               		.loc 1 347 0
+ 704 0338 0000      		nop
+ 705               	.L22:
+ 706               	/* epilogue start */
+ 364:Solver.c      **** #endif
+ 365:Solver.c      **** 	}
+ 366:Solver.c      **** #if APP_COORDINATOR
+ 367:Solver.c      **** 	else if(frame_struct->frameType == MSG_STATE_ENCODED_DATA)
+ 368:Solver.c      **** 	{
+ 369:Solver.c      **** 		// Montar a matrix de coeficientes, a cada retransmissao e uma linha.
+ 370:Solver.c      **** 		// Montar o combination1 a cada retransmissao e uma linha. (composicao: payload msg codificadas).
+ 371:Solver.c      **** 		// Deve-se chamar Codificador::solve_system() a cada recebimento de retranmissao, ja que, o siste
+ 372:Solver.c      **** 		// se pode ou nao extrair uma das incognitas.
+ 373:Solver.c      **** 
+ 374:Solver.c      **** 		memcpy(matrix[n_colaborative], frame_struct->collab.coefficients, N_MOTES_MAX);      
+ 375:Solver.c      **** 		memcpy(combination[n_colaborative], frame_struct->collab.data_vector, MSG_SIZE_MAX);
+ 376:Solver.c      **** 		++n_colaborative;
+ 377:Solver.c      **** 	}
+ 378:Solver.c      **** #endif
+ 379:Solver.c      **** }
+ 707               		.loc 1 379 0
+ 708 033a 0F90      		pop __tmp_reg__
+ 709 033c 0F90      		pop __tmp_reg__
+ 710 033e 0F90      		pop __tmp_reg__
+ 711 0340 0F90      		pop __tmp_reg__
+ 712 0342 DF91      		pop r29
+ 713 0344 CF91      		pop r28
+ 714 0346 0895      		ret
+ 715               		.cfi_endproc
+ 716               	.LFE73:
+ 718               	.global	solver_set_data_frame
+ 720               	solver_set_data_frame:
+ 721               	.LFB74:
+ 380:Solver.c      **** void solver_set_data_frame(uint8_t address, AppMessageFrame_t *frame_struct)
+ 381:Solver.c      **** {
+ 722               		.loc 1 381 0
+ 723               		.cfi_startproc
+ 724 0348 CF93      		push r28
+ 725               	.LCFI28:
+ 726               		.cfi_def_cfa_offset 3
+ 727               		.cfi_offset 28, -2
+ 728 034a DF93      		push r29
+ 729               	.LCFI29:
+ 730               		.cfi_def_cfa_offset 4
+ 731               		.cfi_offset 29, -3
+ 732 034c 00D0      		rcall .
+ 733 034e 1F92      		push __zero_reg__
+ 734               	.LCFI30:
+ 735               		.cfi_def_cfa_offset 7
+ 736 0350 CDB7      		in r28,__SP_L__
+ 737 0352 DEB7      		in r29,__SP_H__
+ 738               	.LCFI31:
+ 739               		.cfi_def_cfa_register 28
+ 740               	/* prologue: function */
+ 741               	/* frame size = 3 */
+ 742               	/* stack size = 5 */
+ 743               	.L__stack_usage = 5
+ 744 0354 8983      		std Y+1,r24
+ 745 0356 7B83      		std Y+3,r23
+ 746 0358 6A83      		std Y+2,r22
+ 382:Solver.c      **** 	++n_received;
+ 747               		.loc 1 382 0
+ 748 035a 8091 0000 		lds r24,n_received
+ 749 035e 8F5F      		subi r24,lo8(-(1))
+ 750 0360 8093 0000 		sts n_received,r24
+ 383:Solver.c      **** 	received[address - 1]				= SOLVER_MSG_RECEIVED;
+ 751               		.loc 1 383 0
+ 752 0364 8981      		ldd r24,Y+1
+ 753 0366 882F      		mov r24,r24
+ 754 0368 90E0      		ldi r25,0
+ 755 036a 0197      		sbiw r24,1
+ 756 036c 8050      		subi r24,lo8(-(received))
+ 757 036e 9040      		sbci r25,hi8(-(received))
+ 758 0370 21E0      		ldi r18,lo8(1)
+ 759 0372 FC01      		movw r30,r24
+ 760 0374 2083      		st Z,r18
+ 384:Solver.c      **** 	memcpy(buffer_msg[address - 1], frame_struct->data.data_vector, MSG_SIZE_MAX);	
+ 761               		.loc 1 384 0
+ 762 0376 8A81      		ldd r24,Y+2
+ 763 0378 9B81      		ldd r25,Y+3
+ 764 037a 9C01      		movw r18,r24
+ 765 037c 2F5F      		subi r18,-1
+ 766 037e 3F4F      		sbci r19,-1
+ 767 0380 8981      		ldd r24,Y+1
+ 768 0382 882F      		mov r24,r24
+ 769 0384 90E0      		ldi r25,0
+ 770 0386 0197      		sbiw r24,1
+ 771 0388 0024      		clr __tmp_reg__
+ 772 038a 9695      		lsr r25
+ 773 038c 8795      		ror r24
+ 774 038e 0794      		ror __tmp_reg__
+ 775 0390 9695      		lsr r25
+ 776 0392 8795      		ror r24
+ 777 0394 0794      		ror __tmp_reg__
+ 778 0396 982F      		mov r25,r24
+ 779 0398 802D      		mov r24,__tmp_reg__
+ 780 039a 8050      		subi r24,lo8(-(buffer_msg))
+ 781 039c 9040      		sbci r25,hi8(-(buffer_msg))
+ 782 039e 40E4      		ldi r20,lo8(64)
+ 783 03a0 50E0      		ldi r21,0
+ 784 03a2 B901      		movw r22,r18
+ 785 03a4 0E94 0000 		call memcpy
+ 385:Solver.c      **** }
+ 786               		.loc 1 385 0
+ 787 03a8 0000      		nop
+ 788               	/* epilogue start */
+ 789 03aa 0F90      		pop __tmp_reg__
+ 790 03ac 0F90      		pop __tmp_reg__
+ 791 03ae 0F90      		pop __tmp_reg__
+ 792 03b0 DF91      		pop r29
+ 793 03b2 CF91      		pop r28
+ 794 03b4 0895      		ret
+ 795               		.cfi_endproc
+ 796               	.LFE74:
+ 798               	.Letext0:
+ 799               		.file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 800               		.file 3 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
+ 801               		.file 4 "Solver.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 Solver.c
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:2      *ABS*:0000003e __SP_H__
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:3      *ABS*:0000003d __SP_L__
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:4      *ABS*:0000003f __SREG__
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:14     .bss.n_received:00000000 n_received
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:19     .bss.received:00000000 received
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:24     .bss.n_colaborative:00000000 n_colaborative
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:29     .bss.buffer_msg:00000000 buffer_msg
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:34     .bss.n_equations:00000000 n_equations
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:39     .bss.matrix:00000000 matrix
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:44     .bss.combination:00000000 combination
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:49     .bss.slotNumber:00000000 slotNumber
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:54     .text:00000000 solver_init
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:88     .text:00000014 solver_get_n_received
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:120    .text:00000026 solver_get_n_colaborative
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:151    .text:00000038 solver_mult
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:307    .text:0000010a solver_encode_messages
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:500    .text:00000230 solver_set_collab_device
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:539    .text:0000024c solver_prepare_next_turn
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:600    .text:00000298 solver_received_data_frame
+C:\Users\guilh\AppData\Local\Temp\ccOwVTdh.s:720    .text:00000348 solver_set_data_frame
+
+UNDEFINED SYMBOLS
+memset
+memcpy
+__do_clear_bss

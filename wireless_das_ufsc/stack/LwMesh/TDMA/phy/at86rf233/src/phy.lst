@@ -1,0 +1,2971 @@
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "phy.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .text
+  27              	 .align 1
+  28              	 .syntax unified
+  29              	 .thumb
+  30              	 .thumb_func
+  31              	 .fpu softvfp
+  33              	ioport_set_pin_level:
+  34              	.LFB213:
+  35              	 .file 1 "../../../platform/common/services/ioport/ioport.h"
+   1:../../../platform/common/services/ioport/ioport.h **** /**
+   2:../../../platform/common/services/ioport/ioport.h ****  * \file
+   3:../../../platform/common/services/ioport/ioport.h ****  *
+   4:../../../platform/common/services/ioport/ioport.h ****  * \brief Common IOPORT service main header file for AVR, UC3 and ARM
+   5:../../../platform/common/services/ioport/ioport.h ****  *        architectures.
+   6:../../../platform/common/services/ioport/ioport.h ****  *
+   7:../../../platform/common/services/ioport/ioport.h ****  * Copyright (c) 2012 Atmel Corporation. All rights reserved.
+   8:../../../platform/common/services/ioport/ioport.h ****  *
+   9:../../../platform/common/services/ioport/ioport.h ****  * \asf_license_start
+  10:../../../platform/common/services/ioport/ioport.h ****  *
+  11:../../../platform/common/services/ioport/ioport.h ****  * \page License
+  12:../../../platform/common/services/ioport/ioport.h ****  *
+  13:../../../platform/common/services/ioport/ioport.h ****  * Redistribution and use in source and binary forms, with or without
+  14:../../../platform/common/services/ioport/ioport.h ****  * modification, are permitted provided that the following conditions are met:
+  15:../../../platform/common/services/ioport/ioport.h ****  *
+  16:../../../platform/common/services/ioport/ioport.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  17:../../../platform/common/services/ioport/ioport.h ****  *    this list of conditions and the following disclaimer.
+  18:../../../platform/common/services/ioport/ioport.h ****  *
+  19:../../../platform/common/services/ioport/ioport.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  20:../../../platform/common/services/ioport/ioport.h ****  *    this list of conditions and the following disclaimer in the documentation
+  21:../../../platform/common/services/ioport/ioport.h ****  *    and/or other materials provided with the distribution.
+  22:../../../platform/common/services/ioport/ioport.h ****  *
+  23:../../../platform/common/services/ioport/ioport.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  24:../../../platform/common/services/ioport/ioport.h ****  *    from this software without specific prior written permission.
+  25:../../../platform/common/services/ioport/ioport.h ****  *
+  26:../../../platform/common/services/ioport/ioport.h ****  * 4. This software may only be redistributed and used in connection with an
+  27:../../../platform/common/services/ioport/ioport.h ****  *    Atmel microcontroller product.
+  28:../../../platform/common/services/ioport/ioport.h ****  *
+  29:../../../platform/common/services/ioport/ioport.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  30:../../../platform/common/services/ioport/ioport.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  31:../../../platform/common/services/ioport/ioport.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  32:../../../platform/common/services/ioport/ioport.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  33:../../../platform/common/services/ioport/ioport.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  34:../../../platform/common/services/ioport/ioport.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  35:../../../platform/common/services/ioport/ioport.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  36:../../../platform/common/services/ioport/ioport.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  37:../../../platform/common/services/ioport/ioport.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  38:../../../platform/common/services/ioport/ioport.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  39:../../../platform/common/services/ioport/ioport.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  40:../../../platform/common/services/ioport/ioport.h ****  *
+  41:../../../platform/common/services/ioport/ioport.h ****  * \asf_license_stop
+  42:../../../platform/common/services/ioport/ioport.h ****  *
+  43:../../../platform/common/services/ioport/ioport.h ****  */
+  44:../../../platform/common/services/ioport/ioport.h **** #ifndef IOPORT_H
+  45:../../../platform/common/services/ioport/ioport.h **** #define IOPORT_H
+  46:../../../platform/common/services/ioport/ioport.h **** 
+  47:../../../platform/common/services/ioport/ioport.h **** #ifdef __cplusplus
+  48:../../../platform/common/services/ioport/ioport.h **** extern "C" {
+  49:../../../platform/common/services/ioport/ioport.h **** #endif
+  50:../../../platform/common/services/ioport/ioport.h **** 
+  51:../../../platform/common/services/ioport/ioport.h **** #include <parts.h>
+  52:../../../platform/common/services/ioport/ioport.h **** #include <compiler.h>
+  53:../../../platform/common/services/ioport/ioport.h **** 
+  54:../../../platform/common/services/ioport/ioport.h **** /**
+  55:../../../platform/common/services/ioport/ioport.h ****  * \defgroup ioport_group Common IOPORT API
+  56:../../../platform/common/services/ioport/ioport.h ****  *
+  57:../../../platform/common/services/ioport/ioport.h ****  * See \ref ioport_quickstart.
+  58:../../../platform/common/services/ioport/ioport.h ****  *
+  59:../../../platform/common/services/ioport/ioport.h ****  * This is common IOPORT service for GPIO pin configuration and control in a
+  60:../../../platform/common/services/ioport/ioport.h ****  * standardized manner across the MEGA, MEGA_RF, XMEGA, UC3 and ARM devices.
+  61:../../../platform/common/services/ioport/ioport.h ****  *
+  62:../../../platform/common/services/ioport/ioport.h ****  * Port pin control code is optimized for each platform, and should produce
+  63:../../../platform/common/services/ioport/ioport.h ****  * both compact and fast execution times when used with constant values.
+  64:../../../platform/common/services/ioport/ioport.h ****  *
+  65:../../../platform/common/services/ioport/ioport.h ****  * \section dependencies Dependencies
+  66:../../../platform/common/services/ioport/ioport.h ****  * This driver depends on the following modules:
+  67:../../../platform/common/services/ioport/ioport.h ****  * - \ref sysclk_group for clock speed and functions.
+  68:../../../platform/common/services/ioport/ioport.h ****  * @{
+  69:../../../platform/common/services/ioport/ioport.h ****  */
+  70:../../../platform/common/services/ioport/ioport.h **** 
+  71:../../../platform/common/services/ioport/ioport.h **** /**
+  72:../../../platform/common/services/ioport/ioport.h ****  * \def IOPORT_CREATE_PIN(port, pin)
+  73:../../../platform/common/services/ioport/ioport.h ****  * \brief Create IOPORT pin number
+  74:../../../platform/common/services/ioport/ioport.h ****  *
+  75:../../../platform/common/services/ioport/ioport.h ****  * Create a IOPORT pin number for use with the IOPORT functions.
+  76:../../../platform/common/services/ioport/ioport.h ****  *
+  77:../../../platform/common/services/ioport/ioport.h ****  * \param port IOPORT port (e.g. PORTA, PA or PIOA depending on chosen
+  78:../../../platform/common/services/ioport/ioport.h ****  *             architecture)
+  79:../../../platform/common/services/ioport/ioport.h ****  * \param pin IOPORT zero-based index of the I/O pin
+  80:../../../platform/common/services/ioport/ioport.h ****  */
+  81:../../../platform/common/services/ioport/ioport.h **** 
+  82:../../../platform/common/services/ioport/ioport.h **** /** \brief IOPORT pin directions */
+  83:../../../platform/common/services/ioport/ioport.h **** enum ioport_direction {
+  84:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_DIR_INPUT,  /*!< IOPORT input direction */
+  85:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_DIR_OUTPUT, /*!< IOPORT output direction */
+  86:../../../platform/common/services/ioport/ioport.h **** };
+  87:../../../platform/common/services/ioport/ioport.h **** 
+  88:../../../platform/common/services/ioport/ioport.h **** /** \brief IOPORT levels */
+  89:../../../platform/common/services/ioport/ioport.h **** enum ioport_value {
+  90:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_PIN_LEVEL_LOW,  /*!< IOPORT pin value low */
+  91:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_PIN_LEVEL_HIGH, /*!< IOPORT pin value high */
+  92:../../../platform/common/services/ioport/ioport.h **** };
+  93:../../../platform/common/services/ioport/ioport.h **** 
+  94:../../../platform/common/services/ioport/ioport.h **** #if MEGA_RF
+  95:../../../platform/common/services/ioport/ioport.h **** /** \brief IOPORT edge sense modes */
+  96:../../../platform/common/services/ioport/ioport.h **** enum ioport_sense {
+  97:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_SENSE_LEVEL,     /*!< IOPORT sense low level  */
+  98:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_SENSE_BOTHEDGES, /*!< IOPORT sense both rising and falling edges */
+  99:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_SENSE_FALLING,   /*!< IOPORT sense falling edges */
+ 100:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_SENSE_RISING,    /*!< IOPORT sense rising edges */
+ 101:../../../platform/common/services/ioport/ioport.h **** };
+ 102:../../../platform/common/services/ioport/ioport.h **** #elif SAM && !SAM4L
+ 103:../../../platform/common/services/ioport/ioport.h **** /** \brief IOPORT edge sense modes */
+ 104:../../../platform/common/services/ioport/ioport.h **** enum ioport_sense {
+ 105:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_SENSE_BOTHEDGES, /*!< IOPORT sense both rising and falling edges */
+ 106:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_SENSE_FALLING,   /*!< IOPORT sense falling edges */
+ 107:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_SENSE_RISING,    /*!< IOPORT sense rising edges */
+ 108:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_SENSE_LEVEL_LOW, /*!< IOPORT sense low level  */
+ 109:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_SENSE_LEVEL_HIGH,/*!< IOPORT sense High level  */
+ 110:../../../platform/common/services/ioport/ioport.h **** };
+ 111:../../../platform/common/services/ioport/ioport.h **** #else
+ 112:../../../platform/common/services/ioport/ioport.h **** enum ioport_sense {
+ 113:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_SENSE_BOTHEDGES, /*!< IOPORT sense both rising and falling edges */
+ 114:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_SENSE_RISING,    /*!< IOPORT sense rising edges */
+ 115:../../../platform/common/services/ioport/ioport.h **** 	IOPORT_SENSE_FALLING,   /*!< IOPORT sense falling edges */
+ 116:../../../platform/common/services/ioport/ioport.h **** };
+ 117:../../../platform/common/services/ioport/ioport.h **** #endif
+ 118:../../../platform/common/services/ioport/ioport.h **** 
+ 119:../../../platform/common/services/ioport/ioport.h **** 
+ 120:../../../platform/common/services/ioport/ioport.h **** #if XMEGA
+ 121:../../../platform/common/services/ioport/ioport.h **** # include "xmega/ioport.h"
+ 122:../../../platform/common/services/ioport/ioport.h **** # if defined(IOPORT_XMEGA_COMPAT)
+ 123:../../../platform/common/services/ioport/ioport.h **** #  include "xmega/ioport_compat.h"
+ 124:../../../platform/common/services/ioport/ioport.h **** # endif
+ 125:../../../platform/common/services/ioport/ioport.h **** #elif MEGA
+ 126:../../../platform/common/services/ioport/ioport.h **** #  include "mega_rf/ioport.h"
+ 127:../../../platform/common/services/ioport/ioport.h **** #elif UC3
+ 128:../../../platform/common/services/ioport/ioport.h **** # include "uc3/ioport.h"
+ 129:../../../platform/common/services/ioport/ioport.h **** #elif SAM
+ 130:../../../platform/common/services/ioport/ioport.h **** # if SAM4L
+ 131:../../../platform/common/services/ioport/ioport.h **** #  include "sam/ioport_gpio.h"
+ 132:../../../platform/common/services/ioport/ioport.h **** # elif SAMD20
+ 133:../../../platform/common/services/ioport/ioport.h **** #  include "sam0/ioport.h"
+ 134:../../../platform/common/services/ioport/ioport.h **** # else
+ 135:../../../platform/common/services/ioport/ioport.h **** #  include "sam/ioport_pio.h"
+ 136:../../../platform/common/services/ioport/ioport.h **** # endif
+ 137:../../../platform/common/services/ioport/ioport.h **** #endif
+ 138:../../../platform/common/services/ioport/ioport.h **** 
+ 139:../../../platform/common/services/ioport/ioport.h **** /**
+ 140:../../../platform/common/services/ioport/ioport.h ****  * \brief Initializes the IOPORT service, ready for use.
+ 141:../../../platform/common/services/ioport/ioport.h ****  *
+ 142:../../../platform/common/services/ioport/ioport.h ****  * This function must be called before using any other functions in the IOPORT
+ 143:../../../platform/common/services/ioport/ioport.h ****  * service.
+ 144:../../../platform/common/services/ioport/ioport.h ****  */
+ 145:../../../platform/common/services/ioport/ioport.h **** static inline void ioport_init(void)
+ 146:../../../platform/common/services/ioport/ioport.h **** {
+ 147:../../../platform/common/services/ioport/ioport.h **** 	arch_ioport_init();
+ 148:../../../platform/common/services/ioport/ioport.h **** }
+ 149:../../../platform/common/services/ioport/ioport.h **** 
+ 150:../../../platform/common/services/ioport/ioport.h **** /**
+ 151:../../../platform/common/services/ioport/ioport.h ****  * \brief Enable an IOPORT pin, based on a pin created with \ref
+ 152:../../../platform/common/services/ioport/ioport.h ****  * IOPORT_CREATE_PIN().
+ 153:../../../platform/common/services/ioport/ioport.h ****  *
+ 154:../../../platform/common/services/ioport/ioport.h ****  * \param pin  IOPORT pin to enable
+ 155:../../../platform/common/services/ioport/ioport.h ****  */
+ 156:../../../platform/common/services/ioport/ioport.h **** static inline void ioport_enable_pin(ioport_pin_t pin)
+ 157:../../../platform/common/services/ioport/ioport.h **** {
+ 158:../../../platform/common/services/ioport/ioport.h **** 	arch_ioport_enable_pin(pin);
+ 159:../../../platform/common/services/ioport/ioport.h **** }
+ 160:../../../platform/common/services/ioport/ioport.h **** 
+ 161:../../../platform/common/services/ioport/ioport.h **** /**
+ 162:../../../platform/common/services/ioport/ioport.h ****  * \brief Enable multiple pins in a single IOPORT port.
+ 163:../../../platform/common/services/ioport/ioport.h ****  *
+ 164:../../../platform/common/services/ioport/ioport.h ****  * \param port IOPORT port to enable
+ 165:../../../platform/common/services/ioport/ioport.h ****  * \param mask Mask of pins within the port to enable
+ 166:../../../platform/common/services/ioport/ioport.h ****  */
+ 167:../../../platform/common/services/ioport/ioport.h **** static inline void ioport_enable_port(ioport_port_t port,
+ 168:../../../platform/common/services/ioport/ioport.h **** 		ioport_port_mask_t mask)
+ 169:../../../platform/common/services/ioport/ioport.h **** {
+ 170:../../../platform/common/services/ioport/ioport.h **** 	arch_ioport_enable_port(port, mask);
+ 171:../../../platform/common/services/ioport/ioport.h **** }
+ 172:../../../platform/common/services/ioport/ioport.h **** 
+ 173:../../../platform/common/services/ioport/ioport.h **** /**
+ 174:../../../platform/common/services/ioport/ioport.h ****  * \brief Disable IOPORT pin, based on a pin created with \ref
+ 175:../../../platform/common/services/ioport/ioport.h ****  *        IOPORT_CREATE_PIN().
+ 176:../../../platform/common/services/ioport/ioport.h ****  *
+ 177:../../../platform/common/services/ioport/ioport.h ****  * \param pin IOPORT pin to disable
+ 178:../../../platform/common/services/ioport/ioport.h ****  */
+ 179:../../../platform/common/services/ioport/ioport.h **** static inline void ioport_disable_pin(ioport_pin_t pin)
+ 180:../../../platform/common/services/ioport/ioport.h **** {
+ 181:../../../platform/common/services/ioport/ioport.h **** 	arch_ioport_disable_pin(pin);
+ 182:../../../platform/common/services/ioport/ioport.h **** }
+ 183:../../../platform/common/services/ioport/ioport.h **** 
+ 184:../../../platform/common/services/ioport/ioport.h **** /**
+ 185:../../../platform/common/services/ioport/ioport.h ****  * \brief Disable multiple pins in a single IOPORT port.
+ 186:../../../platform/common/services/ioport/ioport.h ****  *
+ 187:../../../platform/common/services/ioport/ioport.h ****  * \param port IOPORT port to disable
+ 188:../../../platform/common/services/ioport/ioport.h ****  * \param mask Pin mask of pins to disable
+ 189:../../../platform/common/services/ioport/ioport.h ****  */
+ 190:../../../platform/common/services/ioport/ioport.h **** static inline void ioport_disable_port(ioport_port_t port,
+ 191:../../../platform/common/services/ioport/ioport.h **** 		ioport_port_mask_t mask)
+ 192:../../../platform/common/services/ioport/ioport.h **** {
+ 193:../../../platform/common/services/ioport/ioport.h **** 	arch_ioport_disable_port(port, mask);
+ 194:../../../platform/common/services/ioport/ioport.h **** }
+ 195:../../../platform/common/services/ioport/ioport.h **** 
+ 196:../../../platform/common/services/ioport/ioport.h **** /**
+ 197:../../../platform/common/services/ioport/ioport.h ****  * \brief Set multiple pin modes in a single IOPORT port, such as pull-up,
+ 198:../../../platform/common/services/ioport/ioport.h ****  * pull-down, etc. configuration.
+ 199:../../../platform/common/services/ioport/ioport.h ****  *
+ 200:../../../platform/common/services/ioport/ioport.h ****  * \param port IOPORT port to configure
+ 201:../../../platform/common/services/ioport/ioport.h ****  * \param mask Pin mask of pins to configure
+ 202:../../../platform/common/services/ioport/ioport.h ****  * \param mode Mode masks to configure for the specified pins (\ref
+ 203:../../../platform/common/services/ioport/ioport.h ****  * ioport_modes)
+ 204:../../../platform/common/services/ioport/ioport.h ****  */
+ 205:../../../platform/common/services/ioport/ioport.h **** static inline void ioport_set_port_mode(ioport_port_t port,
+ 206:../../../platform/common/services/ioport/ioport.h **** 		ioport_port_mask_t mask, ioport_mode_t mode)
+ 207:../../../platform/common/services/ioport/ioport.h **** {
+ 208:../../../platform/common/services/ioport/ioport.h **** 	arch_ioport_set_port_mode(port, mask, mode);
+ 209:../../../platform/common/services/ioport/ioport.h **** }
+ 210:../../../platform/common/services/ioport/ioport.h **** 
+ 211:../../../platform/common/services/ioport/ioport.h **** /**
+ 212:../../../platform/common/services/ioport/ioport.h ****  * \brief Set pin mode for one single IOPORT pin.
+ 213:../../../platform/common/services/ioport/ioport.h ****  *
+ 214:../../../platform/common/services/ioport/ioport.h ****  * \param pin IOPORT pin to configure
+ 215:../../../platform/common/services/ioport/ioport.h ****  * \param mode Mode masks to configure for the specified pin (\ref ioport_modes)
+ 216:../../../platform/common/services/ioport/ioport.h ****  */
+ 217:../../../platform/common/services/ioport/ioport.h **** static inline void ioport_set_pin_mode(ioport_pin_t pin, ioport_mode_t mode)
+ 218:../../../platform/common/services/ioport/ioport.h **** {
+ 219:../../../platform/common/services/ioport/ioport.h **** 	arch_ioport_set_pin_mode(pin, mode);
+ 220:../../../platform/common/services/ioport/ioport.h **** }
+ 221:../../../platform/common/services/ioport/ioport.h **** 
+ 222:../../../platform/common/services/ioport/ioport.h **** /**
+ 223:../../../platform/common/services/ioport/ioport.h ****  * \brief Reset multiple pin modes in a specified IOPORT port to defaults.
+ 224:../../../platform/common/services/ioport/ioport.h ****  *
+ 225:../../../platform/common/services/ioport/ioport.h ****  * \param port IOPORT port to configure
+ 226:../../../platform/common/services/ioport/ioport.h ****  * \param mask Mask of pins whose mode configuration is to be reset
+ 227:../../../platform/common/services/ioport/ioport.h ****  */
+ 228:../../../platform/common/services/ioport/ioport.h **** static inline void ioport_reset_port_mode(ioport_port_t port,
+ 229:../../../platform/common/services/ioport/ioport.h **** 		ioport_port_mask_t mask)
+ 230:../../../platform/common/services/ioport/ioport.h **** {
+ 231:../../../platform/common/services/ioport/ioport.h **** 	arch_ioport_set_port_mode(port, mask, 0);
+ 232:../../../platform/common/services/ioport/ioport.h **** }
+ 233:../../../platform/common/services/ioport/ioport.h **** 
+ 234:../../../platform/common/services/ioport/ioport.h **** /**
+ 235:../../../platform/common/services/ioport/ioport.h ****  * \brief Reset pin mode configuration for a single IOPORT pin
+ 236:../../../platform/common/services/ioport/ioport.h ****  *
+ 237:../../../platform/common/services/ioport/ioport.h ****  * \param pin IOPORT pin to configure
+ 238:../../../platform/common/services/ioport/ioport.h ****  */
+ 239:../../../platform/common/services/ioport/ioport.h **** static inline void ioport_reset_pin_mode(ioport_pin_t pin)
+ 240:../../../platform/common/services/ioport/ioport.h **** {
+ 241:../../../platform/common/services/ioport/ioport.h **** 	arch_ioport_set_pin_mode(pin, 0);
+ 242:../../../platform/common/services/ioport/ioport.h **** }
+ 243:../../../platform/common/services/ioport/ioport.h **** 
+ 244:../../../platform/common/services/ioport/ioport.h **** /**
+ 245:../../../platform/common/services/ioport/ioport.h ****  * \brief Set I/O direction for a group of pins in a single IOPORT.
+ 246:../../../platform/common/services/ioport/ioport.h ****  *
+ 247:../../../platform/common/services/ioport/ioport.h ****  * \param port IOPORT port to configure
+ 248:../../../platform/common/services/ioport/ioport.h ****  * \param mask Pin mask of pins to configure
+ 249:../../../platform/common/services/ioport/ioport.h ****  * \param dir Direction to set for the specified pins (\ref ioport_direction)
+ 250:../../../platform/common/services/ioport/ioport.h ****  */
+ 251:../../../platform/common/services/ioport/ioport.h **** static inline void ioport_set_port_dir(ioport_port_t port,
+ 252:../../../platform/common/services/ioport/ioport.h **** 		ioport_port_mask_t mask, enum ioport_direction dir)
+ 253:../../../platform/common/services/ioport/ioport.h **** {
+ 254:../../../platform/common/services/ioport/ioport.h **** 	arch_ioport_set_port_dir(port, mask, dir);
+ 255:../../../platform/common/services/ioport/ioport.h **** }
+ 256:../../../platform/common/services/ioport/ioport.h **** 
+ 257:../../../platform/common/services/ioport/ioport.h **** /**
+ 258:../../../platform/common/services/ioport/ioport.h ****  * \brief Set direction for a single IOPORT pin.
+ 259:../../../platform/common/services/ioport/ioport.h ****  *
+ 260:../../../platform/common/services/ioport/ioport.h ****  * \param pin IOPORT pin to configure
+ 261:../../../platform/common/services/ioport/ioport.h ****  * \param dir Direction to set for the specified pin (\ref ioport_direction)
+ 262:../../../platform/common/services/ioport/ioport.h ****  */
+ 263:../../../platform/common/services/ioport/ioport.h **** static inline void ioport_set_pin_dir(ioport_pin_t pin,
+ 264:../../../platform/common/services/ioport/ioport.h **** 		enum ioport_direction dir)
+ 265:../../../platform/common/services/ioport/ioport.h **** {
+ 266:../../../platform/common/services/ioport/ioport.h **** 	arch_ioport_set_pin_dir(pin, dir);
+ 267:../../../platform/common/services/ioport/ioport.h **** }
+ 268:../../../platform/common/services/ioport/ioport.h **** 
+ 269:../../../platform/common/services/ioport/ioport.h **** /**
+ 270:../../../platform/common/services/ioport/ioport.h ****  * \brief Set an IOPORT pin to a specified logical value.
+ 271:../../../platform/common/services/ioport/ioport.h ****  *
+ 272:../../../platform/common/services/ioport/ioport.h ****  * \param pin IOPORT pin to configure
+ 273:../../../platform/common/services/ioport/ioport.h ****  * \param level Logical value of the pin
+ 274:../../../platform/common/services/ioport/ioport.h ****  */
+ 275:../../../platform/common/services/ioport/ioport.h **** static inline void ioport_set_pin_level(ioport_pin_t pin, bool level)
+ 276:../../../platform/common/services/ioport/ioport.h **** {
+  36              	 .loc 1 276 0
+  37              	 .cfi_startproc
+  38              	 
+  39              	 
+  40              	 
+  41 0000 80B4     	 push {r7}
+  42              	.LCFI0:
+  43              	 .cfi_def_cfa_offset 4
+  44              	 .cfi_offset 7,-4
+  45 0002 8DB0     	 sub sp,sp,#52
+  46              	.LCFI1:
+  47              	 .cfi_def_cfa_offset 56
+  48 0004 00AF     	 add r7,sp,#0
+  49              	.LCFI2:
+  50              	 .cfi_def_cfa_register 7
+  51 0006 7860     	 str r0,[r7,#4]
+  52 0008 0B46     	 mov r3,r1
+  53 000a FB70     	 strb r3,[r7,#3]
+  54 000c 7B68     	 ldr r3,[r7,#4]
+  55 000e FB62     	 str r3,[r7,#44]
+  56 0010 FB78     	 ldrb r3,[r7,#3]
+  57 0012 87F82B30 	 strb r3,[r7,#43]
+  58              	.LBB44:
+  59              	.LBB45:
+  60              	 .file 2 "../../../platform/common/services/ioport/sam/ioport_gpio.h"
+   1:../../../platform/common/services/ioport/sam/ioport_gpio.h **** /**
+   2:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * \file
+   3:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+   4:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * \brief SAM architecture specific IOPORT service implementation header file.
+   5:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+   6:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * Copyright (c) 2012-2013 Atmel Corporation. All rights reserved.
+   7:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+   8:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * \asf_license_start
+   9:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+  10:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * \page License
+  11:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+  12:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+  15:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+  18:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+  22:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *    from this software without specific prior written permission.
+  24:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+  25:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *    Atmel microcontroller product.
+  27:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+  28:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+  40:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * \asf_license_stop
+  41:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+  42:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  */
+  43:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #ifndef IOPORT_SAM_H
+  44:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_SAM_H
+  45:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+  46:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #include <sysclk.h>
+  47:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+  48:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_CREATE_PIN(port, pin) ((port) * 32 + (pin))
+  49:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+  50:../../../platform/common/services/ioport/sam/ioport_gpio.h **** // Aliases
+  51:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_GPIOA     0
+  52:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_GPIOB     1
+  53:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_GPIOC     2
+  54:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_GPIOD     3
+  55:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_GPIOE     4
+  56:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_GPIOF     5
+  57:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+  58:../../../platform/common/services/ioport/sam/ioport_gpio.h **** /**
+  59:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * \weakgroup ioport_group
+  60:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * \section ioport_modes IOPORT Modes
+  61:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+  62:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * For details on these please see the device datasheet.
+  63:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  *
+  64:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  * @{
+  65:../../../platform/common/services/ioport/sam/ioport_gpio.h ****  */
+  66:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+  67:../../../platform/common/services/ioport/sam/ioport_gpio.h **** /** \name IOPORT Mode bit definitions */
+  68:../../../platform/common/services/ioport/sam/ioport_gpio.h **** /** @{ */
+  69:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_MUX_MASK            (7 << 0) /*!< MUX bits mask */
+  70:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_MUX_BIT0            (1 << 0) /*!< MUX BIT0 mask */
+  71:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_MUX_BIT1            (1 << 1) /*!< MUX BIT1 mask */
+  72:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_MUX_A               (0 << 0) /*!< MUX function A */
+  73:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_MUX_B               (1 << 0) /*!< MUX function B */
+  74:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_MUX_C               (2 << 0) /*!< MUX function C */
+  75:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_MUX_D               (3 << 0) /*!< MUX function D */
+  76:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+  77:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_MUX_BIT2            (1 << 2) /*!< MUX BIT2 mask */
+  78:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_MUX_E               (4 << 0) /*!< MUX function E */
+  79:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_MUX_F               (5 << 0) /*!< MUX function F */
+  80:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_MUX_G               (6 << 0) /*!< MUX function G */
+  81:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_MUX_H               (7 << 0) /*!< MUX function H */
+  82:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+  83:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_PULLUP              (1 << 3) /*!< Pull-up */
+  84:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_PULLDOWN            (1 << 4) /*!< Pull-down */
+  85:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_GLITCH_FILTER       (1 << 6) /*!< Glitch filter */
+  86:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #define IOPORT_MODE_DRIVE_STRENGTH      (1 << 7) /*!< Extra drive strength */
+  87:../../../platform/common/services/ioport/sam/ioport_gpio.h **** /** @} */
+  88:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+  89:../../../platform/common/services/ioport/sam/ioport_gpio.h **** /** @} */
+  90:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+  91:../../../platform/common/services/ioport/sam/ioport_gpio.h **** typedef uint32_t ioport_mode_t;
+  92:../../../platform/common/services/ioport/sam/ioport_gpio.h **** typedef uint32_t ioport_pin_t;
+  93:../../../platform/common/services/ioport/sam/ioport_gpio.h **** typedef uint32_t ioport_port_t;
+  94:../../../platform/common/services/ioport/sam/ioport_gpio.h **** typedef uint32_t ioport_port_mask_t;
+  95:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+  96:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static ioport_port_t arch_ioport_pin_to_port_id(ioport_pin_t pin)
+  97:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+  98:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	return pin >> 5;
+  99:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 100:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 101:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static volatile GpioPort *arch_ioport_port_to_base(
+ 102:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		ioport_port_t port)
+ 103:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+ 104:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	return (volatile GpioPort *)(GPIO_ADDR
+ 105:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		+ port * sizeof(GpioPort));
+ 106:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 107:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 108:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static volatile GpioPort *arch_ioport_pin_to_base(ioport_pin_t pin)
+ 109:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+ 110:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	return arch_ioport_port_to_base(arch_ioport_pin_to_port_id(pin));
+ 111:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 112:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 113:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static ioport_port_mask_t arch_ioport_pin_to_mask(ioport_pin_t pin)
+ 114:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+ 115:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	return 1U << (pin & 0x1F);
+ 116:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 117:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 118:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static void arch_ioport_init(void)
+ 119:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+ 120:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	sysclk_enable_peripheral_clock(GPIO);
+ 121:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 122:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 123:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static void arch_ioport_enable_port(ioport_port_t port,
+ 124:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		ioport_port_mask_t mask)
+ 125:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+ 126:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	arch_ioport_port_to_base(port)->GPIO_GPERS = mask;
+ 127:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 128:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 129:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static void arch_ioport_disable_port(ioport_port_t port,
+ 130:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		ioport_port_mask_t mask)
+ 131:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+ 132:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	arch_ioport_port_to_base(port)->GPIO_GPERC = mask;
+ 133:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 134:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 135:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static void arch_ioport_enable_pin(ioport_pin_t pin)
+ 136:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+ 137:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	arch_ioport_enable_port(arch_ioport_pin_to_port_id(pin),
+ 138:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 			arch_ioport_pin_to_mask(pin));
+ 139:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 140:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 141:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static void arch_ioport_disable_pin(ioport_pin_t pin)
+ 142:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+ 143:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	arch_ioport_disable_port(arch_ioport_pin_to_port_id(pin),
+ 144:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 			arch_ioport_pin_to_mask(pin));
+ 145:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 146:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 147:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static void arch_ioport_set_port_mode(ioport_port_t port,
+ 148:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		ioport_port_mask_t mask, ioport_mode_t mode)
+ 149:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+ 150:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	volatile GpioPort *base = arch_ioport_port_to_base(port);
+ 151:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 152:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	if (mode & IOPORT_MODE_PULLUP) {
+ 153:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_PUERS = mask;
+ 154:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	} else {
+ 155:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_PUERC = mask;
+ 156:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	}
+ 157:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 158:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #ifdef IOPORT_MODE_PULLDOWN
+ 159:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	if (mode & IOPORT_MODE_PULLDOWN) {
+ 160:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_PDERS = mask;
+ 161:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	} else {
+ 162:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_PDERC = mask;
+ 163:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	}
+ 164:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #endif
+ 165:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 166:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	if (mode & IOPORT_MODE_GLITCH_FILTER) {
+ 167:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_GFERS = mask;
+ 168:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	} else {
+ 169:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_GFERC = mask;
+ 170:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	}
+ 171:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 172:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #ifdef IOPORT_MODE_DRIVE_STRENGTH
+ 173:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	if (mode & IOPORT_MODE_DRIVE_STRENGTH) {
+ 174:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_ODCR0S = mask;
+ 175:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	} else {
+ 176:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_ODCR0C = mask;
+ 177:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	}
+ 178:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #endif
+ 179:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 180:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	if (mode & IOPORT_MODE_MUX_BIT0) {
+ 181:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_PMR0S = mask;
+ 182:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	} else {
+ 183:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_PMR0C = mask;
+ 184:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	}
+ 185:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 186:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	if (mode & IOPORT_MODE_MUX_BIT1) {
+ 187:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_PMR1S = mask;
+ 188:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	} else {
+ 189:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_PMR1C = mask;
+ 190:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	}
+ 191:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 192:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #ifdef IOPORT_MODE_MUX_BIT2
+ 193:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	if (mode & IOPORT_MODE_MUX_BIT2) {
+ 194:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_PMR2S = mask;
+ 195:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	} else {
+ 196:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		base->GPIO_PMR2C = mask;
+ 197:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	}
+ 198:../../../platform/common/services/ioport/sam/ioport_gpio.h **** #endif
+ 199:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 200:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 201:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static void arch_ioport_set_pin_mode(ioport_pin_t pin,
+ 202:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		ioport_mode_t mode)
+ 203:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+ 204:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	arch_ioport_set_port_mode(arch_ioport_pin_to_port_id(pin),
+ 205:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 			arch_ioport_pin_to_mask(pin), mode);
+ 206:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 207:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 208:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static void arch_ioport_set_port_dir(ioport_port_t port,
+ 209:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		ioport_port_mask_t mask, unsigned char group_direction)
+ 210:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+ 211:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	if (group_direction == IOPORT_DIR_OUTPUT) {
+ 212:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		arch_ioport_port_to_base(port)->GPIO_ODERS = mask;
+ 213:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		// Always disable the Schmitt trigger for output pins.
+ 214:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		arch_ioport_port_to_base(port)->GPIO_STERC = mask;
+ 215:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	} else if (group_direction == IOPORT_DIR_INPUT) {
+ 216:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		arch_ioport_port_to_base(port)->GPIO_ODERC = mask;
+ 217:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		// Always enable the Schmitt trigger for input pins.
+ 218:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		arch_ioport_port_to_base(port)->GPIO_STERS = mask;
+ 219:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	}
+ 220:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 221:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 222:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static void arch_ioport_set_pin_dir(ioport_pin_t pin,
+ 223:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		enum ioport_direction dir)
+ 224:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+ 225:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	if (dir == IOPORT_DIR_OUTPUT) {
+ 226:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		arch_ioport_pin_to_base(pin)->GPIO_ODERS = arch_ioport_pin_to_mask(pin);
+ 227:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		// Always disable the Schmitt trigger for output pins.
+ 228:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		arch_ioport_pin_to_base(pin)->GPIO_STERC = arch_ioport_pin_to_mask(pin);
+ 229:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	} else if (dir == IOPORT_DIR_INPUT) {
+ 230:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		arch_ioport_pin_to_base(pin)->GPIO_ODERC = arch_ioport_pin_to_mask(pin);
+ 231:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		// Always enable the Schmitt trigger for input pins.
+ 232:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		arch_ioport_pin_to_base(pin)->GPIO_STERS = arch_ioport_pin_to_mask(pin);
+ 233:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	}
+ 234:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 235:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 
+ 236:../../../platform/common/services/ioport/sam/ioport_gpio.h **** __always_inline static void arch_ioport_set_pin_level(ioport_pin_t pin,
+ 237:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		bool level)
+ 238:../../../platform/common/services/ioport/sam/ioport_gpio.h **** {
+ 239:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	if (level) {
+  61              	 .loc 2 239 0
+  62 0016 97F82B30 	 ldrb r3,[r7,#43]
+  63 001a 002B     	 cmp r3,#0
+  64 001c 17D0     	 beq .L2
+  65 001e FB6A     	 ldr r3,[r7,#44]
+  66 0020 7B62     	 str r3,[r7,#36]
+  67 0022 7B6A     	 ldr r3,[r7,#36]
+  68 0024 3B62     	 str r3,[r7,#32]
+  69              	.LBB46:
+  70              	.LBB47:
+  71              	.LBB48:
+  72              	.LBB49:
+  98:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+  73              	 .loc 2 98 0
+  74 0026 3B6A     	 ldr r3,[r7,#32]
+  75 0028 5B09     	 lsrs r3,r3,#5
+  76 002a FB61     	 str r3,[r7,#28]
+  77              	.LBE49:
+  78              	.LBE48:
+  79              	.LBB50:
+  80              	.LBB51:
+ 105:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+  81              	 .loc 2 105 0
+  82 002c FB69     	 ldr r3,[r7,#28]
+  83 002e 03F50013 	 add r3,r3,#2097152
+  84 0032 03F5E163 	 add r3,r3,#1800
+  85 0036 5B02     	 lsls r3,r3,#9
+ 104:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		+ port * sizeof(GpioPort));
+  86              	 .loc 2 104 0
+  87 0038 1946     	 mov r1,r3
+  88 003a FB6A     	 ldr r3,[r7,#44]
+  89 003c BB61     	 str r3,[r7,#24]
+  90              	.LBE51:
+  91              	.LBE50:
+  92              	.LBE47:
+  93              	.LBE46:
+  94              	.LBB52:
+  95              	.LBB53:
+ 115:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+  96              	 .loc 2 115 0
+  97 003e BB69     	 ldr r3,[r7,#24]
+  98 0040 03F01F03 	 and r3,r3,#31
+  99 0044 0122     	 movs r2,#1
+ 100 0046 02FA03F3 	 lsl r3,r2,r3
+ 101              	.LBE53:
+ 102              	.LBE52:
+ 240:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		arch_ioport_pin_to_base(pin)->GPIO_OVRS = arch_ioport_pin_to_mask(pin);
+ 103              	 .loc 2 240 0
+ 104 004a 4B65     	 str r3,[r1,#84]
+ 105              	.LBE45:
+ 106              	.LBE44:
+ 277:../../../platform/common/services/ioport/ioport.h **** 	arch_ioport_set_pin_level(pin, level);
+ 278:../../../platform/common/services/ioport/ioport.h **** }
+ 107              	 .loc 1 278 0
+ 108 004c 16E0     	 b .L12
+ 109              	.L2:
+ 110 004e FB6A     	 ldr r3,[r7,#44]
+ 111 0050 7B61     	 str r3,[r7,#20]
+ 112 0052 7B69     	 ldr r3,[r7,#20]
+ 113 0054 3B61     	 str r3,[r7,#16]
+ 114              	.LBB63:
+ 115              	.LBB62:
+ 116              	.LBB54:
+ 117              	.LBB55:
+ 118              	.LBB56:
+ 119              	.LBB57:
+  98:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 120              	 .loc 2 98 0
+ 121 0056 3B69     	 ldr r3,[r7,#16]
+ 122 0058 5B09     	 lsrs r3,r3,#5
+ 123 005a FB60     	 str r3,[r7,#12]
+ 124              	.LBE57:
+ 125              	.LBE56:
+ 126              	.LBB58:
+ 127              	.LBB59:
+ 105:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 128              	 .loc 2 105 0
+ 129 005c FB68     	 ldr r3,[r7,#12]
+ 130 005e 03F50013 	 add r3,r3,#2097152
+ 131 0062 03F5E163 	 add r3,r3,#1800
+ 132 0066 5B02     	 lsls r3,r3,#9
+ 104:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		+ port * sizeof(GpioPort));
+ 133              	 .loc 2 104 0
+ 134 0068 1946     	 mov r1,r3
+ 135 006a FB6A     	 ldr r3,[r7,#44]
+ 136 006c BB60     	 str r3,[r7,#8]
+ 137              	.LBE59:
+ 138              	.LBE58:
+ 139              	.LBE55:
+ 140              	.LBE54:
+ 141              	.LBB60:
+ 142              	.LBB61:
+ 115:../../../platform/common/services/ioport/sam/ioport_gpio.h **** }
+ 143              	 .loc 2 115 0
+ 144 006e BB68     	 ldr r3,[r7,#8]
+ 145 0070 03F01F03 	 and r3,r3,#31
+ 146 0074 0122     	 movs r2,#1
+ 147 0076 02FA03F3 	 lsl r3,r2,r3
+ 148              	.LBE61:
+ 149              	.LBE60:
+ 241:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 	} else {
+ 242:../../../platform/common/services/ioport/sam/ioport_gpio.h **** 		arch_ioport_pin_to_base(pin)->GPIO_OVRC = arch_ioport_pin_to_mask(pin);
+ 150              	 .loc 2 242 0
+ 151 007a 8B65     	 str r3,[r1,#88]
+ 152              	.L12:
+ 153              	.LBE62:
+ 154              	.LBE63:
+ 155              	 .loc 1 278 0
+ 156 007c 00BF     	 nop
+ 157 007e 3437     	 adds r7,r7,#52
+ 158              	.LCFI3:
+ 159              	 .cfi_def_cfa_offset 4
+ 160 0080 BD46     	 mov sp,r7
+ 161              	.LCFI4:
+ 162              	 .cfi_def_cfa_register 13
+ 163              	 
+ 164 0082 80BC     	 pop {r7}
+ 165              	.LCFI5:
+ 166              	 .cfi_restore 7
+ 167              	 .cfi_def_cfa_offset 0
+ 168 0084 7047     	 bx lr
+ 169              	 .cfi_endproc
+ 170              	.LFE213:
+ 172              	 .section .bss.phyState,"aw",%nobits
+ 175              	phyState:
+ 176 0000 00       	 .space 1
+ 177              	 .section .bss.phyRxBuffer,"aw",%nobits
+ 178              	 .align 2
+ 181              	phyRxBuffer:
+ 182 0000 00000000 	 .space 128
+ 182      00000000 
+ 182      00000000 
+ 182      00000000 
+ 182      00000000 
+ 183              	 .section .bss.phyRxState,"aw",%nobits
+ 186              	phyRxState:
+ 187 0000 00       	 .space 1
+ 188              	 .text
+ 189              	 .align 1
+ 190              	 .global PHY_Init
+ 191              	 .syntax unified
+ 192              	 .thumb
+ 193              	 .thumb_func
+ 194              	 .fpu softvfp
+ 196              	PHY_Init:
+ 197              	.LFB223:
+ 198              	 .file 3 "../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c"
+   1:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /**
+   2:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * \file phy.c
+   3:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *
+   4:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * \brief AT86RF233 PHY implementation
+   5:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *
+   6:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * Copyright (C) 2014, Atmel Corporation. All rights reserved.
+   7:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *
+   8:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * \asf_license_start
+   9:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *
+  10:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * Redistribution and use in source and binary forms, with or without
+  11:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * modification, are permitted provided that the following conditions are met:
+  12:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *
+  13:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  14:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *    this list of conditions and the following disclaimer.
+  15:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *
+  16:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  17:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *    this list of conditions and the following disclaimer in the documentation
+  18:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *    and/or other materials provided with the distribution.
+  19:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *
+  20:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  21:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *    from this software without specific prior written permission.
+  22:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *
+  23:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * 4. This software may only be redistributed and used in connection with an
+  24:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *    Atmel microcontroller product.
+  25:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *
+  26:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  27:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  28:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  29:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  30:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  31:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  32:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  33:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  34:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  35:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  36:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  37:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *
+  38:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  * \asf_license_stop
+  39:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *
+  40:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  *
+  41:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c ****  */
+  42:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+  43:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #ifdef PHY_AT86RF233
+  44:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+  45:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*- Includes ---------------------------------------------------------------*/
+  46:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #include <stdbool.h>
+  47:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #include "phy.h"
+  48:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #include "sal.h"
+  49:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #include "trx_access.h"
+  50:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #include "delay.h"
+  51:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #include "at86rf233.h"
+  52:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+  53:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*- Definitions ------------------------------------------------------------*/
+  54:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #define PHY_CRC_SIZE    2
+  55:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+  56:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*- Types ------------------------------------------------------------------*/
+  57:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** typedef enum {
+  58:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	PHY_STATE_INITIAL,
+  59:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	PHY_STATE_IDLE,
+  60:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	PHY_STATE_SLEEP,
+  61:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	PHY_STATE_TX_WAIT_END,
+  62:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** } PhyState_t;
+  63:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+  64:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*- Prototypes -------------------------------------------------------------*/
+  65:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** static void phyWriteRegister(uint8_t reg, uint8_t value);
+  66:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** static uint8_t phyReadRegister(uint8_t reg);
+  67:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** static void phyWaitState(uint8_t state);
+  68:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** static void phyTrxSetState(uint8_t state);
+  69:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** static void phySetRxState(void);
+  70:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+  71:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*- Variables --------------------------------------------------------------*/
+  72:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** static PhyState_t phyState = PHY_STATE_INITIAL;
+  73:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** static uint8_t phyRxBuffer[128];
+  74:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** static bool phyRxState;
+  75:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+  76:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*- Implementations --------------------------------------------------------*/
+  77:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+  78:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+  79:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+  80:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** void PHY_Init(void)
+  81:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 199              	 .loc 3 81 0
+ 200              	 .cfi_startproc
+ 201              	 
+ 202              	 
+ 203 0086 80B5     	 push {r7,lr}
+ 204              	.LCFI6:
+ 205              	 .cfi_def_cfa_offset 8
+ 206              	 .cfi_offset 7,-8
+ 207              	 .cfi_offset 14,-4
+ 208 0088 82B0     	 sub sp,sp,#8
+ 209              	.LCFI7:
+ 210              	 .cfi_def_cfa_offset 16
+ 211 008a 00AF     	 add r7,sp,#0
+ 212              	.LCFI8:
+ 213              	 .cfi_def_cfa_register 7
+  82:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	trx_spi_init();
+ 214              	 .loc 3 82 0
+ 215 008c 1B4B     	 ldr r3,.L15
+ 216 008e 9847     	 blx r3
+ 217              	.LVL0:
+  83:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	PhyReset();
+ 218              	 .loc 3 83 0
+ 219 0090 1B4B     	 ldr r3,.L15+4
+ 220 0092 9847     	 blx r3
+ 221              	.LVL1:
+  84:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyRxState = false;
+ 222              	 .loc 3 84 0
+ 223 0094 1B4B     	 ldr r3,.L15+8
+ 224 0096 0022     	 movs r2,#0
+ 225 0098 1A70     	 strb r2,[r3]
+  85:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyState = PHY_STATE_IDLE;
+ 226              	 .loc 3 85 0
+ 227 009a 1B4B     	 ldr r3,.L15+12
+ 228 009c 0122     	 movs r2,#1
+ 229 009e 1A70     	 strb r2,[r3]
+ 230              	.L14:
+  86:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+  87:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	do {phyWriteRegister(TRX_STATE_REG, TRX_CMD_TRX_OFF);
+ 231              	 .loc 3 87 0 discriminator 1
+ 232 00a0 0821     	 movs r1,#8
+ 233 00a2 0220     	 movs r0,#2
+ 234 00a4 00F0BEF9 	 bl phyWriteRegister
+  88:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	} while (TRX_STATUS_TRX_OFF !=
+  89:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			(phyReadRegister(TRX_STATUS_REG) & TRX_STATUS_MASK));
+ 235              	 .loc 3 89 0 discriminator 1
+ 236 00a8 0120     	 movs r0,#1
+ 237 00aa 00F0CFF9 	 bl phyReadRegister
+ 238 00ae 0346     	 mov r3,r0
+ 239 00b0 03F01F03 	 and r3,r3,#31
+ 240 00b4 082B     	 cmp r3,#8
+ 241 00b6 F3D1     	 bne .L14
+  90:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+  91:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(TRX_CTRL_1_REG,
+ 242              	 .loc 3 91 0
+ 243 00b8 2E21     	 movs r1,#46
+ 244 00ba 0420     	 movs r0,#4
+ 245 00bc 00F0B2F9 	 bl phyWriteRegister
+  92:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			(1 << TX_AUTO_CRC_ON) | (3 << SPI_CMD_MODE) |
+  93:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			(1 << IRQ_MASK_MODE));
+  94:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+  95:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(TRX_CTRL_2_REG,
+ 246              	 .loc 3 95 0
+ 247 00c0 A021     	 movs r1,#160
+ 248 00c2 0C20     	 movs r0,#12
+ 249 00c4 00F0AEF9 	 bl phyWriteRegister
+  96:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			(1 << RX_SAFE_MODE) | (1 << OQPSK_SCRAM_EN));
+  97:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+  98:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #if (ANTENNA_DIVERSITY == 1)
+  99:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(ANT_DIV_REG, (1 << ANT_DIV_EN) | (1 << ANT_EXT_SW_EN) | (2 << ANT_CTRL));
+ 100:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(RX_CTRL_REG, (3 << PDT_THRES));
+ 101:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #else
+ 102:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	#if (ANTENNA_DEFAULT != 0)
+ 103:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		phyWriteRegister(ANT_DIV_REG, (1 << ANT_EXT_SW_EN) | (ANTENNA_DEFAULT << ANT_CTRL));
+ 250              	 .loc 3 103 0
+ 251 00c8 0521     	 movs r1,#5
+ 252 00ca 0D20     	 movs r0,#13
+ 253 00cc 00F0AAF9 	 bl phyWriteRegister
+ 104:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	#endif // ANTENNA_DIVERSITY
+ 105:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #endif // ANTENNA_DIVERSITY
+ 106:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #ifdef EXT_RF_FRONT_END_CTRL
+ 107:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	uint8_t		reg					= phyReadRegister(TRX_CTRL_1_REG);
+ 254              	 .loc 3 107 0
+ 255 00d0 0420     	 movs r0,#4
+ 256 00d2 00F0BBF9 	 bl phyReadRegister
+ 257 00d6 0346     	 mov r3,r0
+ 258 00d8 FB71     	 strb r3,[r7,#7]
+ 108:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(TRX_CTRL_1_REG, reg | (1 << PA_EXT_EN));
+ 259              	 .loc 3 108 0
+ 260 00da FB79     	 ldrb r3,[r7,#7]
+ 261 00dc 63F07F03 	 orn r3,r3,#127
+ 262 00e0 DBB2     	 uxtb r3,r3
+ 263 00e2 1946     	 mov r1,r3
+ 264 00e4 0420     	 movs r0,#4
+ 265 00e6 00F09DF9 	 bl phyWriteRegister
+ 109:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 110:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	ioport_set_pin_level(AT86RFX_CSD, IOPORT_PIN_LEVEL_HIGH);
+ 266              	 .loc 3 110 0
+ 267 00ea 0121     	 movs r1,#1
+ 268 00ec 0B20     	 movs r0,#11
+ 269 00ee FFF787FF 	 bl ioport_set_pin_level
+ 111:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #endif // EXT_RF_FRONT_END_CTRL
+ 112:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 270              	 .loc 3 112 0
+ 271 00f2 00BF     	 nop
+ 272 00f4 0837     	 adds r7,r7,#8
+ 273              	.LCFI9:
+ 274              	 .cfi_def_cfa_offset 8
+ 275 00f6 BD46     	 mov sp,r7
+ 276              	.LCFI10:
+ 277              	 .cfi_def_cfa_register 13
+ 278              	 
+ 279 00f8 80BD     	 pop {r7,pc}
+ 280              	.L16:
+ 281 00fa 00BF     	 .align 2
+ 282              	.L15:
+ 283 00fc 00000000 	 .word trx_spi_init
+ 284 0100 00000000 	 .word PhyReset
+ 285 0104 00000000 	 .word phyRxState
+ 286 0108 00000000 	 .word phyState
+ 287              	 .cfi_endproc
+ 288              	.LFE223:
+ 290              	 .align 1
+ 291              	 .global PHY_SetTdmaMode
+ 292              	 .syntax unified
+ 293              	 .thumb
+ 294              	 .thumb_func
+ 295              	 .fpu softvfp
+ 297              	PHY_SetTdmaMode:
+ 298              	.LFB224:
+ 113:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** void PHY_SetTdmaMode(bool mode)
+ 114:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 299              	 .loc 3 114 0
+ 300              	 .cfi_startproc
+ 301              	 
+ 302              	 
+ 303 010c 80B5     	 push {r7,lr}
+ 304              	.LCFI11:
+ 305              	 .cfi_def_cfa_offset 8
+ 306              	 .cfi_offset 7,-8
+ 307              	 .cfi_offset 14,-4
+ 308 010e 84B0     	 sub sp,sp,#16
+ 309              	.LCFI12:
+ 310              	 .cfi_def_cfa_offset 24
+ 311 0110 00AF     	 add r7,sp,#0
+ 312              	.LCFI13:
+ 313              	 .cfi_def_cfa_register 7
+ 314 0112 0346     	 mov r3,r0
+ 315 0114 FB71     	 strb r3,[r7,#7]
+ 115:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	uint8_t		reg					= phyReadRegister(CSMA_SEED_1_REG);
+ 316              	 .loc 3 115 0
+ 317 0116 2E20     	 movs r0,#46
+ 318 0118 00F098F9 	 bl phyReadRegister
+ 319 011c 0346     	 mov r3,r0
+ 320 011e FB73     	 strb r3,[r7,#15]
+ 116:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 117:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	if(mode)
+ 321              	 .loc 3 117 0
+ 322 0120 FB79     	 ldrb r3,[r7,#7]
+ 323 0122 002B     	 cmp r3,#0
+ 324 0124 0CD0     	 beq .L18
+ 118:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	{
+ 119:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		phyWriteRegister(XAH_CTRL_0_REG, (0 << MAX_FRAME_RETRES) | (7 << MAX_CSMA_RETRES));
+ 325              	 .loc 3 119 0
+ 326 0126 0E21     	 movs r1,#14
+ 327 0128 2C20     	 movs r0,#44
+ 328 012a 00F07BF9 	 bl phyWriteRegister
+ 120:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		phyWriteRegister(CSMA_SEED_1_REG, reg | (1 << AACK_DIS_ACK));
+ 329              	 .loc 3 120 0
+ 330 012e FB7B     	 ldrb r3,[r7,#15]
+ 331 0130 43F01003 	 orr r3,r3,#16
+ 332 0134 DBB2     	 uxtb r3,r3
+ 333 0136 1946     	 mov r1,r3
+ 334 0138 2E20     	 movs r0,#46
+ 335 013a 00F073F9 	 bl phyWriteRegister
+ 121:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	}
+ 122:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	else
+ 123:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	{
+ 124:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		phyWriteRegister(XAH_CTRL_0_REG, (3 << MAX_FRAME_RETRES) | (4 << MAX_CSMA_RETRES));
+ 125:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		
+ 126:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		reg							&= ~(1 << AACK_DIS_ACK);
+ 127:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		phyWriteRegister(CSMA_SEED_1_REG, reg);
+ 128:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	}
+ 129:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 336              	 .loc 3 129 0
+ 337 013e 0CE0     	 b .L20
+ 338              	.L18:
+ 124:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		
+ 339              	 .loc 3 124 0
+ 340 0140 3821     	 movs r1,#56
+ 341 0142 2C20     	 movs r0,#44
+ 342 0144 00F06EF9 	 bl phyWriteRegister
+ 126:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		phyWriteRegister(CSMA_SEED_1_REG, reg);
+ 343              	 .loc 3 126 0
+ 344 0148 FB7B     	 ldrb r3,[r7,#15]
+ 345 014a 23F01003 	 bic r3,r3,#16
+ 346 014e FB73     	 strb r3,[r7,#15]
+ 127:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	}
+ 347              	 .loc 3 127 0
+ 348 0150 FB7B     	 ldrb r3,[r7,#15]
+ 349 0152 1946     	 mov r1,r3
+ 350 0154 2E20     	 movs r0,#46
+ 351 0156 00F065F9 	 bl phyWriteRegister
+ 352              	.L20:
+ 353              	 .loc 3 129 0
+ 354 015a 00BF     	 nop
+ 355 015c 1037     	 adds r7,r7,#16
+ 356              	.LCFI14:
+ 357              	 .cfi_def_cfa_offset 8
+ 358 015e BD46     	 mov sp,r7
+ 359              	.LCFI15:
+ 360              	 .cfi_def_cfa_register 13
+ 361              	 
+ 362 0160 80BD     	 pop {r7,pc}
+ 363              	 .cfi_endproc
+ 364              	.LFE224:
+ 366              	 .align 1
+ 367              	 .global PHY_SetRxState
+ 368              	 .syntax unified
+ 369              	 .thumb
+ 370              	 .thumb_func
+ 371              	 .fpu softvfp
+ 373              	PHY_SetRxState:
+ 374              	.LFB225:
+ 130:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 131:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 132:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 133:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 134:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** void PHY_SetRxState(bool rx)
+ 135:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 375              	 .loc 3 135 0
+ 376              	 .cfi_startproc
+ 377              	 
+ 378              	 
+ 379 0162 80B5     	 push {r7,lr}
+ 380              	.LCFI16:
+ 381              	 .cfi_def_cfa_offset 8
+ 382              	 .cfi_offset 7,-8
+ 383              	 .cfi_offset 14,-4
+ 384 0164 82B0     	 sub sp,sp,#8
+ 385              	.LCFI17:
+ 386              	 .cfi_def_cfa_offset 16
+ 387 0166 00AF     	 add r7,sp,#0
+ 388              	.LCFI18:
+ 389              	 .cfi_def_cfa_register 7
+ 390 0168 0346     	 mov r3,r0
+ 391 016a FB71     	 strb r3,[r7,#7]
+ 136:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyRxState = rx;
+ 392              	 .loc 3 136 0
+ 393 016c 044A     	 ldr r2,.L22
+ 394 016e FB79     	 ldrb r3,[r7,#7]
+ 395 0170 1370     	 strb r3,[r2]
+ 137:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phySetRxState();
+ 396              	 .loc 3 137 0
+ 397 0172 00F090F9 	 bl phySetRxState
+ 138:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 398              	 .loc 3 138 0
+ 399 0176 00BF     	 nop
+ 400 0178 0837     	 adds r7,r7,#8
+ 401              	.LCFI19:
+ 402              	 .cfi_def_cfa_offset 8
+ 403 017a BD46     	 mov sp,r7
+ 404              	.LCFI20:
+ 405              	 .cfi_def_cfa_register 13
+ 406              	 
+ 407 017c 80BD     	 pop {r7,pc}
+ 408              	.L23:
+ 409 017e 00BF     	 .align 2
+ 410              	.L22:
+ 411 0180 00000000 	 .word phyRxState
+ 412              	 .cfi_endproc
+ 413              	.LFE225:
+ 415              	 .align 1
+ 416              	 .global PHY_SetChannel
+ 417              	 .syntax unified
+ 418              	 .thumb
+ 419              	 .thumb_func
+ 420              	 .fpu softvfp
+ 422              	PHY_SetChannel:
+ 423              	.LFB226:
+ 139:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 140:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 141:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 142:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** void PHY_SetChannel(uint8_t channel)
+ 143:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 424              	 .loc 3 143 0
+ 425              	 .cfi_startproc
+ 426              	 
+ 427              	 
+ 428 0184 80B5     	 push {r7,lr}
+ 429              	.LCFI21:
+ 430              	 .cfi_def_cfa_offset 8
+ 431              	 .cfi_offset 7,-8
+ 432              	 .cfi_offset 14,-4
+ 433 0186 84B0     	 sub sp,sp,#16
+ 434              	.LCFI22:
+ 435              	 .cfi_def_cfa_offset 24
+ 436 0188 00AF     	 add r7,sp,#0
+ 437              	.LCFI23:
+ 438              	 .cfi_def_cfa_register 7
+ 439 018a 0346     	 mov r3,r0
+ 440 018c FB71     	 strb r3,[r7,#7]
+ 144:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	uint8_t reg;
+ 145:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 146:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	reg = phyReadRegister(PHY_CC_CCA_REG) & ~0x1f;
+ 441              	 .loc 3 146 0
+ 442 018e 0820     	 movs r0,#8
+ 443 0190 00F05CF9 	 bl phyReadRegister
+ 444 0194 0346     	 mov r3,r0
+ 445 0196 23F01F03 	 bic r3,r3,#31
+ 446 019a FB73     	 strb r3,[r7,#15]
+ 147:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(PHY_CC_CCA_REG, reg | channel);
+ 447              	 .loc 3 147 0
+ 448 019c FA7B     	 ldrb r2,[r7,#15]
+ 449 019e FB79     	 ldrb r3,[r7,#7]
+ 450 01a0 1343     	 orrs r3,r3,r2
+ 451 01a2 DBB2     	 uxtb r3,r3
+ 452 01a4 1946     	 mov r1,r3
+ 453 01a6 0820     	 movs r0,#8
+ 454 01a8 00F03CF9 	 bl phyWriteRegister
+ 148:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 455              	 .loc 3 148 0
+ 456 01ac 00BF     	 nop
+ 457 01ae 1037     	 adds r7,r7,#16
+ 458              	.LCFI24:
+ 459              	 .cfi_def_cfa_offset 8
+ 460 01b0 BD46     	 mov sp,r7
+ 461              	.LCFI25:
+ 462              	 .cfi_def_cfa_register 13
+ 463              	 
+ 464 01b2 80BD     	 pop {r7,pc}
+ 465              	 .cfi_endproc
+ 466              	.LFE226:
+ 468              	 .align 1
+ 469              	 .global PHY_SetPanId
+ 470              	 .syntax unified
+ 471              	 .thumb
+ 472              	 .thumb_func
+ 473              	 .fpu softvfp
+ 475              	PHY_SetPanId:
+ 476              	.LFB227:
+ 149:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 150:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 151:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 152:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** void PHY_SetPanId(uint16_t panId)
+ 153:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 477              	 .loc 3 153 0
+ 478              	 .cfi_startproc
+ 479              	 
+ 480              	 
+ 481 01b4 80B5     	 push {r7,lr}
+ 482              	.LCFI26:
+ 483              	 .cfi_def_cfa_offset 8
+ 484              	 .cfi_offset 7,-8
+ 485              	 .cfi_offset 14,-4
+ 486 01b6 84B0     	 sub sp,sp,#16
+ 487              	.LCFI27:
+ 488              	 .cfi_def_cfa_offset 24
+ 489 01b8 00AF     	 add r7,sp,#0
+ 490              	.LCFI28:
+ 491              	 .cfi_def_cfa_register 7
+ 492 01ba 0346     	 mov r3,r0
+ 493 01bc FB80     	 strh r3,[r7,#6]
+ 154:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	uint8_t *d = (uint8_t *)&panId;
+ 494              	 .loc 3 154 0
+ 495 01be BB1D     	 adds r3,r7,#6
+ 496 01c0 FB60     	 str r3,[r7,#12]
+ 155:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 156:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(PAN_ID_0_REG, d[0]);
+ 497              	 .loc 3 156 0
+ 498 01c2 FB68     	 ldr r3,[r7,#12]
+ 499 01c4 1B78     	 ldrb r3,[r3]
+ 500 01c6 1946     	 mov r1,r3
+ 501 01c8 2220     	 movs r0,#34
+ 502 01ca 00F02BF9 	 bl phyWriteRegister
+ 157:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(PAN_ID_1_REG, d[1]);
+ 503              	 .loc 3 157 0
+ 504 01ce FB68     	 ldr r3,[r7,#12]
+ 505 01d0 0133     	 adds r3,r3,#1
+ 506 01d2 1B78     	 ldrb r3,[r3]
+ 507 01d4 1946     	 mov r1,r3
+ 508 01d6 2320     	 movs r0,#35
+ 509 01d8 00F024F9 	 bl phyWriteRegister
+ 158:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 510              	 .loc 3 158 0
+ 511 01dc 00BF     	 nop
+ 512 01de 1037     	 adds r7,r7,#16
+ 513              	.LCFI29:
+ 514              	 .cfi_def_cfa_offset 8
+ 515 01e0 BD46     	 mov sp,r7
+ 516              	.LCFI30:
+ 517              	 .cfi_def_cfa_register 13
+ 518              	 
+ 519 01e2 80BD     	 pop {r7,pc}
+ 520              	 .cfi_endproc
+ 521              	.LFE227:
+ 523              	 .align 1
+ 524              	 .global PHY_SetShortAddr
+ 525              	 .syntax unified
+ 526              	 .thumb
+ 527              	 .thumb_func
+ 528              	 .fpu softvfp
+ 530              	PHY_SetShortAddr:
+ 531              	.LFB228:
+ 159:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 160:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 161:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 162:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** void PHY_SetShortAddr(uint16_t addr)
+ 163:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 532              	 .loc 3 163 0
+ 533              	 .cfi_startproc
+ 534              	 
+ 535              	 
+ 536 01e4 80B5     	 push {r7,lr}
+ 537              	.LCFI31:
+ 538              	 .cfi_def_cfa_offset 8
+ 539              	 .cfi_offset 7,-8
+ 540              	 .cfi_offset 14,-4
+ 541 01e6 84B0     	 sub sp,sp,#16
+ 542              	.LCFI32:
+ 543              	 .cfi_def_cfa_offset 24
+ 544 01e8 00AF     	 add r7,sp,#0
+ 545              	.LCFI33:
+ 546              	 .cfi_def_cfa_register 7
+ 547 01ea 0346     	 mov r3,r0
+ 548 01ec FB80     	 strh r3,[r7,#6]
+ 164:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	uint8_t *d = (uint8_t *)&addr;
+ 549              	 .loc 3 164 0
+ 550 01ee BB1D     	 adds r3,r7,#6
+ 551 01f0 FB60     	 str r3,[r7,#12]
+ 165:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 166:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(SHORT_ADDR_0_REG, d[0]);
+ 552              	 .loc 3 166 0
+ 553 01f2 FB68     	 ldr r3,[r7,#12]
+ 554 01f4 1B78     	 ldrb r3,[r3]
+ 555 01f6 1946     	 mov r1,r3
+ 556 01f8 2020     	 movs r0,#32
+ 557 01fa 00F013F9 	 bl phyWriteRegister
+ 167:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(SHORT_ADDR_1_REG, d[1]);
+ 558              	 .loc 3 167 0
+ 559 01fe FB68     	 ldr r3,[r7,#12]
+ 560 0200 0133     	 adds r3,r3,#1
+ 561 0202 1B78     	 ldrb r3,[r3]
+ 562 0204 1946     	 mov r1,r3
+ 563 0206 2120     	 movs r0,#33
+ 564 0208 00F00CF9 	 bl phyWriteRegister
+ 168:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(CSMA_SEED_0_REG, d[0] + d[1]);
+ 565              	 .loc 3 168 0
+ 566 020c FB68     	 ldr r3,[r7,#12]
+ 567 020e 1A78     	 ldrb r2,[r3]
+ 568 0210 FB68     	 ldr r3,[r7,#12]
+ 569 0212 0133     	 adds r3,r3,#1
+ 570 0214 1B78     	 ldrb r3,[r3]
+ 571 0216 1344     	 add r3,r3,r2
+ 572 0218 DBB2     	 uxtb r3,r3
+ 573 021a 1946     	 mov r1,r3
+ 574 021c 2D20     	 movs r0,#45
+ 575 021e 00F001F9 	 bl phyWriteRegister
+ 169:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 576              	 .loc 3 169 0
+ 577 0222 00BF     	 nop
+ 578 0224 1037     	 adds r7,r7,#16
+ 579              	.LCFI34:
+ 580              	 .cfi_def_cfa_offset 8
+ 581 0226 BD46     	 mov sp,r7
+ 582              	.LCFI35:
+ 583              	 .cfi_def_cfa_register 13
+ 584              	 
+ 585 0228 80BD     	 pop {r7,pc}
+ 586              	 .cfi_endproc
+ 587              	.LFE228:
+ 589              	 .align 1
+ 590              	 .global PHY_SetTxPower
+ 591              	 .syntax unified
+ 592              	 .thumb
+ 593              	 .thumb_func
+ 594              	 .fpu softvfp
+ 596              	PHY_SetTxPower:
+ 597              	.LFB229:
+ 170:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 171:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 172:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 173:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** void PHY_SetTxPower(uint8_t txPower)
+ 174:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 598              	 .loc 3 174 0
+ 599              	 .cfi_startproc
+ 600              	 
+ 601              	 
+ 602 022a 80B5     	 push {r7,lr}
+ 603              	.LCFI36:
+ 604              	 .cfi_def_cfa_offset 8
+ 605              	 .cfi_offset 7,-8
+ 606              	 .cfi_offset 14,-4
+ 607 022c 84B0     	 sub sp,sp,#16
+ 608              	.LCFI37:
+ 609              	 .cfi_def_cfa_offset 24
+ 610 022e 00AF     	 add r7,sp,#0
+ 611              	.LCFI38:
+ 612              	 .cfi_def_cfa_register 7
+ 613 0230 0346     	 mov r3,r0
+ 614 0232 FB71     	 strb r3,[r7,#7]
+ 175:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	uint8_t reg;
+ 176:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 177:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	reg = phyReadRegister(PHY_TX_PWR_REG) & ~0x0f;
+ 615              	 .loc 3 177 0
+ 616 0234 0520     	 movs r0,#5
+ 617 0236 00F009F9 	 bl phyReadRegister
+ 618 023a 0346     	 mov r3,r0
+ 619 023c 23F00F03 	 bic r3,r3,#15
+ 620 0240 FB73     	 strb r3,[r7,#15]
+ 178:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(PHY_TX_PWR_REG, reg | txPower);
+ 621              	 .loc 3 178 0
+ 622 0242 FA7B     	 ldrb r2,[r7,#15]
+ 623 0244 FB79     	 ldrb r3,[r7,#7]
+ 624 0246 1343     	 orrs r3,r3,r2
+ 625 0248 DBB2     	 uxtb r3,r3
+ 626 024a 1946     	 mov r1,r3
+ 627 024c 0520     	 movs r0,#5
+ 628 024e 00F0E9F8 	 bl phyWriteRegister
+ 179:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 629              	 .loc 3 179 0
+ 630 0252 00BF     	 nop
+ 631 0254 1037     	 adds r7,r7,#16
+ 632              	.LCFI39:
+ 633              	 .cfi_def_cfa_offset 8
+ 634 0256 BD46     	 mov sp,r7
+ 635              	.LCFI40:
+ 636              	 .cfi_def_cfa_register 13
+ 637              	 
+ 638 0258 80BD     	 pop {r7,pc}
+ 639              	 .cfi_endproc
+ 640              	.LFE229:
+ 642              	 .align 1
+ 643              	 .global PHY_Sleep
+ 644              	 .syntax unified
+ 645              	 .thumb
+ 646              	 .thumb_func
+ 647              	 .fpu softvfp
+ 649              	PHY_Sleep:
+ 650              	.LFB230:
+ 180:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 181:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 182:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 183:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** void PHY_Sleep(void)
+ 184:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 651              	 .loc 3 184 0
+ 652              	 .cfi_startproc
+ 653              	 
+ 654              	 
+ 655 025a 80B5     	 push {r7,lr}
+ 656              	.LCFI41:
+ 657              	 .cfi_def_cfa_offset 8
+ 658              	 .cfi_offset 7,-8
+ 659              	 .cfi_offset 14,-4
+ 660 025c 82B0     	 sub sp,sp,#8
+ 661              	.LCFI42:
+ 662              	 .cfi_def_cfa_offset 16
+ 663 025e 00AF     	 add r7,sp,#0
+ 664              	.LCFI43:
+ 665              	 .cfi_def_cfa_register 7
+ 185:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	if(phyState != PHY_STATE_SLEEP)
+ 666              	 .loc 3 185 0
+ 667 0260 174B     	 ldr r3,.L30
+ 668 0262 1B78     	 ldrb r3,[r3]
+ 669 0264 022B     	 cmp r3,#2
+ 670 0266 09D0     	 beq .L29
+ 186:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	{
+ 187:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		phyTrxSetState(TRX_CMD_TRX_OFF);
+ 671              	 .loc 3 187 0
+ 672 0268 0820     	 movs r0,#8
+ 673 026a 00F027F9 	 bl phyTrxSetState
+ 188:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		TRX_SLP_TR_HIGH();
+ 674              	 .loc 3 188 0
+ 675 026e 0121     	 movs r1,#1
+ 676 0270 0920     	 movs r0,#9
+ 677 0272 FFF7C5FE 	 bl ioport_set_pin_level
+ 189:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		phyState = PHY_STATE_SLEEP;		
+ 678              	 .loc 3 189 0
+ 679 0276 124B     	 ldr r3,.L30
+ 680 0278 0222     	 movs r2,#2
+ 681 027a 1A70     	 strb r2,[r3]
+ 682              	.L29:
+ 190:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	}
+ 191:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	
+ 192:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	uint8_t reg;
+ 193:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 194:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #if (ANTENNA_DIVERSITY == 1)
+ 195:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	reg								= phyReadRegister(ANT_DIV_REG);
+ 196:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(ANT_DIV_REG, reg & ~((1 << ANT_DIV_EN) | (1 << ANT_EXT_SW_EN)));
+ 197:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #else
+ 198:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	#if (ANTENNA_DEFAULT != 0)
+ 199:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		reg							= phyReadRegister(ANT_DIV_REG);
+ 683              	 .loc 3 199 0
+ 684 027c 0D20     	 movs r0,#13
+ 685 027e 00F0E5F8 	 bl phyReadRegister
+ 686 0282 0346     	 mov r3,r0
+ 687 0284 FB71     	 strb r3,[r7,#7]
+ 200:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		phyWriteRegister(ANT_DIV_REG, reg & ~((1 << ANT_EXT_SW_EN) | (0x03 << ANT_CTRL)));
+ 688              	 .loc 3 200 0
+ 689 0286 FB79     	 ldrb r3,[r7,#7]
+ 690 0288 23F00703 	 bic r3,r3,#7
+ 691 028c DBB2     	 uxtb r3,r3
+ 692 028e 1946     	 mov r1,r3
+ 693 0290 0D20     	 movs r0,#13
+ 694 0292 00F0C7F8 	 bl phyWriteRegister
+ 201:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	#endif // ANTENNA_DEFAULT
+ 202:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #endif // ANTENNA_DIVERSITY
+ 203:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #ifdef EXT_RF_FRONT_END_CTRL
+ 204:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	reg								= phyReadRegister(TRX_CTRL_1_REG);
+ 695              	 .loc 3 204 0
+ 696 0296 0420     	 movs r0,#4
+ 697 0298 00F0D8F8 	 bl phyReadRegister
+ 698 029c 0346     	 mov r3,r0
+ 699 029e FB71     	 strb r3,[r7,#7]
+ 205:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(TRX_CTRL_1_REG, reg & ~(1 << PA_EXT_EN));
+ 700              	 .loc 3 205 0
+ 701 02a0 FB79     	 ldrb r3,[r7,#7]
+ 702 02a2 03F07F03 	 and r3,r3,#127
+ 703 02a6 DBB2     	 uxtb r3,r3
+ 704 02a8 1946     	 mov r1,r3
+ 705 02aa 0420     	 movs r0,#4
+ 706 02ac 00F0BAF8 	 bl phyWriteRegister
+ 206:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 207:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	ioport_set_pin_level(AT86RFX_CSD, IOPORT_PIN_LEVEL_LOW);
+ 707              	 .loc 3 207 0
+ 708 02b0 0021     	 movs r1,#0
+ 709 02b2 0B20     	 movs r0,#11
+ 710 02b4 FFF7A4FE 	 bl ioport_set_pin_level
+ 208:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #endif // EXT_RF_FRONT_END_CTRL
+ 209:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 711              	 .loc 3 209 0
+ 712 02b8 00BF     	 nop
+ 713 02ba 0837     	 adds r7,r7,#8
+ 714              	.LCFI44:
+ 715              	 .cfi_def_cfa_offset 8
+ 716 02bc BD46     	 mov sp,r7
+ 717              	.LCFI45:
+ 718              	 .cfi_def_cfa_register 13
+ 719              	 
+ 720 02be 80BD     	 pop {r7,pc}
+ 721              	.L31:
+ 722              	 .align 2
+ 723              	.L30:
+ 724 02c0 00000000 	 .word phyState
+ 725              	 .cfi_endproc
+ 726              	.LFE230:
+ 728              	 .align 1
+ 729              	 .global PHY_Wakeup
+ 730              	 .syntax unified
+ 731              	 .thumb
+ 732              	 .thumb_func
+ 733              	 .fpu softvfp
+ 735              	PHY_Wakeup:
+ 736              	.LFB231:
+ 210:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 211:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 212:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 213:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** void PHY_Wakeup(void)
+ 214:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 737              	 .loc 3 214 0
+ 738              	 .cfi_startproc
+ 739              	 
+ 740              	 
+ 741 02c4 80B5     	 push {r7,lr}
+ 742              	.LCFI46:
+ 743              	 .cfi_def_cfa_offset 8
+ 744              	 .cfi_offset 7,-8
+ 745              	 .cfi_offset 14,-4
+ 746 02c6 00AF     	 add r7,sp,#0
+ 747              	.LCFI47:
+ 748              	 .cfi_def_cfa_register 7
+ 215:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	TRX_SLP_TR_LOW();
+ 749              	 .loc 3 215 0
+ 750 02c8 0021     	 movs r1,#0
+ 751 02ca 0920     	 movs r0,#9
+ 752 02cc FFF798FE 	 bl ioport_set_pin_level
+ 216:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phySetRxState();
+ 753              	 .loc 3 216 0
+ 754 02d0 00F0E1F8 	 bl phySetRxState
+ 217:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyState = PHY_STATE_IDLE;
+ 755              	 .loc 3 217 0
+ 756 02d4 024B     	 ldr r3,.L33
+ 757 02d6 0122     	 movs r2,#1
+ 758 02d8 1A70     	 strb r2,[r3]
+ 218:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 759              	 .loc 3 218 0
+ 760 02da 00BF     	 nop
+ 761 02dc 80BD     	 pop {r7,pc}
+ 762              	.L34:
+ 763 02de 00BF     	 .align 2
+ 764              	.L33:
+ 765 02e0 00000000 	 .word phyState
+ 766              	 .cfi_endproc
+ 767              	.LFE231:
+ 769              	 .align 1
+ 770              	 .global PHY_DataReq
+ 771              	 .syntax unified
+ 772              	 .thumb
+ 773              	 .thumb_func
+ 774              	 .fpu softvfp
+ 776              	PHY_DataReq:
+ 777              	.LFB232:
+ 219:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 220:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 221:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 222:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** void PHY_DataReq(uint8_t *data)
+ 223:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 778              	 .loc 3 223 0
+ 779              	 .cfi_startproc
+ 780              	 
+ 781              	 
+ 782 02e4 80B5     	 push {r7,lr}
+ 783              	.LCFI48:
+ 784              	 .cfi_def_cfa_offset 8
+ 785              	 .cfi_offset 7,-8
+ 786              	 .cfi_offset 14,-4
+ 787 02e6 82B0     	 sub sp,sp,#8
+ 788              	.LCFI49:
+ 789              	 .cfi_def_cfa_offset 16
+ 790 02e8 00AF     	 add r7,sp,#0
+ 791              	.LCFI50:
+ 792              	 .cfi_def_cfa_register 7
+ 793 02ea 7860     	 str r0,[r7,#4]
+ 224:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #if (ANTENNA_DIVERSITY == 1)
+ 225:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #endif // ANTENNA_DIVERSITY
+ 226:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #ifdef EXT_RF_FRONT_END_CTRL
+ 227:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	ioport_set_pin_level(AT86RFX_CSD, IOPORT_PIN_LEVEL_LOW);
+ 794              	 .loc 3 227 0
+ 795 02ec 0021     	 movs r1,#0
+ 796 02ee 0B20     	 movs r0,#11
+ 797 02f0 FFF786FE 	 bl ioport_set_pin_level
+ 228:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #endif // EXT_RF_FRONT_END_CTRL
+ 229:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 230:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyTrxSetState(TRX_CMD_TX_ARET_ON);
+ 798              	 .loc 3 230 0
+ 799 02f4 1920     	 movs r0,#25
+ 800 02f6 00F0E1F8 	 bl phyTrxSetState
+ 231:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 232:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyReadRegister(IRQ_STATUS_REG);
+ 801              	 .loc 3 232 0
+ 802 02fa 0F20     	 movs r0,#15
+ 803 02fc 00F0A6F8 	 bl phyReadRegister
+ 233:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 234:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	/* size of the buffer is sent as first byte of the data
+ 235:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	 * and data starts from second byte.
+ 236:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	 */
+ 237:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	data[0] += 2;
+ 804              	 .loc 3 237 0
+ 805 0300 7B68     	 ldr r3,[r7,#4]
+ 806 0302 1B78     	 ldrb r3,[r3]
+ 807 0304 0233     	 adds r3,r3,#2
+ 808 0306 DAB2     	 uxtb r2,r3
+ 809 0308 7B68     	 ldr r3,[r7,#4]
+ 810 030a 1A70     	 strb r2,[r3]
+ 238:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	trx_frame_write(data, (data[0] - 1) /* length value*/);
+ 811              	 .loc 3 238 0
+ 812 030c 7B68     	 ldr r3,[r7,#4]
+ 813 030e 1B78     	 ldrb r3,[r3]
+ 814 0310 013B     	 subs r3,r3,#1
+ 815 0312 DBB2     	 uxtb r3,r3
+ 816 0314 1946     	 mov r1,r3
+ 817 0316 7868     	 ldr r0,[r7,#4]
+ 818 0318 094B     	 ldr r3,.L36
+ 819 031a 9847     	 blx r3
+ 820              	.LVL2:
+ 239:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 240:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyState = PHY_STATE_TX_WAIT_END;
+ 821              	 .loc 3 240 0
+ 822 031c 094B     	 ldr r3,.L36+4
+ 823 031e 0322     	 movs r2,#3
+ 824 0320 1A70     	 strb r2,[r3]
+ 241:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 242:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	TRX_SLP_TR_HIGH();
+ 825              	 .loc 3 242 0
+ 826 0322 0121     	 movs r1,#1
+ 827 0324 0920     	 movs r0,#9
+ 828 0326 FFF76BFE 	 bl ioport_set_pin_level
+ 829              	.LBB64:
+ 830              	.LBB65:
+ 831              	 .file 4 "../../../platform/thirdparty/CMSIS/include/core_cmInstr.h"
+   1:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /**************************************************************************//**
+   2:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @file     core_cmInstr.h
+   3:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @brief    CMSIS Cortex-M Core Instruction Access Header File
+   4:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @version  V3.00
+   5:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @date     07. February 2012
+   6:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  *
+   7:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @note
+   8:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * Copyright (C) 2009-2012 ARM Limited. All rights reserved.
+   9:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  *
+  10:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @par
+  11:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * ARM Limited (ARM) is supplying this software for use with Cortex-M
+  12:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * processor based microcontrollers.  This file can be freely distributed
+  13:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * within development tools that are supporting such ARM based processors.
+  14:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  *
+  15:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @par
+  16:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
+  17:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+  18:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
+  19:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
+  20:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  21:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  *
+  22:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  ******************************************************************************/
+  23:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  24:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #ifndef __CORE_CMINSTR_H
+  25:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __CORE_CMINSTR_H
+  26:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  27:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  28:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /* ##########################  Core Instruction Access  ######################### */
+  29:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \defgroup CMSIS_Core_InstructionInterface CMSIS Core Instruction Interface
+  30:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   Access to dedicated instructions
+  31:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   @{
+  32:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** */
+  33:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  34:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #if   defined ( __CC_ARM ) /*------------------RealView Compiler -----------------*/
+  35:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /* ARM armcc specific functions */
+  36:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  37:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #if (__ARMCC_VERSION < 400677)
+  38:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   #error "Please use ARM Compiler Toolchain V4.0.677 or later!"
+  39:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #endif
+  40:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  41:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  42:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  No Operation
+  43:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  44:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     No Operation does nothing. This instruction can be used for code alignment purposes.
+  45:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  46:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __NOP                             __nop
+  47:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  48:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  49:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Wait For Interrupt
+  50:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  51:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     Wait For Interrupt is a hint instruction that suspends execution
+  52:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     until one of a number of events occurs.
+  53:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  54:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __WFI                             __wfi
+  55:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  56:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  57:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Wait For Event
+  58:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  59:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     Wait For Event is a hint instruction that permits the processor to enter
+  60:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     a low-power state until one of a number of events occurs.
+  61:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  62:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __WFE                             __wfe
+  63:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  64:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  65:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Send Event
+  66:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  67:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+  68:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  69:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __SEV                             __sev
+  70:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  71:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  72:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Instruction Synchronization Barrier
+  73:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  74:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     Instruction Synchronization Barrier flushes the pipeline in the processor,
+  75:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     so that all instructions following the ISB are fetched from cache or
+  76:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     memory, after the instruction has been completed.
+  77:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  78:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __ISB()                           __isb(0xF)
+  79:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  80:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  81:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Data Synchronization Barrier
+  82:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  83:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function acts as a special kind of Data Memory Barrier.
+  84:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     It completes when all explicit memory accesses before this instruction complete.
+  85:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  86:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __DSB()                           __dsb(0xF)
+  87:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  88:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  89:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Data Memory Barrier
+  90:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  91:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function ensures the apparent order of the explicit memory operations before
+  92:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     and after the instruction, without ensuring their completion.
+  93:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  94:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __DMB()                           __dmb(0xF)
+  95:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  96:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  97:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Reverse byte order (32 bit)
+  98:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  99:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function reverses the byte order in integer value.
+ 100:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 101:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 102:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return               Reversed value
+ 103:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 104:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __REV                             __rev
+ 105:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 106:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 107:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Reverse byte order (16 bit)
+ 108:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 109:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function reverses the byte order in two unsigned short values.
+ 110:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 111:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 112:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return               Reversed value
+ 113:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 114:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** __attribute__((section(".rev16_text"))) __STATIC_INLINE __ASM uint32_t __REV16(uint32_t value)
+ 115:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** {
+ 116:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   rev16 r0, r0
+ 117:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   bx lr
+ 118:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** }
+ 119:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 120:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 121:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Reverse byte order in signed short value
+ 122:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 123:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function reverses the byte order in a signed short value with sign extension to integer.
+ 124:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 125:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 126:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return               Reversed value
+ 127:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 128:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** __attribute__((section(".revsh_text"))) __STATIC_INLINE __ASM int32_t __REVSH(int32_t value)
+ 129:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** {
+ 130:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   revsh r0, r0
+ 131:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   bx lr
+ 132:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** }
+ 133:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 134:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 135:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Rotate Right in unsigned value (32 bit)
+ 136:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 137:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function Rotate Right (immediate) provides the value of the contents of a register rotated
+ 138:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 139:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    value  Value to rotate
+ 140:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    value  Number of Bits to rotate
+ 141:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return               Rotated value
+ 142:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 143:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __ROR                             __ror
+ 144:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 145:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 146:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #if       (__CORTEX_M >= 0x03)
+ 147:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 148:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Reverse bit order of value
+ 149:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 150:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function reverses the bit order of the given value.
+ 151:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 152:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 153:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return               Reversed value
+ 154:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 155:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __RBIT                            __rbit
+ 156:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 157:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 158:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  LDR Exclusive (8 bit)
+ 159:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 160:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function performs a exclusive LDR command for 8 bit value.
+ 161:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 162:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 163:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return             value of type uint8_t at (*ptr)
+ 164:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 165:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __LDREXB(ptr)                     ((uint8_t ) __ldrex(ptr))
+ 166:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 167:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 168:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  LDR Exclusive (16 bit)
+ 169:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 170:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function performs a exclusive LDR command for 16 bit values.
+ 171:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 172:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 173:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return        value of type uint16_t at (*ptr)
+ 174:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 175:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __LDREXH(ptr)                     ((uint16_t) __ldrex(ptr))
+ 176:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 177:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 178:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  LDR Exclusive (32 bit)
+ 179:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 180:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function performs a exclusive LDR command for 32 bit values.
+ 181:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 182:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 183:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return        value of type uint32_t at (*ptr)
+ 184:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 185:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __LDREXW(ptr)                     ((uint32_t ) __ldrex(ptr))
+ 186:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 187:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 188:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  STR Exclusive (8 bit)
+ 189:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 190:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function performs a exclusive STR command for 8 bit values.
+ 191:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 192:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]  value  Value to store
+ 193:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 194:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return          0  Function succeeded
+ 195:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return          1  Function failed
+ 196:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 197:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __STREXB(value, ptr)              __strex(value, ptr)
+ 198:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 199:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 200:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  STR Exclusive (16 bit)
+ 201:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 202:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function performs a exclusive STR command for 16 bit values.
+ 203:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 204:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]  value  Value to store
+ 205:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 206:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return          0  Function succeeded
+ 207:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return          1  Function failed
+ 208:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 209:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __STREXH(value, ptr)              __strex(value, ptr)
+ 210:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 211:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 212:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  STR Exclusive (32 bit)
+ 213:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 214:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function performs a exclusive STR command for 32 bit values.
+ 215:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 216:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]  value  Value to store
+ 217:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 218:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return          0  Function succeeded
+ 219:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return          1  Function failed
+ 220:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 221:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __STREXW(value, ptr)              __strex(value, ptr)
+ 222:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 223:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 224:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Remove the exclusive lock
+ 225:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 226:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function removes the exclusive lock which is created by LDREX.
+ 227:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 228:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 229:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __CLREX                           __clrex
+ 230:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 231:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 232:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Signed Saturate
+ 233:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 234:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function saturates a signed value.
+ 235:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 236:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]  value  Value to be saturated
+ 237:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    sat  Bit position to saturate to (1..32)
+ 238:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return             Saturated value
+ 239:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 240:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __SSAT                            __ssat
+ 241:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 242:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 243:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Unsigned Saturate
+ 244:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 245:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function saturates an unsigned value.
+ 246:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 247:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]  value  Value to be saturated
+ 248:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    sat  Bit position to saturate to (0..31)
+ 249:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return             Saturated value
+ 250:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 251:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __USAT                            __usat
+ 252:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 253:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 254:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Count leading zeros
+ 255:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 256:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function counts the number of leading zeros of a data value.
+ 257:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 258:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]  value  Value to count the leading zeros
+ 259:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return             number of leading zeros in value
+ 260:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 261:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __CLZ                             __clz
+ 262:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 263:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 264:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 265:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 266:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 267:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #elif defined ( __ICCARM__ ) /*------------------ ICC Compiler -------------------*/
+ 268:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /* IAR iccarm specific functions */
+ 269:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 270:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #include <cmsis_iar.h>
+ 271:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 272:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 273:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #elif defined ( __TMS470__ ) /*---------------- TI CCS Compiler ------------------*/
+ 274:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /* TI CCS specific functions */
+ 275:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 276:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #include <cmsis_ccs.h>
+ 277:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 278:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 279:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #elif defined ( __GNUC__ ) /*------------------ GNU Compiler ---------------------*/
+ 280:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /* GNU gcc specific functions */
+ 281:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 282:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  No Operation
+ 283:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 284:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     No Operation does nothing. This instruction can be used for code alignment purposes.
+ 285:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 286:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __NOP(void)
+ 287:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** {
+ 288:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   __ASM volatile ("nop");
+ 832              	 .loc 4 288 0
+ 833              	 .syntax unified
+ 834              	
+ 835 032a 00BF     	 nop
+ 836              	
+ 837              	 .thumb
+ 838              	 .syntax unified
+ 839              	.LBE65:
+ 840              	.LBE64:
+ 841              	.LBB66:
+ 842              	.LBB67:
+ 843              	 .syntax unified
+ 844              	
+ 845 032c 00BF     	 nop
+ 846              	
+ 847              	 .thumb
+ 848              	 .syntax unified
+ 849              	.LBE67:
+ 850              	.LBE66:
+ 243:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	TRX_TRIG_DELAY();
+ 244:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	TRX_SLP_TR_LOW();
+ 851              	 .loc 3 244 0
+ 852 032e 0021     	 movs r1,#0
+ 853 0330 0920     	 movs r0,#9
+ 854 0332 FFF765FE 	 bl ioport_set_pin_level
+ 245:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 855              	 .loc 3 245 0
+ 856 0336 00BF     	 nop
+ 857 0338 0837     	 adds r7,r7,#8
+ 858              	.LCFI51:
+ 859              	 .cfi_def_cfa_offset 8
+ 860 033a BD46     	 mov sp,r7
+ 861              	.LCFI52:
+ 862              	 .cfi_def_cfa_register 13
+ 863              	 
+ 864 033c 80BD     	 pop {r7,pc}
+ 865              	.L37:
+ 866 033e 00BF     	 .align 2
+ 867              	.L36:
+ 868 0340 00000000 	 .word trx_frame_write
+ 869 0344 00000000 	 .word phyState
+ 870              	 .cfi_endproc
+ 871              	.LFE232:
+ 873              	 .align 1
+ 874              	 .global PHY_RandomReq
+ 875              	 .syntax unified
+ 876              	 .thumb
+ 877              	 .thumb_func
+ 878              	 .fpu softvfp
+ 880              	PHY_RandomReq:
+ 881              	.LFB233:
+ 246:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 247:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 248:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 249:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** uint16_t PHY_RandomReq(void)
+ 250:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 882              	 .loc 3 250 0
+ 883              	 .cfi_startproc
+ 884              	 
+ 885              	 
+ 886 0348 80B5     	 push {r7,lr}
+ 887              	.LCFI53:
+ 888              	 .cfi_def_cfa_offset 8
+ 889              	 .cfi_offset 7,-8
+ 890              	 .cfi_offset 14,-4
+ 891 034a 82B0     	 sub sp,sp,#8
+ 892              	.LCFI54:
+ 893              	 .cfi_def_cfa_offset 16
+ 894 034c 00AF     	 add r7,sp,#0
+ 895              	.LCFI55:
+ 896              	 .cfi_def_cfa_register 7
+ 251:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	uint16_t rnd = 0;
+ 897              	 .loc 3 251 0
+ 898 034e 0023     	 movs r3,#0
+ 899 0350 FB80     	 strh r3,[r7,#6]
+ 252:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	uint8_t rndValue;
+ 253:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 254:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyTrxSetState(TRX_CMD_RX_ON);
+ 900              	 .loc 3 254 0
+ 901 0352 0620     	 movs r0,#6
+ 902 0354 00F0B2F8 	 bl phyTrxSetState
+ 903              	.LBB68:
+ 255:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 256:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	for (uint8_t i = 0; i < 16; i += 2) {
+ 904              	 .loc 3 256 0
+ 905 0358 0023     	 movs r3,#0
+ 906 035a 7B71     	 strb r3,[r7,#5]
+ 907 035c 18E0     	 b .L39
+ 908              	.L40:
+ 257:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		delay_us(RANDOM_NUMBER_UPDATE_INTERVAL);
+ 909              	 .loc 3 257 0 discriminator 3
+ 910 035e 0420     	 movs r0,#4
+ 911 0360 104B     	 ldr r3,.L42
+ 912 0362 9847     	 blx r3
+ 913              	.LVL3:
+ 258:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		rndValue = (phyReadRegister(PHY_RSSI_REG) >> RND_VALUE) & 3;
+ 914              	 .loc 3 258 0 discriminator 3
+ 915 0364 0620     	 movs r0,#6
+ 916 0366 00F071F8 	 bl phyReadRegister
+ 917 036a 0346     	 mov r3,r0
+ 918 036c 5B09     	 lsrs r3,r3,#5
+ 919 036e DBB2     	 uxtb r3,r3
+ 920 0370 03F00303 	 and r3,r3,#3
+ 921 0374 3B71     	 strb r3,[r7,#4]
+ 259:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		rnd |= rndValue << i;
+ 922              	 .loc 3 259 0 discriminator 3
+ 923 0376 3A79     	 ldrb r2,[r7,#4]
+ 924 0378 7B79     	 ldrb r3,[r7,#5]
+ 925 037a 02FA03F3 	 lsl r3,r2,r3
+ 926 037e 1AB2     	 sxth r2,r3
+ 927 0380 B7F90630 	 ldrsh r3,[r7,#6]
+ 928 0384 1343     	 orrs r3,r3,r2
+ 929 0386 1BB2     	 sxth r3,r3
+ 930 0388 FB80     	 strh r3,[r7,#6]
+ 256:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		delay_us(RANDOM_NUMBER_UPDATE_INTERVAL);
+ 931              	 .loc 3 256 0 discriminator 3
+ 932 038a 7B79     	 ldrb r3,[r7,#5]
+ 933 038c 0233     	 adds r3,r3,#2
+ 934 038e 7B71     	 strb r3,[r7,#5]
+ 935              	.L39:
+ 256:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		delay_us(RANDOM_NUMBER_UPDATE_INTERVAL);
+ 936              	 .loc 3 256 0 is_stmt 0 discriminator 1
+ 937 0390 7B79     	 ldrb r3,[r7,#5]
+ 938 0392 0F2B     	 cmp r3,#15
+ 939 0394 E3D9     	 bls .L40
+ 940              	.LBE68:
+ 260:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	}
+ 261:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 262:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phySetRxState();
+ 941              	 .loc 3 262 0 is_stmt 1
+ 942 0396 00F07EF8 	 bl phySetRxState
+ 263:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 264:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	return rnd;
+ 943              	 .loc 3 264 0
+ 944 039a FB88     	 ldrh r3,[r7,#6]
+ 265:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 945              	 .loc 3 265 0
+ 946 039c 1846     	 mov r0,r3
+ 947 039e 0837     	 adds r7,r7,#8
+ 948              	.LCFI56:
+ 949              	 .cfi_def_cfa_offset 8
+ 950 03a0 BD46     	 mov sp,r7
+ 951              	.LCFI57:
+ 952              	 .cfi_def_cfa_register 13
+ 953              	 
+ 954 03a2 80BD     	 pop {r7,pc}
+ 955              	.L43:
+ 956              	 .align 2
+ 957              	.L42:
+ 958 03a4 00000000 	 .word portable_delay_cycles
+ 959              	 .cfi_endproc
+ 960              	.LFE233:
+ 962              	 .align 1
+ 963              	 .global PHY_EncryptReq
+ 964              	 .syntax unified
+ 965              	 .thumb
+ 966              	 .thumb_func
+ 967              	 .fpu softvfp
+ 969              	PHY_EncryptReq:
+ 970              	.LFB234:
+ 266:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 267:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 268:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 269:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** void PHY_EncryptReq(uint8_t *text, uint8_t *key)
+ 270:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 971              	 .loc 3 270 0
+ 972              	 .cfi_startproc
+ 973              	 
+ 974              	 
+ 975 03a8 80B5     	 push {r7,lr}
+ 976              	.LCFI58:
+ 977              	 .cfi_def_cfa_offset 8
+ 978              	 .cfi_offset 7,-8
+ 979              	 .cfi_offset 14,-4
+ 980 03aa 82B0     	 sub sp,sp,#8
+ 981              	.LCFI59:
+ 982              	 .cfi_def_cfa_offset 16
+ 983 03ac 00AF     	 add r7,sp,#0
+ 984              	.LCFI60:
+ 985              	 .cfi_def_cfa_register 7
+ 986 03ae 7860     	 str r0,[r7,#4]
+ 987 03b0 3960     	 str r1,[r7]
+ 271:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	sal_aes_setup(key, AES_MODE_ECB, AES_DIR_ENCRYPT);
+ 988              	 .loc 3 271 0
+ 989 03b2 0022     	 movs r2,#0
+ 990 03b4 0021     	 movs r1,#0
+ 991 03b6 3868     	 ldr r0,[r7]
+ 992 03b8 064B     	 ldr r3,.L45
+ 993 03ba 9847     	 blx r3
+ 994              	.LVL4:
+ 272:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #if (SAL_TYPE == AT86RF2xx)
+ 273:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	sal_aes_wrrd(text, NULL);
+ 995              	 .loc 3 273 0
+ 996 03bc 0021     	 movs r1,#0
+ 997 03be 7868     	 ldr r0,[r7,#4]
+ 998 03c0 054B     	 ldr r3,.L45+4
+ 999 03c2 9847     	 blx r3
+ 1000              	.LVL5:
+ 274:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #else
+ 275:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	sal_aes_exec(text);
+ 276:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #endif
+ 277:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	sal_aes_read(text);
+ 1001              	 .loc 3 277 0
+ 1002 03c4 7868     	 ldr r0,[r7,#4]
+ 1003 03c6 054B     	 ldr r3,.L45+8
+ 1004 03c8 9847     	 blx r3
+ 1005              	.LVL6:
+ 278:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 1006              	 .loc 3 278 0
+ 1007 03ca 00BF     	 nop
+ 1008 03cc 0837     	 adds r7,r7,#8
+ 1009              	.LCFI61:
+ 1010              	 .cfi_def_cfa_offset 8
+ 1011 03ce BD46     	 mov sp,r7
+ 1012              	.LCFI62:
+ 1013              	 .cfi_def_cfa_register 13
+ 1014              	 
+ 1015 03d0 80BD     	 pop {r7,pc}
+ 1016              	.L46:
+ 1017 03d2 00BF     	 .align 2
+ 1018              	.L45:
+ 1019 03d4 00000000 	 .word sal_aes_setup
+ 1020 03d8 00000000 	 .word sal_aes_wrrd
+ 1021 03dc 00000000 	 .word sal_aes_read
+ 1022              	 .cfi_endproc
+ 1023              	.LFE234:
+ 1025              	 .align 1
+ 1026              	 .global PHY_EdReq
+ 1027              	 .syntax unified
+ 1028              	 .thumb
+ 1029              	 .thumb_func
+ 1030              	 .fpu softvfp
+ 1032              	PHY_EdReq:
+ 1033              	.LFB235:
+ 279:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 280:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 281:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 282:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** int8_t PHY_EdReq(void)
+ 283:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 1034              	 .loc 3 283 0
+ 1035              	 .cfi_startproc
+ 1036              	 
+ 1037              	 
+ 1038 03e0 80B5     	 push {r7,lr}
+ 1039              	.LCFI63:
+ 1040              	 .cfi_def_cfa_offset 8
+ 1041              	 .cfi_offset 7,-8
+ 1042              	 .cfi_offset 14,-4
+ 1043 03e2 82B0     	 sub sp,sp,#8
+ 1044              	.LCFI64:
+ 1045              	 .cfi_def_cfa_offset 16
+ 1046 03e4 00AF     	 add r7,sp,#0
+ 1047              	.LCFI65:
+ 1048              	 .cfi_def_cfa_register 7
+ 284:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	uint8_t ed;
+ 285:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 286:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyTrxSetState(TRX_CMD_RX_ON);
+ 1049              	 .loc 3 286 0
+ 1050 03e6 0620     	 movs r0,#6
+ 1051 03e8 00F068F8 	 bl phyTrxSetState
+ 287:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyWriteRegister(PHY_ED_LEVEL_REG, 0);
+ 1052              	 .loc 3 287 0
+ 1053 03ec 0021     	 movs r1,#0
+ 1054 03ee 0720     	 movs r0,#7
+ 1055 03f0 00F018F8 	 bl phyWriteRegister
+ 288:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 289:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	while (0 == (phyReadRegister(IRQ_STATUS_REG) & (1 << CCA_ED_DONE))) {
+ 1056              	 .loc 3 289 0
+ 1057 03f4 00BF     	 nop
+ 1058              	.L48:
+ 1059              	 .loc 3 289 0 is_stmt 0 discriminator 1
+ 1060 03f6 0F20     	 movs r0,#15
+ 1061 03f8 00F028F8 	 bl phyReadRegister
+ 1062 03fc 0346     	 mov r3,r0
+ 1063 03fe 03F01003 	 and r3,r3,#16
+ 1064 0402 002B     	 cmp r3,#0
+ 1065 0404 F7D0     	 beq .L48
+ 290:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	}
+ 291:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 292:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	ed = (int8_t)phyReadRegister(PHY_ED_LEVEL_REG);
+ 1066              	 .loc 3 292 0 is_stmt 1
+ 1067 0406 0720     	 movs r0,#7
+ 1068 0408 00F020F8 	 bl phyReadRegister
+ 1069 040c 0346     	 mov r3,r0
+ 1070 040e FB71     	 strb r3,[r7,#7]
+ 293:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 294:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phySetRxState();
+ 1071              	 .loc 3 294 0
+ 1072 0410 00F041F8 	 bl phySetRxState
+ 295:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 296:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	return ed + PHY_RSSI_BASE_VAL;
+ 1073              	 .loc 3 296 0
+ 1074 0414 FB79     	 ldrb r3,[r7,#7]
+ 1075 0416 5B3B     	 subs r3,r3,#91
+ 1076 0418 DBB2     	 uxtb r3,r3
+ 1077 041a 5BB2     	 sxtb r3,r3
+ 297:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 1078              	 .loc 3 297 0
+ 1079 041c 1846     	 mov r0,r3
+ 1080 041e 0837     	 adds r7,r7,#8
+ 1081              	.LCFI66:
+ 1082              	 .cfi_def_cfa_offset 8
+ 1083 0420 BD46     	 mov sp,r7
+ 1084              	.LCFI67:
+ 1085              	 .cfi_def_cfa_register 13
+ 1086              	 
+ 1087 0422 80BD     	 pop {r7,pc}
+ 1088              	 .cfi_endproc
+ 1089              	.LFE235:
+ 1091              	 .align 1
+ 1092              	 .syntax unified
+ 1093              	 .thumb
+ 1094              	 .thumb_func
+ 1095              	 .fpu softvfp
+ 1097              	phyWriteRegister:
+ 1098              	.LFB236:
+ 298:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 299:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 300:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 301:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** static void phyWriteRegister(uint8_t reg, uint8_t value)
+ 302:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 1099              	 .loc 3 302 0
+ 1100              	 .cfi_startproc
+ 1101              	 
+ 1102              	 
+ 1103 0424 80B5     	 push {r7,lr}
+ 1104              	.LCFI68:
+ 1105              	 .cfi_def_cfa_offset 8
+ 1106              	 .cfi_offset 7,-8
+ 1107              	 .cfi_offset 14,-4
+ 1108 0426 82B0     	 sub sp,sp,#8
+ 1109              	.LCFI69:
+ 1110              	 .cfi_def_cfa_offset 16
+ 1111 0428 00AF     	 add r7,sp,#0
+ 1112              	.LCFI70:
+ 1113              	 .cfi_def_cfa_register 7
+ 1114 042a 0346     	 mov r3,r0
+ 1115 042c 0A46     	 mov r2,r1
+ 1116 042e FB71     	 strb r3,[r7,#7]
+ 1117 0430 1346     	 mov r3,r2
+ 1118 0432 BB71     	 strb r3,[r7,#6]
+ 303:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	trx_reg_write(reg, value);
+ 1119              	 .loc 3 303 0
+ 1120 0434 BA79     	 ldrb r2,[r7,#6]
+ 1121 0436 FB79     	 ldrb r3,[r7,#7]
+ 1122 0438 1146     	 mov r1,r2
+ 1123 043a 1846     	 mov r0,r3
+ 1124 043c 024B     	 ldr r3,.L51
+ 1125 043e 9847     	 blx r3
+ 1126              	.LVL7:
+ 304:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 1127              	 .loc 3 304 0
+ 1128 0440 00BF     	 nop
+ 1129 0442 0837     	 adds r7,r7,#8
+ 1130              	.LCFI71:
+ 1131              	 .cfi_def_cfa_offset 8
+ 1132 0444 BD46     	 mov sp,r7
+ 1133              	.LCFI72:
+ 1134              	 .cfi_def_cfa_register 13
+ 1135              	 
+ 1136 0446 80BD     	 pop {r7,pc}
+ 1137              	.L52:
+ 1138              	 .align 2
+ 1139              	.L51:
+ 1140 0448 00000000 	 .word trx_reg_write
+ 1141              	 .cfi_endproc
+ 1142              	.LFE236:
+ 1144              	 .align 1
+ 1145              	 .syntax unified
+ 1146              	 .thumb
+ 1147              	 .thumb_func
+ 1148              	 .fpu softvfp
+ 1150              	phyReadRegister:
+ 1151              	.LFB237:
+ 305:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 306:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 307:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 308:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** static uint8_t phyReadRegister(uint8_t reg)
+ 309:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 1152              	 .loc 3 309 0
+ 1153              	 .cfi_startproc
+ 1154              	 
+ 1155              	 
+ 1156 044c 80B5     	 push {r7,lr}
+ 1157              	.LCFI73:
+ 1158              	 .cfi_def_cfa_offset 8
+ 1159              	 .cfi_offset 7,-8
+ 1160              	 .cfi_offset 14,-4
+ 1161 044e 84B0     	 sub sp,sp,#16
+ 1162              	.LCFI74:
+ 1163              	 .cfi_def_cfa_offset 24
+ 1164 0450 00AF     	 add r7,sp,#0
+ 1165              	.LCFI75:
+ 1166              	 .cfi_def_cfa_register 7
+ 1167 0452 0346     	 mov r3,r0
+ 1168 0454 FB71     	 strb r3,[r7,#7]
+ 310:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	uint8_t value;
+ 311:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 312:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	value = trx_reg_read(reg);
+ 1169              	 .loc 3 312 0
+ 1170 0456 FB79     	 ldrb r3,[r7,#7]
+ 1171 0458 1846     	 mov r0,r3
+ 1172 045a 044B     	 ldr r3,.L55
+ 1173 045c 9847     	 blx r3
+ 1174              	.LVL8:
+ 1175 045e 0346     	 mov r3,r0
+ 1176 0460 FB73     	 strb r3,[r7,#15]
+ 313:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 314:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	return value;
+ 1177              	 .loc 3 314 0
+ 1178 0462 FB7B     	 ldrb r3,[r7,#15]
+ 315:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 1179              	 .loc 3 315 0
+ 1180 0464 1846     	 mov r0,r3
+ 1181 0466 1037     	 adds r7,r7,#16
+ 1182              	.LCFI76:
+ 1183              	 .cfi_def_cfa_offset 8
+ 1184 0468 BD46     	 mov sp,r7
+ 1185              	.LCFI77:
+ 1186              	 .cfi_def_cfa_register 13
+ 1187              	 
+ 1188 046a 80BD     	 pop {r7,pc}
+ 1189              	.L56:
+ 1190              	 .align 2
+ 1191              	.L55:
+ 1192 046c 00000000 	 .word trx_reg_read
+ 1193              	 .cfi_endproc
+ 1194              	.LFE237:
+ 1196              	 .align 1
+ 1197              	 .syntax unified
+ 1198              	 .thumb
+ 1199              	 .thumb_func
+ 1200              	 .fpu softvfp
+ 1202              	phyWaitState:
+ 1203              	.LFB238:
+ 316:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 317:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 318:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 319:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** static void phyWaitState(uint8_t state)
+ 320:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 1204              	 .loc 3 320 0
+ 1205              	 .cfi_startproc
+ 1206              	 
+ 1207              	 
+ 1208 0470 90B5     	 push {r4,r7,lr}
+ 1209              	.LCFI78:
+ 1210              	 .cfi_def_cfa_offset 12
+ 1211              	 .cfi_offset 4,-12
+ 1212              	 .cfi_offset 7,-8
+ 1213              	 .cfi_offset 14,-4
+ 1214 0472 83B0     	 sub sp,sp,#12
+ 1215              	.LCFI79:
+ 1216              	 .cfi_def_cfa_offset 24
+ 1217 0474 00AF     	 add r7,sp,#0
+ 1218              	.LCFI80:
+ 1219              	 .cfi_def_cfa_register 7
+ 1220 0476 0346     	 mov r3,r0
+ 1221 0478 FB71     	 strb r3,[r7,#7]
+ 321:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	while (state != (phyReadRegister(TRX_STATUS_REG) & TRX_STATUS_MASK)) {
+ 1222              	 .loc 3 321 0
+ 1223 047a 00BF     	 nop
+ 1224              	.L58:
+ 1225              	 .loc 3 321 0 is_stmt 0 discriminator 1
+ 1226 047c FC79     	 ldrb r4,[r7,#7]
+ 1227 047e 0120     	 movs r0,#1
+ 1228 0480 FFF7E4FF 	 bl phyReadRegister
+ 1229 0484 0346     	 mov r3,r0
+ 1230 0486 03F01F03 	 and r3,r3,#31
+ 1231 048a 9C42     	 cmp r4,r3
+ 1232 048c F6D1     	 bne .L58
+ 322:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	}
+ 323:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 1233              	 .loc 3 323 0 is_stmt 1
+ 1234 048e 00BF     	 nop
+ 1235 0490 0C37     	 adds r7,r7,#12
+ 1236              	.LCFI81:
+ 1237              	 .cfi_def_cfa_offset 12
+ 1238 0492 BD46     	 mov sp,r7
+ 1239              	.LCFI82:
+ 1240              	 .cfi_def_cfa_register 13
+ 1241              	 
+ 1242 0494 90BD     	 pop {r4,r7,pc}
+ 1243              	 .cfi_endproc
+ 1244              	.LFE238:
+ 1246              	 .align 1
+ 1247              	 .syntax unified
+ 1248              	 .thumb
+ 1249              	 .thumb_func
+ 1250              	 .fpu softvfp
+ 1252              	phySetRxState:
+ 1253              	.LFB239:
+ 324:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 325:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 326:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 327:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** static void phySetRxState(void)
+ 328:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 1254              	 .loc 3 328 0
+ 1255              	 .cfi_startproc
+ 1256              	 
+ 1257              	 
+ 1258 0496 80B5     	 push {r7,lr}
+ 1259              	.LCFI83:
+ 1260              	 .cfi_def_cfa_offset 8
+ 1261              	 .cfi_offset 7,-8
+ 1262              	 .cfi_offset 14,-4
+ 1263 0498 00AF     	 add r7,sp,#0
+ 1264              	.LCFI84:
+ 1265              	 .cfi_def_cfa_register 7
+ 329:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyTrxSetState(TRX_CMD_TRX_OFF);
+ 1266              	 .loc 3 329 0
+ 1267 049a 0820     	 movs r0,#8
+ 1268 049c 00F00EF8 	 bl phyTrxSetState
+ 330:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 331:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	phyReadRegister(IRQ_STATUS_REG);
+ 1269              	 .loc 3 331 0
+ 1270 04a0 0F20     	 movs r0,#15
+ 1271 04a2 FFF7D3FF 	 bl phyReadRegister
+ 332:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 333:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	if (phyRxState) {
+ 1272              	 .loc 3 333 0
+ 1273 04a6 044B     	 ldr r3,.L62
+ 1274 04a8 1B78     	 ldrb r3,[r3]
+ 1275 04aa 002B     	 cmp r3,#0
+ 1276 04ac 02D0     	 beq .L61
+ 334:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		phyTrxSetState(TRX_CMD_RX_AACK_ON);
+ 1277              	 .loc 3 334 0
+ 1278 04ae 1620     	 movs r0,#22
+ 1279 04b0 00F004F8 	 bl phyTrxSetState
+ 1280              	.L61:
+ 335:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	}
+ 336:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 1281              	 .loc 3 336 0
+ 1282 04b4 00BF     	 nop
+ 1283 04b6 80BD     	 pop {r7,pc}
+ 1284              	.L63:
+ 1285              	 .align 2
+ 1286              	.L62:
+ 1287 04b8 00000000 	 .word phyRxState
+ 1288              	 .cfi_endproc
+ 1289              	.LFE239:
+ 1291              	 .align 1
+ 1292              	 .syntax unified
+ 1293              	 .thumb
+ 1294              	 .thumb_func
+ 1295              	 .fpu softvfp
+ 1297              	phyTrxSetState:
+ 1298              	.LFB240:
+ 337:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 338:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 339:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 340:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** static void phyTrxSetState(uint8_t state)
+ 341:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 1299              	 .loc 3 341 0
+ 1300              	 .cfi_startproc
+ 1301              	 
+ 1302              	 
+ 1303 04bc 90B5     	 push {r4,r7,lr}
+ 1304              	.LCFI85:
+ 1305              	 .cfi_def_cfa_offset 12
+ 1306              	 .cfi_offset 4,-12
+ 1307              	 .cfi_offset 7,-8
+ 1308              	 .cfi_offset 14,-4
+ 1309 04be 85B0     	 sub sp,sp,#20
+ 1310              	.LCFI86:
+ 1311              	 .cfi_def_cfa_offset 32
+ 1312 04c0 00AF     	 add r7,sp,#0
+ 1313              	.LCFI87:
+ 1314              	 .cfi_def_cfa_register 7
+ 1315 04c2 0346     	 mov r3,r0
+ 1316 04c4 FB71     	 strb r3,[r7,#7]
+ 342:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #if (ANTENNA_DIVERSITY == 1) || defined(EXT_RF_FRONT_END_CTRL)
+ 343:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	if(phyState == PHY_STATE_SLEEP)
+ 1317              	 .loc 3 343 0
+ 1318 04c6 204B     	 ldr r3,.L67
+ 1319 04c8 1B78     	 ldrb r3,[r3]
+ 1320 04ca 022B     	 cmp r3,#2
+ 1321 04cc 1DD1     	 bne .L65
+ 1322              	.LBB69:
+ 344:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	{
+ 345:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		uint8_t reg;
+ 346:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 347:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	#if (ANTENNA_DIVERSITY == 1)
+ 348:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		reg								= phyReadRegister(ANT_DIV_REG);
+ 349:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		phyWriteRegister(ANT_DIV_REG, reg | ((1 << ANT_DIV_EN) | (1 << ANT_EXT_SW_EN)));
+ 350:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	#else
+ 351:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		#if (ANTENNA_DEFAULT != 0)
+ 352:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			reg							= phyReadRegister(ANT_DIV_REG);
+ 1323              	 .loc 3 352 0
+ 1324 04ce 0D20     	 movs r0,#13
+ 1325 04d0 FFF7BCFF 	 bl phyReadRegister
+ 1326 04d4 0346     	 mov r3,r0
+ 1327 04d6 FB73     	 strb r3,[r7,#15]
+ 353:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			phyWriteRegister(ANT_DIV_REG, reg | ((1 << ANT_EXT_SW_EN) | (ANTENNA_DEFAULT << ANT_CTRL)));
+ 1328              	 .loc 3 353 0
+ 1329 04d8 FB7B     	 ldrb r3,[r7,#15]
+ 1330 04da 43F00503 	 orr r3,r3,#5
+ 1331 04de DBB2     	 uxtb r3,r3
+ 1332 04e0 1946     	 mov r1,r3
+ 1333 04e2 0D20     	 movs r0,#13
+ 1334 04e4 FFF79EFF 	 bl phyWriteRegister
+ 354:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		#endif // ANTENNA_DEFAULT
+ 355:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	#endif // ANTENNA_DIVERSITY
+ 356:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	#ifdef EXT_RF_FRONT_END_CTRL
+ 357:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		reg								= phyReadRegister(TRX_CTRL_1_REG);
+ 1335              	 .loc 3 357 0
+ 1336 04e8 0420     	 movs r0,#4
+ 1337 04ea FFF7AFFF 	 bl phyReadRegister
+ 1338 04ee 0346     	 mov r3,r0
+ 1339 04f0 FB73     	 strb r3,[r7,#15]
+ 358:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		phyWriteRegister(TRX_CTRL_1_REG, reg | (1 << PA_EXT_EN));
+ 1340              	 .loc 3 358 0
+ 1341 04f2 FB7B     	 ldrb r3,[r7,#15]
+ 1342 04f4 63F07F03 	 orn r3,r3,#127
+ 1343 04f8 DBB2     	 uxtb r3,r3
+ 1344 04fa 1946     	 mov r1,r3
+ 1345 04fc 0420     	 movs r0,#4
+ 1346 04fe FFF791FF 	 bl phyWriteRegister
+ 359:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 360:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		ioport_set_pin_level(AT86RFX_CSD, IOPORT_PIN_LEVEL_HIGH);
+ 1347              	 .loc 3 360 0
+ 1348 0502 0121     	 movs r1,#1
+ 1349 0504 0B20     	 movs r0,#11
+ 1350 0506 FFF77BFD 	 bl ioport_set_pin_level
+ 1351              	.L65:
+ 1352              	.LBE69:
+ 361:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	#endif // EXT_RF_FRONT_END_CTRL
+ 362:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	}
+ 363:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #endif
+ 364:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 365:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	do { phyWriteRegister(TRX_STATE_REG, TRX_CMD_FORCE_TRX_OFF);
+ 1353              	 .loc 3 365 0 discriminator 1
+ 1354 050a 0321     	 movs r1,#3
+ 1355 050c 0220     	 movs r0,#2
+ 1356 050e FFF789FF 	 bl phyWriteRegister
+ 366:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	} while (TRX_STATUS_TRX_OFF !=
+ 367:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			(phyReadRegister(TRX_STATUS_REG) & TRX_STATUS_MASK));
+ 1357              	 .loc 3 367 0 discriminator 1
+ 1358 0512 0120     	 movs r0,#1
+ 1359 0514 FFF79AFF 	 bl phyReadRegister
+ 1360 0518 0346     	 mov r3,r0
+ 1361 051a 03F01F03 	 and r3,r3,#31
+ 1362 051e 082B     	 cmp r3,#8
+ 1363 0520 F3D1     	 bne .L65
+ 1364              	.L66:
+ 368:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 369:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	do { phyWriteRegister(TRX_STATE_REG,
+ 1365              	 .loc 3 369 0 discriminator 1
+ 1366 0522 FB79     	 ldrb r3,[r7,#7]
+ 1367 0524 1946     	 mov r1,r3
+ 1368 0526 0220     	 movs r0,#2
+ 1369 0528 FFF77CFF 	 bl phyWriteRegister
+ 370:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			     state); } while (state !=
+ 1370              	 .loc 3 370 0 discriminator 1
+ 1371 052c FC79     	 ldrb r4,[r7,#7]
+ 371:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			(phyReadRegister(TRX_STATUS_REG) & TRX_STATUS_MASK));
+ 1372              	 .loc 3 371 0 discriminator 1
+ 1373 052e 0120     	 movs r0,#1
+ 1374 0530 FFF78CFF 	 bl phyReadRegister
+ 1375 0534 0346     	 mov r3,r0
+ 1376 0536 03F01F03 	 and r3,r3,#31
+ 1377 053a 9C42     	 cmp r4,r3
+ 1378 053c F1D1     	 bne .L66
+ 372:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 1379              	 .loc 3 372 0
+ 1380 053e 00BF     	 nop
+ 1381 0540 1437     	 adds r7,r7,#20
+ 1382              	.LCFI88:
+ 1383              	 .cfi_def_cfa_offset 12
+ 1384 0542 BD46     	 mov sp,r7
+ 1385              	.LCFI89:
+ 1386              	 .cfi_def_cfa_register 13
+ 1387              	 
+ 1388 0544 90BD     	 pop {r4,r7,pc}
+ 1389              	.L68:
+ 1390 0546 00BF     	 .align 2
+ 1391              	.L67:
+ 1392 0548 00000000 	 .word phyState
+ 1393              	 .cfi_endproc
+ 1394              	.LFE240:
+ 1396              	 .align 1
+ 1397              	 .global PHY_SetIEEEAddr
+ 1398              	 .syntax unified
+ 1399              	 .thumb
+ 1400              	 .thumb_func
+ 1401              	 .fpu softvfp
+ 1403              	PHY_SetIEEEAddr:
+ 1404              	.LFB241:
+ 373:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 374:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 375:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 376:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** void PHY_SetIEEEAddr(uint8_t *ieee_addr)
+ 377:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 1405              	 .loc 3 377 0
+ 1406              	 .cfi_startproc
+ 1407              	 
+ 1408              	 
+ 1409 054c 80B5     	 push {r7,lr}
+ 1410              	.LCFI90:
+ 1411              	 .cfi_def_cfa_offset 8
+ 1412              	 .cfi_offset 7,-8
+ 1413              	 .cfi_offset 14,-4
+ 1414 054e 84B0     	 sub sp,sp,#16
+ 1415              	.LCFI91:
+ 1416              	 .cfi_def_cfa_offset 24
+ 1417 0550 00AF     	 add r7,sp,#0
+ 1418              	.LCFI92:
+ 1419              	 .cfi_def_cfa_register 7
+ 1420 0552 7860     	 str r0,[r7,#4]
+ 378:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	uint8_t *ptr_to_reg = ieee_addr;
+ 1421              	 .loc 3 378 0
+ 1422 0554 7B68     	 ldr r3,[r7,#4]
+ 1423 0556 FB60     	 str r3,[r7,#12]
+ 1424              	.LBB70:
+ 379:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	for (uint8_t i = 0; i < 8; i++) {
+ 1425              	 .loc 3 379 0
+ 1426 0558 0023     	 movs r3,#0
+ 1427 055a FB72     	 strb r3,[r7,#11]
+ 1428 055c 0EE0     	 b .L70
+ 1429              	.L71:
+ 380:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		trx_reg_write((IEEE_ADDR_0_REG + i), *ptr_to_reg);
+ 1430              	 .loc 3 380 0 discriminator 3
+ 1431 055e FB7A     	 ldrb r3,[r7,#11]
+ 1432 0560 2433     	 adds r3,r3,#36
+ 1433 0562 DAB2     	 uxtb r2,r3
+ 1434 0564 FB68     	 ldr r3,[r7,#12]
+ 1435 0566 1B78     	 ldrb r3,[r3]
+ 1436 0568 1946     	 mov r1,r3
+ 1437 056a 1046     	 mov r0,r2
+ 1438 056c 074B     	 ldr r3,.L72
+ 1439 056e 9847     	 blx r3
+ 1440              	.LVL9:
+ 381:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		ptr_to_reg++;
+ 1441              	 .loc 3 381 0 discriminator 3
+ 1442 0570 FB68     	 ldr r3,[r7,#12]
+ 1443 0572 0133     	 adds r3,r3,#1
+ 1444 0574 FB60     	 str r3,[r7,#12]
+ 379:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	for (uint8_t i = 0; i < 8; i++) {
+ 1445              	 .loc 3 379 0 discriminator 3
+ 1446 0576 FB7A     	 ldrb r3,[r7,#11]
+ 1447 0578 0133     	 adds r3,r3,#1
+ 1448 057a FB72     	 strb r3,[r7,#11]
+ 1449              	.L70:
+ 379:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	for (uint8_t i = 0; i < 8; i++) {
+ 1450              	 .loc 3 379 0 is_stmt 0 discriminator 1
+ 1451 057c FB7A     	 ldrb r3,[r7,#11]
+ 1452 057e 072B     	 cmp r3,#7
+ 1453 0580 EDD9     	 bls .L71
+ 1454              	.LBE70:
+ 382:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	}
+ 383:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 1455              	 .loc 3 383 0 is_stmt 1
+ 1456 0582 00BF     	 nop
+ 1457 0584 1037     	 adds r7,r7,#16
+ 1458              	.LCFI93:
+ 1459              	 .cfi_def_cfa_offset 8
+ 1460 0586 BD46     	 mov sp,r7
+ 1461              	.LCFI94:
+ 1462              	 .cfi_def_cfa_register 13
+ 1463              	 
+ 1464 0588 80BD     	 pop {r7,pc}
+ 1465              	.L73:
+ 1466 058a 00BF     	 .align 2
+ 1467              	.L72:
+ 1468 058c 00000000 	 .word trx_reg_write
+ 1469              	 .cfi_endproc
+ 1470              	.LFE241:
+ 1472              	 .align 1
+ 1473              	 .global PHY_TaskHandler
+ 1474              	 .syntax unified
+ 1475              	 .thumb
+ 1476              	 .thumb_func
+ 1477              	 .fpu softvfp
+ 1479              	PHY_TaskHandler:
+ 1480              	.LFB242:
+ 384:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 385:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** /*************************************************************************//**
+ 386:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** *****************************************************************************/
+ 387:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** void PHY_TaskHandler(void)
+ 388:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** {
+ 1481              	 .loc 3 388 0
+ 1482              	 .cfi_startproc
+ 1483              	 
+ 1484              	 
+ 1485 0590 80B5     	 push {r7,lr}
+ 1486              	.LCFI95:
+ 1487              	 .cfi_def_cfa_offset 8
+ 1488              	 .cfi_offset 7,-8
+ 1489              	 .cfi_offset 14,-4
+ 1490 0592 84B0     	 sub sp,sp,#16
+ 1491              	.LCFI96:
+ 1492              	 .cfi_def_cfa_offset 24
+ 1493 0594 00AF     	 add r7,sp,#0
+ 1494              	.LCFI97:
+ 1495              	 .cfi_def_cfa_register 7
+ 389:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	if (PHY_STATE_SLEEP == phyState) {
+ 1496              	 .loc 3 389 0
+ 1497 0596 364B     	 ldr r3,.L83
+ 1498 0598 1B78     	 ldrb r3,[r3]
+ 1499 059a 022B     	 cmp r3,#2
+ 1500 059c 63D0     	 beq .L82
+ 390:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		return;
+ 391:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	}
+ 392:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 393:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	if (phyReadRegister(IRQ_STATUS_REG) & (1 << TRX_END)) {
+ 1501              	 .loc 3 393 0
+ 1502 059e 0F20     	 movs r0,#15
+ 1503 05a0 FFF754FF 	 bl phyReadRegister
+ 1504 05a4 0346     	 mov r3,r0
+ 1505 05a6 03F00803 	 and r3,r3,#8
+ 1506 05aa 002B     	 cmp r3,#0
+ 1507 05ac 5CD0     	 beq .L74
+ 394:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		if (PHY_STATE_IDLE == phyState) {
+ 1508              	 .loc 3 394 0
+ 1509 05ae 304B     	 ldr r3,.L83
+ 1510 05b0 1B78     	 ldrb r3,[r3]
+ 1511 05b2 012B     	 cmp r3,#1
+ 1512 05b4 28D1     	 bne .L77
+ 1513              	.LBB71:
+ 395:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			PHY_DataInd_t ind;
+ 396:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			uint8_t size;
+ 397:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			int8_t rssi;
+ 398:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 399:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			rssi = (int8_t)phyReadRegister(PHY_ED_LEVEL_REG);
+ 1514              	 .loc 3 399 0 discriminator 2
+ 1515 05b6 0720     	 movs r0,#7
+ 1516 05b8 FFF748FF 	 bl phyReadRegister
+ 1517 05bc 0346     	 mov r3,r0
+ 1518 05be BB73     	 strb r3,[r7,#14]
+ 400:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 401:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			trx_frame_read(&size, 1);
+ 1519              	 .loc 3 401 0 discriminator 2
+ 1520 05c0 FB1C     	 adds r3,r7,#3
+ 1521 05c2 0121     	 movs r1,#1
+ 1522 05c4 1846     	 mov r0,r3
+ 1523 05c6 2B4B     	 ldr r3,.L83+4
+ 1524 05c8 9847     	 blx r3
+ 1525              	.LVL10:
+ 402:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 403:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			trx_frame_read(phyRxBuffer, size + 2);
+ 1526              	 .loc 3 403 0 discriminator 2
+ 1527 05ca FB78     	 ldrb r3,[r7,#3]
+ 1528 05cc 0233     	 adds r3,r3,#2
+ 1529 05ce DBB2     	 uxtb r3,r3
+ 1530 05d0 1946     	 mov r1,r3
+ 1531 05d2 2948     	 ldr r0,.L83+8
+ 1532 05d4 274B     	 ldr r3,.L83+4
+ 1533 05d6 9847     	 blx r3
+ 1534              	.LVL11:
+ 404:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 405:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			ind.data = phyRxBuffer + 1;
+ 1535              	 .loc 3 405 0 discriminator 2
+ 1536 05d8 284B     	 ldr r3,.L83+12
+ 1537 05da 7B60     	 str r3,[r7,#4]
+ 406:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 407:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			ind.size = size - PHY_CRC_SIZE;
+ 1538              	 .loc 3 407 0 discriminator 2
+ 1539 05dc FB78     	 ldrb r3,[r7,#3]
+ 1540 05de 023B     	 subs r3,r3,#2
+ 1541 05e0 DBB2     	 uxtb r3,r3
+ 1542 05e2 3B72     	 strb r3,[r7,#8]
+ 408:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			ind.lqi  = phyRxBuffer[size + 1];
+ 1543              	 .loc 3 408 0 discriminator 2
+ 1544 05e4 FB78     	 ldrb r3,[r7,#3]
+ 1545 05e6 0133     	 adds r3,r3,#1
+ 1546 05e8 234A     	 ldr r2,.L83+8
+ 1547 05ea D35C     	 ldrb r3,[r2,r3]
+ 1548 05ec 7B72     	 strb r3,[r7,#9]
+ 409:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			ind.rssi = rssi + PHY_RSSI_BASE_VAL;
+ 1549              	 .loc 3 409 0 discriminator 2
+ 1550 05ee BB7B     	 ldrb r3,[r7,#14]
+ 1551 05f0 5B3B     	 subs r3,r3,#91
+ 1552 05f2 DBB2     	 uxtb r3,r3
+ 1553 05f4 5BB2     	 sxtb r3,r3
+ 1554 05f6 BB72     	 strb r3,[r7,#10]
+ 410:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			PHY_DataInd(&ind);
+ 1555              	 .loc 3 410 0 discriminator 2
+ 1556 05f8 3B1D     	 adds r3,r7,#4
+ 1557 05fa 1846     	 mov r0,r3
+ 1558 05fc 204B     	 ldr r3,.L83+16
+ 1559 05fe 9847     	 blx r3
+ 1560              	.LVL12:
+ 411:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 412:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			phyWaitState(TRX_STATUS_RX_AACK_ON);
+ 1561              	 .loc 3 412 0 discriminator 2
+ 1562 0600 1620     	 movs r0,#22
+ 1563 0602 FFF735FF 	 bl phyWaitState
+ 1564              	.LBE71:
+ 1565 0606 2FE0     	 b .L74
+ 1566              	.L77:
+ 413:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		} else if (PHY_STATE_TX_WAIT_END == phyState) {
+ 1567              	 .loc 3 413 0
+ 1568 0608 194B     	 ldr r3,.L83
+ 1569 060a 1B78     	 ldrb r3,[r3]
+ 1570 060c 032B     	 cmp r3,#3
+ 1571 060e 2BD1     	 bne .L74
+ 1572              	.LBB72:
+ 414:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #if (ANTENNA_DIVERSITY == 1)
+ 415:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #endif // ANTENNA_DIVERSITY
+ 416:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #ifdef EXT_RF_FRONT_END_CTRL
+ 417:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			ioport_set_pin_level(AT86RFX_CSD, IOPORT_PIN_LEVEL_HIGH);
+ 1573              	 .loc 3 417 0
+ 1574 0610 0121     	 movs r1,#1
+ 1575 0612 0B20     	 movs r0,#11
+ 1576 0614 FFF7F4FC 	 bl ioport_set_pin_level
+ 418:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** #endif // EXT_RF_FRONT_END_CTRL
+ 419:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			uint8_t status
+ 420:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 				= (phyReadRegister(TRX_STATE_REG) >>
+ 1577              	 .loc 3 420 0
+ 1578 0618 0220     	 movs r0,#2
+ 1579 061a FFF717FF 	 bl phyReadRegister
+ 1580 061e 0346     	 mov r3,r0
+ 421:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 					TRAC_STATUS) & 7;
+ 1581              	 .loc 3 421 0
+ 1582 0620 5B09     	 lsrs r3,r3,#5
+ 1583 0622 DBB2     	 uxtb r3,r3
+ 419:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 				= (phyReadRegister(TRX_STATE_REG) >>
+ 1584              	 .loc 3 419 0
+ 1585 0624 03F00703 	 and r3,r3,#7
+ 1586 0628 FB73     	 strb r3,[r7,#15]
+ 422:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 423:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			if (TRAC_STATUS_SUCCESS == status) {
+ 1587              	 .loc 3 423 0
+ 1588 062a FB7B     	 ldrb r3,[r7,#15]
+ 1589 062c 002B     	 cmp r3,#0
+ 1590 062e 02D1     	 bne .L78
+ 424:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 				status = PHY_STATUS_SUCCESS;
+ 1591              	 .loc 3 424 0
+ 1592 0630 0023     	 movs r3,#0
+ 1593 0632 FB73     	 strb r3,[r7,#15]
+ 1594 0634 0DE0     	 b .L79
+ 1595              	.L78:
+ 425:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			} else if (TRAC_STATUS_CHANNEL_ACCESS_FAILURE ==
+ 1596              	 .loc 3 425 0
+ 1597 0636 FB7B     	 ldrb r3,[r7,#15]
+ 1598 0638 032B     	 cmp r3,#3
+ 1599 063a 02D1     	 bne .L80
+ 426:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 					status) {
+ 427:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 				status = PHY_STATUS_CHANNEL_ACCESS_FAILURE;
+ 1600              	 .loc 3 427 0
+ 1601 063c 0123     	 movs r3,#1
+ 1602 063e FB73     	 strb r3,[r7,#15]
+ 1603 0640 07E0     	 b .L79
+ 1604              	.L80:
+ 428:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			} else if (TRAC_STATUS_NO_ACK == status) {
+ 1605              	 .loc 3 428 0
+ 1606 0642 FB7B     	 ldrb r3,[r7,#15]
+ 1607 0644 052B     	 cmp r3,#5
+ 1608 0646 02D1     	 bne .L81
+ 429:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 				status = PHY_STATUS_NO_ACK;
+ 1609              	 .loc 3 429 0
+ 1610 0648 0223     	 movs r3,#2
+ 1611 064a FB73     	 strb r3,[r7,#15]
+ 1612 064c 01E0     	 b .L79
+ 1613              	.L81:
+ 430:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			} else {
+ 431:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 				status = PHY_STATUS_ERROR;
+ 1614              	 .loc 3 431 0
+ 1615 064e 0323     	 movs r3,#3
+ 1616 0650 FB73     	 strb r3,[r7,#15]
+ 1617              	.L79:
+ 432:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			}
+ 433:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 434:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			phySetRxState();
+ 1618              	 .loc 3 434 0
+ 1619 0652 FFF720FF 	 bl phySetRxState
+ 435:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			phyState = PHY_STATE_IDLE;
+ 1620              	 .loc 3 435 0
+ 1621 0656 064B     	 ldr r3,.L83
+ 1622 0658 0122     	 movs r2,#1
+ 1623 065a 1A70     	 strb r2,[r3]
+ 436:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 
+ 437:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 			PHY_DataConf(status);
+ 1624              	 .loc 3 437 0
+ 1625 065c FB7B     	 ldrb r3,[r7,#15]
+ 1626 065e 1846     	 mov r0,r3
+ 1627 0660 084B     	 ldr r3,.L83+20
+ 1628 0662 9847     	 blx r3
+ 1629              	.LVL13:
+ 1630 0664 00E0     	 b .L74
+ 1631              	.L82:
+ 1632              	.LBE72:
+ 390:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	}
+ 1633              	 .loc 3 390 0
+ 1634 0666 00BF     	 nop
+ 1635              	.L74:
+ 438:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 		}
+ 439:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** 	}
+ 440:../../../stack/LwMesh/TDMA/phy/AT86RF233/src/phy.c **** }
+ 1636              	 .loc 3 440 0
+ 1637 0668 1037     	 adds r7,r7,#16
+ 1638              	.LCFI98:
+ 1639              	 .cfi_def_cfa_offset 8
+ 1640 066a BD46     	 mov sp,r7
+ 1641              	.LCFI99:
+ 1642              	 .cfi_def_cfa_register 13
+ 1643              	 
+ 1644 066c 80BD     	 pop {r7,pc}
+ 1645              	.L84:
+ 1646 066e 00BF     	 .align 2
+ 1647              	.L83:
+ 1648 0670 00000000 	 .word phyState
+ 1649 0674 00000000 	 .word trx_frame_read
+ 1650 0678 00000000 	 .word phyRxBuffer
+ 1651 067c 01000000 	 .word phyRxBuffer+1
+ 1652 0680 00000000 	 .word PHY_DataInd
+ 1653 0684 00000000 	 .word PHY_DataConf
+ 1654              	 .cfi_endproc
+ 1655              	.LFE242:
+ 1657              	.Letext0:
+ 1658              	 .file 5 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 1659              	 .file 6 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 1660              	 .file 7 "../../../stack/LwMesh/TDMA/phy/AT86RF233/inc/phy.h"
+ 1661              	 .file 8 "../../../platform/sam/utils/cmsis/sam4l/include/sam4lc4b.h"
+ 1662              	 .file 9 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+ 1663              	 .file 10 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 1664              	 .file 11 "../../../platform/sam/utils/cmsis/sam4l/include/component/component_gpio.h"
+ 1665              	 .file 12 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 1666              	 .file 13 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 1667              	 .file 14 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 1668              	 .file 15 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 1669              	 .file 16 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+ 1670              	 .file 17 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
+ 1671              	 .file 18 "../../../platform/sam/utils/compiler.h"
+ 1672              	 .file 19 "../../../platform/common/services/usb/usb_protocol.h"
+ 1673              	 .file 20 "../../../platform/common/services/usb/udc/udi.h"
+ 1674              	 .file 21 "../../../platform/common/services/usb/udc/udc_desc.h"
+ 1675              	 .file 22 "../../../platform/common/services/usb/udc/udd.h"
+ 1676              	 .file 23 "../../../platform/common/services/usb/class/cdc/device/udi_cdc.h"
+ 1677              	 .file 24 "../../../platform/common/utils/stdio/stdio_usb/stdio_usb.h"
+ 1678              	 .file 25 "../../../stack/LwMesh/TDMA/services/trx_access/trx_access.h"
+ 1679              	 .file 26 "../../../stack/LwMesh/TDMA/services/sal/inc/sal.h"
+ 1680              	 .file 27 "../../../platform/common/services/delay/sam/cycle_counter.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 phy.c
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
+    {standard input}:27     .text:00000000 $t
+    {standard input}:33     .text:00000000 ioport_set_pin_level
+    {standard input}:175    .bss.phyState:00000000 phyState
+    {standard input}:176    .bss.phyState:00000000 $d
+    {standard input}:178    .bss.phyRxBuffer:00000000 $d
+    {standard input}:181    .bss.phyRxBuffer:00000000 phyRxBuffer
+    {standard input}:186    .bss.phyRxState:00000000 phyRxState
+    {standard input}:187    .bss.phyRxState:00000000 $d
+    {standard input}:196    .text:00000086 PHY_Init
+    {standard input}:1097   .text:00000424 phyWriteRegister
+    {standard input}:1150   .text:0000044c phyReadRegister
+    {standard input}:283    .text:000000fc $d
+    {standard input}:290    .text:0000010c $t
+    {standard input}:297    .text:0000010c PHY_SetTdmaMode
+    {standard input}:373    .text:00000162 PHY_SetRxState
+    {standard input}:1252   .text:00000496 phySetRxState
+    {standard input}:411    .text:00000180 $d
+    {standard input}:415    .text:00000184 $t
+    {standard input}:422    .text:00000184 PHY_SetChannel
+    {standard input}:475    .text:000001b4 PHY_SetPanId
+    {standard input}:530    .text:000001e4 PHY_SetShortAddr
+    {standard input}:596    .text:0000022a PHY_SetTxPower
+    {standard input}:649    .text:0000025a PHY_Sleep
+    {standard input}:1297   .text:000004bc phyTrxSetState
+    {standard input}:724    .text:000002c0 $d
+    {standard input}:728    .text:000002c4 $t
+    {standard input}:735    .text:000002c4 PHY_Wakeup
+    {standard input}:765    .text:000002e0 $d
+    {standard input}:769    .text:000002e4 $t
+    {standard input}:776    .text:000002e4 PHY_DataReq
+    {standard input}:868    .text:00000340 $d
+    {standard input}:873    .text:00000348 $t
+    {standard input}:880    .text:00000348 PHY_RandomReq
+    {standard input}:958    .text:000003a4 $d
+    {standard input}:962    .text:000003a8 $t
+    {standard input}:969    .text:000003a8 PHY_EncryptReq
+    {standard input}:1019   .text:000003d4 $d
+    {standard input}:1025   .text:000003e0 $t
+    {standard input}:1032   .text:000003e0 PHY_EdReq
+    {standard input}:1140   .text:00000448 $d
+    {standard input}:1144   .text:0000044c $t
+    {standard input}:1192   .text:0000046c $d
+    {standard input}:1196   .text:00000470 $t
+    {standard input}:1202   .text:00000470 phyWaitState
+    {standard input}:1287   .text:000004b8 $d
+    {standard input}:1291   .text:000004bc $t
+    {standard input}:1392   .text:00000548 $d
+    {standard input}:1396   .text:0000054c $t
+    {standard input}:1403   .text:0000054c PHY_SetIEEEAddr
+    {standard input}:1468   .text:0000058c $d
+    {standard input}:1472   .text:00000590 $t
+    {standard input}:1479   .text:00000590 PHY_TaskHandler
+    {standard input}:1648   .text:00000670 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+trx_spi_init
+PhyReset
+trx_frame_write
+portable_delay_cycles
+sal_aes_setup
+sal_aes_wrrd
+sal_aes_read
+trx_reg_write
+trx_reg_read
+trx_frame_read
+PHY_DataInd
+PHY_DataConf

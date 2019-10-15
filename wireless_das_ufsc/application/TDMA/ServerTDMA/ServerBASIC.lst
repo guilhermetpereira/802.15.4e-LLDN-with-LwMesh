@@ -1,0 +1,3415 @@
+   1               		.file	"ServerBASIC.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  12               	cpu_irq_save:
+  13               	.LFB5:
+  14               		.file 1 "../../../platform/common/utils/interrupt/interrupt_avr8.h"
+   1:../../../platform/common/utils/interrupt/interrupt_avr8.h **** /**
+   2:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * \file
+   3:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+   4:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * \brief Global interrupt management for 8-bit AVR
+   5:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+   6:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * Copyright (C) 2010-2012 Atmel Corporation. All rights reserved.
+   7:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+   8:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * \asf_license_start
+   9:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+  10:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * \page License
+  11:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+  12:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+  15:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+  18:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+  22:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *    from this software without specific prior written permission.
+  24:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+  25:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *    Atmel microcontroller product.
+  27:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+  28:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+  40:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * \asf_license_stop
+  41:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+  42:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  */
+  43:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #ifndef UTILS_INTERRUPT_INTERRUPT_H
+  44:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #define UTILS_INTERRUPT_INTERRUPT_H
+  45:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 
+  46:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #include <compiler.h>
+  47:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #include <parts.h>
+  48:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 
+  49:../../../platform/common/utils/interrupt/interrupt_avr8.h **** /**
+  50:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * \weakgroup interrupt_group
+  51:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+  52:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * @{
+  53:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  */
+  54:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 
+  55:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #ifdef ISR_CUSTOM_H
+  56:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #  include ISR_CUSTOM_H
+  57:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #else
+  58:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 
+  59:../../../platform/common/utils/interrupt/interrupt_avr8.h **** /**
+  60:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * \def ISR
+  61:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * \brief Define service routine for specified interrupt vector
+  62:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+  63:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * Usage:
+  64:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * \code
+  65:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * ISR(FOO_vect)
+  66:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * {
+  67:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *     ...
+  68:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * }
+  69:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * \endcode
+  70:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  *
+  71:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * \param vect Interrupt vector name as found in the device header files.
+  72:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  */
+  73:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #if defined(__DOXYGEN__)
+  74:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #  define ISR(vect)
+  75:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #elif defined(__GNUC__)
+  76:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #  include <avr/interrupt.h>
+  77:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #elif defined(__ICCAVR__)
+  78:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #  define __ISR(x) _Pragma(#x)
+  79:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #  define ISR(vect) __ISR(vector=vect) __interrupt void handler_##vect(void)
+  80:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #endif
+  81:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #endif // ISR_CUSTOM_H
+  82:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 
+  83:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #if XMEGA
+  84:../../../platform/common/utils/interrupt/interrupt_avr8.h **** /**
+  85:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * \brief Initialize interrupt vectors
+  86:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * Enables all interrupt levels, with vectors located in the application section
+  87:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  * and fixed priority scheduling.
+  88:../../../platform/common/utils/interrupt/interrupt_avr8.h ****  */
+  89:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #define irq_initialize_vectors() \
+  90:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 	PMIC.CTRL = PMIC_LOLVLEN_bm | PMIC_MEDLVLEN_bm | PMIC_HILVLEN_bm;
+  91:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #endif
+  92:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 
+  93:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #ifdef __GNUC__
+  94:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #  define cpu_irq_enable()     sei()
+  95:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #  define cpu_irq_disable()    cli()
+  96:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #else
+  97:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #  define cpu_irq_enable()     __enable_interrupt()
+  98:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #  define cpu_irq_disable()    __disable_interrupt()
+  99:../../../platform/common/utils/interrupt/interrupt_avr8.h **** #endif
+ 100:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 
+ 101:../../../platform/common/utils/interrupt/interrupt_avr8.h **** typedef uint8_t irqflags_t;
+ 102:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 
+ 103:../../../platform/common/utils/interrupt/interrupt_avr8.h **** static inline irqflags_t cpu_irq_save(void)
+ 104:../../../platform/common/utils/interrupt/interrupt_avr8.h **** {
+  15               		.loc 1 104 0
+  16               		.cfi_startproc
+  17 0000 CF93      		push r28
+  18               	.LCFI0:
+  19               		.cfi_def_cfa_offset 3
+  20               		.cfi_offset 28, -2
+  21 0002 DF93      		push r29
+  22               	.LCFI1:
+  23               		.cfi_def_cfa_offset 4
+  24               		.cfi_offset 29, -3
+  25 0004 1F92      		push __zero_reg__
+  26               	.LCFI2:
+  27               		.cfi_def_cfa_offset 5
+  28 0006 CDB7      		in r28,__SP_L__
+  29 0008 DEB7      		in r29,__SP_H__
+  30               	.LCFI3:
+  31               		.cfi_def_cfa_register 28
+  32               	/* prologue: function */
+  33               	/* frame size = 1 */
+  34               	/* stack size = 3 */
+  35               	.L__stack_usage = 3
+ 105:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 	irqflags_t flags = SREG;
+  36               		.loc 1 105 0
+  37 000a 8FE5      		ldi r24,lo8(95)
+  38 000c 90E0      		ldi r25,0
+  39 000e FC01      		movw r30,r24
+  40 0010 8081      		ld r24,Z
+  41 0012 8983      		std Y+1,r24
+ 106:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 	cpu_irq_disable();
+  42               		.loc 1 106 0
+  43               	/* #APP */
+  44               	 ;  106 "../../../platform/common/utils/interrupt/interrupt_avr8.h" 1
+  45 0014 F894      		cli
+  46               	 ;  0 "" 2
+ 107:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 	return flags;
+  47               		.loc 1 107 0
+  48               	/* #NOAPP */
+  49 0016 8981      		ldd r24,Y+1
+  50               	/* epilogue start */
+ 108:../../../platform/common/utils/interrupt/interrupt_avr8.h **** }
+  51               		.loc 1 108 0
+  52 0018 0F90      		pop __tmp_reg__
+  53 001a DF91      		pop r29
+  54 001c CF91      		pop r28
+  55 001e 0895      		ret
+  56               		.cfi_endproc
+  57               	.LFE5:
+  60               	cpu_irq_restore:
+  61               	.LFB6:
+ 109:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 
+ 110:../../../platform/common/utils/interrupt/interrupt_avr8.h **** static inline void cpu_irq_restore(irqflags_t flags)
+ 111:../../../platform/common/utils/interrupt/interrupt_avr8.h **** {
+  62               		.loc 1 111 0
+  63               		.cfi_startproc
+  64 0020 CF93      		push r28
+  65               	.LCFI4:
+  66               		.cfi_def_cfa_offset 3
+  67               		.cfi_offset 28, -2
+  68 0022 DF93      		push r29
+  69               	.LCFI5:
+  70               		.cfi_def_cfa_offset 4
+  71               		.cfi_offset 29, -3
+  72 0024 1F92      		push __zero_reg__
+  73               	.LCFI6:
+  74               		.cfi_def_cfa_offset 5
+  75 0026 CDB7      		in r28,__SP_L__
+  76 0028 DEB7      		in r29,__SP_H__
+  77               	.LCFI7:
+  78               		.cfi_def_cfa_register 28
+  79               	/* prologue: function */
+  80               	/* frame size = 1 */
+  81               	/* stack size = 3 */
+  82               	.L__stack_usage = 3
+  83 002a 8983      		std Y+1,r24
+ 112:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 	barrier();
+  84               		.loc 1 112 0
+ 113:../../../platform/common/utils/interrupt/interrupt_avr8.h **** 	SREG = flags;
+  85               		.loc 1 113 0
+  86 002c 8FE5      		ldi r24,lo8(95)
+  87 002e 90E0      		ldi r25,0
+  88 0030 2981      		ldd r18,Y+1
+  89 0032 FC01      		movw r30,r24
+  90 0034 2083      		st Z,r18
+ 114:../../../platform/common/utils/interrupt/interrupt_avr8.h **** }
+  91               		.loc 1 114 0
+  92 0036 0000      		nop
+  93               	/* epilogue start */
+  94 0038 0F90      		pop __tmp_reg__
+  95 003a DF91      		pop r29
+  96 003c CF91      		pop r28
+  97 003e 0895      		ret
+  98               		.cfi_endproc
+  99               	.LFE6:
+ 102               	macsc_enable_auto_ts:
+ 103               	.LFB98:
+ 104               		.file 2 "../../../platform/mega_rf/drivers/macsc/macsc_megarf.h"
+   1:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+   2:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \file
+   3:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+   4:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief AVR MEGARF MAC Symbol Counter Driver Definitions
+   5:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+   6:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * Copyright (c) 2013 Atmel Corporation. All rights reserved.
+   7:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+   8:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \asf_license_start
+   9:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  10:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \page License
+  11:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  12:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  15:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  18:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  22:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *    from this software without specific prior written permission.
+  24:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  25:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *    Atmel microcontroller product.
+  27:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  28:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  40:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \asf_license_stop
+  41:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  42:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+  43:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** #ifndef MACSC_MEGARF_H
+  44:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** #define MACSC_MEGARF_H
+  45:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+  46:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** #include <compiler.h>
+  47:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** #include <parts.h>
+  48:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** #include "status_codes.h"
+  49:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+  50:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** #ifdef __cplusplus
+  51:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** extern "C" {
+  52:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** #endif
+  53:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+  54:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+  55:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \defgroup macsc_group MAC Symbol Counter Driver(MACSC)
+  56:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  57:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * See \ref megarf_macsc_quickstart
+  58:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  59:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * This is a driver for the AVR MEGARF MAC Symbol Counter Driver(MACSC).
+  60:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * It provides functions for enabling, disabling and configuring the module.
+  61:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  62:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \section dependencies Dependencies
+  63:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * This driver depends on the following modules:
+  64:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * - \ref interrupt_group for ISR definition and disabling interrupts during
+  65:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * critical code sections.
+  66:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * @{
+  67:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+  68:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+  69:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+  70:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Interrupt event callback function type
+  71:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  72:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * The interrupt handler can be configured to do a function callback,
+  73:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * the callback function must match the macsc_callback_t type.
+  74:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  75:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+  76:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** typedef void (*macsc_callback_t)(void);
+  77:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+  78:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /* ! MAC symbol counter compare Channel index */
+  79:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** enum macsc_cc_channel {
+  80:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	/* ! Channel 1 */
+  81:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	MACSC_CC1 = 1,
+  82:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	/* ! Channel 2 */
+  83:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	MACSC_CC2 = 2,
+  84:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	/* ! Channel 3 */
+  85:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	MACSC_CC3 = 3,
+  86:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** };
+  87:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+  88:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief MAC SC clock source select
+  89:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  90:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * uses the SCCKSEL bit in SSCR register to select macsc clk src
+  91:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+  92:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * If the bit is one,the RTC clock from TOSC1 is selected, otherwise the symbol
+  93:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * counter operates with the clock from XTAL1.
+  94:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * During transceiver sleep modes the clock falls back to the RTC clock source,
+  95:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * regardless of the selected clock. After wakeup, it switches back to the
+  96:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * previosly
+  97:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * selected clock source.
+  98:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+  99:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 100:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** enum macsc_xtal {
+ 101:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	/* ! 16MHz as macsc clock */
+ 102:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	MACSC_16MHz = 0,
+ 103:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	MACSC_32KHz = 1,
+ 104:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** };
+ 105:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 106:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 107:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * @brief Reads the 32-bit timer register in the required order of bytes
+ 108:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 109:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * @param hh hh octet of 32-bit register
+ 110:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * @param hl hl octet of 32-bit register
+ 111:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * @param lh lh octet of 32-bit register
+ 112:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * @param ll ll octet of 32-bit register
+ 113:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 114:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * @returns uint32_t Value of timer register
+ 115:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 116:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline uint32_t macsc_read32(volatile uint8_t *hh,
+ 117:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		volatile uint8_t *hl,
+ 118:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		volatile uint8_t *lh,
+ 119:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		volatile uint8_t *ll)
+ 120:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 121:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	union {
+ 122:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		uint8_t a[4];
+ 123:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		uint32_t rv;
+ 124:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	}
+ 125:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	x;
+ 126:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 127:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	x.a[0] = *ll;
+ 128:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	x.a[1] = *lh;
+ 129:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	x.a[2] = *hl;
+ 130:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	x.a[3] = *hh;
+ 131:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 132:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	return x.rv;
+ 133:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 134:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 135:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /* ! compare modes */
+ 136:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** #define MACSC_ABSOLUTE_CMP 0
+ 137:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** #define MACSC_RELATIVE_CMP 1
+ 138:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 139:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /** String concatenation by preprocessor used to create proper register names.
+ 140:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  **/
+ 141:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** #define CONCAT(a, b) a ## b
+ 142:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 143:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /** Creates proper subregister names and reads the corresponding values. */
+ 144:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** #define MACSC_READ32(reg)                  macsc_read32(&CONCAT(reg, HH), \
+ 145:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		&CONCAT(reg, HL), \
+ 146:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		&CONCAT(reg, LH), \
+ 147:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		&CONCAT(reg, LL))
+ 148:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 149:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** #define MACSC_WRITE32(reg, val)	\
+ 150:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	do { \
+ 151:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		union { uint8_t a[4]; uint32_t v; } \
+ 152:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		x; \
+ 153:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		x.v = val; \
+ 154:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		CONCAT(reg, HH) = x.a[3]; \
+ 155:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		CONCAT(reg, HL) = x.a[2]; \
+ 156:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		CONCAT(reg, LH) = x.a[1]; \
+ 157:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		CONCAT(reg, LL) = x.a[0]; \
+ 158:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	} \
+ 159:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	while (0)
+ 160:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 161:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 162:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Enable MAC SC
+ 163:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 164:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * Enables the SC
+ 165:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 166:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param clk_src selection of clk source,avalable options in macsc_xtal,fixed
+ 167:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *  prescalar
+ 168:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param sleep_enable enable RTC as clock source during sleep
+ 169:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param auto_ts enable automatic timestamping
+ 170:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 171:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 172:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** void macsc_enable(void);
+ 173:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 174:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 175:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Check if MACSC is enabled
+ 176:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 177:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * check if the MACSC is enabled.
+ 178:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 179:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param none
+ 180:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 181:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 182:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** bool is_macsc_enable(void);
+ 183:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 184:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 185:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Disable MAC SC
+ 186:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 187:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * Disables the MAC SC
+ 188:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 189:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param none
+ 190:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 191:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 192:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** void macsc_disable(void);
+ 193:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 194:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 195:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Check if back-off slot counter is enabled
+ 196:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 197:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * check if the back-off slot counter is enabled.
+ 198:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 199:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param none
+ 200:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 201:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 202:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** bool is_macsc_backoff_enable(void);
+ 203:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 204:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 205:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Enables compare interrupts of the MACSC
+ 206:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 207:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param channel Compare channel
+ 208:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 209:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** void macsc_enable_cmp_int(enum macsc_cc_channel channel);
+ 210:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 211:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 212:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Disables compare interrupts of the MACSC
+ 213:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 214:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param channel Compare channel
+ 215:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */void macsc_disable_cmp_int(enum macsc_cc_channel channel);
+ 216:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 217:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 218:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Usage of Absolute compare mode of the MACSC
+ 219:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 220:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param abs_rel  0 for absoulte cmp;1 for relative cmp
+ 221:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param cmp compare value for SCOCRx register
+ 222:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param channel Compare channel
+ 223:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 224:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** void macsc_use_cmp(bool abs_rel, uint32_t cmp,enum macsc_cc_channel channel);
+ 225:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 226:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 227:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \ingroup macsc_group
+ 228:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \defgroup macsc_interrupt_group MAC Symbol Counter (MACSC) interrupt
+ 229:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * management
+ 230:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * This group provides functions to configure MACSC module interrupts
+ 231:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 232:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * @{
+ 233:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 234:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 235:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 236:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Set MACSC overflow interrupt callback function
+ 237:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 238:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * This function allows the caller to set and change the interrupt callback
+ 239:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * function. Without setting a callback function the interrupt handler in the
+ 240:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * driver will only clear the interrupt flags.
+ 241:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 242:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param callback Reference to a callback function
+ 243:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 244:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** void macsc_set_ovf_int_cb(macsc_callback_t callback);
+ 245:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 246:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 247:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Set MACSC Compare Channel 1 interrupt callback function
+ 248:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 249:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * This function allows the caller to set and change the interrupt callback
+ 250:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * function. Without setting a callback function the interrupt handler in the
+ 251:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * driver will only clear the interrupt flags.
+ 252:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 253:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param callback Reference to a callback function
+ 254:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 255:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** void macsc_set_cmp1_int_cb(macsc_callback_t callback);
+ 256:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 257:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 258:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Set MACSC Compare Channel 2 interrupt callback function
+ 259:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 260:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * This function allows the caller to set and change the interrupt callback
+ 261:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * function. Without setting a callback function the interrupt handler in the
+ 262:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * driver will only clear the interrupt flags.
+ 263:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 264:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param callback Reference to a callback function
+ 265:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 266:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** void macsc_set_cmp2_int_cb(macsc_callback_t callback);
+ 267:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 268:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 269:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Set MACSC Compare Channel 3 interrupt callback function
+ 270:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 271:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * This function allows the caller to set and change the interrupt callback
+ 272:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * function. Without setting a callback function the interrupt handler in the
+ 273:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * driver will only clear the interrupt flags.
+ 274:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 275:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param callback Reference to a callback function
+ 276:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 277:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** void macsc_set_cmp3_int_cb(macsc_callback_t callback);
+ 278:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 279:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 280:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Set MACSC backoff slot counter interrupt callback function
+ 281:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 282:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * This function allows the caller to set and change the interrupt callback
+ 283:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * function. Without setting a callback function the interrupt handler in the
+ 284:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * driver will only clear the interrupt flags.
+ 285:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 286:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param callback Reference to a callback function
+ 287:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 288:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** void macsc_set_backoff_slot_cntr_int_cb(macsc_callback_t callback);
+ 289:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** //@}
+ 290:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 291:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 292:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Enable 32.768KHz clk using timer 2 async register
+ 293:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 294:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param none
+ 295:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 296:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 297:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline void macsc_sleep_clk_enable(void)
+ 298:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 299:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	ASSR |= (1 << AS2);
+ 300:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 301:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 302:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 303:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Disable 32.768KHz clk using timer 2 async register
+ 304:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 305:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param none
+ 306:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 307:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline void macsc_sleep_clk_disable(void)
+ 308:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 309:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	ASSR &= ~(1 << AS2);
+ 310:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 311:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 312:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /* @} */
+ 313:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 314:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 315:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Configure MAC Symbol Counter Clock Source
+ 316:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 317:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param macsc macsc clk src
+ 318:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 319:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline void macsc_write_clock_source(enum macsc_xtal source)
+ 320:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 321:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	if (source == MACSC_16MHz) {
+ 322:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		SCCR0 |= (source << SCCKSEL);
+ 323:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	} else if (source == MACSC_32KHz) {
+ 324:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		SCCR0 &= ~(1 << SCCKSEL);
+ 325:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	}
+ 326:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 327:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 328:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 329:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Read MAC SC Clock Source
+ 330:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 331:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param none
+ 332:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \return macsc_xtal enum Clock source selection
+ 333:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 334:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline enum macsc_xtal macsc_read_clock_source(void)
+ 335:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 336:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	return (enum macsc_xtal)(SCCR0 & (1 << SCCKSEL));
+ 337:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 338:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 339:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 340:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Write the Counter value of the MAC Symbol counter
+ 341:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 342:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param cnt_value Counter value
+ 343:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 344:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline void macsc_write_count(uint32_t cnt_value)
+ 345:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 346:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	MACSC_WRITE32(SCCNT, cnt_value);
+ 347:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 348:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 349:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 350:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Reads the Counter value of the MAC Symbol counter
+ 351:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 352:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \note Output the Counter value
+ 353:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 354:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline uint32_t macsc_read_count(void)
+ 355:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 356:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	return (MACSC_READ32(SCCNT));
+ 357:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 358:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 359:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 360:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief enable back-off slot counter
+ 361:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 362:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param none
+ 363:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \note  Enables interrupt as well	.
+ 364:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \note This counter works only if transceiver clock is running.So check Trx
+ 365:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * state in app before using this function in IEEE802.15.4 applications.
+ 366:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 367:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline bool macsc_backoff_slot_cnt_enable(void)
+ 368:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 369:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	if (!(PRR1 & (1 << PRTRX24))) {
+ 370:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		SCCR1 = (1 << SCENBO);
+ 371:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		SCIRQS |= (1 << IRQSBO);
+ 372:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		SCIRQM |= (1 << IRQMBO);
+ 373:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 		return true;
+ 374:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	}
+ 375:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	else return false;
+ 376:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 377:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 378:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 379:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Disable back-off slot counter
+ 380:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 381:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \param none
+ 382:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \note    Disables interrupt as well	.
+ 383:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \note This counter works only if transceiver clock is running.So check Trx
+ 384:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * state in app before using this function in IEEE802.15.4 applications.
+ 385:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 386:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline void macsc_backoff_slot_cnt_disable(void)
+ 387:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 388:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	SCCR1 &= ~(1 << SCENBO);
+ 389:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	SCIRQM &= ~(1 << IRQMBO);
+ 390:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 391:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 392:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 393:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Tests if the Backoff slot cntr interrupt flag is set
+ 394:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 395:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \return  backoff slot cntr interrupt has occurred or not : IRQSBO
+ 396:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 397:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline bool macsc_is_slot_cntr_interrupt_flag_set(void)
+ 398:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 399:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	return (SCIRQS & (1 << IRQSBO));
+ 400:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 401:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 402:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 403:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Clears the Backoff Slot cntr interrupt flag
+ 404:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 405:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \note  IRQSBO is cleared
+ 406:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 407:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline void macsc_clear_slot_cntr_interrupt_flag(void)
+ 408:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 409:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	SCIRQS |= (1 << IRQSBO);
+ 410:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 411:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 412:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 413:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Reads the SFD Timestamp register
+ 414:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 415:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \return Timestamp of last received frame :SCTSR(read-only register)
+ 416:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 417:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline uint32_t macsc_read_ts(void)
+ 418:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 419:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	return (MACSC_READ32(SCTSR));
+ 420:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 421:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 422:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 423:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Reads the Beacon Timestamp register
+ 424:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 425:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \return Timestamp of last received beacon frame :SCBTSR
+ 426:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 427:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline uint32_t macsc_read_bts(void)
+ 428:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 429:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	return (MACSC_READ32(SCBTSR));
+ 430:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 431:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 432:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 433:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Write the Beacon Timestamp register of the MAC Symbol counter
+ 434:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * The manual beacon timestamping can be used in conjunction with the
+ 435:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * relative compare mode of the three compare units to generate compare match
+ 436:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * interrupts without having a beacon frame received
+ 437:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 438:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * If set to 1, the current symbol counter value is stored into the beacon
+ 439:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * timestamp register.
+ 440:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * The bit is cleared afterwards.
+ 441:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 442:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 443:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline void macsc_enable_manual_bts(void)
+ 444:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 445:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	SCCR0 |= (1 << SCMBTS);
+ 446:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	SCCR0 &= ~(1 << SCTSE);
+ 447:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 448:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 449:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 450:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Read the MACSC status register
+ 451:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * This bit is set if a write operation to the symbol counter register is
+ 452:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * pending. This bit is set after writing the counter low byte (SCCNTLL)
+ 453:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * until the symbol counter is updated with the new value.
+ 454:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * This update process can take up to 16 ìs and during this time,
+ 455:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * no read or write access to the 32 bit counter register should occur.
+ 456:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 457:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 458:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline bool macsc_read_status(void)
+ 459:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 460:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	return (SCSR & (1 << SCBSY));
+ 461:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 462:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 463:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 464:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Enable the Auto SFD and Beacon Timestamping feature
+ 465:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * If this bit is zero,only manual beacon timestamping can be used
+ 466:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 467:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 468:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline void macsc_enable_auto_ts(void)
+ 469:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 105               		.loc 2 469 0
+ 106               		.cfi_startproc
+ 107 0040 CF93      		push r28
+ 108               	.LCFI8:
+ 109               		.cfi_def_cfa_offset 3
+ 110               		.cfi_offset 28, -2
+ 111 0042 DF93      		push r29
+ 112               	.LCFI9:
+ 113               		.cfi_def_cfa_offset 4
+ 114               		.cfi_offset 29, -3
+ 115 0044 CDB7      		in r28,__SP_L__
+ 116 0046 DEB7      		in r29,__SP_H__
+ 117               	.LCFI10:
+ 118               		.cfi_def_cfa_register 28
+ 119               	/* prologue: function */
+ 120               	/* frame size = 0 */
+ 121               	/* stack size = 2 */
+ 122               	.L__stack_usage = 2
+ 470:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	SCCR0 |= (1 << SCTSE);
+ 123               		.loc 2 470 0
+ 124 0048 8CED      		ldi r24,lo8(-36)
+ 125 004a 90E0      		ldi r25,0
+ 126 004c 2CED      		ldi r18,lo8(-36)
+ 127 004e 30E0      		ldi r19,0
+ 128 0050 F901      		movw r30,r18
+ 129 0052 2081      		ld r18,Z
+ 130 0054 2860      		ori r18,lo8(8)
+ 131 0056 FC01      		movw r30,r24
+ 132 0058 2083      		st Z,r18
+ 471:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	SCCR0 &= ~(1 << SCMBTS);
+ 133               		.loc 2 471 0
+ 134 005a 8CED      		ldi r24,lo8(-36)
+ 135 005c 90E0      		ldi r25,0
+ 136 005e 2CED      		ldi r18,lo8(-36)
+ 137 0060 30E0      		ldi r19,0
+ 138 0062 F901      		movw r30,r18
+ 139 0064 2081      		ld r18,Z
+ 140 0066 2F7B      		andi r18,lo8(-65)
+ 141 0068 FC01      		movw r30,r24
+ 142 006a 2083      		st Z,r18
+ 472:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 143               		.loc 2 472 0
+ 144 006c 0000      		nop
+ 145               	/* epilogue start */
+ 146 006e DF91      		pop r29
+ 147 0070 CF91      		pop r28
+ 148 0072 0895      		ret
+ 149               		.cfi_endproc
+ 150               	.LFE98:
+ 152               		.section	.bss.appState,"aw",@nobits
+ 155               	appState:
+ 156 0000 00        		.zero	1
+ 157               		.section	.bss.tmrBlinkData,"aw",@nobits
+ 160               	tmrBlinkData:
+ 161 0000 0000 0000 		.zero	13
+ 161      0000 0000 
+ 161      0000 0000 
+ 161      00
+ 162               		.section	.bss.msgReq,"aw",@nobits
+ 165               	msgReq:
+ 166 0000 0000 0000 		.zero	19
+ 166      0000 0000 
+ 166      0000 0000 
+ 166      0000 0000 
+ 166      0000 00
+ 167               		.section	.bss.msgFrame,"aw",@nobits
+ 170               	msgFrame:
+ 171 0000 0000 0000 		.zero	80
+ 171      0000 0000 
+ 171      0000 0000 
+ 171      0000 0000 
+ 171      0000 0000 
+ 172               		.section	.bss.msgReqConnection,"aw",@nobits
+ 175               	msgReqConnection:
+ 176 0000 0000 0000 		.zero	19
+ 176      0000 0000 
+ 176      0000 0000 
+ 176      0000 0000 
+ 176      0000 00
+ 177               		.section	.bss.msgFrameConnection,"aw",@nobits
+ 180               	msgFrameConnection:
+ 181 0000 0000 0000 		.zero	80
+ 181      0000 0000 
+ 181      0000 0000 
+ 181      0000 0000 
+ 181      0000 0000 
+ 182               		.section	.bss.connected,"aw",@nobits
+ 185               	connected:
+ 186 0000 00        		.zero	1
+ 187               		.section	.bss.collab_vector,"aw",@nobits
+ 190               	collab_vector:
+ 191 0000 0000 0000 		.zero	32
+ 191      0000 0000 
+ 191      0000 0000 
+ 191      0000 0000 
+ 191      0000 0000 
+ 192               		.section	.bss.i_am_collab_dev,"aw",@nobits
+ 195               	i_am_collab_dev:
+ 196 0000 00        		.zero	1
+ 197               		.section	.bss.i_am_collab_slot,"aw",@nobits
+ 200               	i_am_collab_slot:
+ 201 0000 00        		.zero	1
+ 202               		.section	.bss.i_am_collab_turn,"aw",@nobits
+ 205               	i_am_collab_turn:
+ 206 0000 00        		.zero	1
+ 207               		.section	.bss.msgReqCollab,"aw",@nobits
+ 210               	msgReqCollab:
+ 211 0000 0000 0000 		.zero	19
+ 211      0000 0000 
+ 211      0000 0000 
+ 211      0000 0000 
+ 211      0000 00
+ 212               		.section	.bss.msgFrameCollab,"aw",@nobits
+ 215               	msgFrameCollab:
+ 216 0000 0000 0000 		.zero	80
+ 216      0000 0000 
+ 216      0000 0000 
+ 216      0000 0000 
+ 216      0000 0000 
+ 217               		.text
+ 219               	tmrBlinkDataHandler:
+ 220               	.LFB105:
+ 221               		.file 3 "ServerBASIC.c"
+   1:ServerBASIC.c **** /*
+   2:ServerBASIC.c ****  * ServerTDMA.c
+   3:ServerBASIC.c ****  *
+   4:ServerBASIC.c ****  * Created: 07/09/2014 16:50:52
+   5:ServerBASIC.c ****  *  Author: nando
+   6:ServerBASIC.c ****  */ 
+   7:ServerBASIC.c **** 
+   8:ServerBASIC.c **** #include <stdlib.h>
+   9:ServerBASIC.c **** #include <stdio.h>
+  10:ServerBASIC.c **** #include <string.h>
+  11:ServerBASIC.c **** #include "config.h"
+  12:ServerBASIC.c **** #include "sys.h"
+  13:ServerBASIC.c **** #include "phy.h"
+  14:ServerBASIC.c **** #include "sys.h"
+  15:ServerBASIC.c **** #include "nwk.h"
+  16:ServerBASIC.c **** #include "sysclk.h"
+  17:ServerBASIC.c **** #include "sysTimer.h"
+  18:ServerBASIC.c **** #include "sleep_mgr.h"
+  19:ServerBASIC.c **** #include "sleepmgr.h"
+  20:ServerBASIC.c **** #include "led.h"
+  21:ServerBASIC.c **** #include "ioport.h"
+  22:ServerBASIC.c **** #include "conf_sleepmgr.h"
+  23:ServerBASIC.c **** #include "board.h"
+  24:ServerBASIC.c **** #include "Solver.h"
+  25:ServerBASIC.c **** #include "Energy.h"
+  26:ServerBASIC.c **** #include "platform.h"
+  27:ServerBASIC.c **** 
+  28:ServerBASIC.c **** #if APP_COORDINATOR
+  29:ServerBASIC.c **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
+  30:ServerBASIC.c **** 		/* Only ARM */
+  31:ServerBASIC.c **** 		#include "stdio_usb.h"
+  32:ServerBASIC.c **** 		#define MASTER_MACSC	0
+  33:ServerBASIC.c **** 	#else
+  34:ServerBASIC.c **** 		/* Only megarf series */
+  35:ServerBASIC.c **** 		#include "conf_sio2host.h"
+  36:ServerBASIC.c **** 		#define MASTER_MACSC	1
+  37:ServerBASIC.c **** 	#endif
+  38:ServerBASIC.c **** #else
+  39:ServerBASIC.c **** 	/* Only megarf series */
+  40:ServerBASIC.c **** 	#define MASTER_MACSC		1
+  41:ServerBASIC.c **** #endif
+  42:ServerBASIC.c **** 
+  43:ServerBASIC.c **** #if (MASTER_MACSC == 1)
+  44:ServerBASIC.c **** 	#include "macsc_megarf.h"
+  45:ServerBASIC.c **** #else
+  46:ServerBASIC.c **** static SYS_Timer_t				tmrBeaconInterval;			// Beacon
+  47:ServerBASIC.c **** static SYS_Timer_t				tmrComputeData;				// Compute data
+  48:ServerBASIC.c **** #endif
+  49:ServerBASIC.c **** 
+  50:ServerBASIC.c **** static volatile AppState_t		appState					= APP_STATE_INITIAL;
+  51:ServerBASIC.c **** static SYS_Timer_t				tmrBlinkData;				// Feedback
+  52:ServerBASIC.c **** static NWK_DataReq_t			msgReq;
+  53:ServerBASIC.c **** static AppMessageFrame_t		msgFrame;
+  54:ServerBASIC.c **** 
+  55:ServerBASIC.c **** static NWK_DataReq_t			msgReqConnection;
+  56:ServerBASIC.c **** static AppMessageFrame_t		msgFrameConnection;
+  57:ServerBASIC.c **** 
+  58:ServerBASIC.c **** #if (APP_COORDINATOR)
+  59:ServerBASIC.c **** 	static uint16_t				server_turn					= 1;
+  60:ServerBASIC.c **** 	static uint8_t				statistics_buffer[(MSG_SIZE_MAX + 1) * 2];
+  61:ServerBASIC.c **** 	static uint8_t				aux_buffer[(MSG_SIZE_MAX + 1)];
+  62:ServerBASIC.c **** #endif
+  63:ServerBASIC.c **** #if (APP_ENDDEVICE)
+  64:ServerBASIC.c **** 	static bool					connected;
+  65:ServerBASIC.c **** 	static uint8_t				collab_vector[N_COLLAB_VECTOR];
+  66:ServerBASIC.c **** 	static bool					i_am_collab_dev				= false;
+  67:ServerBASIC.c **** 	static uint8_t				i_am_collab_slot			= 0;
+  68:ServerBASIC.c **** 	static uint8_t				i_am_collab_turn			= 0;
+  69:ServerBASIC.c **** 	static NWK_DataReq_t		msgReqCollab;
+  70:ServerBASIC.c **** 	static AppMessageFrame_t	msgFrameCollab;
+  71:ServerBASIC.c **** #endif
+  72:ServerBASIC.c **** 
+  73:ServerBASIC.c **** static void tmrBlinkDataHandler(SYS_Timer_t *timer)
+  74:ServerBASIC.c **** {
+ 222               		.loc 3 74 0
+ 223               		.cfi_startproc
+ 224 0074 CF93      		push r28
+ 225               	.LCFI11:
+ 226               		.cfi_def_cfa_offset 3
+ 227               		.cfi_offset 28, -2
+ 228 0076 DF93      		push r29
+ 229               	.LCFI12:
+ 230               		.cfi_def_cfa_offset 4
+ 231               		.cfi_offset 29, -3
+ 232 0078 CDB7      		in r28,__SP_L__
+ 233 007a DEB7      		in r29,__SP_H__
+ 234               	.LCFI13:
+ 235               		.cfi_def_cfa_register 28
+ 236 007c 2B97      		sbiw r28,11
+ 237               	.LCFI14:
+ 238               		.cfi_def_cfa_offset 15
+ 239 007e 0FB6      		in __tmp_reg__,__SREG__
+ 240 0080 F894      		cli
+ 241 0082 DEBF      		out __SP_H__,r29
+ 242 0084 0FBE      		out __SREG__,__tmp_reg__
+ 243 0086 CDBF      		out __SP_L__,r28
+ 244               	/* prologue: function */
+ 245               	/* frame size = 11 */
+ 246               	/* stack size = 13 */
+ 247               	.L__stack_usage = 13
+ 248 0088 9B87      		std Y+11,r25
+ 249 008a 8A87      		std Y+10,r24
+ 250 008c 81E3      		ldi r24,lo8(49)
+ 251 008e 8983      		std Y+1,r24
+ 252 0090 81E0      		ldi r24,lo8(1)
+ 253 0092 8A83      		std Y+2,r24
+ 254 0094 8981      		ldd r24,Y+1
+ 255 0096 8B83      		std Y+3,r24
+ 256 0098 8A81      		ldd r24,Y+2
+ 257 009a 8C83      		std Y+4,r24
+ 258               	.LBB113:
+ 259               	.LBB114:
+ 260               	.LBB115:
+ 261               	.LBB116:
+ 262               		.file 4 "../../../platform/common/services/ioport/mega_rf/ioport.h"
+   1:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+   2:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \file
+   3:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+   4:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief MEGA and MEGA_RF architecture specific IOPORT service implementation
+   5:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * header file.
+   6:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+   7:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * Copyright (c) 2012 - 2013 Atmel Corporation. All rights reserved.
+   8:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+   9:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \asf_license_start
+  10:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  11:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \page License
+  12:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  13:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * Redistribution and use in source and binary forms, with or without
+  14:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * modification, are permitted provided that the following conditions are met:
+  15:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  16:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  17:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *    this list of conditions and the following disclaimer.
+  18:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  19:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  20:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *    this list of conditions and the following disclaimer in the documentation
+  21:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *    and/or other materials provided with the distribution.
+  22:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  23:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  24:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *    from this software without specific prior written permission.
+  25:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  26:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * 4. This software may only be redistributed and used in connection with an
+  27:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *    Atmel microcontroller product.
+  28:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  29:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  30:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  31:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  32:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  33:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  34:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  35:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  36:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  37:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  38:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  39:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  40:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  41:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \asf_license_stop
+  42:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  43:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+  44:../../../platform/common/services/ioport/mega_rf/ioport.h **** #ifndef IOPORT_MEGA_RF_H
+  45:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_MEGA_RF_H
+  46:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  47:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_CREATE_PIN(port, pin) ((IOPORT_ ## port) * 8 + (pin))
+  48:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_BASE_ADDRESS 0x20
+  49:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORT_OFFSET  0x03
+  50:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  51:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** \name IOPORT port numbers */
+  52:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @{ */
+  53:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  54:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if MEGA_XX0_1 || MEGA_RF || MEGA_UNSPECIFIED || MEGA_XX4 || MEGA_XX4_A
+  55:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTA    0 /* not connected to pins for megaRF*/
+  56:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+  57:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  58:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if MEGA_XX0_1 || MEGA_RF || MEGA_UNSPECIFIED || MEGA_XX8 || MEGA_XX8_A || \
+  59:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	MEGA_XX4 || MEGA_XX4_A
+  60:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTB    1
+  61:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTC    2 /* not connected to pins for megaRF*/
+  62:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTD    3
+  63:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+  64:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  65:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if MEGA_XX0_1 || MEGA_RF
+  66:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTE    4
+  67:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTF    5
+  68:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTG    6
+  69:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+  70:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  71:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if MEGA_XX0
+  72:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTH    7
+  73:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTI    8
+  74:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTJ    9
+  75:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTK    10
+  76:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTL    11
+  77:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+  78:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @} */
+  79:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  80:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+  81:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \weakgroup ioport_service_group
+  82:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \section ioport_modes IOPORT Modes
+  83:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  84:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * For details on these please see the megaRF Manual.
+  85:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  86:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * @{
+  87:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+  88:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  89:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** \name IOPORT Mode bit definitions */
+  90:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @{ */
+  91:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_MODE_PULLDOWN        (0x01) /*!< Pull-down */
+  92:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_MODE_PULLUP          (0x00) /*!< Pull-up */
+  93:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @} */
+  94:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  95:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t ioport_mode_t;
+  96:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t ioport_pin_t;
+  97:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t ioport_port_t;
+  98:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t ioport_port_mask_t;
+  99:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 100:../../../platform/common/services/ioport/mega_rf/ioport.h **** /* I/O Ports */
+ 101:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef struct PORT_struct {
+ 102:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	volatile uint8_t PINCRL;         /* I/O Port PIN DATA READ ONLY */
+ 103:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	volatile uint8_t DIR;            /* I/O Port Data Direction Set */
+ 104:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	volatile uint8_t PORTDATA;       /* I/O Port DATA register */
+ 105:../../../platform/common/services/ioport/mega_rf/ioport.h **** } PORT_t;
+ 106:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 107:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 108:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief A pin mask
+ 109:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 110:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * This type is used to describe the port pin mask on the part.
+ 111:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 112:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t pin_mask_t;
+ 113:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 114:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 115:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief A PORT pin
+ 116:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 117:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * This type is used to describe the PORT pins on the part.
+ 118:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 119:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t port_pin_t;
+ 120:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 121:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 122:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief Pin configuration flags
+ 123:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 124:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * This is a bitmask containing configuration flags for the pins that shall be
+ 125:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * configured.
+ 126:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 127:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint16_t port_pin_flags_t;
+ 128:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 129:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 130:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief A port id
+ 131:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 132:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * This type is used to describe the port id on the part (0 is PORTA).
+ 133:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 134:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t port_id_t;
+ 135:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 136:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** \name Initial Output State Flags */
+ 137:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 138:../../../platform/common/services/ioport/mega_rf/ioport.h **** /*With Port as input port the initial status is either tri state
+ 139:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * or pulled high, based on PORTX value, and check the PUD value to make
+ 140:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * sure pull up resistance is not disabled*/
+ 141:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @{ */
+ 142:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_INIT_LOW           0 << 1  /*!< Initial Output State Low */
+ 143:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_INIT_HIGH          1 << 1 /*!< Initial Output State High */
+ 144:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 145:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @} */
+ 146:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 147:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** \name Output and Pull Configuration Flags */
+ 148:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @{ */
+ 149:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PULL_DOWN          (0 << 2) /*!< Pull-Down (when input) */
+ 150:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PULL_UP            (1 << 2) /*!< Pull-Up (when input) */
+ 151:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @} */
+ 152:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 153:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 154:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief: To get the port number from pin nuber
+ 155:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 156:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 157:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static inline ioport_port_t arch_ioport_pin_to_port_id(
+ 158:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		uint8_t pin)
+ 159:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 160:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return pin >> 3;
+ 161:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 162:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 163:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 164:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief: To get the base address of port number
+ 165:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: port number e.g. IOPORT_PORTB
+ 166:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 167:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static PORT_t *arch_ioport_port_to_base(uint8_t port)
+ 168:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return (PORT_t *)((uintptr_t)(IOPORT_BASE_ADDRESS +
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 171:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 172:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 173:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 174:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief: To get the base address of port number from defined pin
+ 175:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 176:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 177:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static PORT_t *arch_ioport_pin_to_base(ioport_pin_t pin)
+ 178:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 179:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return arch_ioport_port_to_base(pin >> 3);
+ 180:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 181:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 182:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 183:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief: To get the 8-bit pin mask for pin
+ 184:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 185:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 186:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static ioport_port_mask_t arch_ioport_pin_to_mask
+ 187:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	(ioport_pin_t pin)
+ 188:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return 1U << (pin & 0x07);
+ 190:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 191:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 192:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 193:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief Set multiple pin modes in a single GPIO port, such as pull-up,
+ 194:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * pull-down, etc. configuration.
+ 195:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 196:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param port GPIO port to configure  e.g. IOPORT_PORTB
+ 197:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mask Pin mask of pins to configure
+ 198:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mode Mode masks to configure for the specified pins (\ref
+ 199:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * ioport_modes)
+ 200:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 201:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_port_mode(ioport_port_t port,
+ 202:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_port_mask_t mask, ioport_mode_t mode)
+ 203:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 204:../../../platform/common/services/ioport/mega_rf/ioport.h **** #ifdef MEGA_RF
+ 205:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_port_to_base(port);
+ 206:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (mode == IOPORT_MODE_PULLUP) {
+ 207:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->PORTDATA = mask;
+ 208:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else if (mode == IOPORT_MODE_PULLDOWN) {
+ 209:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->PORTDATA = ~mask;
+ 210:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 211:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+ 212:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 213:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 214:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 215:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief Set multiple pin modes in a single GPIO port, such as pull-up,
+ 216:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * pull-down, etc. configuration.
+ 217:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 218:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 219:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mask Pin mask of pins to configure
+ 220:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mode Mode masks to configure for the specified pins (\ref
+ 221:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * ioport_modes)
+ 222:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 223:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_pin_mode(ioport_pin_t pin,
+ 224:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_mode_t mode)
+ 225:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 226:../../../platform/common/services/ioport/mega_rf/ioport.h **** #ifdef MEGA_RF
+ 227:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_pin_to_base(pin);
+ 228:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	ioport_pin_t mask_pin = arch_ioport_pin_to_mask(pin);
+ 229:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (mode == IOPORT_MODE_PULLUP) {
+ 230:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->PORTDATA |=  mask_pin;
+ 231:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else if (mode == IOPORT_MODE_PULLDOWN) {
+ 232:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->PORTDATA &= ~mask_pin;
+ 233:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 234:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+ 235:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 236:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 237:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 238:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : Set port direction as input or output.
+ 239:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param port GPIO port to configure  e.g. IOPORT_PORTB
+ 240:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mask Pin mask of pins to configure
+ 241:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mode dir, \refer ioport_direction
+ 242:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 243:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_port_dir(ioport_port_t port,
+ 244:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_port_mask_t mask, enum ioport_direction dir)
+ 245:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 246:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_port_to_base(port);
+ 247:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 248:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (dir == IOPORT_DIR_OUTPUT) {
+ 249:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->DIR = mask;
+ 250:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else if (dir == IOPORT_DIR_INPUT) {
+ 251:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->DIR = ~mask;
+ 252:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 253:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 254:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 255:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 256:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : Set pin direction as input or output.
+ 257:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 258:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mask Pin mask of pins to configure
+ 259:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mode dir, \refer ioport_direction
+ 260:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 261:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_pin_dir(ioport_pin_t pin,
+ 262:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		enum ioport_direction dir)
+ 263:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 264:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_pin_to_base(pin);
+ 265:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 266:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (dir == IOPORT_DIR_OUTPUT) {
+ 267:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->DIR |= arch_ioport_pin_to_mask(pin);
+ 268:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else if (dir == IOPORT_DIR_INPUT) {
+ 269:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->DIR &=  ~arch_ioport_pin_to_mask(pin);
+ 270:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 271:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 272:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 273:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 274:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : Set pin level to high or low.
+ 275:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 276:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: level high/low
+ 277:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 278:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_pin_level(ioport_pin_t pin,
+ 279:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		bool level)
+ 280:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base_add = arch_ioport_port_to_base(pin >> 3);
+ 263               		.loc 4 281 0
+ 264 009c 8B81      		ldd r24,Y+3
+ 265 009e 8695      		lsr r24
+ 266 00a0 8695      		lsr r24
+ 267 00a2 8695      		lsr r24
+ 268 00a4 8D83      		std Y+5,r24
+ 269               	.LBB117:
+ 270               	.LBB118:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 271               		.loc 4 170 0
+ 272 00a6 8D81      		ldd r24,Y+5
+ 273 00a8 282F      		mov r18,r24
+ 274 00aa 30E0      		ldi r19,0
+ 275 00ac C901      		movw r24,r18
+ 276 00ae 880F      		lsl r24
+ 277 00b0 991F      		rol r25
+ 278 00b2 820F      		add r24,r18
+ 279 00b4 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 280               		.loc 4 169 0
+ 281 00b6 8096      		adiw r24,32
+ 282               	.LBE118:
+ 283               	.LBE117:
+ 284               		.loc 4 281 0
+ 285 00b8 9F83      		std Y+7,r25
+ 286 00ba 8E83      		std Y+6,r24
+ 282:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 283:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (level) {
+ 287               		.loc 4 283 0
+ 288 00bc 8C81      		ldd r24,Y+4
+ 289 00be 8823      		tst r24
+ 290 00c0 01F0      		breq .L7
+ 284:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base_add->PORTDATA
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			= (base_add->PORTDATA  | arch_ioport_pin_to_mask
+ 291               		.loc 4 285 0
+ 292 00c2 8E81      		ldd r24,Y+6
+ 293 00c4 9F81      		ldd r25,Y+7
+ 294 00c6 FC01      		movw r30,r24
+ 295 00c8 4281      		ldd r20,Z+2
+ 296 00ca 8B81      		ldd r24,Y+3
+ 297 00cc 8887      		std Y+8,r24
+ 298               	.LBB119:
+ 299               	.LBB120:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 300               		.loc 4 189 0
+ 301 00ce 8885      		ldd r24,Y+8
+ 302 00d0 882F      		mov r24,r24
+ 303 00d2 90E0      		ldi r25,0
+ 304 00d4 9C01      		movw r18,r24
+ 305 00d6 2770      		andi r18,7
+ 306 00d8 3327      		clr r19
+ 307 00da 81E0      		ldi r24,lo8(1)
+ 308 00dc 90E0      		ldi r25,0
+ 309 00de 00C0      		rjmp 2f
+ 310               		1:
+ 311 00e0 880F      		lsl r24
+ 312 00e2 991F      		rol r25
+ 313               		2:
+ 314 00e4 2A95      		dec r18
+ 315 00e6 02F4      		brpl 1b
+ 316               	.LBE120:
+ 317               	.LBE119:
+ 318               		.loc 4 285 0
+ 319 00e8 242F      		mov r18,r20
+ 320 00ea 282B      		or r18,r24
+ 321 00ec 8E81      		ldd r24,Y+6
+ 322 00ee 9F81      		ldd r25,Y+7
+ 323 00f0 FC01      		movw r30,r24
+ 324 00f2 2283      		std Z+2,r18
+ 325               	.LBE116:
+ 326               	.LBE115:
+ 327               	.LBE114:
+ 328               	.LBE113:
+  75:ServerBASIC.c **** #if (LED_COUNT > 0)
+  76:ServerBASIC.c **** 	LED_Off(LED_DATA);
+  77:ServerBASIC.c **** #endif
+  78:ServerBASIC.c **** 
+  79:ServerBASIC.c **** 	(void)timer;
+  80:ServerBASIC.c **** }
+ 329               		.loc 3 80 0
+ 330 00f4 00C0      		rjmp .L11
+ 331               	.L7:
+ 332               	.LBB126:
+ 333               	.LBB125:
+ 334               	.LBB124:
+ 335               	.LBB123:
+ 286:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 287:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 288:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base_add->PORTDATA
+ 289:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			= (base_add->PORTDATA  & (~arch_ioport_pin_to_mask
+ 336               		.loc 4 289 0
+ 337 00f6 8E81      		ldd r24,Y+6
+ 338 00f8 9F81      		ldd r25,Y+7
+ 339 00fa FC01      		movw r30,r24
+ 340 00fc 8281      		ldd r24,Z+2
+ 341 00fe 482F      		mov r20,r24
+ 342 0100 8B81      		ldd r24,Y+3
+ 343 0102 8987      		std Y+9,r24
+ 344               	.LBB121:
+ 345               	.LBB122:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 346               		.loc 4 189 0
+ 347 0104 8985      		ldd r24,Y+9
+ 348 0106 882F      		mov r24,r24
+ 349 0108 90E0      		ldi r25,0
+ 350 010a 9C01      		movw r18,r24
+ 351 010c 2770      		andi r18,7
+ 352 010e 3327      		clr r19
+ 353 0110 81E0      		ldi r24,lo8(1)
+ 354 0112 90E0      		ldi r25,0
+ 355 0114 00C0      		rjmp 2f
+ 356               		1:
+ 357 0116 880F      		lsl r24
+ 358 0118 991F      		rol r25
+ 359               		2:
+ 360 011a 2A95      		dec r18
+ 361 011c 02F4      		brpl 1b
+ 362               	.LBE122:
+ 363               	.LBE121:
+ 364               		.loc 4 289 0
+ 365 011e 8095      		com r24
+ 366 0120 8423      		and r24,r20
+ 367 0122 282F      		mov r18,r24
+ 368 0124 8E81      		ldd r24,Y+6
+ 369 0126 9F81      		ldd r25,Y+7
+ 370 0128 FC01      		movw r30,r24
+ 371 012a 2283      		std Z+2,r18
+ 372               	.L11:
+ 373               	.LBE123:
+ 374               	.LBE124:
+ 375               	.LBE125:
+ 376               	.LBE126:
+ 377               		.loc 3 80 0
+ 378 012c 0000      		nop
+ 379               	/* epilogue start */
+ 380 012e 2B96      		adiw r28,11
+ 381 0130 0FB6      		in __tmp_reg__,__SREG__
+ 382 0132 F894      		cli
+ 383 0134 DEBF      		out __SP_H__,r29
+ 384 0136 0FBE      		out __SREG__,__tmp_reg__
+ 385 0138 CDBF      		out __SP_L__,r28
+ 386 013a DF91      		pop r29
+ 387 013c CF91      		pop r28
+ 388 013e 0895      		ret
+ 389               		.cfi_endproc
+ 390               	.LFE105:
+ 393               	tdma_client_turn:
+ 394               	.LFB106:
+  81:ServerBASIC.c **** #if (APP_COORDINATOR)
+  82:ServerBASIC.c **** static void toHexBuffer(uint8_t* out, uint8_t* in, uint16_t size)
+  83:ServerBASIC.c **** {
+  84:ServerBASIC.c **** 	uint16_t		pos			= 0;
+  85:ServerBASIC.c **** 	for(uint16_t i = 0; i < size; ++i)
+  86:ServerBASIC.c **** 	{
+  87:ServerBASIC.c **** 		pos						+= sprintf(out + pos, "%02X", in[i]);
+  88:ServerBASIC.c **** 	}
+  89:ServerBASIC.c **** 	out[pos]					= NULL;
+  90:ServerBASIC.c **** }
+  91:ServerBASIC.c **** #if (MASTER_MACSC == 1)
+  92:ServerBASIC.c **** static void tdma_server_beacon(void)
+  93:ServerBASIC.c **** {
+  94:ServerBASIC.c **** 	macsc_enable_manual_bts();
+  95:ServerBASIC.c **** 
+  96:ServerBASIC.c **** 	appState					= APP_STATE_SEND;
+  97:ServerBASIC.c **** }
+  98:ServerBASIC.c **** static void tdma_server_statistics(void)
+  99:ServerBASIC.c **** {
+ 100:ServerBASIC.c **** 	appState					= APP_STATE_SERVER_STATISTICS;
+ 101:ServerBASIC.c **** }
+ 102:ServerBASIC.c **** #else
+ 103:ServerBASIC.c **** static void tmr_tdma_server_beacon(SYS_Timer_t *timer)
+ 104:ServerBASIC.c **** {
+ 105:ServerBASIC.c **** 	(void) timer;
+ 106:ServerBASIC.c **** 
+ 107:ServerBASIC.c **** 	SYS_TimerStart(&tmrComputeData);
+ 108:ServerBASIC.c **** 	
+ 109:ServerBASIC.c **** 	appState					= APP_STATE_SEND;
+ 110:ServerBASIC.c **** }
+ 111:ServerBASIC.c **** static void tmr_tdma_server_statistics(SYS_Timer_t *timer)
+ 112:ServerBASIC.c **** {
+ 113:ServerBASIC.c **** 	(void) timer;
+ 114:ServerBASIC.c **** 
+ 115:ServerBASIC.c **** 	appState					= APP_STATE_SERVER_STATISTICS;
+ 116:ServerBASIC.c **** }
+ 117:ServerBASIC.c **** #endif
+ 118:ServerBASIC.c **** static void server_statistics(void)
+ 119:ServerBASIC.c **** {
+ 120:ServerBASIC.c **** 	int	n_decoded				= solver_solve_system();
+ 121:ServerBASIC.c **** 	int n_received				= solver_get_n_received();
+ 122:ServerBASIC.c **** 	printf("R: %d, C: %d, S: %d\n", n_received, solver_get_n_colaborative(), n_decoded);
+ 123:ServerBASIC.c **** 	
+ 124:ServerBASIC.c **** 	for(uint8_t j = SOLVER_MSG_RECEIVED; j < SOLVER_MSG_MAX; ++j)
+ 125:ServerBASIC.c **** 	{
+ 126:ServerBASIC.c **** 		for(uint8_t i = 0; i < N_MOTES_COLLAB_MAX; ++i)
+ 127:ServerBASIC.c **** 		{
+ 128:ServerBASIC.c **** 			uint8_t* buffer				= solver_get_data(i, j);
+ 129:ServerBASIC.c **** 			if(buffer)
+ 130:ServerBASIC.c **** 			{
+ 131:ServerBASIC.c **** 				--n_decoded;
+ 132:ServerBASIC.c **** 				//toHexBuffer(statistics_buffer, buffer, MSG_SIZE_MAX);
+ 133:ServerBASIC.c **** 				//printf("%s: Node[%02d]: %s\n", (j == SOLVER_MSG_RECEIVED ? "R" : "S"), i + 1, statistics_buff
+ 134:ServerBASIC.c **** 				printf("%s: Node[%02d]: \n", (j == SOLVER_MSG_RECEIVED ? "R" : "S"), i + 1);
+ 135:ServerBASIC.c **** 			}
+ 136:ServerBASIC.c **** 		}
+ 137:ServerBASIC.c **** 	}
+ 138:ServerBASIC.c **** 	
+ 139:ServerBASIC.c **** 	appState							= APP_STATE_IDLE;
+ 140:ServerBASIC.c **** }
+ 141:ServerBASIC.c **** #else
+ 142:ServerBASIC.c **** static void tdma_client_turn(void)
+ 143:ServerBASIC.c **** {
+ 395               		.loc 3 143 0
+ 396               		.cfi_startproc
+ 397 0140 CF93      		push r28
+ 398               	.LCFI15:
+ 399               		.cfi_def_cfa_offset 3
+ 400               		.cfi_offset 28, -2
+ 401 0142 DF93      		push r29
+ 402               	.LCFI16:
+ 403               		.cfi_def_cfa_offset 4
+ 404               		.cfi_offset 29, -3
+ 405 0144 CDB7      		in r28,__SP_L__
+ 406 0146 DEB7      		in r29,__SP_H__
+ 407               	.LCFI17:
+ 408               		.cfi_def_cfa_register 28
+ 409               	/* prologue: function */
+ 410               	/* frame size = 0 */
+ 411               	/* stack size = 2 */
+ 412               	.L__stack_usage = 2
+ 144:ServerBASIC.c **** 	appState							= APP_STATE_WAKEUP_AND_WAIT;
+ 413               		.loc 3 144 0
+ 414 0148 89E0      		ldi r24,lo8(9)
+ 415 014a 8093 0000 		sts appState,r24
+ 145:ServerBASIC.c **** }
+ 416               		.loc 3 145 0
+ 417 014e 0000      		nop
+ 418               	/* epilogue start */
+ 419 0150 DF91      		pop r29
+ 420 0152 CF91      		pop r28
+ 421 0154 0895      		ret
+ 422               		.cfi_endproc
+ 423               	.LFE106:
+ 426               	tdma_job_conf:
+ 427               	.LFB107:
+ 146:ServerBASIC.c **** static void tdma_job_conf(NWK_DataReq_t *req)
+ 147:ServerBASIC.c **** {
+ 428               		.loc 3 147 0
+ 429               		.cfi_startproc
+ 430 0156 CF93      		push r28
+ 431               	.LCFI18:
+ 432               		.cfi_def_cfa_offset 3
+ 433               		.cfi_offset 28, -2
+ 434 0158 DF93      		push r29
+ 435               	.LCFI19:
+ 436               		.cfi_def_cfa_offset 4
+ 437               		.cfi_offset 29, -3
+ 438 015a 00D0      		rcall .
+ 439               	.LCFI20:
+ 440               		.cfi_def_cfa_offset 6
+ 441 015c CDB7      		in r28,__SP_L__
+ 442 015e DEB7      		in r29,__SP_H__
+ 443               	.LCFI21:
+ 444               		.cfi_def_cfa_register 28
+ 445               	/* prologue: function */
+ 446               	/* frame size = 2 */
+ 447               	/* stack size = 4 */
+ 448               	.L__stack_usage = 4
+ 449 0160 9A83      		std Y+2,r25
+ 450 0162 8983      		std Y+1,r24
+ 148:ServerBASIC.c **** 	(void) req;
+ 149:ServerBASIC.c **** 
+ 150:ServerBASIC.c **** 	appState							= APP_STATE_SLEEP_PREPARE;
+ 451               		.loc 3 150 0
+ 452 0164 87E0      		ldi r24,lo8(7)
+ 453 0166 8093 0000 		sts appState,r24
+ 151:ServerBASIC.c **** }
+ 454               		.loc 3 151 0
+ 455 016a 0000      		nop
+ 456               	/* epilogue start */
+ 457 016c 0F90      		pop __tmp_reg__
+ 458 016e 0F90      		pop __tmp_reg__
+ 459 0170 DF91      		pop r29
+ 460 0172 CF91      		pop r28
+ 461 0174 0895      		ret
+ 462               		.cfi_endproc
+ 463               	.LFE107:
+ 466               	appBeaconInd:
+ 467               	.LFB108:
+ 152:ServerBASIC.c **** static bool appBeaconInd(NWK_DataInd_t *ind)
+ 153:ServerBASIC.c **** {
+ 468               		.loc 3 153 0
+ 469               		.cfi_startproc
+ 470 0176 CF93      		push r28
+ 471               	.LCFI22:
+ 472               		.cfi_def_cfa_offset 3
+ 473               		.cfi_offset 28, -2
+ 474 0178 DF93      		push r29
+ 475               	.LCFI23:
+ 476               		.cfi_def_cfa_offset 4
+ 477               		.cfi_offset 29, -3
+ 478 017a 00D0      		rcall .
+ 479 017c 00D0      		rcall .
+ 480               	.LCFI24:
+ 481               		.cfi_def_cfa_offset 8
+ 482 017e CDB7      		in r28,__SP_L__
+ 483 0180 DEB7      		in r29,__SP_H__
+ 484               	.LCFI25:
+ 485               		.cfi_def_cfa_register 28
+ 486               	/* prologue: function */
+ 487               	/* frame size = 4 */
+ 488               	/* stack size = 6 */
+ 489               	.L__stack_usage = 6
+ 490 0182 9C83      		std Y+4,r25
+ 491 0184 8B83      		std Y+3,r24
+ 154:ServerBASIC.c **** 	(void) ind;
+ 155:ServerBASIC.c **** 
+ 156:ServerBASIC.c **** #if (LED_COUNT > 0)
+ 157:ServerBASIC.c **** 	//LED_Toggle(LED_BLINK);
+ 158:ServerBASIC.c **** 	//LED_Off(LED_DATA);
+ 159:ServerBASIC.c **** #endif
+ 160:ServerBASIC.c **** 
+ 161:ServerBASIC.c **** 	AppMessageFrame_t*	frame_struct= (AppMessageFrame_t*) ind->data;
+ 492               		.loc 3 161 0
+ 493 0186 8B81      		ldd r24,Y+3
+ 494 0188 9C81      		ldd r25,Y+4
+ 495 018a FC01      		movw r30,r24
+ 496 018c 8781      		ldd r24,Z+7
+ 497 018e 9085      		ldd r25,Z+8
+ 498 0190 9A83      		std Y+2,r25
+ 499 0192 8983      		std Y+1,r24
+ 162:ServerBASIC.c **** 
+ 163:ServerBASIC.c **** 	if(frame_struct->frameType == MSG_STATE_BEACON)
+ 500               		.loc 3 163 0
+ 501 0194 8981      		ldd r24,Y+1
+ 502 0196 9A81      		ldd r25,Y+2
+ 503 0198 FC01      		movw r30,r24
+ 504 019a 8081      		ld r24,Z
+ 505 019c 8823      		tst r24
+ 506 019e 01F4      		brne .L15
+ 164:ServerBASIC.c **** 	{
+ 165:ServerBASIC.c **** 		appState						= APP_STATE_SEND_PREPARE;
+ 507               		.loc 3 165 0
+ 508 01a0 82E0      		ldi r24,lo8(2)
+ 509 01a2 8093 0000 		sts appState,r24
+ 510               	.L15:
+ 166:ServerBASIC.c **** 	}
+ 167:ServerBASIC.c **** 
+ 168:ServerBASIC.c **** 	return true;
+ 511               		.loc 3 168 0
+ 512 01a6 81E0      		ldi r24,lo8(1)
+ 513               	/* epilogue start */
+ 169:ServerBASIC.c **** }
+ 514               		.loc 3 169 0
+ 515 01a8 0F90      		pop __tmp_reg__
+ 516 01aa 0F90      		pop __tmp_reg__
+ 517 01ac 0F90      		pop __tmp_reg__
+ 518 01ae 0F90      		pop __tmp_reg__
+ 519 01b0 DF91      		pop r29
+ 520 01b2 CF91      		pop r28
+ 521 01b4 0895      		ret
+ 522               		.cfi_endproc
+ 523               	.LFE108:
+ 526               	appSendPrepare:
+ 527               	.LFB109:
+ 170:ServerBASIC.c **** static void appSendPrepare(void)
+ 171:ServerBASIC.c **** {
+ 528               		.loc 3 171 0
+ 529               		.cfi_startproc
+ 530 01b6 0F93      		push r16
+ 531               	.LCFI26:
+ 532               		.cfi_def_cfa_offset 3
+ 533               		.cfi_offset 16, -2
+ 534 01b8 1F93      		push r17
+ 535               	.LCFI27:
+ 536               		.cfi_def_cfa_offset 4
+ 537               		.cfi_offset 17, -3
+ 538 01ba CF93      		push r28
+ 539               	.LCFI28:
+ 540               		.cfi_def_cfa_offset 5
+ 541               		.cfi_offset 28, -4
+ 542 01bc DF93      		push r29
+ 543               	.LCFI29:
+ 544               		.cfi_def_cfa_offset 6
+ 545               		.cfi_offset 29, -5
+ 546 01be 1F92      		push __zero_reg__
+ 547               	.LCFI30:
+ 548               		.cfi_def_cfa_offset 7
+ 549 01c0 CDB7      		in r28,__SP_L__
+ 550 01c2 DEB7      		in r29,__SP_H__
+ 551               	.LCFI31:
+ 552               		.cfi_def_cfa_register 28
+ 553               	/* prologue: function */
+ 554               	/* frame size = 1 */
+ 555               	/* stack size = 5 */
+ 556               	.L__stack_usage = 5
+ 557               	.LBB127:
+ 172:ServerBASIC.c **** 	for(uint8_t i = 0; i < MSG_SIZE_MAX; ++i)
+ 558               		.loc 3 172 0
+ 559 01c4 1982      		std Y+1,__zero_reg__
+ 560 01c6 00C0      		rjmp .L18
+ 561               	.L19:
+ 173:ServerBASIC.c **** 	{
+ 174:ServerBASIC.c **** 		msgFrame.data.data_vector[i]	= rand();
+ 562               		.loc 3 174 0 discriminator 3
+ 563 01c8 8981      		ldd r24,Y+1
+ 564 01ca 082F      		mov r16,r24
+ 565 01cc 10E0      		ldi r17,0
+ 566 01ce 0E94 0000 		call rand
+ 567 01d2 282F      		mov r18,r24
+ 568 01d4 C801      		movw r24,r16
+ 569 01d6 8050      		subi r24,lo8(-(msgFrame+1))
+ 570 01d8 9040      		sbci r25,hi8(-(msgFrame+1))
+ 571 01da FC01      		movw r30,r24
+ 572 01dc 2083      		st Z,r18
+ 172:ServerBASIC.c **** 	for(uint8_t i = 0; i < MSG_SIZE_MAX; ++i)
+ 573               		.loc 3 172 0 discriminator 3
+ 574 01de 8981      		ldd r24,Y+1
+ 575 01e0 8F5F      		subi r24,lo8(-(1))
+ 576 01e2 8983      		std Y+1,r24
+ 577               	.L18:
+ 172:ServerBASIC.c **** 	for(uint8_t i = 0; i < MSG_SIZE_MAX; ++i)
+ 578               		.loc 3 172 0 is_stmt 0 discriminator 1
+ 579 01e4 8981      		ldd r24,Y+1
+ 580 01e6 8034      		cpi r24,lo8(64)
+ 581 01e8 00F0      		brlo .L19
+ 582               	.LBE127:
+ 175:ServerBASIC.c **** 	}
+ 176:ServerBASIC.c **** }
+ 583               		.loc 3 176 0 is_stmt 1
+ 584 01ea 0000      		nop
+ 585               	/* epilogue start */
+ 586 01ec 0F90      		pop __tmp_reg__
+ 587 01ee DF91      		pop r29
+ 588 01f0 CF91      		pop r28
+ 589 01f2 1F91      		pop r17
+ 590 01f4 0F91      		pop r16
+ 591 01f6 0895      		ret
+ 592               		.cfi_endproc
+ 593               	.LFE109:
+ 596               	appSendData:
+ 597               	.LFB110:
+ 177:ServerBASIC.c **** #endif
+ 178:ServerBASIC.c **** static void appSendData(void)
+ 179:ServerBASIC.c **** {
+ 598               		.loc 3 179 0
+ 599               		.cfi_startproc
+ 600 01f8 CF93      		push r28
+ 601               	.LCFI32:
+ 602               		.cfi_def_cfa_offset 3
+ 603               		.cfi_offset 28, -2
+ 604 01fa DF93      		push r29
+ 605               	.LCFI33:
+ 606               		.cfi_def_cfa_offset 4
+ 607               		.cfi_offset 29, -3
+ 608 01fc CDB7      		in r28,__SP_L__
+ 609 01fe DEB7      		in r29,__SP_H__
+ 610               	.LCFI34:
+ 611               		.cfi_def_cfa_register 28
+ 612 0200 2997      		sbiw r28,9
+ 613               	.LCFI35:
+ 614               		.cfi_def_cfa_offset 13
+ 615 0202 0FB6      		in __tmp_reg__,__SREG__
+ 616 0204 F894      		cli
+ 617 0206 DEBF      		out __SP_H__,r29
+ 618 0208 0FBE      		out __SREG__,__tmp_reg__
+ 619 020a CDBF      		out __SP_L__,r28
+ 620               	/* prologue: function */
+ 621               	/* frame size = 9 */
+ 622               	/* stack size = 11 */
+ 623               	.L__stack_usage = 11
+ 624 020c 81E3      		ldi r24,lo8(49)
+ 625 020e 8983      		std Y+1,r24
+ 626 0210 1A82      		std Y+2,__zero_reg__
+ 627 0212 8981      		ldd r24,Y+1
+ 628 0214 8B83      		std Y+3,r24
+ 629 0216 8A81      		ldd r24,Y+2
+ 630 0218 8C83      		std Y+4,r24
+ 631               	.LBB128:
+ 632               	.LBB129:
+ 633               	.LBB130:
+ 634               	.LBB131:
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 635               		.loc 4 281 0
+ 636 021a 8B81      		ldd r24,Y+3
+ 637 021c 8695      		lsr r24
+ 638 021e 8695      		lsr r24
+ 639 0220 8695      		lsr r24
+ 640 0222 8D83      		std Y+5,r24
+ 641               	.LBB132:
+ 642               	.LBB133:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 643               		.loc 4 170 0
+ 644 0224 8D81      		ldd r24,Y+5
+ 645 0226 282F      		mov r18,r24
+ 646 0228 30E0      		ldi r19,0
+ 647 022a C901      		movw r24,r18
+ 648 022c 880F      		lsl r24
+ 649 022e 991F      		rol r25
+ 650 0230 820F      		add r24,r18
+ 651 0232 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 652               		.loc 4 169 0
+ 653 0234 8096      		adiw r24,32
+ 654               	.LBE133:
+ 655               	.LBE132:
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 656               		.loc 4 281 0
+ 657 0236 9F83      		std Y+7,r25
+ 658 0238 8E83      		std Y+6,r24
+ 283:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base_add->PORTDATA
+ 659               		.loc 4 283 0
+ 660 023a 8C81      		ldd r24,Y+4
+ 661 023c 8823      		tst r24
+ 662 023e 01F0      		breq .L22
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 663               		.loc 4 285 0
+ 664 0240 8E81      		ldd r24,Y+6
+ 665 0242 9F81      		ldd r25,Y+7
+ 666 0244 FC01      		movw r30,r24
+ 667 0246 4281      		ldd r20,Z+2
+ 668 0248 8B81      		ldd r24,Y+3
+ 669 024a 8887      		std Y+8,r24
+ 670               	.LBB134:
+ 671               	.LBB135:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 672               		.loc 4 189 0
+ 673 024c 8885      		ldd r24,Y+8
+ 674 024e 882F      		mov r24,r24
+ 675 0250 90E0      		ldi r25,0
+ 676 0252 9C01      		movw r18,r24
+ 677 0254 2770      		andi r18,7
+ 678 0256 3327      		clr r19
+ 679 0258 81E0      		ldi r24,lo8(1)
+ 680 025a 90E0      		ldi r25,0
+ 681 025c 00C0      		rjmp 2f
+ 682               		1:
+ 683 025e 880F      		lsl r24
+ 684 0260 991F      		rol r25
+ 685               		2:
+ 686 0262 2A95      		dec r18
+ 687 0264 02F4      		brpl 1b
+ 688               	.LBE135:
+ 689               	.LBE134:
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 690               		.loc 4 285 0
+ 691 0266 242F      		mov r18,r20
+ 692 0268 282B      		or r18,r24
+ 693 026a 8E81      		ldd r24,Y+6
+ 694 026c 9F81      		ldd r25,Y+7
+ 695 026e FC01      		movw r30,r24
+ 696 0270 2283      		std Z+2,r18
+ 697 0272 00C0      		rjmp .L24
+ 698               	.L22:
+ 699               		.loc 4 289 0
+ 700 0274 8E81      		ldd r24,Y+6
+ 701 0276 9F81      		ldd r25,Y+7
+ 702 0278 FC01      		movw r30,r24
+ 703 027a 8281      		ldd r24,Z+2
+ 704 027c 482F      		mov r20,r24
+ 705 027e 8B81      		ldd r24,Y+3
+ 706 0280 8987      		std Y+9,r24
+ 707               	.LBB136:
+ 708               	.LBB137:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 709               		.loc 4 189 0
+ 710 0282 8985      		ldd r24,Y+9
+ 711 0284 882F      		mov r24,r24
+ 712 0286 90E0      		ldi r25,0
+ 713 0288 9C01      		movw r18,r24
+ 714 028a 2770      		andi r18,7
+ 715 028c 3327      		clr r19
+ 716 028e 81E0      		ldi r24,lo8(1)
+ 717 0290 90E0      		ldi r25,0
+ 718 0292 00C0      		rjmp 2f
+ 719               		1:
+ 720 0294 880F      		lsl r24
+ 721 0296 991F      		rol r25
+ 722               		2:
+ 723 0298 2A95      		dec r18
+ 724 029a 02F4      		brpl 1b
+ 725               	.LBE137:
+ 726               	.LBE136:
+ 727               		.loc 4 289 0
+ 728 029c 8095      		com r24
+ 729 029e 8423      		and r24,r20
+ 730 02a0 282F      		mov r18,r24
+ 731 02a2 8E81      		ldd r24,Y+6
+ 732 02a4 9F81      		ldd r25,Y+7
+ 733 02a6 FC01      		movw r30,r24
+ 734 02a8 2283      		std Z+2,r18
+ 735               	.L24:
+ 736               	.LBE131:
+ 737               	.LBE130:
+ 738               	.LBE129:
+ 739               	.LBE128:
+ 180:ServerBASIC.c **** #if (LED_COUNT > 0)
+ 181:ServerBASIC.c **** 	LED_On(LED_DATA);
+ 182:ServerBASIC.c **** 	#if (APP_COORDINATOR)
+ 183:ServerBASIC.c **** 		SYS_TimerStart(&tmrBlinkData);
+ 184:ServerBASIC.c **** 	#endif
+ 185:ServerBASIC.c **** #endif
+ 186:ServerBASIC.c **** 
+ 187:ServerBASIC.c **** #if (APP_COORDINATOR)
+ 188:ServerBASIC.c **** 	printf("\n\nTurn: %04d\n", server_turn++);
+ 189:ServerBASIC.c **** 	energy_prepare_next_turn();
+ 190:ServerBASIC.c **** 	solver_prepare_next_turn();
+ 191:ServerBASIC.c **** 	energy_get_collab_vector(msgFrame.beacon.collab_vector);
+ 192:ServerBASIC.c **** 	uint8_t aux_connected = energy_get_connected_vector(aux_buffer);
+ 193:ServerBASIC.c **** 	toHexBuffer(statistics_buffer, aux_buffer, N_MOTES_COLLAB_MAX);
+ 194:ServerBASIC.c **** 	printf("Connected: %02d, %s\n", aux_connected, statistics_buffer);
+ 195:ServerBASIC.c **** 
+ 196:ServerBASIC.c **** 	toHexBuffer(statistics_buffer, msgFrame.beacon.collab_vector, N_COLLAB_VECTOR);
+ 197:ServerBASIC.c **** 	printf("Collab Buffer: %s\n", statistics_buffer);
+ 198:ServerBASIC.c **** 	
+ 199:ServerBASIC.c **** 	NWK_DataReq(&msgReq);
+ 200:ServerBASIC.c **** #else
+ 201:ServerBASIC.c **** 	if(connected)
+ 740               		.loc 3 201 0
+ 741 02aa 8091 0000 		lds r24,connected
+ 742 02ae 8823      		tst r24
+ 743 02b0 01F0      		breq .L26
+ 202:ServerBASIC.c **** 	{
+ 203:ServerBASIC.c **** 		// Utiliza o SLOT do TDMA para enviar dados somente apos conectar com o Coordenador
+ 204:ServerBASIC.c **** 		NWK_DataReq(&msgReq);
+ 744               		.loc 3 204 0
+ 745 02b2 80E0      		ldi r24,lo8(msgReq)
+ 746 02b4 90E0      		ldi r25,hi8(msgReq)
+ 747 02b6 0E94 0000 		call NWK_DataReq
+ 205:ServerBASIC.c **** 	}
+ 206:ServerBASIC.c **** 	else
+ 207:ServerBASIC.c **** 	{
+ 208:ServerBASIC.c **** 		NWK_DataReq(&msgReqConnection);
+ 209:ServerBASIC.c **** 	}
+ 210:ServerBASIC.c **** #endif
+ 211:ServerBASIC.c **** }
+ 748               		.loc 3 211 0
+ 749 02ba 00C0      		rjmp .L28
+ 750               	.L26:
+ 208:ServerBASIC.c **** 	}
+ 751               		.loc 3 208 0
+ 752 02bc 80E0      		ldi r24,lo8(msgReqConnection)
+ 753 02be 90E0      		ldi r25,hi8(msgReqConnection)
+ 754 02c0 0E94 0000 		call NWK_DataReq
+ 755               	.L28:
+ 756               		.loc 3 211 0
+ 757 02c4 0000      		nop
+ 758               	/* epilogue start */
+ 759 02c6 2996      		adiw r28,9
+ 760 02c8 0FB6      		in __tmp_reg__,__SREG__
+ 761 02ca F894      		cli
+ 762 02cc DEBF      		out __SP_H__,r29
+ 763 02ce 0FBE      		out __SREG__,__tmp_reg__
+ 764 02d0 CDBF      		out __SP_L__,r28
+ 765 02d2 DF91      		pop r29
+ 766 02d4 CF91      		pop r28
+ 767 02d6 0895      		ret
+ 768               		.cfi_endproc
+ 769               	.LFE110:
+ 772               	appDataInd:
+ 773               	.LFB111:
+ 212:ServerBASIC.c **** static bool appDataInd(NWK_DataInd_t *ind)
+ 213:ServerBASIC.c **** {
+ 774               		.loc 3 213 0
+ 775               		.cfi_startproc
+ 776 02d8 CF93      		push r28
+ 777               	.LCFI36:
+ 778               		.cfi_def_cfa_offset 3
+ 779               		.cfi_offset 28, -2
+ 780 02da DF93      		push r29
+ 781               	.LCFI37:
+ 782               		.cfi_def_cfa_offset 4
+ 783               		.cfi_offset 29, -3
+ 784 02dc CDB7      		in r28,__SP_L__
+ 785 02de DEB7      		in r29,__SP_H__
+ 786               	.LCFI38:
+ 787               		.cfi_def_cfa_register 28
+ 788 02e0 2B97      		sbiw r28,11
+ 789               	.LCFI39:
+ 790               		.cfi_def_cfa_offset 15
+ 791 02e2 0FB6      		in __tmp_reg__,__SREG__
+ 792 02e4 F894      		cli
+ 793 02e6 DEBF      		out __SP_H__,r29
+ 794 02e8 0FBE      		out __SREG__,__tmp_reg__
+ 795 02ea CDBF      		out __SP_L__,r28
+ 796               	/* prologue: function */
+ 797               	/* frame size = 11 */
+ 798               	/* stack size = 13 */
+ 799               	.L__stack_usage = 13
+ 800 02ec 9B87      		std Y+11,r25
+ 801 02ee 8A87      		std Y+10,r24
+ 802 02f0 85E3      		ldi r24,lo8(53)
+ 803 02f2 8B83      		std Y+3,r24
+ 804 02f4 8B81      		ldd r24,Y+3
+ 805 02f6 8C83      		std Y+4,r24
+ 806 02f8 8C81      		ldd r24,Y+4
+ 807 02fa 8D83      		std Y+5,r24
+ 808               	.LBB138:
+ 809               	.LBB139:
+ 810               	.LBB140:
+ 811               	.LBB141:
+ 812               	.LBB142:
+ 813               	.LBB143:
+ 179:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 814               		.loc 4 179 0
+ 815 02fc 8D81      		ldd r24,Y+5
+ 816 02fe 8695      		lsr r24
+ 817 0300 8695      		lsr r24
+ 818 0302 8695      		lsr r24
+ 819 0304 8E83      		std Y+6,r24
+ 820               	.LBB144:
+ 821               	.LBB145:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 822               		.loc 4 170 0
+ 823 0306 8E81      		ldd r24,Y+6
+ 824 0308 282F      		mov r18,r24
+ 825 030a 30E0      		ldi r19,0
+ 826 030c C901      		movw r24,r18
+ 827 030e 880F      		lsl r24
+ 828 0310 991F      		rol r25
+ 829 0312 820F      		add r24,r18
+ 830 0314 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 831               		.loc 4 169 0
+ 832 0316 8096      		adiw r24,32
+ 833               	.LBE145:
+ 834               	.LBE144:
+ 835               	.LBE143:
+ 836               	.LBE142:
+ 290:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin)));
+ 291:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 292:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 293:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 294:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 295:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : Set port multiple pins level to high or low.
+ 296:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param port GPIO port to configure  e.g. IOPORT_PORTB
+ 297:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: mask Pin mask of pins to configure.
+ 298:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: level high/low
+ 299:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 300:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_port_level(ioport_port_t port,
+ 301:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_port_mask_t mask, ioport_port_mask_t level)
+ 302:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 303:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_port_to_base(port);
+ 304:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 305:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (level) {
+ 306:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->PORTDATA |= mask;
+ 307:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 308:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->PORTDATA &= ~mask;
+ 309:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 310:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 311:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 312:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 313:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : Get pin level of pin.
+ 314:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 315:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \return: level high/low
+ 316:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 317:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static bool arch_ioport_get_pin_level(ioport_pin_t pin)
+ 318:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 319:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_pin_to_base(pin);
+ 320:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return base->PINCRL & arch_ioport_pin_to_mask(pin);
+ 321:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 322:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 323:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 324:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : Get multiple pins level of single port.
+ 325:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param port GPIO port to configure  e.g. IOPORT_PORTB
+ 326:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mask Pin mask of pins to read data.
+ 327:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \return: 8 bit value based on level voltage on pins.
+ 328:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 329:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static ioport_port_mask_t arch_ioport_get_port_level(
+ 330:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_port_t port, ioport_port_mask_t mask)
+ 331:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 332:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_port_to_base(port);
+ 333:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 334:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return (base->PINCRL & mask);
+ 335:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 336:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 337:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 338:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : To toggle the pin
+ 339:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 340:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 341:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_toggle_pin_level(ioport_pin_t pin)
+ 342:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 343:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_pin_to_base(pin);
+ 837               		.loc 4 343 0
+ 838 0318 9887      		std Y+8,r25
+ 839 031a 8F83      		std Y+7,r24
+ 840 031c 8C81      		ldd r24,Y+4
+ 841 031e 8987      		std Y+9,r24
+ 842               	.LBB146:
+ 843               	.LBB147:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 844               		.loc 4 189 0
+ 845 0320 8985      		ldd r24,Y+9
+ 846 0322 882F      		mov r24,r24
+ 847 0324 90E0      		ldi r25,0
+ 848 0326 9C01      		movw r18,r24
+ 849 0328 2770      		andi r18,7
+ 850 032a 3327      		clr r19
+ 851 032c 81E0      		ldi r24,lo8(1)
+ 852 032e 90E0      		ldi r25,0
+ 853 0330 00C0      		rjmp 2f
+ 854               		1:
+ 855 0332 880F      		lsl r24
+ 856 0334 991F      		rol r25
+ 857               		2:
+ 858 0336 2A95      		dec r18
+ 859 0338 02F4      		brpl 1b
+ 860 033a 282F      		mov r18,r24
+ 861               	.LBE147:
+ 862               	.LBE146:
+ 344:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 345:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	base->PINCRL = arch_ioport_pin_to_mask(pin);
+ 863               		.loc 4 345 0
+ 864 033c 8F81      		ldd r24,Y+7
+ 865 033e 9885      		ldd r25,Y+8
+ 866 0340 FC01      		movw r30,r24
+ 867 0342 2083      		st Z,r18
+ 868               	.LBE141:
+ 869               	.LBE140:
+ 870               	.LBE139:
+ 871               	.LBE138:
+ 214:ServerBASIC.c **** #if (LED_COUNT > 0)
+ 215:ServerBASIC.c **** 	LED_Toggle(LED_BLINK);
+ 216:ServerBASIC.c **** 	//LED_Off(LED_DATA);
+ 217:ServerBASIC.c **** #endif
+ 218:ServerBASIC.c **** 	energy_receive_statistics(ind);
+ 872               		.loc 3 218 0
+ 873 0344 8A85      		ldd r24,Y+10
+ 874 0346 9B85      		ldd r25,Y+11
+ 875 0348 0E94 0000 		call energy_receive_statistics
+ 219:ServerBASIC.c **** 	solver_received_data_frame(ind);
+ 876               		.loc 3 219 0
+ 877 034c 8A85      		ldd r24,Y+10
+ 878 034e 9B85      		ldd r25,Y+11
+ 879 0350 0E94 0000 		call solver_received_data_frame
+ 220:ServerBASIC.c **** 
+ 221:ServerBASIC.c **** 	AppMessageFrame_t*	frame_struct	= (AppMessageFrame_t*) ind->data;
+ 880               		.loc 3 221 0
+ 881 0354 8A85      		ldd r24,Y+10
+ 882 0356 9B85      		ldd r25,Y+11
+ 883 0358 FC01      		movw r30,r24
+ 884 035a 8781      		ldd r24,Z+7
+ 885 035c 9085      		ldd r25,Z+8
+ 886 035e 9A83      		std Y+2,r25
+ 887 0360 8983      		std Y+1,r24
+ 222:ServerBASIC.c **** 
+ 223:ServerBASIC.c **** 	if(frame_struct->frameType == MSG_STATE_CONNECTION)
+ 888               		.loc 3 223 0
+ 889 0362 8981      		ldd r24,Y+1
+ 890 0364 9A81      		ldd r25,Y+2
+ 891 0366 FC01      		movw r30,r24
+ 892 0368 8081      		ld r24,Z
+ 893 036a 8330      		cpi r24,lo8(3)
+ 894 036c 01F4      		brne .L33
+ 224:ServerBASIC.c **** 	{
+ 225:ServerBASIC.c **** #if (APP_COORDINATOR)
+ 226:ServerBASIC.c **** 		// No coordenador, responder ao pedido de conexão.
+ 227:ServerBASIC.c **** 		msgReqConnection.dstAddr = ind->srcAddr;
+ 228:ServerBASIC.c **** 		NWK_DataReq(&msgReqConnection);
+ 229:ServerBASIC.c **** #else
+ 230:ServerBASIC.c **** 		// No cliente, indicação de conexão aceita e que os dados podem ser enviados.
+ 231:ServerBASIC.c **** 		connected				= true;
+ 895               		.loc 3 231 0
+ 896 036e 81E0      		ldi r24,lo8(1)
+ 897 0370 8093 0000 		sts connected,r24
+ 898               	.L33:
+ 232:ServerBASIC.c **** #endif
+ 233:ServerBASIC.c **** 	}
+ 234:ServerBASIC.c **** 
+ 235:ServerBASIC.c **** 	return true;
+ 899               		.loc 3 235 0
+ 900 0374 81E0      		ldi r24,lo8(1)
+ 901               	/* epilogue start */
+ 236:ServerBASIC.c **** }
+ 902               		.loc 3 236 0
+ 903 0376 2B96      		adiw r28,11
+ 904 0378 0FB6      		in __tmp_reg__,__SREG__
+ 905 037a F894      		cli
+ 906 037c DEBF      		out __SP_H__,r29
+ 907 037e 0FBE      		out __SREG__,__tmp_reg__
+ 908 0380 CDBF      		out __SP_L__,r28
+ 909 0382 DF91      		pop r29
+ 910 0384 CF91      		pop r28
+ 911 0386 0895      		ret
+ 912               		.cfi_endproc
+ 913               	.LFE111:
+ 916               	appInit:
+ 917               	.LFB112:
+ 237:ServerBASIC.c **** static void appInit(void)
+ 238:ServerBASIC.c **** {
+ 918               		.loc 3 238 0
+ 919               		.cfi_startproc
+ 920 0388 CF93      		push r28
+ 921               	.LCFI40:
+ 922               		.cfi_def_cfa_offset 3
+ 923               		.cfi_offset 28, -2
+ 924 038a DF93      		push r29
+ 925               	.LCFI41:
+ 926               		.cfi_def_cfa_offset 4
+ 927               		.cfi_offset 29, -3
+ 928 038c CDB7      		in r28,__SP_L__
+ 929 038e DEB7      		in r29,__SP_H__
+ 930               	.LCFI42:
+ 931               		.cfi_def_cfa_register 28
+ 932 0390 2997      		sbiw r28,9
+ 933               	.LCFI43:
+ 934               		.cfi_def_cfa_offset 13
+ 935 0392 0FB6      		in __tmp_reg__,__SREG__
+ 936 0394 F894      		cli
+ 937 0396 DEBF      		out __SP_H__,r29
+ 938 0398 0FBE      		out __SREG__,__tmp_reg__
+ 939 039a CDBF      		out __SP_L__,r28
+ 940               	/* prologue: function */
+ 941               	/* frame size = 9 */
+ 942               	/* stack size = 11 */
+ 943               	.L__stack_usage = 11
+ 239:ServerBASIC.c **** 	NWK_SetAddr(APP_ADDR);
+ 944               		.loc 3 239 0
+ 945 039c 81E0      		ldi r24,lo8(1)
+ 946 039e 90E0      		ldi r25,0
+ 947 03a0 0E94 0000 		call NWK_SetAddr
+ 240:ServerBASIC.c **** 	NWK_SetPanId(APP_PANID);
+ 948               		.loc 3 240 0
+ 949 03a4 8EEF      		ldi r24,lo8(-2)
+ 950 03a6 9AEC      		ldi r25,lo8(-54)
+ 951 03a8 0E94 0000 		call NWK_SetPanId
+ 241:ServerBASIC.c **** 	PHY_SetChannel(APP_CHANNEL);
+ 952               		.loc 3 241 0
+ 953 03ac 8FE0      		ldi r24,lo8(15)
+ 954 03ae 0E94 0000 		call PHY_SetChannel
+ 242:ServerBASIC.c **** 	PHY_SetRxState(true);
+ 955               		.loc 3 242 0
+ 956 03b2 81E0      		ldi r24,lo8(1)
+ 957 03b4 0E94 0000 		call PHY_SetRxState
+ 958 03b8 80E3      		ldi r24,lo8(48)
+ 959 03ba 8983      		std Y+1,r24
+ 960 03bc 1A82      		std Y+2,__zero_reg__
+ 961 03be 8981      		ldd r24,Y+1
+ 962 03c0 8B83      		std Y+3,r24
+ 963 03c2 8A81      		ldd r24,Y+2
+ 964 03c4 8C83      		std Y+4,r24
+ 965               	.LBB148:
+ 966               	.LBB149:
+ 967               	.LBB150:
+ 968               	.LBB151:
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 969               		.loc 4 281 0
+ 970 03c6 8B81      		ldd r24,Y+3
+ 971 03c8 8695      		lsr r24
+ 972 03ca 8695      		lsr r24
+ 973 03cc 8695      		lsr r24
+ 974 03ce 8D83      		std Y+5,r24
+ 975               	.LBB152:
+ 976               	.LBB153:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 977               		.loc 4 170 0
+ 978 03d0 8D81      		ldd r24,Y+5
+ 979 03d2 282F      		mov r18,r24
+ 980 03d4 30E0      		ldi r19,0
+ 981 03d6 C901      		movw r24,r18
+ 982 03d8 880F      		lsl r24
+ 983 03da 991F      		rol r25
+ 984 03dc 820F      		add r24,r18
+ 985 03de 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 986               		.loc 4 169 0
+ 987 03e0 8096      		adiw r24,32
+ 988               	.LBE153:
+ 989               	.LBE152:
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 990               		.loc 4 281 0
+ 991 03e2 9F83      		std Y+7,r25
+ 992 03e4 8E83      		std Y+6,r24
+ 283:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base_add->PORTDATA
+ 993               		.loc 4 283 0
+ 994 03e6 8C81      		ldd r24,Y+4
+ 995 03e8 8823      		tst r24
+ 996 03ea 01F0      		breq .L37
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 997               		.loc 4 285 0
+ 998 03ec 8E81      		ldd r24,Y+6
+ 999 03ee 9F81      		ldd r25,Y+7
+ 1000 03f0 FC01      		movw r30,r24
+ 1001 03f2 4281      		ldd r20,Z+2
+ 1002 03f4 8B81      		ldd r24,Y+3
+ 1003 03f6 8887      		std Y+8,r24
+ 1004               	.LBB154:
+ 1005               	.LBB155:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1006               		.loc 4 189 0
+ 1007 03f8 8885      		ldd r24,Y+8
+ 1008 03fa 882F      		mov r24,r24
+ 1009 03fc 90E0      		ldi r25,0
+ 1010 03fe 9C01      		movw r18,r24
+ 1011 0400 2770      		andi r18,7
+ 1012 0402 3327      		clr r19
+ 1013 0404 81E0      		ldi r24,lo8(1)
+ 1014 0406 90E0      		ldi r25,0
+ 1015 0408 00C0      		rjmp 2f
+ 1016               		1:
+ 1017 040a 880F      		lsl r24
+ 1018 040c 991F      		rol r25
+ 1019               		2:
+ 1020 040e 2A95      		dec r18
+ 1021 0410 02F4      		brpl 1b
+ 1022               	.LBE155:
+ 1023               	.LBE154:
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 1024               		.loc 4 285 0
+ 1025 0412 242F      		mov r18,r20
+ 1026 0414 282B      		or r18,r24
+ 1027 0416 8E81      		ldd r24,Y+6
+ 1028 0418 9F81      		ldd r25,Y+7
+ 1029 041a FC01      		movw r30,r24
+ 1030 041c 2283      		std Z+2,r18
+ 1031 041e 00C0      		rjmp .L39
+ 1032               	.L37:
+ 289:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin)));
+ 1033               		.loc 4 289 0
+ 1034 0420 8E81      		ldd r24,Y+6
+ 1035 0422 9F81      		ldd r25,Y+7
+ 1036 0424 FC01      		movw r30,r24
+ 1037 0426 8281      		ldd r24,Z+2
+ 1038 0428 482F      		mov r20,r24
+ 1039 042a 8B81      		ldd r24,Y+3
+ 1040 042c 8987      		std Y+9,r24
+ 1041               	.LBB156:
+ 1042               	.LBB157:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1043               		.loc 4 189 0
+ 1044 042e 8985      		ldd r24,Y+9
+ 1045 0430 882F      		mov r24,r24
+ 1046 0432 90E0      		ldi r25,0
+ 1047 0434 9C01      		movw r18,r24
+ 1048 0436 2770      		andi r18,7
+ 1049 0438 3327      		clr r19
+ 1050 043a 81E0      		ldi r24,lo8(1)
+ 1051 043c 90E0      		ldi r25,0
+ 1052 043e 00C0      		rjmp 2f
+ 1053               		1:
+ 1054 0440 880F      		lsl r24
+ 1055 0442 991F      		rol r25
+ 1056               		2:
+ 1057 0444 2A95      		dec r18
+ 1058 0446 02F4      		brpl 1b
+ 1059               	.LBE157:
+ 1060               	.LBE156:
+ 289:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin)));
+ 1061               		.loc 4 289 0
+ 1062 0448 8095      		com r24
+ 1063 044a 8423      		and r24,r20
+ 1064 044c 282F      		mov r18,r24
+ 1065 044e 8E81      		ldd r24,Y+6
+ 1066 0450 9F81      		ldd r25,Y+7
+ 1067 0452 FC01      		movw r30,r24
+ 1068 0454 2283      		std Z+2,r18
+ 1069               	.L39:
+ 1070               	.LBE151:
+ 1071               	.LBE150:
+ 1072               	.LBE149:
+ 1073               	.LBE148:
+ 243:ServerBASIC.c **** 
+ 244:ServerBASIC.c **** #if (LED_COUNT > 0)
+ 245:ServerBASIC.c **** 	LED_On(LED_NETWORK);
+ 246:ServerBASIC.c **** #endif
+ 247:ServerBASIC.c **** 
+ 248:ServerBASIC.c **** #ifdef PHY_ENABLE_RANDOM_NUMBER_GENERATOR
+ 249:ServerBASIC.c **** 	srand(PHY_RandomReq());
+ 1074               		.loc 3 249 0
+ 1075 0456 0E94 0000 		call PHY_RandomReq
+ 1076 045a 0E94 0000 		call srand
+ 250:ServerBASIC.c **** #endif
+ 251:ServerBASIC.c **** 
+ 252:ServerBASIC.c **** 	tmrBlinkData.interval		= 50;
+ 1077               		.loc 3 252 0
+ 1078 045e 82E3      		ldi r24,lo8(50)
+ 1079 0460 90E0      		ldi r25,0
+ 1080 0462 A0E0      		ldi r26,0
+ 1081 0464 B0E0      		ldi r27,0
+ 1082 0466 8093 0000 		sts tmrBlinkData+6,r24
+ 1083 046a 9093 0000 		sts tmrBlinkData+6+1,r25
+ 1084 046e A093 0000 		sts tmrBlinkData+6+2,r26
+ 1085 0472 B093 0000 		sts tmrBlinkData+6+3,r27
+ 253:ServerBASIC.c **** 	tmrBlinkData.mode			= SYS_TIMER_INTERVAL_MODE;
+ 1086               		.loc 3 253 0
+ 1087 0476 1092 0000 		sts tmrBlinkData+10,__zero_reg__
+ 254:ServerBASIC.c **** 	tmrBlinkData.handler		= tmrBlinkDataHandler;
+ 1088               		.loc 3 254 0
+ 1089 047a 80E0      		ldi r24,lo8(gs(tmrBlinkDataHandler))
+ 1090 047c 90E0      		ldi r25,hi8(gs(tmrBlinkDataHandler))
+ 1091 047e 9093 0000 		sts tmrBlinkData+11+1,r25
+ 1092 0482 8093 0000 		sts tmrBlinkData+11,r24
+ 255:ServerBASIC.c **** 
+ 256:ServerBASIC.c **** 	msgFrameConnection.frameType = MSG_STATE_CONNECTION;
+ 1093               		.loc 3 256 0
+ 1094 0486 83E0      		ldi r24,lo8(3)
+ 1095 0488 8093 0000 		sts msgFrameConnection,r24
+ 257:ServerBASIC.c **** 
+ 258:ServerBASIC.c **** 	msgReqConnection.dstAddr	= BROADCAST;
+ 1096               		.loc 3 258 0
+ 1097 048c 8FEF      		ldi r24,lo8(-1)
+ 1098 048e 9FEF      		ldi r25,lo8(-1)
+ 1099 0490 9093 0000 		sts msgReqConnection+5+1,r25
+ 1100 0494 8093 0000 		sts msgReqConnection+5,r24
+ 259:ServerBASIC.c **** 	msgReqConnection.dstEndpoint = APP_DATA_ENDPOINT;
+ 1101               		.loc 3 259 0
+ 1102 0498 81E0      		ldi r24,lo8(1)
+ 1103 049a 8093 0000 		sts msgReqConnection+7,r24
+ 260:ServerBASIC.c **** 	msgReqConnection.srcEndpoint = APP_DATA_ENDPOINT;
+ 1104               		.loc 3 260 0
+ 1105 049e 81E0      		ldi r24,lo8(1)
+ 1106 04a0 8093 0000 		sts msgReqConnection+8,r24
+ 261:ServerBASIC.c **** 	msgReqConnection.options	= NWK_OPT_LINK_LOCAL;
+ 1107               		.loc 3 261 0
+ 1108 04a4 88E0      		ldi r24,lo8(8)
+ 1109 04a6 8093 0000 		sts msgReqConnection+9,r24
+ 262:ServerBASIC.c **** 	msgReqConnection.data		= (uint8_t *)&msgFrameConnection;
+ 1110               		.loc 3 262 0
+ 1111 04aa 80E0      		ldi r24,lo8(msgFrameConnection)
+ 1112 04ac 90E0      		ldi r25,hi8(msgFrameConnection)
+ 1113 04ae 9093 0000 		sts msgReqConnection+12+1,r25
+ 1114 04b2 8093 0000 		sts msgReqConnection+12,r24
+ 263:ServerBASIC.c **** 	msgReqConnection.size		= sizeof(MsgState_t);
+ 1115               		.loc 3 263 0
+ 1116 04b6 81E0      		ldi r24,lo8(1)
+ 1117 04b8 8093 0000 		sts msgReqConnection+14,r24
+ 264:ServerBASIC.c **** 	msgReqConnection.confirm	= NULL;
+ 1118               		.loc 3 264 0
+ 1119 04bc 1092 0000 		sts msgReqConnection+15+1,__zero_reg__
+ 1120 04c0 1092 0000 		sts msgReqConnection+15,__zero_reg__
+ 265:ServerBASIC.c **** 
+ 266:ServerBASIC.c **** #if (APP_COORDINATOR)
+ 267:ServerBASIC.c **** 	server_turn					= 1;
+ 268:ServerBASIC.c **** 
+ 269:ServerBASIC.c **** 	NWK_OpenEndpoint(APP_DATA_ENDPOINT, appDataInd);
+ 270:ServerBASIC.c **** 
+ 271:ServerBASIC.c **** 	msgFrame.frameType			= MSG_STATE_BEACON;
+ 272:ServerBASIC.c **** 
+ 273:ServerBASIC.c **** 	msgReq.dstAddr				= BROADCAST;
+ 274:ServerBASIC.c **** 	msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
+ 275:ServerBASIC.c **** 	msgReq.srcEndpoint			= APP_BEACON_ENDPOINT;
+ 276:ServerBASIC.c **** 	msgReq.options				= NWK_OPT_BEACON;
+ 277:ServerBASIC.c **** 	msgReq.data					= (uint8_t *)&msgFrame;
+ 278:ServerBASIC.c **** 	msgReq.size					= sizeof(MsgState_t) + sizeof(AppMessageBeacon_t);
+ 279:ServerBASIC.c **** 	msgReq.confirm				= NULL;
+ 280:ServerBASIC.c **** 
+ 281:ServerBASIC.c **** #if (MASTER_MACSC == 1)
+ 282:ServerBASIC.c **** 	/*
+ 283:ServerBASIC.c **** 	 * Configure interrupts callback functions
+ 284:ServerBASIC.c **** 	 * overflow interrupt, compare 1,2,3 interrupts
+ 285:ServerBASIC.c **** 	 */
+ 286:ServerBASIC.c **** 	macsc_set_cmp1_int_cb(tdma_server_beacon);
+ 287:ServerBASIC.c **** 	macsc_set_cmp2_int_cb(tdma_server_statistics);
+ 288:ServerBASIC.c **** 
+ 289:ServerBASIC.c **** 	/*
+ 290:ServerBASIC.c **** 	 * Configure MACSC to generate compare interrupts from channels 1,2,3
+ 291:ServerBASIC.c **** 	 * Set compare mode to absolute, set compare value.
+ 292:ServerBASIC.c **** 	 */
+ 293:ServerBASIC.c **** 	macsc_enable_manual_bts();
+ 294:ServerBASIC.c **** 	macsc_enable_cmp_int(MACSC_CC1);
+ 295:ServerBASIC.c **** 	macsc_use_cmp(MACSC_RELATIVE_CMP, BEACON_INTERVAL_BI, MACSC_CC1);
+ 296:ServerBASIC.c **** 	macsc_enable_cmp_int(MACSC_CC2);
+ 297:ServerBASIC.c **** 	macsc_use_cmp(MACSC_RELATIVE_CMP, (SUPERFRAME_DURATION_SD * 3), MACSC_CC2);
+ 298:ServerBASIC.c **** #else
+ 299:ServerBASIC.c **** 	tmrBeaconInterval.interval	= (BEACON_INTERVAL_BI * SYMBOL_TIME) * 1000;
+ 300:ServerBASIC.c **** 	tmrBeaconInterval.mode		= SYS_TIMER_PERIODIC_MODE;
+ 301:ServerBASIC.c **** 	tmrBeaconInterval.handler	= tmr_tdma_server_beacon;
+ 302:ServerBASIC.c **** 
+ 303:ServerBASIC.c **** 	tmrComputeData.interval		= ((SUPERFRAME_DURATION_SD * 3) * SYMBOL_TIME) * 1000;
+ 304:ServerBASIC.c **** 	tmrComputeData.mode			= SYS_TIMER_INTERVAL_MODE;
+ 305:ServerBASIC.c **** 	tmrComputeData.handler		= tmr_tdma_server_statistics;
+ 306:ServerBASIC.c **** 	
+ 307:ServerBASIC.c **** 	SYS_TimerStart(&tmrBeaconInterval);
+ 308:ServerBASIC.c **** #endif
+ 309:ServerBASIC.c **** #else
+ 310:ServerBASIC.c **** 	connected					= false;
+ 1121               		.loc 3 310 0
+ 1122 04c4 1092 0000 		sts connected,__zero_reg__
+ 311:ServerBASIC.c **** 	i_am_collab_dev				= false;
+ 1123               		.loc 3 311 0
+ 1124 04c8 1092 0000 		sts i_am_collab_dev,__zero_reg__
+ 312:ServerBASIC.c **** 	i_am_collab_slot			= 0;
+ 1125               		.loc 3 312 0
+ 1126 04cc 1092 0000 		sts i_am_collab_slot,__zero_reg__
+ 313:ServerBASIC.c **** 	i_am_collab_turn			= 0;
+ 1127               		.loc 3 313 0
+ 1128 04d0 1092 0000 		sts i_am_collab_turn,__zero_reg__
+ 314:ServerBASIC.c **** 
+ 315:ServerBASIC.c **** 	NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);
+ 1129               		.loc 3 315 0
+ 1130 04d4 60E0      		ldi r22,lo8(gs(appBeaconInd))
+ 1131 04d6 70E0      		ldi r23,hi8(gs(appBeaconInd))
+ 1132 04d8 80E0      		ldi r24,0
+ 1133 04da 0E94 0000 		call NWK_OpenEndpoint
+ 316:ServerBASIC.c **** 	NWK_OpenEndpoint(APP_DATA_ENDPOINT, appDataInd);
+ 1134               		.loc 3 316 0
+ 1135 04de 60E0      		ldi r22,lo8(gs(appDataInd))
+ 1136 04e0 70E0      		ldi r23,hi8(gs(appDataInd))
+ 1137 04e2 81E0      		ldi r24,lo8(1)
+ 1138 04e4 0E94 0000 		call NWK_OpenEndpoint
+ 317:ServerBASIC.c **** 
+ 318:ServerBASIC.c **** 	msgFrame.frameType			= MSG_STATE_DATA;
+ 1139               		.loc 3 318 0
+ 1140 04e8 81E0      		ldi r24,lo8(1)
+ 1141 04ea 8093 0000 		sts msgFrame,r24
+ 319:ServerBASIC.c **** 
+ 320:ServerBASIC.c **** 	msgReq.dstAddr				= BROADCAST;
+ 1142               		.loc 3 320 0
+ 1143 04ee 8FEF      		ldi r24,lo8(-1)
+ 1144 04f0 9FEF      		ldi r25,lo8(-1)
+ 1145 04f2 9093 0000 		sts msgReq+5+1,r25
+ 1146 04f6 8093 0000 		sts msgReq+5,r24
+ 321:ServerBASIC.c **** 	msgReq.dstEndpoint			= APP_DATA_ENDPOINT;
+ 1147               		.loc 3 321 0
+ 1148 04fa 81E0      		ldi r24,lo8(1)
+ 1149 04fc 8093 0000 		sts msgReq+7,r24
+ 322:ServerBASIC.c **** 	msgReq.srcEndpoint			= APP_DATA_ENDPOINT;
+ 1150               		.loc 3 322 0
+ 1151 0500 81E0      		ldi r24,lo8(1)
+ 1152 0502 8093 0000 		sts msgReq+8,r24
+ 323:ServerBASIC.c **** 	msgReq.options				= NWK_OPT_LINK_LOCAL;
+ 1153               		.loc 3 323 0
+ 1154 0506 88E0      		ldi r24,lo8(8)
+ 1155 0508 8093 0000 		sts msgReq+9,r24
+ 324:ServerBASIC.c **** 	msgReq.data					= (uint8_t *)&msgFrame;
+ 1156               		.loc 3 324 0
+ 1157 050c 80E0      		ldi r24,lo8(msgFrame)
+ 1158 050e 90E0      		ldi r25,hi8(msgFrame)
+ 1159 0510 9093 0000 		sts msgReq+12+1,r25
+ 1160 0514 8093 0000 		sts msgReq+12,r24
+ 325:ServerBASIC.c **** 	msgReq.size					= sizeof(MsgState_t) + sizeof(AppMessageData_t);
+ 1161               		.loc 3 325 0
+ 1162 0518 81E4      		ldi r24,lo8(65)
+ 1163 051a 8093 0000 		sts msgReq+14,r24
+ 326:ServerBASIC.c **** 	msgReq.confirm				= tdma_job_conf;
+ 1164               		.loc 3 326 0
+ 1165 051e 80E0      		ldi r24,lo8(gs(tdma_job_conf))
+ 1166 0520 90E0      		ldi r25,hi8(gs(tdma_job_conf))
+ 1167 0522 9093 0000 		sts msgReq+15+1,r25
+ 1168 0526 8093 0000 		sts msgReq+15,r24
+ 327:ServerBASIC.c **** 
+ 328:ServerBASIC.c **** 	/*
+ 329:ServerBASIC.c **** 	 * Configure interrupts callback functions
+ 330:ServerBASIC.c **** 	 * overflow interrupt, compare 1,2,3 interrupts
+ 331:ServerBASIC.c **** 	 */
+ 332:ServerBASIC.c **** 	macsc_set_cmp1_int_cb(tdma_client_turn);		// Wake-up, wait beacon (synchronize)
+ 1169               		.loc 3 332 0
+ 1170 052a 80E0      		ldi r24,lo8(gs(tdma_client_turn))
+ 1171 052c 90E0      		ldi r25,hi8(gs(tdma_client_turn))
+ 1172 052e 0E94 0000 		call macsc_set_cmp1_int_cb
+ 333:ServerBASIC.c **** 
+ 334:ServerBASIC.c **** 	/*
+ 335:ServerBASIC.c **** 	 * Configure MACSC to generate compare interrupts from channels 1,2,3
+ 336:ServerBASIC.c **** 	 * Set compare mode to absolute,set compare value.
+ 337:ServerBASIC.c **** 	 */
+ 338:ServerBASIC.c **** 	macsc_enable_auto_ts();
+ 1173               		.loc 3 338 0
+ 1174 0532 0E94 0000 		call macsc_enable_auto_ts
+ 339:ServerBASIC.c **** 	macsc_enable_cmp_int(MACSC_CC1);
+ 1175               		.loc 3 339 0
+ 1176 0536 81E0      		ldi r24,lo8(1)
+ 1177 0538 0E94 0000 		call macsc_enable_cmp_int
+ 340:ServerBASIC.c **** 	macsc_use_cmp(MACSC_RELATIVE_CMP, BEACON_INTERVAL_BI - TDMA_FIRST_SLOT, MACSC_CC1);
+ 1178               		.loc 3 340 0
+ 1179 053c 21E0      		ldi r18,lo8(1)
+ 1180 053e 4BEC      		ldi r20,lo8(-53)
+ 1181 0540 53EB      		ldi r21,lo8(-77)
+ 1182 0542 63E0      		ldi r22,lo8(3)
+ 1183 0544 70E0      		ldi r23,0
+ 1184 0546 81E0      		ldi r24,lo8(1)
+ 1185 0548 0E94 0000 		call macsc_use_cmp
+ 341:ServerBASIC.c **** #endif
+ 342:ServerBASIC.c **** }
+ 1186               		.loc 3 342 0
+ 1187 054c 0000      		nop
+ 1188               	/* epilogue start */
+ 1189 054e 2996      		adiw r28,9
+ 1190 0550 0FB6      		in __tmp_reg__,__SREG__
+ 1191 0552 F894      		cli
+ 1192 0554 DEBF      		out __SP_H__,r29
+ 1193 0556 0FBE      		out __SREG__,__tmp_reg__
+ 1194 0558 CDBF      		out __SP_L__,r28
+ 1195 055a DF91      		pop r29
+ 1196 055c CF91      		pop r28
+ 1197 055e 0895      		ret
+ 1198               		.cfi_endproc
+ 1199               	.LFE112:
+ 1202               	APP_TaskHandler:
+ 1203               	.LFB113:
+ 343:ServerBASIC.c **** /*************************************************************************//**
+ 344:ServerBASIC.c **** *****************************************************************************/
+ 345:ServerBASIC.c **** static void APP_TaskHandler(void)
+ 346:ServerBASIC.c **** {
+ 1204               		.loc 3 346 0
+ 1205               		.cfi_startproc
+ 1206 0560 CF93      		push r28
+ 1207               	.LCFI44:
+ 1208               		.cfi_def_cfa_offset 3
+ 1209               		.cfi_offset 28, -2
+ 1210 0562 DF93      		push r29
+ 1211               	.LCFI45:
+ 1212               		.cfi_def_cfa_offset 4
+ 1213               		.cfi_offset 29, -3
+ 1214 0564 CDB7      		in r28,__SP_L__
+ 1215 0566 DEB7      		in r29,__SP_H__
+ 1216               	.LCFI46:
+ 1217               		.cfi_def_cfa_register 28
+ 1218 0568 A597      		sbiw r28,37
+ 1219               	.LCFI47:
+ 1220               		.cfi_def_cfa_offset 41
+ 1221 056a 0FB6      		in __tmp_reg__,__SREG__
+ 1222 056c F894      		cli
+ 1223 056e DEBF      		out __SP_H__,r29
+ 1224 0570 0FBE      		out __SREG__,__tmp_reg__
+ 1225 0572 CDBF      		out __SP_L__,r28
+ 1226               	/* prologue: function */
+ 1227               	/* frame size = 37 */
+ 1228               	/* stack size = 39 */
+ 1229               	.L__stack_usage = 39
+ 347:ServerBASIC.c **** 	switch (appState)
+ 1230               		.loc 3 347 0
+ 1231 0574 8091 0000 		lds r24,appState
+ 1232 0578 882F      		mov r24,r24
+ 1233 057a 90E0      		ldi r25,0
+ 1234 057c 8330      		cpi r24,3
+ 1235 057e 9105      		cpc r25,__zero_reg__
+ 1236 0580 01F0      		breq .L43
+ 1237 0582 8430      		cpi r24,4
+ 1238 0584 9105      		cpc r25,__zero_reg__
+ 1239 0586 04F4      		brge .L44
+ 1240 0588 0097      		sbiw r24,0
+ 1241 058a 01F4      		brne .+2
+ 1242 058c 00C0      		rjmp .L45
+ 1243 058e 0297      		sbiw r24,2
+ 1244 0590 01F4      		brne .+2
+ 1245 0592 00C0      		rjmp .L46
+ 348:ServerBASIC.c **** 	{
+ 349:ServerBASIC.c **** #if (APP_COORDINATOR)
+ 350:ServerBASIC.c **** 		case APP_STATE_SERVER_STATISTICS:
+ 351:ServerBASIC.c **** 		{
+ 352:ServerBASIC.c **** 			server_statistics();
+ 353:ServerBASIC.c **** 			break;
+ 354:ServerBASIC.c **** 		}
+ 355:ServerBASIC.c **** #endif
+ 356:ServerBASIC.c **** 		case APP_STATE_SEND:
+ 357:ServerBASIC.c **** 		{
+ 358:ServerBASIC.c **** 			appSendData();
+ 359:ServerBASIC.c **** 			appState			= APP_STATE_SEND_BUSY_DATA;
+ 360:ServerBASIC.c **** 			break;
+ 361:ServerBASIC.c **** 		}
+ 362:ServerBASIC.c **** #if (APP_ENDDEVICE)
+ 363:ServerBASIC.c **** 		case APP_STATE_WAKEUP_AND_WAIT:
+ 364:ServerBASIC.c **** 		{
+ 365:ServerBASIC.c **** 			NWK_WakeupReq();
+ 366:ServerBASIC.c **** #if (LED_COUNT > 0)
+ 367:ServerBASIC.c **** 	LED_On(LED_NETWORK);
+ 368:ServerBASIC.c **** #endif
+ 369:ServerBASIC.c **** 			appState			= APP_STATE_IDLE;
+ 370:ServerBASIC.c **** 			break;
+ 371:ServerBASIC.c **** 		}
+ 372:ServerBASIC.c **** 		case APP_STATE_SEND_PREPARE:
+ 373:ServerBASIC.c **** 		{
+ 374:ServerBASIC.c **** 			appSendPrepare();
+ 375:ServerBASIC.c **** 			appState			= APP_STATE_SEND;
+ 376:ServerBASIC.c **** 			break;
+ 377:ServerBASIC.c **** 		}
+ 378:ServerBASIC.c **** 		case APP_STATE_SLEEP_PREPARE:
+ 379:ServerBASIC.c **** 		{
+ 380:ServerBASIC.c **** 			if(!NWK_Busy())
+ 381:ServerBASIC.c **** 			{
+ 382:ServerBASIC.c **** 				irqflags_t flags = cpu_irq_save();
+ 383:ServerBASIC.c **** 				NWK_SleepReq();
+ 384:ServerBASIC.c **** 				appState		= APP_STATE_SLEEP;
+ 385:ServerBASIC.c **** 				cpu_irq_restore(flags);
+ 386:ServerBASIC.c **** 			}
+ 387:ServerBASIC.c **** 			break;
+ 388:ServerBASIC.c **** 		}
+ 389:ServerBASIC.c **** 		case APP_STATE_SLEEP:
+ 390:ServerBASIC.c **** 		{
+ 391:ServerBASIC.c **** #if (LED_COUNT > 0)
+ 392:ServerBASIC.c **** 	LED_Off(LED_NETWORK);
+ 393:ServerBASIC.c **** 	LED_Off(LED_DATA);
+ 394:ServerBASIC.c **** 	LED_Off(LED_BLINK);
+ 395:ServerBASIC.c **** #endif
+ 396:ServerBASIC.c **** 			sleep_enable();
+ 397:ServerBASIC.c **** 			sleep_enter();
+ 398:ServerBASIC.c **** 			sleep_disable();
+ 399:ServerBASIC.c **** 			break;
+ 400:ServerBASIC.c **** 		}
+ 401:ServerBASIC.c **** #endif
+ 402:ServerBASIC.c **** 		case APP_STATE_INITIAL:
+ 403:ServerBASIC.c **** 		{
+ 404:ServerBASIC.c **** 			energy_init();
+ 405:ServerBASIC.c **** 			solver_init();
+ 406:ServerBASIC.c **** 			appInit();
+ 407:ServerBASIC.c **** 			appState			= APP_STATE_IDLE;
+ 408:ServerBASIC.c **** 			break;
+ 409:ServerBASIC.c **** 		}
+ 410:ServerBASIC.c **** 		default:
+ 411:ServerBASIC.c **** 		{
+ 412:ServerBASIC.c **** 			break;
+ 1246               		.loc 3 412 0
+ 1247 0594 00C0      		rjmp .L50
+ 1248               	.L44:
+ 347:ServerBASIC.c **** 	switch (appState)
+ 1249               		.loc 3 347 0
+ 1250 0596 8830      		cpi r24,8
+ 1251 0598 9105      		cpc r25,__zero_reg__
+ 1252 059a 01F4      		brne .+2
+ 1253 059c 00C0      		rjmp .L47
+ 1254 059e 8930      		cpi r24,9
+ 1255 05a0 9105      		cpc r25,__zero_reg__
+ 1256 05a2 01F0      		breq .L48
+ 1257 05a4 0797      		sbiw r24,7
+ 1258 05a6 01F4      		brne .+2
+ 1259 05a8 00C0      		rjmp .L49
+ 1260               		.loc 3 412 0
+ 1261 05aa 00C0      		rjmp .L50
+ 1262               	.L43:
+ 358:ServerBASIC.c **** 			appState			= APP_STATE_SEND_BUSY_DATA;
+ 1263               		.loc 3 358 0
+ 1264 05ac 0E94 0000 		call appSendData
+ 359:ServerBASIC.c **** 			break;
+ 1265               		.loc 3 359 0
+ 1266 05b0 85E0      		ldi r24,lo8(5)
+ 1267 05b2 8093 0000 		sts appState,r24
+ 360:ServerBASIC.c **** 		}
+ 1268               		.loc 3 360 0
+ 1269 05b6 00C0      		rjmp .L50
+ 1270               	.L48:
+ 365:ServerBASIC.c **** #if (LED_COUNT > 0)
+ 1271               		.loc 3 365 0
+ 1272 05b8 0E94 0000 		call NWK_WakeupReq
+ 1273 05bc 80E3      		ldi r24,lo8(48)
+ 1274 05be 8D83      		std Y+5,r24
+ 1275 05c0 1E82      		std Y+6,__zero_reg__
+ 1276 05c2 8D81      		ldd r24,Y+5
+ 1277 05c4 8F83      		std Y+7,r24
+ 1278 05c6 8E81      		ldd r24,Y+6
+ 1279 05c8 8887      		std Y+8,r24
+ 1280               	.LBB158:
+ 1281               	.LBB159:
+ 1282               	.LBB160:
+ 1283               	.LBB161:
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 1284               		.loc 4 281 0
+ 1285 05ca 8F81      		ldd r24,Y+7
+ 1286 05cc 8695      		lsr r24
+ 1287 05ce 8695      		lsr r24
+ 1288 05d0 8695      		lsr r24
+ 1289 05d2 8987      		std Y+9,r24
+ 1290               	.LBB162:
+ 1291               	.LBB163:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1292               		.loc 4 170 0
+ 1293 05d4 8985      		ldd r24,Y+9
+ 1294 05d6 282F      		mov r18,r24
+ 1295 05d8 30E0      		ldi r19,0
+ 1296 05da C901      		movw r24,r18
+ 1297 05dc 880F      		lsl r24
+ 1298 05de 991F      		rol r25
+ 1299 05e0 820F      		add r24,r18
+ 1300 05e2 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 1301               		.loc 4 169 0
+ 1302 05e4 8096      		adiw r24,32
+ 1303               	.LBE163:
+ 1304               	.LBE162:
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 1305               		.loc 4 281 0
+ 1306 05e6 9B87      		std Y+11,r25
+ 1307 05e8 8A87      		std Y+10,r24
+ 283:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base_add->PORTDATA
+ 1308               		.loc 4 283 0
+ 1309 05ea 8885      		ldd r24,Y+8
+ 1310 05ec 8823      		tst r24
+ 1311 05ee 01F0      		breq .L52
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 1312               		.loc 4 285 0
+ 1313 05f0 8A85      		ldd r24,Y+10
+ 1314 05f2 9B85      		ldd r25,Y+11
+ 1315 05f4 FC01      		movw r30,r24
+ 1316 05f6 4281      		ldd r20,Z+2
+ 1317 05f8 8F81      		ldd r24,Y+7
+ 1318 05fa 8C87      		std Y+12,r24
+ 1319               	.LBB164:
+ 1320               	.LBB165:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1321               		.loc 4 189 0
+ 1322 05fc 8C85      		ldd r24,Y+12
+ 1323 05fe 882F      		mov r24,r24
+ 1324 0600 90E0      		ldi r25,0
+ 1325 0602 9C01      		movw r18,r24
+ 1326 0604 2770      		andi r18,7
+ 1327 0606 3327      		clr r19
+ 1328 0608 81E0      		ldi r24,lo8(1)
+ 1329 060a 90E0      		ldi r25,0
+ 1330 060c 00C0      		rjmp 2f
+ 1331               		1:
+ 1332 060e 880F      		lsl r24
+ 1333 0610 991F      		rol r25
+ 1334               		2:
+ 1335 0612 2A95      		dec r18
+ 1336 0614 02F4      		brpl 1b
+ 1337               	.LBE165:
+ 1338               	.LBE164:
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 1339               		.loc 4 285 0
+ 1340 0616 242F      		mov r18,r20
+ 1341 0618 282B      		or r18,r24
+ 1342 061a 8A85      		ldd r24,Y+10
+ 1343 061c 9B85      		ldd r25,Y+11
+ 1344 061e FC01      		movw r30,r24
+ 1345 0620 2283      		std Z+2,r18
+ 1346 0622 00C0      		rjmp .L54
+ 1347               	.L52:
+ 289:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin)));
+ 1348               		.loc 4 289 0
+ 1349 0624 8A85      		ldd r24,Y+10
+ 1350 0626 9B85      		ldd r25,Y+11
+ 1351 0628 FC01      		movw r30,r24
+ 1352 062a 8281      		ldd r24,Z+2
+ 1353 062c 482F      		mov r20,r24
+ 1354 062e 8F81      		ldd r24,Y+7
+ 1355 0630 8D87      		std Y+13,r24
+ 1356               	.LBB166:
+ 1357               	.LBB167:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1358               		.loc 4 189 0
+ 1359 0632 8D85      		ldd r24,Y+13
+ 1360 0634 882F      		mov r24,r24
+ 1361 0636 90E0      		ldi r25,0
+ 1362 0638 9C01      		movw r18,r24
+ 1363 063a 2770      		andi r18,7
+ 1364 063c 3327      		clr r19
+ 1365 063e 81E0      		ldi r24,lo8(1)
+ 1366 0640 90E0      		ldi r25,0
+ 1367 0642 00C0      		rjmp 2f
+ 1368               		1:
+ 1369 0644 880F      		lsl r24
+ 1370 0646 991F      		rol r25
+ 1371               		2:
+ 1372 0648 2A95      		dec r18
+ 1373 064a 02F4      		brpl 1b
+ 1374               	.LBE167:
+ 1375               	.LBE166:
+ 289:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin)));
+ 1376               		.loc 4 289 0
+ 1377 064c 8095      		com r24
+ 1378 064e 8423      		and r24,r20
+ 1379 0650 282F      		mov r18,r24
+ 1380 0652 8A85      		ldd r24,Y+10
+ 1381 0654 9B85      		ldd r25,Y+11
+ 1382 0656 FC01      		movw r30,r24
+ 1383 0658 2283      		std Z+2,r18
+ 1384               	.L54:
+ 1385               	.LBE161:
+ 1386               	.LBE160:
+ 1387               	.LBE159:
+ 1388               	.LBE158:
+ 369:ServerBASIC.c **** 			break;
+ 1389               		.loc 3 369 0
+ 1390 065a 81E0      		ldi r24,lo8(1)
+ 1391 065c 8093 0000 		sts appState,r24
+ 370:ServerBASIC.c **** 		}
+ 1392               		.loc 3 370 0
+ 1393 0660 00C0      		rjmp .L50
+ 1394               	.L46:
+ 374:ServerBASIC.c **** 			appState			= APP_STATE_SEND;
+ 1395               		.loc 3 374 0
+ 1396 0662 0E94 0000 		call appSendPrepare
+ 375:ServerBASIC.c **** 			break;
+ 1397               		.loc 3 375 0
+ 1398 0666 83E0      		ldi r24,lo8(3)
+ 1399 0668 8093 0000 		sts appState,r24
+ 376:ServerBASIC.c **** 		}
+ 1400               		.loc 3 376 0
+ 1401 066c 00C0      		rjmp .L50
+ 1402               	.L49:
+ 380:ServerBASIC.c **** 			{
+ 1403               		.loc 3 380 0
+ 1404 066e 0E94 0000 		call NWK_Busy
+ 1405 0672 982F      		mov r25,r24
+ 1406 0674 81E0      		ldi r24,lo8(1)
+ 1407 0676 8927      		eor r24,r25
+ 1408 0678 8823      		tst r24
+ 1409 067a 01F4      		brne .+2
+ 1410 067c 00C0      		rjmp .L72
+ 1411               	.LBB168:
+ 382:ServerBASIC.c **** 				NWK_SleepReq();
+ 1412               		.loc 3 382 0
+ 1413 067e 0E94 0000 		call cpu_irq_save
+ 1414 0682 8A83      		std Y+2,r24
+ 383:ServerBASIC.c **** 				appState		= APP_STATE_SLEEP;
+ 1415               		.loc 3 383 0
+ 1416 0684 0E94 0000 		call NWK_SleepReq
+ 384:ServerBASIC.c **** 				cpu_irq_restore(flags);
+ 1417               		.loc 3 384 0
+ 1418 0688 88E0      		ldi r24,lo8(8)
+ 1419 068a 8093 0000 		sts appState,r24
+ 385:ServerBASIC.c **** 			}
+ 1420               		.loc 3 385 0
+ 1421 068e 8A81      		ldd r24,Y+2
+ 1422 0690 0E94 0000 		call cpu_irq_restore
+ 1423               	.LBE168:
+ 387:ServerBASIC.c **** 		}
+ 1424               		.loc 3 387 0
+ 1425 0694 00C0      		rjmp .L72
+ 1426               	.L47:
+ 1427 0696 80E3      		ldi r24,lo8(48)
+ 1428 0698 8B83      		std Y+3,r24
+ 1429 069a 81E0      		ldi r24,lo8(1)
+ 1430 069c 8E8F      		std Y+30,r24
+ 1431 069e 8B81      		ldd r24,Y+3
+ 1432 06a0 8F8F      		std Y+31,r24
+ 1433 06a2 8E8D      		ldd r24,Y+30
+ 1434 06a4 88A3      		std Y+32,r24
+ 1435               	.LBB169:
+ 1436               	.LBB170:
+ 1437               	.LBB171:
+ 1438               	.LBB172:
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 1439               		.loc 4 281 0
+ 1440 06a6 8F8D      		ldd r24,Y+31
+ 1441 06a8 8695      		lsr r24
+ 1442 06aa 8695      		lsr r24
+ 1443 06ac 8695      		lsr r24
+ 1444 06ae 89A3      		std Y+33,r24
+ 1445               	.LBB173:
+ 1446               	.LBB174:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1447               		.loc 4 170 0
+ 1448 06b0 89A1      		ldd r24,Y+33
+ 1449 06b2 282F      		mov r18,r24
+ 1450 06b4 30E0      		ldi r19,0
+ 1451 06b6 C901      		movw r24,r18
+ 1452 06b8 880F      		lsl r24
+ 1453 06ba 991F      		rol r25
+ 1454 06bc 820F      		add r24,r18
+ 1455 06be 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 1456               		.loc 4 169 0
+ 1457 06c0 8096      		adiw r24,32
+ 1458               	.LBE174:
+ 1459               	.LBE173:
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 1460               		.loc 4 281 0
+ 1461 06c2 9BA3      		std Y+35,r25
+ 1462 06c4 8AA3      		std Y+34,r24
+ 283:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base_add->PORTDATA
+ 1463               		.loc 4 283 0
+ 1464 06c6 88A1      		ldd r24,Y+32
+ 1465 06c8 8823      		tst r24
+ 1466 06ca 01F0      		breq .L58
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 1467               		.loc 4 285 0
+ 1468 06cc 8AA1      		ldd r24,Y+34
+ 1469 06ce 9BA1      		ldd r25,Y+35
+ 1470 06d0 FC01      		movw r30,r24
+ 1471 06d2 4281      		ldd r20,Z+2
+ 1472 06d4 8F8D      		ldd r24,Y+31
+ 1473 06d6 8CA3      		std Y+36,r24
+ 1474               	.LBB175:
+ 1475               	.LBB176:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1476               		.loc 4 189 0
+ 1477 06d8 8CA1      		ldd r24,Y+36
+ 1478 06da 882F      		mov r24,r24
+ 1479 06dc 90E0      		ldi r25,0
+ 1480 06de 9C01      		movw r18,r24
+ 1481 06e0 2770      		andi r18,7
+ 1482 06e2 3327      		clr r19
+ 1483 06e4 81E0      		ldi r24,lo8(1)
+ 1484 06e6 90E0      		ldi r25,0
+ 1485 06e8 00C0      		rjmp 2f
+ 1486               		1:
+ 1487 06ea 880F      		lsl r24
+ 1488 06ec 991F      		rol r25
+ 1489               		2:
+ 1490 06ee 2A95      		dec r18
+ 1491 06f0 02F4      		brpl 1b
+ 1492               	.LBE176:
+ 1493               	.LBE175:
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 1494               		.loc 4 285 0
+ 1495 06f2 242F      		mov r18,r20
+ 1496 06f4 282B      		or r18,r24
+ 1497 06f6 8AA1      		ldd r24,Y+34
+ 1498 06f8 9BA1      		ldd r25,Y+35
+ 1499 06fa FC01      		movw r30,r24
+ 1500 06fc 2283      		std Z+2,r18
+ 1501 06fe 00C0      		rjmp .L60
+ 1502               	.L58:
+ 289:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin)));
+ 1503               		.loc 4 289 0
+ 1504 0700 8AA1      		ldd r24,Y+34
+ 1505 0702 9BA1      		ldd r25,Y+35
+ 1506 0704 FC01      		movw r30,r24
+ 1507 0706 8281      		ldd r24,Z+2
+ 1508 0708 482F      		mov r20,r24
+ 1509 070a 8F8D      		ldd r24,Y+31
+ 1510 070c 8DA3      		std Y+37,r24
+ 1511               	.LBB177:
+ 1512               	.LBB178:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1513               		.loc 4 189 0
+ 1514 070e 8DA1      		ldd r24,Y+37
+ 1515 0710 882F      		mov r24,r24
+ 1516 0712 90E0      		ldi r25,0
+ 1517 0714 9C01      		movw r18,r24
+ 1518 0716 2770      		andi r18,7
+ 1519 0718 3327      		clr r19
+ 1520 071a 81E0      		ldi r24,lo8(1)
+ 1521 071c 90E0      		ldi r25,0
+ 1522 071e 00C0      		rjmp 2f
+ 1523               		1:
+ 1524 0720 880F      		lsl r24
+ 1525 0722 991F      		rol r25
+ 1526               		2:
+ 1527 0724 2A95      		dec r18
+ 1528 0726 02F4      		brpl 1b
+ 1529               	.LBE178:
+ 1530               	.LBE177:
+ 289:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin)));
+ 1531               		.loc 4 289 0
+ 1532 0728 8095      		com r24
+ 1533 072a 8423      		and r24,r20
+ 1534 072c 282F      		mov r18,r24
+ 1535 072e 8AA1      		ldd r24,Y+34
+ 1536 0730 9BA1      		ldd r25,Y+35
+ 1537 0732 FC01      		movw r30,r24
+ 1538 0734 2283      		std Z+2,r18
+ 1539               	.L60:
+ 1540 0736 81E3      		ldi r24,lo8(49)
+ 1541 0738 8C83      		std Y+4,r24
+ 1542 073a 81E0      		ldi r24,lo8(1)
+ 1543 073c 8E8B      		std Y+22,r24
+ 1544 073e 8C81      		ldd r24,Y+4
+ 1545 0740 8F8B      		std Y+23,r24
+ 1546 0742 8E89      		ldd r24,Y+22
+ 1547 0744 888F      		std Y+24,r24
+ 1548               	.LBE172:
+ 1549               	.LBE171:
+ 1550               	.LBE170:
+ 1551               	.LBE169:
+ 1552               	.LBB179:
+ 1553               	.LBB180:
+ 1554               	.LBB181:
+ 1555               	.LBB182:
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 1556               		.loc 4 281 0
+ 1557 0746 8F89      		ldd r24,Y+23
+ 1558 0748 8695      		lsr r24
+ 1559 074a 8695      		lsr r24
+ 1560 074c 8695      		lsr r24
+ 1561 074e 898F      		std Y+25,r24
+ 1562               	.LBB183:
+ 1563               	.LBB184:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1564               		.loc 4 170 0
+ 1565 0750 898D      		ldd r24,Y+25
+ 1566 0752 282F      		mov r18,r24
+ 1567 0754 30E0      		ldi r19,0
+ 1568 0756 C901      		movw r24,r18
+ 1569 0758 880F      		lsl r24
+ 1570 075a 991F      		rol r25
+ 1571 075c 820F      		add r24,r18
+ 1572 075e 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 1573               		.loc 4 169 0
+ 1574 0760 8096      		adiw r24,32
+ 1575               	.LBE184:
+ 1576               	.LBE183:
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 1577               		.loc 4 281 0
+ 1578 0762 9B8F      		std Y+27,r25
+ 1579 0764 8A8F      		std Y+26,r24
+ 283:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base_add->PORTDATA
+ 1580               		.loc 4 283 0
+ 1581 0766 888D      		ldd r24,Y+24
+ 1582 0768 8823      		tst r24
+ 1583 076a 01F0      		breq .L63
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 1584               		.loc 4 285 0
+ 1585 076c 8A8D      		ldd r24,Y+26
+ 1586 076e 9B8D      		ldd r25,Y+27
+ 1587 0770 FC01      		movw r30,r24
+ 1588 0772 4281      		ldd r20,Z+2
+ 1589 0774 8F89      		ldd r24,Y+23
+ 1590 0776 8C8F      		std Y+28,r24
+ 1591               	.LBB185:
+ 1592               	.LBB186:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1593               		.loc 4 189 0
+ 1594 0778 8C8D      		ldd r24,Y+28
+ 1595 077a 882F      		mov r24,r24
+ 1596 077c 90E0      		ldi r25,0
+ 1597 077e 9C01      		movw r18,r24
+ 1598 0780 2770      		andi r18,7
+ 1599 0782 3327      		clr r19
+ 1600 0784 81E0      		ldi r24,lo8(1)
+ 1601 0786 90E0      		ldi r25,0
+ 1602 0788 00C0      		rjmp 2f
+ 1603               		1:
+ 1604 078a 880F      		lsl r24
+ 1605 078c 991F      		rol r25
+ 1606               		2:
+ 1607 078e 2A95      		dec r18
+ 1608 0790 02F4      		brpl 1b
+ 1609               	.LBE186:
+ 1610               	.LBE185:
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 1611               		.loc 4 285 0
+ 1612 0792 242F      		mov r18,r20
+ 1613 0794 282B      		or r18,r24
+ 1614 0796 8A8D      		ldd r24,Y+26
+ 1615 0798 9B8D      		ldd r25,Y+27
+ 1616 079a FC01      		movw r30,r24
+ 1617 079c 2283      		std Z+2,r18
+ 1618 079e 00C0      		rjmp .L65
+ 1619               	.L63:
+ 289:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin)));
+ 1620               		.loc 4 289 0
+ 1621 07a0 8A8D      		ldd r24,Y+26
+ 1622 07a2 9B8D      		ldd r25,Y+27
+ 1623 07a4 FC01      		movw r30,r24
+ 1624 07a6 8281      		ldd r24,Z+2
+ 1625 07a8 482F      		mov r20,r24
+ 1626 07aa 8F89      		ldd r24,Y+23
+ 1627 07ac 8D8F      		std Y+29,r24
+ 1628               	.LBB187:
+ 1629               	.LBB188:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1630               		.loc 4 189 0
+ 1631 07ae 8D8D      		ldd r24,Y+29
+ 1632 07b0 882F      		mov r24,r24
+ 1633 07b2 90E0      		ldi r25,0
+ 1634 07b4 9C01      		movw r18,r24
+ 1635 07b6 2770      		andi r18,7
+ 1636 07b8 3327      		clr r19
+ 1637 07ba 81E0      		ldi r24,lo8(1)
+ 1638 07bc 90E0      		ldi r25,0
+ 1639 07be 00C0      		rjmp 2f
+ 1640               		1:
+ 1641 07c0 880F      		lsl r24
+ 1642 07c2 991F      		rol r25
+ 1643               		2:
+ 1644 07c4 2A95      		dec r18
+ 1645 07c6 02F4      		brpl 1b
+ 1646               	.LBE188:
+ 1647               	.LBE187:
+ 289:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin)));
+ 1648               		.loc 4 289 0
+ 1649 07c8 8095      		com r24
+ 1650 07ca 8423      		and r24,r20
+ 1651 07cc 282F      		mov r18,r24
+ 1652 07ce 8A8D      		ldd r24,Y+26
+ 1653 07d0 9B8D      		ldd r25,Y+27
+ 1654 07d2 FC01      		movw r30,r24
+ 1655 07d4 2283      		std Z+2,r18
+ 1656               	.L65:
+ 1657 07d6 85E3      		ldi r24,lo8(53)
+ 1658 07d8 8983      		std Y+1,r24
+ 1659 07da 81E0      		ldi r24,lo8(1)
+ 1660 07dc 8E87      		std Y+14,r24
+ 1661 07de 8981      		ldd r24,Y+1
+ 1662 07e0 8F87      		std Y+15,r24
+ 1663 07e2 8E85      		ldd r24,Y+14
+ 1664 07e4 888B      		std Y+16,r24
+ 1665               	.LBE182:
+ 1666               	.LBE181:
+ 1667               	.LBE180:
+ 1668               	.LBE179:
+ 1669               	.LBB189:
+ 1670               	.LBB190:
+ 1671               	.LBB191:
+ 1672               	.LBB192:
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 1673               		.loc 4 281 0
+ 1674 07e6 8F85      		ldd r24,Y+15
+ 1675 07e8 8695      		lsr r24
+ 1676 07ea 8695      		lsr r24
+ 1677 07ec 8695      		lsr r24
+ 1678 07ee 898B      		std Y+17,r24
+ 1679               	.LBB193:
+ 1680               	.LBB194:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1681               		.loc 4 170 0
+ 1682 07f0 8989      		ldd r24,Y+17
+ 1683 07f2 282F      		mov r18,r24
+ 1684 07f4 30E0      		ldi r19,0
+ 1685 07f6 C901      		movw r24,r18
+ 1686 07f8 880F      		lsl r24
+ 1687 07fa 991F      		rol r25
+ 1688 07fc 820F      		add r24,r18
+ 1689 07fe 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 1690               		.loc 4 169 0
+ 1691 0800 8096      		adiw r24,32
+ 1692               	.LBE194:
+ 1693               	.LBE193:
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 1694               		.loc 4 281 0
+ 1695 0802 9B8B      		std Y+19,r25
+ 1696 0804 8A8B      		std Y+18,r24
+ 283:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base_add->PORTDATA
+ 1697               		.loc 4 283 0
+ 1698 0806 8889      		ldd r24,Y+16
+ 1699 0808 8823      		tst r24
+ 1700 080a 01F0      		breq .L68
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 1701               		.loc 4 285 0
+ 1702 080c 8A89      		ldd r24,Y+18
+ 1703 080e 9B89      		ldd r25,Y+19
+ 1704 0810 FC01      		movw r30,r24
+ 1705 0812 4281      		ldd r20,Z+2
+ 1706 0814 8F85      		ldd r24,Y+15
+ 1707 0816 8C8B      		std Y+20,r24
+ 1708               	.LBB195:
+ 1709               	.LBB196:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1710               		.loc 4 189 0
+ 1711 0818 8C89      		ldd r24,Y+20
+ 1712 081a 882F      		mov r24,r24
+ 1713 081c 90E0      		ldi r25,0
+ 1714 081e 9C01      		movw r18,r24
+ 1715 0820 2770      		andi r18,7
+ 1716 0822 3327      		clr r19
+ 1717 0824 81E0      		ldi r24,lo8(1)
+ 1718 0826 90E0      		ldi r25,0
+ 1719 0828 00C0      		rjmp 2f
+ 1720               		1:
+ 1721 082a 880F      		lsl r24
+ 1722 082c 991F      		rol r25
+ 1723               		2:
+ 1724 082e 2A95      		dec r18
+ 1725 0830 02F4      		brpl 1b
+ 1726               	.LBE196:
+ 1727               	.LBE195:
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 1728               		.loc 4 285 0
+ 1729 0832 242F      		mov r18,r20
+ 1730 0834 282B      		or r18,r24
+ 1731 0836 8A89      		ldd r24,Y+18
+ 1732 0838 9B89      		ldd r25,Y+19
+ 1733 083a FC01      		movw r30,r24
+ 1734 083c 2283      		std Z+2,r18
+ 1735 083e 00C0      		rjmp .L70
+ 1736               	.L68:
+ 289:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin)));
+ 1737               		.loc 4 289 0
+ 1738 0840 8A89      		ldd r24,Y+18
+ 1739 0842 9B89      		ldd r25,Y+19
+ 1740 0844 FC01      		movw r30,r24
+ 1741 0846 8281      		ldd r24,Z+2
+ 1742 0848 482F      		mov r20,r24
+ 1743 084a 8F85      		ldd r24,Y+15
+ 1744 084c 8D8B      		std Y+21,r24
+ 1745               	.LBB197:
+ 1746               	.LBB198:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1747               		.loc 4 189 0
+ 1748 084e 8D89      		ldd r24,Y+21
+ 1749 0850 882F      		mov r24,r24
+ 1750 0852 90E0      		ldi r25,0
+ 1751 0854 9C01      		movw r18,r24
+ 1752 0856 2770      		andi r18,7
+ 1753 0858 3327      		clr r19
+ 1754 085a 81E0      		ldi r24,lo8(1)
+ 1755 085c 90E0      		ldi r25,0
+ 1756 085e 00C0      		rjmp 2f
+ 1757               		1:
+ 1758 0860 880F      		lsl r24
+ 1759 0862 991F      		rol r25
+ 1760               		2:
+ 1761 0864 2A95      		dec r18
+ 1762 0866 02F4      		brpl 1b
+ 1763               	.LBE198:
+ 1764               	.LBE197:
+ 289:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin)));
+ 1765               		.loc 4 289 0
+ 1766 0868 8095      		com r24
+ 1767 086a 8423      		and r24,r20
+ 1768 086c 282F      		mov r18,r24
+ 1769 086e 8A89      		ldd r24,Y+18
+ 1770 0870 9B89      		ldd r25,Y+19
+ 1771 0872 FC01      		movw r30,r24
+ 1772 0874 2283      		std Z+2,r18
+ 1773               	.L70:
+ 1774               	.LBE192:
+ 1775               	.LBE191:
+ 1776               	.LBE190:
+ 1777               	.LBE189:
+ 396:ServerBASIC.c **** 			sleep_enter();
+ 1778               		.loc 3 396 0
+ 1779 0876 83E5      		ldi r24,lo8(83)
+ 1780 0878 90E0      		ldi r25,0
+ 1781 087a 23E5      		ldi r18,lo8(83)
+ 1782 087c 30E0      		ldi r19,0
+ 1783 087e F901      		movw r30,r18
+ 1784 0880 2081      		ld r18,Z
+ 1785 0882 2160      		ori r18,lo8(1)
+ 1786 0884 FC01      		movw r30,r24
+ 1787 0886 2083      		st Z,r18
+ 397:ServerBASIC.c **** 			sleep_disable();
+ 1788               		.loc 3 397 0
+ 1789               	/* #APP */
+ 1790               	 ;  397 "ServerBASIC.c" 1
+ 1791 0888 8895      		sleep
+ 1792               		
+ 1793               	 ;  0 "" 2
+ 398:ServerBASIC.c **** 			break;
+ 1794               		.loc 3 398 0
+ 1795               	/* #NOAPP */
+ 1796 088a 83E5      		ldi r24,lo8(83)
+ 1797 088c 90E0      		ldi r25,0
+ 1798 088e 23E5      		ldi r18,lo8(83)
+ 1799 0890 30E0      		ldi r19,0
+ 1800 0892 F901      		movw r30,r18
+ 1801 0894 2081      		ld r18,Z
+ 1802 0896 2E7F      		andi r18,lo8(-2)
+ 1803 0898 FC01      		movw r30,r24
+ 1804 089a 2083      		st Z,r18
+ 399:ServerBASIC.c **** 		}
+ 1805               		.loc 3 399 0
+ 1806 089c 00C0      		rjmp .L50
+ 1807               	.L45:
+ 404:ServerBASIC.c **** 			solver_init();
+ 1808               		.loc 3 404 0
+ 1809 089e 0E94 0000 		call energy_init
+ 405:ServerBASIC.c **** 			appInit();
+ 1810               		.loc 3 405 0
+ 1811 08a2 0E94 0000 		call solver_init
+ 406:ServerBASIC.c **** 			appState			= APP_STATE_IDLE;
+ 1812               		.loc 3 406 0
+ 1813 08a6 0E94 0000 		call appInit
+ 407:ServerBASIC.c **** 			break;
+ 1814               		.loc 3 407 0
+ 1815 08aa 81E0      		ldi r24,lo8(1)
+ 1816 08ac 8093 0000 		sts appState,r24
+ 408:ServerBASIC.c **** 		}
+ 1817               		.loc 3 408 0
+ 1818 08b0 00C0      		rjmp .L50
+ 1819               	.L72:
+ 387:ServerBASIC.c **** 		}
+ 1820               		.loc 3 387 0
+ 1821 08b2 0000      		nop
+ 1822               	.L50:
+ 413:ServerBASIC.c **** 		}
+ 414:ServerBASIC.c **** 	}
+ 415:ServerBASIC.c **** }
+ 1823               		.loc 3 415 0
+ 1824 08b4 0000      		nop
+ 1825               	/* epilogue start */
+ 1826 08b6 A596      		adiw r28,37
+ 1827 08b8 0FB6      		in __tmp_reg__,__SREG__
+ 1828 08ba F894      		cli
+ 1829 08bc DEBF      		out __SP_H__,r29
+ 1830 08be 0FBE      		out __SREG__,__tmp_reg__
+ 1831 08c0 CDBF      		out __SP_L__,r28
+ 1832 08c2 DF91      		pop r29
+ 1833 08c4 CF91      		pop r28
+ 1834 08c6 0895      		ret
+ 1835               		.cfi_endproc
+ 1836               	.LFE113:
+ 1838               	.global	main
+ 1840               	main:
+ 1841               	.LFB114:
+ 416:ServerBASIC.c **** 
+ 417:ServerBASIC.c **** /*****************************************************************************
+ 418:ServerBASIC.c **** *****************************************************************************/
+ 419:ServerBASIC.c **** int main(void)
+ 420:ServerBASIC.c **** {
+ 1842               		.loc 3 420 0
+ 1843               		.cfi_startproc
+ 1844 08c8 CF93      		push r28
+ 1845               	.LCFI48:
+ 1846               		.cfi_def_cfa_offset 3
+ 1847               		.cfi_offset 28, -2
+ 1848 08ca DF93      		push r29
+ 1849               	.LCFI49:
+ 1850               		.cfi_def_cfa_offset 4
+ 1851               		.cfi_offset 29, -3
+ 1852 08cc CDB7      		in r28,__SP_L__
+ 1853 08ce DEB7      		in r29,__SP_H__
+ 1854               	.LCFI50:
+ 1855               		.cfi_def_cfa_register 28
+ 1856               	/* prologue: function */
+ 1857               	/* frame size = 0 */
+ 1858               	/* stack size = 2 */
+ 1859               	.L__stack_usage = 2
+ 421:ServerBASIC.c **** 	sysclk_init();
+ 1860               		.loc 3 421 0
+ 1861 08d0 0E94 0000 		call sysclk_init
+ 422:ServerBASIC.c **** 	board_init();
+ 1862               		.loc 3 422 0
+ 1863 08d4 0E94 0000 		call board_init
+ 423:ServerBASIC.c **** 
+ 424:ServerBASIC.c **** 	SYS_Init();
+ 1864               		.loc 3 424 0
+ 1865 08d8 0E94 0000 		call SYS_Init
+ 425:ServerBASIC.c **** 	sm_init();
+ 1866               		.loc 3 425 0
+ 1867 08dc 0E94 0000 		call sm_init
+ 426:ServerBASIC.c **** 
+ 427:ServerBASIC.c **** 	// Initialize interrupt vector table support.
+ 428:ServerBASIC.c **** #if 0
+ 429:ServerBASIC.c **** 	irq_initialize_vectors();
+ 430:ServerBASIC.c **** #endif
+ 431:ServerBASIC.c **** 	cpu_irq_enable();
+ 1868               		.loc 3 431 0
+ 1869               	/* #APP */
+ 1870               	 ;  431 "ServerBASIC.c" 1
+ 1871 08e0 7894      		sei
+ 1872               	 ;  0 "" 2
+ 1873               	/* #NOAPP */
+ 1874               	.L74:
+ 432:ServerBASIC.c **** 
+ 433:ServerBASIC.c **** #if APP_COORDINATOR
+ 434:ServerBASIC.c **** #if 0
+ 435:ServerBASIC.c **** 	stdio_usb_init();
+ 436:ServerBASIC.c **** #else
+ 437:ServerBASIC.c **** 	const usart_serial_options_t usart_serial_options =
+ 438:ServerBASIC.c **** 	{
+ 439:ServerBASIC.c **** 		.baudrate     = USART_HOST_BAUDRATE,
+ 440:ServerBASIC.c **** 		.charlength   = USART_HOST_CHAR_LENGTH,
+ 441:ServerBASIC.c **** 		.paritytype   = USART_HOST_PARITY,
+ 442:ServerBASIC.c **** 		.stopbits     = USART_HOST_STOP_BITS
+ 443:ServerBASIC.c **** 	};
+ 444:ServerBASIC.c **** 
+ 445:ServerBASIC.c **** 	stdio_serial_init(USART_HOST, &usart_serial_options);
+ 446:ServerBASIC.c **** #endif
+ 447:ServerBASIC.c **** #endif
+ 448:ServerBASIC.c **** 	for(;;)
+ 449:ServerBASIC.c **** 	{
+ 450:ServerBASIC.c **** 		SYS_TaskHandler();
+ 1875               		.loc 3 450 0 discriminator 1
+ 1876 08e2 0E94 0000 		call SYS_TaskHandler
+ 451:ServerBASIC.c **** 		APP_TaskHandler();
+ 1877               		.loc 3 451 0 discriminator 1
+ 1878 08e6 0E94 0000 		call APP_TaskHandler
+ 452:ServerBASIC.c **** 	}
+ 1879               		.loc 3 452 0 discriminator 1
+ 1880 08ea 00C0      		rjmp .L74
+ 1881               		.cfi_endproc
+ 1882               	.LFE114:
+ 1884               	.Letext0:
+ 1885               		.file 5 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 1886               		.file 6 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
+ 1887               		.file 7 "../../../stack/LwMesh/TDMA/nwk/inc/nwkDataReq.h"
+ 1888               		.file 8 "../../../stack/LwMesh/TDMA/sys/inc/sysTimer.h"
+ 1889               		.file 9 "../../../platform/mega_rf/drivers/sleep/sleep.h"
+ 1890               		.file 10 "Solver.h"
+ 1891               		.file 11 "../../../platform/common/services/sleepmgr/mega_rf/sleepmgr.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 ServerBASIC.c
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:2      *ABS*:0000003e __SP_H__
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:3      *ABS*:0000003d __SP_L__
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:4      *ABS*:0000003f __SREG__
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:12     .text:00000000 cpu_irq_save
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:60     .text:00000020 cpu_irq_restore
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:102    .text:00000040 macsc_enable_auto_ts
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:155    .bss.appState:00000000 appState
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:160    .bss.tmrBlinkData:00000000 tmrBlinkData
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:165    .bss.msgReq:00000000 msgReq
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:170    .bss.msgFrame:00000000 msgFrame
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:175    .bss.msgReqConnection:00000000 msgReqConnection
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:180    .bss.msgFrameConnection:00000000 msgFrameConnection
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:185    .bss.connected:00000000 connected
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:190    .bss.collab_vector:00000000 collab_vector
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:195    .bss.i_am_collab_dev:00000000 i_am_collab_dev
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:200    .bss.i_am_collab_slot:00000000 i_am_collab_slot
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:205    .bss.i_am_collab_turn:00000000 i_am_collab_turn
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:210    .bss.msgReqCollab:00000000 msgReqCollab
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:215    .bss.msgFrameCollab:00000000 msgFrameCollab
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:219    .text:00000074 tmrBlinkDataHandler
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:393    .text:00000140 tdma_client_turn
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:426    .text:00000156 tdma_job_conf
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:466    .text:00000176 appBeaconInd
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:526    .text:000001b6 appSendPrepare
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:596    .text:000001f8 appSendData
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:772    .text:000002d8 appDataInd
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:916    .text:00000388 appInit
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:1202   .text:00000560 APP_TaskHandler
+C:\Users\guilh\AppData\Local\Temp\cc7qqivG.s:1840   .text:000008c8 main
+
+UNDEFINED SYMBOLS
+rand
+NWK_DataReq
+energy_receive_statistics
+solver_received_data_frame
+NWK_SetAddr
+NWK_SetPanId
+PHY_SetChannel
+PHY_SetRxState
+PHY_RandomReq
+srand
+NWK_OpenEndpoint
+macsc_set_cmp1_int_cb
+macsc_enable_cmp_int
+macsc_use_cmp
+NWK_WakeupReq
+NWK_Busy
+NWK_SleepReq
+energy_init
+solver_init
+sysclk_init
+board_init
+SYS_Init
+sm_init
+SYS_TaskHandler
+__do_clear_bss
