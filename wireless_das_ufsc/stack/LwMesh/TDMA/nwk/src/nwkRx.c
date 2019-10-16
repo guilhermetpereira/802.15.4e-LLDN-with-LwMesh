@@ -78,6 +78,8 @@ enum {
 	NWK_RX_STATE_ROUTE    = 0x23,
 	NWK_RX_STATE_FINISH   = 0x24,
 	NWK_RX_STATE_BEACON   = 0x25,
+	NWK_RX_STATE_LLBEACON 	= 0x26,
+	NWK_RX_STATE_LLCOMMAND 	= 0x27,
 };
 
 typedef struct NwkDuplicateRejectionEntry_t {
@@ -119,11 +121,27 @@ void nwkRxInit(void)
 
 /*************************************************************************//**
 *****************************************************************************/
-void PHY_DataInd(PHY_DataInd_t *ind)
+void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 {
 	NwkFrame_t *frame;
 
-	if(0x88 == ind->data[1])
+	// check frame control for a LL-Beacon frame
+	if(0x0c == ind->data[0])
+	{
+		if(ind->size < sizeof(NwkFrameBeaconHeaderLLDN_t))
+		{
+			return;
+		}
+	}
+	// check frame control for a LL-MAC Command frame
+	else if(0xcc == ind->data[0])
+	{
+		if(ind->size < sizeof(NwkFrameGeneralHeaderLLDN_t))
+		{
+			return;
+		}
+	}
+	else if(0x88 == ind->data[1])
 	{
 		if((0x61 != ind->data[0] && 0x41 != ind->data[0]) || ind->size < sizeof(NwkFrameHeader_t))
 		{
@@ -135,35 +153,47 @@ void PHY_DataInd(PHY_DataInd_t *ind)
 		if((0x00 != ind->data[0]) || ind->size < (sizeof(NwkFrameBeaconHeader_t)))
 		{
 			return;
-		}		
+		}
 	}
 	else
 	{
 		return;
 	}
 
-	if (NULL == (frame = nwkFrameAlloc())) {
-		return;
-	}
-
-	frame->state = ((0x88 == ind->data[1]) ? NWK_RX_STATE_RECEIVED : NWK_RX_STATE_BEACON);
-	
-	if(frame->state == NWK_RX_STATE_BEACON)
+	if(ind->data[1] == 0x88 || ind->data[1] == 0x80)
 	{
-		frame->size += sizeof(NwkFrameBeaconHeader_t);
-		frame->payload += sizeof(NwkFrameBeaconHeader_t);
+		if (NULL == (frame = nwkFrameAlloc())) {
+			return;
+		}
+		// if frame received is NwkFrameHeader change state to Receveid
+		// if frame receveid is a 802.15.4 beacon change state to Beacon
+		frame->state = ((0x88 == ind->data[1]) ? NWK_RX_STATE_RECEIVED : NWK_RX_STATE_BEACON);
+	}
+	// allocate frame buffer according to received frame
+	else if(ind->data[0] == 0x0c)
+	{
+		// allocates a LL-Beacon frame
+		if (NULL == (frame = nwkFrameAlloc_LLDN(true))){
+			return;
+		}
+		// if frame receveid is LL-Beacon change state to LLBEACON
+		frame->state = NWK_RX_STATE_LLBEACON;
 	}
 	else
 	{
-		frame->size += sizeof(NwkFrameHeader_t);
-		frame->payload += sizeof(NwkFrameHeader_t);
+		// allocates a LL-MAC command or LL-Data frame
+		if (NULL == (frame = nwkFrameAlloc_LLDN(false))){
+			return;
+		}
+		frame->state = NWK_RX_STATE_LLCOMMAND;
 	}
-	
+
 	frame->size = ind->size;
 	frame->rx.lqi = ind->lqi;
 	frame->rx.rssi = ind->rssi;
 	memcpy(frame->data, ind->data, ind->size);
 }
+
 
 /*************************************************************************//**
 *****************************************************************************/
@@ -535,6 +565,53 @@ static bool nwkRxIndicateBeaconFrame(NwkFrame_t *frame)
 
 /*************************************************************************//**
 *****************************************************************************/
+static bool nwkRxIndicateLLBeaconFrame(NwkFrame_t *frame)
+{
+	// NwkFrameBeaconHeaderLLDN_t *header = &frame->LLbeacon;
+	NWK_DataInd_t ind;
+
+	frame->state = NWK_RX_STATE_FINISH;
+
+	if (NULL == nwkIb.endpoint[1]) {
+	return false;
+	}
+
+	ind.data = &frame->LLbeacon;
+	// ind.size = nwkFramePayloadSize(frame);
+	ind.lqi = frame->rx.lqi;
+	ind.rssi = frame->rx.rssi;
+
+	ind.options	= NWK_IND_OPT_LLDN_BEACON;
+
+
+	return nwkIb.endpoint[1](&ind);
+}
+
+
+static bool nwkRxIndicateLLCommandFrame(NwkFrame_t *frame)
+{
+	NwkFrameGeneralHeaderLLDN_t *header = &frame->LLgeneral;
+	NWK_DataInd_t ind;
+
+	frame->state = NWK_RX_STATE_FINISH;
+
+	if (NULL == nwkIb.endpoint[2]) {
+	return false;
+	}
+
+	ind.data = &frame->data;
+	ind.size = nwkFramePayloadSize(frame);
+	ind.lqi = frame->rx.lqi;
+	ind.rssi = frame->rx.rssi;
+
+	ind.options	= NWK_IND_OPT_LLDN_MACCOMMAND;
+
+	return nwkIb.endpoint[2](&ind);
+}
+
+
+/*************************************************************************//**
+*****************************************************************************/
 static void nwkRxHandleIndication(NwkFrame_t *frame)
 {
 	bool ack;
@@ -613,6 +690,19 @@ void nwkRxTaskHandler(void)
 		case NWK_RX_STATE_BEACON:
 		{
 			nwkRxIndicateBeaconFrame(frame);
+		}
+		break;
+		
+		
+		case NWK_RX_STATE_LLBEACON:
+		{
+			nwkRxIndicateLLBeaconFrame(frame);
+		}
+		break;
+
+		case NWK_RX_STATE_LLCOMMAND:
+		{
+			nwkRxIndicateLLCommandFrame(frame);
 		}
 		break;
 		}

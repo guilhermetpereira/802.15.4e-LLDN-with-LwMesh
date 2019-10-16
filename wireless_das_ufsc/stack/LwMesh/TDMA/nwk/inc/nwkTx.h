@@ -71,4 +71,8 @@ void nwkTxConfirm(NwkFrame_t *frame, uint8_t status);
 void nwkTxEncryptConf(NwkFrame_t *frame);
 void nwkTxTaskHandler(void);
 
+
+void nwkTxMacCommandFrameLLDN(NwkFrame_t *frame, uint16_t subtype);
+void nwkTxBeaconFrameLLDN(NwkFrame_t *frame);
+
 #endif /* _NWK_TX_H_ */

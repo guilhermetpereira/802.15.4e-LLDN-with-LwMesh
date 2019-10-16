@@ -292,7 +292,7 @@ uint16_t PHY_RandomReq(void)
 
   for (uint8_t i = 0; i < 16; i += 2)
   {
-    HAL_Delay(RANDOM_NUMBER_UPDATE_INTERVAL);
+    delay_us(RANDOM_NUMBER_UPDATE_INTERVAL);
     rnd |= PHY_RSSI_REG_s.rndValue << i;
   }
 

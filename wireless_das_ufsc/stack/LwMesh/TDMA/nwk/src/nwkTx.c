@@ -120,6 +120,53 @@ void nwkTxBeaconFrame(NwkFrame_t *frame)
 	beacon->macSrcPanId = nwkIb.panId;
 	beacon->macSrcAddr = nwkIb.addr;
 }
+void nwkTxBeaconFrameLLDN(NwkFrame_t *frame)
+{
+	NwkFrameBeaconHeaderLLDN_t *beacon = &frame->LLbeacon;
+	frame->state = NWK_TX_STATE_SEND;
+	frame->tx.status = NWK_SUCCESS_STATUS;
+	frame->tx.timeout = 0;
+
+	// beacon->macFcf.FrameType				= 0b100; 	// LLDN type
+	// beacon->macFcf.SecurityEnabled 	= 0b1;	// 1 to enable security header and sequence number
+	// beacon->macFcf.FrameVersion			= 0b0;	// zero to indicate compatible with IEEE Std 802.15.4.
+	// beacon->macFcf.ackRequest				= 0b0;	// zero to indicade no ACK
+	// beacon->macFcf.SubFrameType			= 0b00; // Subtype = LL-Beacon
+	beacon->macFcf = 0x0c;
+	beacon->macSeqNumber = ++nwkIb.macSeqNum;
+
+	// Auxiliarty Security is not fully implemented, it is only enabled so Sequence Number is present in frame
+	beacon->macSecHeader.secLevel	= 0b000;
+	beacon->macSecHeader.KeyId		= 0b00;
+	beacon->macSecHeader.countSup	= 0b0;
+	beacon->macSecHeader.countSize= 0b0;
+}
+
+void nwkTxMacCommandFrameLLDN(NwkFrame_t *frame, uint16_t subtype)
+{
+	NwkFrameGeneralHeaderLLDN_t *mac_command = &frame->LLgeneral;
+	frame->state = NWK_TX_STATE_SEND;
+	frame->tx.status = NWK_SUCCESS_STATUS;
+	frame->tx.timeout = 0;
+
+	// beacon->macFcf.FrameType					= 0b100; // LLDN type
+	// beacon->macFcf.SecurityEnabled 	= 0b1;	// 1 to enable security header and sequence number
+	// beacon->macFcf.FrameVersion			= 0b0;	// zero to indicate compatible with IEEE Std 802.15.4.
+	// beacon->macFcf.ackRequest				= 0b0;	// zero to indicade no ACK
+	// beacon->macFcf.SubFrameType			= 0b11; // Subtype = LL-MAC command
+	if (subtype & NWK_OPT_MAC_COMMAND) 		mac_command->macFcf = 0xcc; //LL-MAC Command
+	else if (subtype & NWK_OPT_LLDN_DATA) mac_command->macFcf = 0x4c; //LL-Data
+	else if (subtype & NWK_OPT_LLDN_ACK) 	mac_command->macFcf = 0x8c;	//LL-Acknowledgment
+	mac_command->macSeqNumber = ++nwkIb.macSeqNum;
+
+	// Auxiliarty Security is not fully implemented, it is only enabled so Sequence Number is present in frame
+	mac_command->macSecHeader.secLevel	= 0b000;
+	mac_command->macSecHeader.KeyId		= 0b00;
+	mac_command->macSecHeader.countSup	= 0b0;
+	mac_command->macSecHeader.countSize= 0b0;
+}
+
+
 void nwkTxFrame(NwkFrame_t *frame)
 {
 	NwkFrameHeader_t *header = &frame->header;
@@ -338,7 +385,7 @@ void nwkTxTaskHandler(void)
 			if (NULL == nwkTxPhyActiveFrame) {
 				nwkTxPhyActiveFrame = frame;
 				frame->state = NWK_TX_STATE_WAIT_CONF;
-				PHY_DataReq(&(frame->size));
+				PHY_DataReq(frame->data, frame->size);
 				nwkIb.lock++;
 			}
 		}

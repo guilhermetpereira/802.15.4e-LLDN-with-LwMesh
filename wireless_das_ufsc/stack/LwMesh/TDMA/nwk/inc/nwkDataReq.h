@@ -54,14 +54,30 @@
 #include <stdbool.h>
 #include "sysConfig.h"
 
+/*- Definitions ------------------------------------------------------------*/
+
+#define LL_DISCOVERY_RESPONSE 		0x0d
+#define LL_CONFIGURATION_STATUS 	0x0e
+#define LL_CONFIGURATION_REQUEST 	0x0f
+
 /*- Types ------------------------------------------------------------------*/
 enum {
-	NWK_OPT_ACK_REQUEST          = 1 << 0,
-	NWK_OPT_ENABLE_SECURITY      = 1 << 1,
-	NWK_OPT_BROADCAST_PAN_ID     = 1 << 2,
-	NWK_OPT_LINK_LOCAL           = 1 << 3,
-	NWK_OPT_MULTICAST            = 1 << 4,
-	NWK_OPT_BEACON               = 1 << 5,
+	NWK_OPT_ACK_REQUEST           = 1 << 0,
+	NWK_OPT_ENABLE_SECURITY       = 1 << 1,
+	NWK_OPT_BROADCAST_PAN_ID      = 1 << 2,
+	NWK_OPT_LINK_LOCAL            = 1 << 3,
+	NWK_OPT_MULTICAST             = 1 << 4,
+	NWK_OPT_BEACON                = 1 << 5,
+	NWK_OPT_LLDN_BEACON			  = 1 << 6,
+	NWK_OPT_LLDN_BEACON_ONLINE	  = 1 << 7,
+	NWK_OPT_LLDN_BEACON_DISCOVERY = 1 << 8,
+	NWK_OPT_LLDN_BEACON_CONFIG	  = 1 << 9,
+	NWK_OPT_LLDN_BEACON_RESET	  = 1 << 10,
+	NWK_OPT_LLDN_BEACON_SECOND	  = 1 << 11,
+	NWK_OPT_LLDN_BEACON_THIRD	  = 1 << 12,
+	NWK_OPT_LLDN_DATA 			  = 1 << 13,
+	NWK_OPT_LLDN_ACK 			  = 1 << 14,
+	NWK_OPT_MAC_COMMAND			  = 1 << 15,
 };
 
 typedef struct NWK_DataReq_t {
@@ -74,7 +90,7 @@ typedef struct NWK_DataReq_t {
 	uint16_t dstAddr;
 	uint8_t dstEndpoint;
 	uint8_t srcEndpoint;
-	uint8_t options;
+	uint16_t options;
 #ifdef NWK_ENABLE_MULTICAST
 	uint8_t memberRadius;
 	uint8_t nonMemberRadius;
@@ -87,6 +103,50 @@ typedef struct NWK_DataReq_t {
 	uint8_t status;
 	uint8_t control;
 } NWK_DataReq_t;
+
+
+// payload structure for Discovery Response Frame
+typedef struct NWK_DiscoveryResponse_t {
+	uint8_t identifier;
+	uint16_t macAddr;
+	struct{
+		uint8_t tsDuration	 : 7;
+		uint8_t dirIndicator : 1;
+	}ts_dir;
+} NWK_DiscoveryResponse_t;
+
+// payload structure for Configuration Status Frame
+typedef struct NWK_ConfigStatus_t {
+	uint8_t identifier;
+	uint8_t s_macAddr;
+	uint8_t assTimeSlot;
+	uint16_t macAddr;
+	struct{
+		uint8_t tsDuration 		: 7;
+		uint8_t dirIndicator 	: 1;
+	}ts_dir;
+} NWK_ConfigStatus_t;
+
+// payload structure for Configuration Request Frame
+typedef struct NWK_ConfigRequest_t {
+	uint8_t identifier;
+	uint8_t s_macAddr;
+	uint8_t tx_channel;
+	uint8_t assTimeSlot;
+	uint16_t macAddr;
+	struct{
+		uint8_t tsDuration	: 7;
+		uint8_t mgmtFrames 	: 1;
+	} conf;
+} NWK_ConfigRequest_t;
+
+typedef struct NWK_ACKFormat_t{
+	uint8_t sourceId;
+	// 127: maximum size avaible on buffer
+	// 4: size of NwkFrameGeneralHeaderLLDN_t
+	uint8_t ackFlags[127 - 4];
+} NWK_ACKFormat_t;
+
 
 /*- Prototypes -------------------------------------------------------------*/
 void NWK_DataReq(NWK_DataReq_t *req);
