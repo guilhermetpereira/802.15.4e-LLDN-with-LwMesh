@@ -171,7 +171,7 @@
   85 002e 8981      		ldd r24,Y+1
   86 0030 9A81      		ldd r25,Y+2
   87 0032 FC01      		movw r30,r24
-  88 0034 118A      		std Z+17,__zero_reg__
+  88 0034 108A      		std Z+16,__zero_reg__
   92:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	req->frame = NULL;
   89               		.loc 1 92 0
   90 0036 8981      		ldd r24,Y+1
@@ -277,1096 +277,1269 @@
  171 00ae 9E83      		std Y+6,r25
  172 00b0 8D83      		std Y+5,r24
  112:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	NwkFrame_t *frame;
- 113:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 114:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	if (NULL == (frame = nwkFrameAlloc())) {
- 173               		.loc 1 114 0
- 174 00b2 0E94 0000 		call nwkFrameAlloc
- 175 00b6 9A83      		std Y+2,r25
- 176 00b8 8983      		std Y+1,r24
- 177 00ba 8981      		ldd r24,Y+1
- 178 00bc 9A81      		ldd r25,Y+2
- 179 00be 892B      		or r24,r25
- 180 00c0 01F4      		brne .L7
- 115:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		req->state = NWK_DATA_REQ_STATE_CONFIRM;
- 181               		.loc 1 115 0
- 182 00c2 8D81      		ldd r24,Y+5
- 183 00c4 9E81      		ldd r25,Y+6
- 184 00c6 22E0      		ldi r18,lo8(2)
- 185 00c8 FC01      		movw r30,r24
- 186 00ca 2483      		std Z+4,r18
- 116:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		req->status = NWK_OUT_OF_MEMORY_STATUS;
- 187               		.loc 1 116 0
- 188 00cc 8D81      		ldd r24,Y+5
- 189 00ce 9E81      		ldd r25,Y+6
- 190 00d0 22E0      		ldi r18,lo8(2)
- 191 00d2 FC01      		movw r30,r24
- 192 00d4 218B      		std Z+17,r18
- 117:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		return;
- 193               		.loc 1 117 0
- 194 00d6 00C0      		rjmp .L6
- 195               	.L7:
- 118:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
- 119:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 120:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	req->frame = frame;
- 196               		.loc 1 120 0
- 197 00d8 8D81      		ldd r24,Y+5
- 198 00da 9E81      		ldd r25,Y+6
- 199 00dc 2981      		ldd r18,Y+1
- 200 00de 3A81      		ldd r19,Y+2
- 201 00e0 FC01      		movw r30,r24
- 202 00e2 3383      		std Z+3,r19
- 203 00e4 2283      		std Z+2,r18
- 121:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	req->state = NWK_DATA_REQ_STATE_WAIT_CONF;
- 204               		.loc 1 121 0
- 205 00e6 8D81      		ldd r24,Y+5
- 206 00e8 9E81      		ldd r25,Y+6
- 207 00ea 21E0      		ldi r18,lo8(1)
+ 113:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	if(req->options < NWK_OPT_LLDN_BEACON ) // use original frame allocation
+ 173               		.loc 1 113 0
+ 174 00b2 8D81      		ldd r24,Y+5
+ 175 00b4 9E81      		ldd r25,Y+6
+ 176 00b6 FC01      		movw r30,r24
+ 177 00b8 8185      		ldd r24,Z+9
+ 178 00ba 9285      		ldd r25,Z+10
+ 179 00bc 8034      		cpi r24,64
+ 180 00be 9105      		cpc r25,__zero_reg__
+ 181 00c0 00F4      		brsh .L7
+ 114:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	{																			 	// this is not optimezed for
+ 115:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		if(NULL == (frame = nwkFrameAlloc()))	// NWK_OPT_BEACON
+ 182               		.loc 1 115 0
+ 183 00c2 0E94 0000 		call nwkFrameAlloc
+ 184 00c6 9A83      		std Y+2,r25
+ 185 00c8 8983      		std Y+1,r24
+ 186 00ca 8981      		ldd r24,Y+1
+ 187 00cc 9A81      		ldd r25,Y+2
+ 188 00ce 892B      		or r24,r25
+ 189 00d0 01F4      		brne .L8
+ 116:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		{
+ 117:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			req->state = NWK_DATA_REQ_STATE_CONFIRM;
+ 190               		.loc 1 117 0
+ 191 00d2 8D81      		ldd r24,Y+5
+ 192 00d4 9E81      		ldd r25,Y+6
+ 193 00d6 22E0      		ldi r18,lo8(2)
+ 194 00d8 FC01      		movw r30,r24
+ 195 00da 2483      		std Z+4,r18
+ 118:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			req->status = NWK_OUT_OF_MEMORY_STATUS;
+ 196               		.loc 1 118 0
+ 197 00dc 8D81      		ldd r24,Y+5
+ 198 00de 9E81      		ldd r25,Y+6
+ 199 00e0 22E0      		ldi r18,lo8(2)
+ 200 00e2 FC01      		movw r30,r24
+ 201 00e4 208B      		std Z+16,r18
+ 119:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			return;
+ 202               		.loc 1 119 0
+ 203 00e6 00C0      		rjmp .L6
+ 204               	.L7:
+ 120:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
+ 121:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}	else {		// use LLDN allocation, alocattes depending on header size
+ 122:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		if( NULL == (frame = ((req->options & NWK_OPT_LLDN_BEACON) ? nwkFrameAlloc_LLDN(true) : nwkFrameA
+ 205               		.loc 1 122 0
+ 206 00e8 8D81      		ldd r24,Y+5
+ 207 00ea 9E81      		ldd r25,Y+6
  208 00ec FC01      		movw r30,r24
- 209 00ee 2483      		std Z+4,r18
- 122:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 123:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	frame->tx.confirm = nwkDataReqTxConf;
- 210               		.loc 1 123 0
- 211 00f0 8981      		ldd r24,Y+1
- 212 00f2 9A81      		ldd r25,Y+2
- 213 00f4 8957      		subi r24,121
- 214 00f6 9F4F      		sbci r25,-1
- 215 00f8 20E0      		ldi r18,lo8(gs(nwkDataReqTxConf))
- 216 00fa 30E0      		ldi r19,hi8(gs(nwkDataReqTxConf))
- 217 00fc FC01      		movw r30,r24
- 218 00fe 3183      		std Z+1,r19
- 219 0100 2083      		st Z,r18
- 124:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 125:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	if(req->options & NWK_OPT_BEACON)
- 220               		.loc 1 125 0
- 221 0102 8D81      		ldd r24,Y+5
- 222 0104 9E81      		ldd r25,Y+6
- 223 0106 FC01      		movw r30,r24
- 224 0108 8185      		ldd r24,Z+9
- 225 010a 882F      		mov r24,r24
- 226 010c 90E0      		ldi r25,0
- 227 010e 8072      		andi r24,32
- 228 0110 9927      		clr r25
- 229 0112 892B      		or r24,r25
- 230 0114 01F4      		brne .+2
- 231 0116 00C0      		rjmp .L9
- 126:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	{
- 127:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->size += sizeof(NwkFrameBeaconHeader_t);
- 232               		.loc 1 127 0
- 233 0118 8981      		ldd r24,Y+1
- 234 011a 9A81      		ldd r25,Y+2
- 235 011c FC01      		movw r30,r24
- 236 011e 8181      		ldd r24,Z+1
- 237 0120 2BE0      		ldi r18,lo8(11)
- 238 0122 280F      		add r18,r24
- 239 0124 8981      		ldd r24,Y+1
- 240 0126 9A81      		ldd r25,Y+2
- 241 0128 FC01      		movw r30,r24
- 242 012a 2183      		std Z+1,r18
- 128:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->payload += sizeof(NwkFrameBeaconHeader_t);
+ 209 00ee 8185      		ldd r24,Z+9
+ 210 00f0 9285      		ldd r25,Z+10
+ 211 00f2 8074      		andi r24,64
+ 212 00f4 9927      		clr r25
+ 213 00f6 892B      		or r24,r25
+ 214 00f8 01F0      		breq .L10
+ 215               		.loc 1 122 0 is_stmt 0 discriminator 1
+ 216 00fa 81E0      		ldi r24,lo8(1)
+ 217 00fc 0E94 0000 		call nwkFrameAlloc_LLDN
+ 218 0100 00C0      		rjmp .L11
+ 219               	.L10:
+ 220               		.loc 1 122 0 discriminator 2
+ 221 0102 80E0      		ldi r24,0
+ 222 0104 0E94 0000 		call nwkFrameAlloc_LLDN
+ 223               	.L11:
+ 224               		.loc 1 122 0 discriminator 4
+ 225 0108 9A83      		std Y+2,r25
+ 226 010a 8983      		std Y+1,r24
+ 227 010c 8981      		ldd r24,Y+1
+ 228 010e 9A81      		ldd r25,Y+2
+ 229 0110 892B      		or r24,r25
+ 230 0112 01F4      		brne .L8
+ 123:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		{
+ 124:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			// if there isn't space avaible in frame buffer queue, requested message
+ 125:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			// can't be process
+ 126:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			req->state = NWK_DATA_REQ_STATE_CONFIRM;
+ 231               		.loc 1 126 0 is_stmt 1
+ 232 0114 8D81      		ldd r24,Y+5
+ 233 0116 9E81      		ldd r25,Y+6
+ 234 0118 22E0      		ldi r18,lo8(2)
+ 235 011a FC01      		movw r30,r24
+ 236 011c 2483      		std Z+4,r18
+ 127:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			req->status = NWK_OUT_OF_MEMORY_STATUS;
+ 237               		.loc 1 127 0
+ 238 011e 8D81      		ldd r24,Y+5
+ 239 0120 9E81      		ldd r25,Y+6
+ 240 0122 22E0      		ldi r18,lo8(2)
+ 241 0124 FC01      		movw r30,r24
+ 242 0126 208B      		std Z+16,r18
+ 128:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			return;
  243               		.loc 1 128 0
- 244 012c 8981      		ldd r24,Y+1
- 245 012e 9A81      		ldd r25,Y+2
- 246 0130 8F57      		subi r24,127
- 247 0132 9F4F      		sbci r25,-1
- 248 0134 FC01      		movw r30,r24
- 249 0136 8081      		ld r24,Z
- 250 0138 9181      		ldd r25,Z+1
- 251 013a 9C01      		movw r18,r24
- 252 013c 255F      		subi r18,-11
- 253 013e 3F4F      		sbci r19,-1
- 254 0140 8981      		ldd r24,Y+1
- 255 0142 9A81      		ldd r25,Y+2
- 256 0144 8F57      		subi r24,127
- 257 0146 9F4F      		sbci r25,-1
- 258 0148 FC01      		movw r30,r24
- 259 014a 3183      		std Z+1,r19
- 260 014c 2083      		st Z,r18
- 129:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		
- 130:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->tx.control = 0;
- 261               		.loc 1 130 0
- 262 014e 8981      		ldd r24,Y+1
- 263 0150 9A81      		ldd r25,Y+2
- 264 0152 8A57      		subi r24,122
- 265 0154 9F4F      		sbci r25,-1
- 266 0156 FC01      		movw r30,r24
- 267 0158 1082      		st Z,__zero_reg__
- 131:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		
- 132:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macSFS.beaconOrder = BI_COEF;
- 268               		.loc 1 132 0
- 269 015a 8981      		ldd r24,Y+1
- 270 015c 9A81      		ldd r25,Y+2
- 271 015e FC01      		movw r30,r24
- 272 0160 2185      		ldd r18,Z+9
- 273 0162 207F      		andi r18,lo8(-16)
- 274 0164 2860      		ori r18,lo8(8)
- 275 0166 FC01      		movw r30,r24
- 276 0168 2187      		std Z+9,r18
- 133:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macSFS.superframeOrder = SD_COEF;
- 277               		.loc 1 133 0
- 278 016a 8981      		ldd r24,Y+1
- 279 016c 9A81      		ldd r25,Y+2
- 280 016e FC01      		movw r30,r24
- 281 0170 2185      		ldd r18,Z+9
- 282 0172 2F70      		andi r18,lo8(15)
- 283 0174 2066      		ori r18,lo8(96)
- 284 0176 FC01      		movw r30,r24
- 285 0178 2187      		std Z+9,r18
- 134:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macSFS.finalCAPslot = FINAL_CAP_SLOT;
- 286               		.loc 1 134 0
- 287 017a 8981      		ldd r24,Y+1
- 288 017c 9A81      		ldd r25,Y+2
- 289 017e FC01      		movw r30,r24
- 290 0180 2285      		ldd r18,Z+10
- 291 0182 207F      		andi r18,lo8(-16)
- 292 0184 2160      		ori r18,lo8(1)
- 293 0186 FC01      		movw r30,r24
- 294 0188 2287      		std Z+10,r18
- 135:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macSFS.BatteryLifeExtension = TDMA_BATTERY_EXTENSION;
- 295               		.loc 1 135 0
- 296 018a 8981      		ldd r24,Y+1
- 297 018c 9A81      		ldd r25,Y+2
- 298 018e FC01      		movw r30,r24
- 299 0190 2285      		ldd r18,Z+10
- 300 0192 2061      		ori r18,lo8(16)
- 301 0194 FC01      		movw r30,r24
- 302 0196 2287      		std Z+10,r18
- 136:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macSFS.PANCoordinator = 1;
- 303               		.loc 1 136 0
- 304 0198 8981      		ldd r24,Y+1
- 305 019a 9A81      		ldd r25,Y+2
- 306 019c FC01      		movw r30,r24
- 307 019e 2285      		ldd r18,Z+10
- 308 01a0 2064      		ori r18,lo8(64)
- 309 01a2 FC01      		movw r30,r24
- 310 01a4 2287      		std Z+10,r18
- 137:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macSFS.AssociationPermit = 0;
- 311               		.loc 1 137 0
- 312 01a6 8981      		ldd r24,Y+1
- 313 01a8 9A81      		ldd r25,Y+2
- 314 01aa FC01      		movw r30,r24
- 315 01ac 2285      		ldd r18,Z+10
- 316 01ae 2F77      		andi r18,lo8(127)
- 317 01b0 FC01      		movw r30,r24
- 318 01b2 2287      		std Z+10,r18
- 138:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		
- 139:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macGTS = 0;
- 319               		.loc 1 139 0
- 320 01b4 8981      		ldd r24,Y+1
- 321 01b6 9A81      		ldd r25,Y+2
- 322 01b8 FC01      		movw r30,r24
- 323 01ba 1386      		std Z+11,__zero_reg__
- 140:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macPending = 0;
- 324               		.loc 1 140 0
- 325 01bc 8981      		ldd r24,Y+1
- 326 01be 9A81      		ldd r25,Y+2
- 327 01c0 FC01      		movw r30,r24
- 328 01c2 1486      		std Z+12,__zero_reg__
- 141:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 142:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		memcpy(frame->payload, req->data, req->size);
- 329               		.loc 1 142 0
- 330 01c4 8D81      		ldd r24,Y+5
- 331 01c6 9E81      		ldd r25,Y+6
- 332 01c8 FC01      		movw r30,r24
- 333 01ca 8685      		ldd r24,Z+14
- 334 01cc 482F      		mov r20,r24
- 335 01ce 50E0      		ldi r21,0
- 336 01d0 8D81      		ldd r24,Y+5
- 337 01d2 9E81      		ldd r25,Y+6
- 338 01d4 FC01      		movw r30,r24
- 339 01d6 2485      		ldd r18,Z+12
- 340 01d8 3585      		ldd r19,Z+13
- 341 01da 8981      		ldd r24,Y+1
- 342 01dc 9A81      		ldd r25,Y+2
- 343 01de 8F57      		subi r24,127
- 344 01e0 9F4F      		sbci r25,-1
- 345 01e2 FC01      		movw r30,r24
- 346 01e4 8081      		ld r24,Z
- 347 01e6 9181      		ldd r25,Z+1
- 348 01e8 B901      		movw r22,r18
- 349 01ea 0E94 0000 		call memcpy
- 143:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->size += req->size;
- 350               		.loc 1 143 0
- 351 01ee 8981      		ldd r24,Y+1
- 352 01f0 9A81      		ldd r25,Y+2
- 353 01f2 FC01      		movw r30,r24
- 354 01f4 2181      		ldd r18,Z+1
- 355 01f6 8D81      		ldd r24,Y+5
- 356 01f8 9E81      		ldd r25,Y+6
- 357 01fa FC01      		movw r30,r24
- 358 01fc 8685      		ldd r24,Z+14
- 359 01fe 280F      		add r18,r24
- 360 0200 8981      		ldd r24,Y+1
- 361 0202 9A81      		ldd r25,Y+2
- 362 0204 FC01      		movw r30,r24
- 363 0206 2183      		std Z+1,r18
+ 244 0128 00C0      		rjmp .L6
+ 245               	.L8:
+ 129:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
+ 130:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
+ 131:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 132:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	if(req->options & NWK_OPT_LLDN_BEACON)
+ 246               		.loc 1 132 0
+ 247 012a 8D81      		ldd r24,Y+5
+ 248 012c 9E81      		ldd r25,Y+6
+ 249 012e FC01      		movw r30,r24
+ 250 0130 8185      		ldd r24,Z+9
+ 251 0132 9285      		ldd r25,Z+10
+ 252 0134 8074      		andi r24,64
+ 253 0136 9927      		clr r25
+ 254 0138 892B      		or r24,r25
+ 255 013a 01F4      		brne .+2
+ 256 013c 00C0      		rjmp .L12
+ 257               	.LBB2:
+ 133:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	{
+ 134:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->tx.control = 0;
+ 258               		.loc 1 134 0
+ 259 013e 8981      		ldd r24,Y+1
+ 260 0140 9A81      		ldd r25,Y+2
+ 261 0142 8A57      		subi r24,122
+ 262 0144 9F4F      		sbci r25,-1
+ 263 0146 FC01      		movw r30,r24
+ 264 0148 1082      		st Z,__zero_reg__
+ 135:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		// Set Flag depending on current state of coordinator
+ 136:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		if (req->options & NWK_OPT_LLDN_BEACON_ONLINE)
+ 265               		.loc 1 136 0
+ 266 014a 8D81      		ldd r24,Y+5
+ 267 014c 9E81      		ldd r25,Y+6
+ 268 014e FC01      		movw r30,r24
+ 269 0150 8185      		ldd r24,Z+9
+ 270 0152 9285      		ldd r25,Z+10
+ 271 0154 8078      		andi r24,128
+ 272 0156 9927      		clr r25
+ 273 0158 892B      		or r24,r25
+ 274 015a 01F0      		breq .L13
+ 137:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			frame->LLbeacon.Flags.txState = 0b000; // online mode
+ 275               		.loc 1 137 0
+ 276 015c 8981      		ldd r24,Y+1
+ 277 015e 9A81      		ldd r25,Y+2
+ 278 0160 FC01      		movw r30,r24
+ 279 0162 2581      		ldd r18,Z+5
+ 280 0164 287F      		andi r18,lo8(-8)
+ 281 0166 FC01      		movw r30,r24
+ 282 0168 2583      		std Z+5,r18
+ 283 016a 00C0      		rjmp .L14
+ 284               	.L13:
+ 138:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		else if (req->options & NWK_OPT_LLDN_BEACON_DISCOVERY)
+ 285               		.loc 1 138 0
+ 286 016c 8D81      		ldd r24,Y+5
+ 287 016e 9E81      		ldd r25,Y+6
+ 288 0170 FC01      		movw r30,r24
+ 289 0172 8185      		ldd r24,Z+9
+ 290 0174 9285      		ldd r25,Z+10
+ 291 0176 8827      		clr r24
+ 292 0178 9170      		andi r25,1
+ 293 017a 892B      		or r24,r25
+ 294 017c 01F0      		breq .L15
+ 139:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			frame->LLbeacon.Flags.txState = 0b100; // discovery mode
+ 295               		.loc 1 139 0
+ 296 017e 8981      		ldd r24,Y+1
+ 297 0180 9A81      		ldd r25,Y+2
+ 298 0182 FC01      		movw r30,r24
+ 299 0184 2581      		ldd r18,Z+5
+ 300 0186 287F      		andi r18,lo8(-8)
+ 301 0188 2460      		ori r18,lo8(4)
+ 302 018a FC01      		movw r30,r24
+ 303 018c 2583      		std Z+5,r18
+ 304 018e 00C0      		rjmp .L14
+ 305               	.L15:
+ 140:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		else if (req->options & NWK_OPT_LLDN_BEACON_CONFIG)
+ 306               		.loc 1 140 0
+ 307 0190 8D81      		ldd r24,Y+5
+ 308 0192 9E81      		ldd r25,Y+6
+ 309 0194 FC01      		movw r30,r24
+ 310 0196 8185      		ldd r24,Z+9
+ 311 0198 9285      		ldd r25,Z+10
+ 312 019a 8827      		clr r24
+ 313 019c 9270      		andi r25,2
+ 314 019e 892B      		or r24,r25
+ 315 01a0 01F0      		breq .L16
+ 141:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			frame->LLbeacon.Flags.txState = 0b110; // configuration mode
+ 316               		.loc 1 141 0
+ 317 01a2 8981      		ldd r24,Y+1
+ 318 01a4 9A81      		ldd r25,Y+2
+ 319 01a6 FC01      		movw r30,r24
+ 320 01a8 2581      		ldd r18,Z+5
+ 321 01aa 287F      		andi r18,lo8(-8)
+ 322 01ac 2660      		ori r18,lo8(6)
+ 323 01ae FC01      		movw r30,r24
+ 324 01b0 2583      		std Z+5,r18
+ 325 01b2 00C0      		rjmp .L14
+ 326               	.L16:
+ 142:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		else if (req->options & NWK_OPT_LLDN_BEACON_RESET)
+ 327               		.loc 1 142 0
+ 328 01b4 8D81      		ldd r24,Y+5
+ 329 01b6 9E81      		ldd r25,Y+6
+ 330 01b8 FC01      		movw r30,r24
+ 331 01ba 8185      		ldd r24,Z+9
+ 332 01bc 9285      		ldd r25,Z+10
+ 333 01be 8827      		clr r24
+ 334 01c0 9470      		andi r25,4
+ 335 01c2 892B      		or r24,r25
+ 336 01c4 01F0      		breq .L14
+ 143:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			frame->LLbeacon.Flags.txState = 0b111; // full reset mode
+ 337               		.loc 1 143 0
+ 338 01c6 8981      		ldd r24,Y+1
+ 339 01c8 9A81      		ldd r25,Y+2
+ 340 01ca FC01      		movw r30,r24
+ 341 01cc 2581      		ldd r18,Z+5
+ 342 01ce 2760      		ori r18,lo8(7)
+ 343 01d0 FC01      		movw r30,r24
+ 344 01d2 2583      		std Z+5,r18
+ 345               	.L14:
  144:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 145:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		nwkTxBeaconFrame(frame);
- 364               		.loc 1 145 0
- 365 0208 8981      		ldd r24,Y+1
- 366 020a 9A81      		ldd r25,Y+2
- 367 020c 0E94 0000 		call nwkTxBeaconFrame
- 368 0210 00C0      		rjmp .L6
- 369               	.L9:
- 146:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
- 147:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	else
- 148:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	{
- 149:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->size += sizeof(NwkFrameHeader_t);
- 370               		.loc 1 149 0
- 371 0212 8981      		ldd r24,Y+1
- 372 0214 9A81      		ldd r25,Y+2
- 373 0216 FC01      		movw r30,r24
- 374 0218 8181      		ldd r24,Z+1
- 375 021a 20E1      		ldi r18,lo8(16)
- 376 021c 280F      		add r18,r24
- 377 021e 8981      		ldd r24,Y+1
- 378 0220 9A81      		ldd r25,Y+2
- 379 0222 FC01      		movw r30,r24
- 380 0224 2183      		std Z+1,r18
- 150:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->payload += sizeof(NwkFrameHeader_t);
- 381               		.loc 1 150 0
- 382 0226 8981      		ldd r24,Y+1
- 383 0228 9A81      		ldd r25,Y+2
- 384 022a 8F57      		subi r24,127
- 385 022c 9F4F      		sbci r25,-1
- 386 022e FC01      		movw r30,r24
- 387 0230 8081      		ld r24,Z
- 388 0232 9181      		ldd r25,Z+1
- 389 0234 9C01      		movw r18,r24
- 390 0236 205F      		subi r18,-16
- 391 0238 3F4F      		sbci r19,-1
- 392 023a 8981      		ldd r24,Y+1
- 393 023c 9A81      		ldd r25,Y+2
- 394 023e 8F57      		subi r24,127
- 395 0240 9F4F      		sbci r25,-1
- 396 0242 FC01      		movw r30,r24
- 397 0244 3183      		std Z+1,r19
- 398 0246 2083      		st Z,r18
- 151:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 152:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->tx.control = (req->options & NWK_OPT_BROADCAST_PAN_ID) ? NWK_TX_CONTROL_BROADCAST_PAN_ID :
- 399               		.loc 1 152 0
- 400 0248 8D81      		ldd r24,Y+5
- 401 024a 9E81      		ldd r25,Y+6
- 402 024c FC01      		movw r30,r24
- 403 024e 8185      		ldd r24,Z+9
- 404 0250 882F      		mov r24,r24
- 405 0252 90E0      		ldi r25,0
- 406 0254 8470      		andi r24,4
- 407 0256 9927      		clr r25
- 408 0258 21E0      		ldi r18,lo8(1)
- 409 025a 892B      		or r24,r25
- 410 025c 01F4      		brne .L10
- 411 025e 20E0      		ldi r18,0
- 412               	.L10:
- 413 0260 8981      		ldd r24,Y+1
- 414 0262 9A81      		ldd r25,Y+2
- 415 0264 8A57      		subi r24,122
- 416 0266 9F4F      		sbci r25,-1
- 417 0268 FC01      		movw r30,r24
- 418 026a 2083      		st Z,r18
- 153:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 154:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkFcf.ackRequest = (req->options & NWK_OPT_ACK_REQUEST) ? 1 : 0;
- 419               		.loc 1 154 0
- 420 026c 8D81      		ldd r24,Y+5
- 421 026e 9E81      		ldd r25,Y+6
- 422 0270 FC01      		movw r30,r24
- 423 0272 8185      		ldd r24,Z+9
- 424 0274 882F      		mov r24,r24
- 425 0276 90E0      		ldi r25,0
- 426 0278 8170      		andi r24,1
- 427 027a 9927      		clr r25
- 428 027c 21E0      		ldi r18,lo8(1)
- 429 027e 892B      		or r24,r25
- 430 0280 01F4      		brne .L11
- 431 0282 20E0      		ldi r18,0
- 432               	.L11:
- 433 0284 8981      		ldd r24,Y+1
- 434 0286 9A81      		ldd r25,Y+2
- 435 0288 2170      		andi r18,lo8(1)
- 436 028a FC01      		movw r30,r24
- 437 028c 3385      		ldd r19,Z+11
- 438 028e 3E7F      		andi r19,lo8(-2)
- 439 0290 232B      		or r18,r19
- 440 0292 FC01      		movw r30,r24
- 441 0294 2387      		std Z+11,r18
- 155:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkFcf.linkLocal = (req->options & NWK_OPT_LINK_LOCAL) ? 1 : 0;
- 442               		.loc 1 155 0
- 443 0296 8D81      		ldd r24,Y+5
- 444 0298 9E81      		ldd r25,Y+6
- 445 029a FC01      		movw r30,r24
- 446 029c 8185      		ldd r24,Z+9
- 447 029e 882F      		mov r24,r24
- 448 02a0 90E0      		ldi r25,0
- 449 02a2 8870      		andi r24,8
- 450 02a4 9927      		clr r25
- 451 02a6 21E0      		ldi r18,lo8(1)
- 452 02a8 892B      		or r24,r25
- 453 02aa 01F4      		brne .L12
- 454 02ac 20E0      		ldi r18,0
- 455               	.L12:
- 456 02ae 8981      		ldd r24,Y+1
- 457 02b0 9A81      		ldd r25,Y+2
- 458 02b2 2170      		andi r18,lo8(1)
- 459 02b4 220F      		lsl r18
- 460 02b6 220F      		lsl r18
- 461 02b8 FC01      		movw r30,r24
- 462 02ba 3385      		ldd r19,Z+11
- 463 02bc 3B7F      		andi r19,lo8(-5)
- 464 02be 232B      		or r18,r19
- 465 02c0 FC01      		movw r30,r24
- 466 02c2 2387      		std Z+11,r18
- 156:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkFcf.beacon = (req->options & NWK_OPT_BEACON) ? 1 : 0;
- 467               		.loc 1 156 0
- 468 02c4 8D81      		ldd r24,Y+5
- 469 02c6 9E81      		ldd r25,Y+6
- 470 02c8 FC01      		movw r30,r24
- 471 02ca 8185      		ldd r24,Z+9
- 472 02cc 882F      		mov r24,r24
- 473 02ce 90E0      		ldi r25,0
- 474 02d0 8072      		andi r24,32
- 475 02d2 9927      		clr r25
- 476 02d4 21E0      		ldi r18,lo8(1)
- 477 02d6 892B      		or r24,r25
- 478 02d8 01F4      		brne .L13
- 479 02da 20E0      		ldi r18,0
- 480               	.L13:
- 481 02dc 8981      		ldd r24,Y+1
- 482 02de 9A81      		ldd r25,Y+2
- 483 02e0 2170      		andi r18,lo8(1)
- 484 02e2 2295      		swap r18
- 485 02e4 207F      		andi r18,lo8(-16)
- 486 02e6 FC01      		movw r30,r24
- 487 02e8 3385      		ldd r19,Z+11
- 488 02ea 3F7E      		andi r19,lo8(-17)
- 489 02ec 232B      		or r18,r19
- 490 02ee FC01      		movw r30,r24
- 491 02f0 2387      		std Z+11,r18
- 157:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 158:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** #ifdef NWK_ENABLE_SECURITY
- 159:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkFcf.security = (req->options & NWK_OPT_ENABLE_SECURITY) ? 1 : 0;
- 160:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** #endif
- 161:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 162:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** #ifdef NWK_ENABLE_MULTICAST
- 163:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkFcf.multicast = (req->options & NWK_OPT_MULTICAST) ? 1 : 0;
- 492               		.loc 1 163 0
- 493 02f2 8D81      		ldd r24,Y+5
- 494 02f4 9E81      		ldd r25,Y+6
- 495 02f6 FC01      		movw r30,r24
- 496 02f8 8185      		ldd r24,Z+9
- 497 02fa 882F      		mov r24,r24
- 498 02fc 90E0      		ldi r25,0
- 499 02fe 8071      		andi r24,16
- 500 0300 9927      		clr r25
- 501 0302 21E0      		ldi r18,lo8(1)
- 502 0304 892B      		or r24,r25
- 503 0306 01F4      		brne .L14
- 504 0308 20E0      		ldi r18,0
- 505               	.L14:
- 506 030a 8981      		ldd r24,Y+1
- 507 030c 9A81      		ldd r25,Y+2
- 508 030e 2170      		andi r18,lo8(1)
- 509 0310 220F      		lsl r18
- 510 0312 220F      		lsl r18
- 511 0314 220F      		lsl r18
- 512 0316 FC01      		movw r30,r24
- 513 0318 3385      		ldd r19,Z+11
- 514 031a 377F      		andi r19,lo8(-9)
- 515 031c 232B      		or r18,r19
- 516 031e FC01      		movw r30,r24
- 517 0320 2387      		std Z+11,r18
- 164:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 165:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		if (frame->header.nwkFcf.multicast)
- 518               		.loc 1 165 0
- 519 0322 8981      		ldd r24,Y+1
- 520 0324 9A81      		ldd r25,Y+2
- 521 0326 FC01      		movw r30,r24
- 522 0328 8385      		ldd r24,Z+11
- 523 032a 8870      		andi r24,lo8(8)
- 524 032c 8823      		tst r24
- 525 032e 01F4      		brne .+2
- 526 0330 00C0      		rjmp .L15
- 527               	.LBB2:
- 166:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		{
- 167:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			NwkFrameMulticastHeader_t *mcHeader = (NwkFrameMulticastHeader_t *)frame->payload;
- 528               		.loc 1 167 0
- 529 0332 8981      		ldd r24,Y+1
- 530 0334 9A81      		ldd r25,Y+2
- 531 0336 8F57      		subi r24,127
- 532 0338 9F4F      		sbci r25,-1
- 533 033a FC01      		movw r30,r24
- 534 033c 8081      		ld r24,Z
- 535 033e 9181      		ldd r25,Z+1
- 536 0340 9C83      		std Y+4,r25
- 537 0342 8B83      		std Y+3,r24
- 168:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 169:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			mcHeader->memberRadius = req->memberRadius;
- 538               		.loc 1 169 0
- 539 0344 8D81      		ldd r24,Y+5
- 540 0346 9E81      		ldd r25,Y+6
- 541 0348 FC01      		movw r30,r24
- 542 034a 8285      		ldd r24,Z+10
- 543 034c 282F      		mov r18,r24
- 544 034e 2F70      		andi r18,lo8(15)
- 545 0350 8B81      		ldd r24,Y+3
- 546 0352 9C81      		ldd r25,Y+4
- 547 0354 2F70      		andi r18,lo8(15)
- 548 0356 FC01      		movw r30,r24
- 549 0358 3181      		ldd r19,Z+1
- 550 035a 307F      		andi r19,lo8(-16)
- 551 035c 232B      		or r18,r19
- 552 035e FC01      		movw r30,r24
- 553 0360 2183      		std Z+1,r18
- 170:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			mcHeader->maxMemberRadius = req->memberRadius;
- 554               		.loc 1 170 0
- 555 0362 8D81      		ldd r24,Y+5
- 556 0364 9E81      		ldd r25,Y+6
- 557 0366 FC01      		movw r30,r24
- 558 0368 8285      		ldd r24,Z+10
- 559 036a 282F      		mov r18,r24
- 560 036c 2F70      		andi r18,lo8(15)
- 561 036e 8B81      		ldd r24,Y+3
- 562 0370 9C81      		ldd r25,Y+4
- 563 0372 2295      		swap r18
- 564 0374 207F      		andi r18,lo8(-16)
- 565 0376 FC01      		movw r30,r24
- 566 0378 3181      		ldd r19,Z+1
- 567 037a 3F70      		andi r19,lo8(15)
- 568 037c 232B      		or r18,r19
- 569 037e FC01      		movw r30,r24
- 570 0380 2183      		std Z+1,r18
- 171:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			mcHeader->nonMemberRadius = req->nonMemberRadius;
- 571               		.loc 1 171 0
- 572 0382 8D81      		ldd r24,Y+5
- 573 0384 9E81      		ldd r25,Y+6
- 574 0386 FC01      		movw r30,r24
- 575 0388 8385      		ldd r24,Z+11
- 576 038a 282F      		mov r18,r24
- 577 038c 2F70      		andi r18,lo8(15)
- 578 038e 8B81      		ldd r24,Y+3
- 579 0390 9C81      		ldd r25,Y+4
- 580 0392 2F70      		andi r18,lo8(15)
- 581 0394 FC01      		movw r30,r24
- 582 0396 3081      		ld r19,Z
- 583 0398 307F      		andi r19,lo8(-16)
- 584 039a 232B      		or r18,r19
- 585 039c FC01      		movw r30,r24
- 586 039e 2083      		st Z,r18
- 172:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			mcHeader->maxNonMemberRadius = req->nonMemberRadius;
- 587               		.loc 1 172 0
- 588 03a0 8D81      		ldd r24,Y+5
- 589 03a2 9E81      		ldd r25,Y+6
- 590 03a4 FC01      		movw r30,r24
- 591 03a6 8385      		ldd r24,Z+11
- 592 03a8 282F      		mov r18,r24
- 593 03aa 2F70      		andi r18,lo8(15)
- 594 03ac 8B81      		ldd r24,Y+3
- 595 03ae 9C81      		ldd r25,Y+4
- 596 03b0 2295      		swap r18
- 597 03b2 207F      		andi r18,lo8(-16)
- 598 03b4 FC01      		movw r30,r24
- 599 03b6 3081      		ld r19,Z
- 600 03b8 3F70      		andi r19,lo8(15)
- 601 03ba 232B      		or r18,r19
- 602 03bc FC01      		movw r30,r24
- 603 03be 2083      		st Z,r18
- 173:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 174:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			frame->payload += sizeof(NwkFrameMulticastHeader_t);
- 604               		.loc 1 174 0
- 605 03c0 8981      		ldd r24,Y+1
- 606 03c2 9A81      		ldd r25,Y+2
- 607 03c4 8F57      		subi r24,127
- 608 03c6 9F4F      		sbci r25,-1
- 609 03c8 FC01      		movw r30,r24
- 610 03ca 8081      		ld r24,Z
- 611 03cc 9181      		ldd r25,Z+1
- 612 03ce 9C01      		movw r18,r24
- 613 03d0 2E5F      		subi r18,-2
- 614 03d2 3F4F      		sbci r19,-1
- 615 03d4 8981      		ldd r24,Y+1
- 616 03d6 9A81      		ldd r25,Y+2
- 617 03d8 8F57      		subi r24,127
- 618 03da 9F4F      		sbci r25,-1
- 619 03dc FC01      		movw r30,r24
- 620 03de 3183      		std Z+1,r19
- 621 03e0 2083      		st Z,r18
- 175:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			frame->size += sizeof(NwkFrameMulticastHeader_t);
- 622               		.loc 1 175 0
- 623 03e2 8981      		ldd r24,Y+1
- 624 03e4 9A81      		ldd r25,Y+2
- 625 03e6 FC01      		movw r30,r24
- 626 03e8 8181      		ldd r24,Z+1
- 627 03ea 22E0      		ldi r18,lo8(2)
- 628 03ec 280F      		add r18,r24
- 629 03ee 8981      		ldd r24,Y+1
- 630 03f0 9A81      		ldd r25,Y+2
- 631 03f2 FC01      		movw r30,r24
- 632 03f4 2183      		std Z+1,r18
- 633               	.L15:
- 634               	.LBE2:
- 176:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
- 177:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 178:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** #endif
- 179:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 180:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkSeq = ++nwkIb.nwkSeqNum;
- 635               		.loc 1 180 0
- 636 03f6 8091 0000 		lds r24,nwkIb+4
- 637 03fa 8F5F      		subi r24,lo8(-(1))
- 638 03fc 8093 0000 		sts nwkIb+4,r24
- 639 0400 2091 0000 		lds r18,nwkIb+4
- 640 0404 8981      		ldd r24,Y+1
- 641 0406 9A81      		ldd r25,Y+2
- 642 0408 FC01      		movw r30,r24
- 643 040a 2487      		std Z+12,r18
- 181:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkSrcAddr = nwkIb.addr;
- 644               		.loc 1 181 0
- 645 040c 2091 0000 		lds r18,nwkIb
- 646 0410 3091 0000 		lds r19,nwkIb+1
- 647 0414 8981      		ldd r24,Y+1
- 648 0416 9A81      		ldd r25,Y+2
- 649 0418 FC01      		movw r30,r24
- 650 041a 3687      		std Z+14,r19
- 651 041c 2587      		std Z+13,r18
- 182:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkDstAddr = req->dstAddr;
- 652               		.loc 1 182 0
- 653 041e 8D81      		ldd r24,Y+5
- 654 0420 9E81      		ldd r25,Y+6
- 655 0422 FC01      		movw r30,r24
- 656 0424 2581      		ldd r18,Z+5
- 657 0426 3681      		ldd r19,Z+6
- 658 0428 8981      		ldd r24,Y+1
- 659 042a 9A81      		ldd r25,Y+2
- 660 042c FC01      		movw r30,r24
- 661 042e 308B      		std Z+16,r19
- 662 0430 2787      		std Z+15,r18
- 183:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkSrcEndpoint = req->srcEndpoint;
- 663               		.loc 1 183 0
- 664 0432 8D81      		ldd r24,Y+5
- 665 0434 9E81      		ldd r25,Y+6
- 666 0436 FC01      		movw r30,r24
- 667 0438 8085      		ldd r24,Z+8
- 668 043a 282F      		mov r18,r24
- 669 043c 2F70      		andi r18,lo8(15)
- 670 043e 8981      		ldd r24,Y+1
- 671 0440 9A81      		ldd r25,Y+2
- 672 0442 2F70      		andi r18,lo8(15)
- 673 0444 FC01      		movw r30,r24
- 674 0446 3189      		ldd r19,Z+17
- 675 0448 307F      		andi r19,lo8(-16)
- 676 044a 232B      		or r18,r19
- 677 044c FC01      		movw r30,r24
- 678 044e 218B      		std Z+17,r18
- 184:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkDstEndpoint = req->dstEndpoint;
- 679               		.loc 1 184 0
- 680 0450 8D81      		ldd r24,Y+5
- 681 0452 9E81      		ldd r25,Y+6
- 682 0454 FC01      		movw r30,r24
- 683 0456 8781      		ldd r24,Z+7
- 684 0458 282F      		mov r18,r24
- 685 045a 2F70      		andi r18,lo8(15)
- 686 045c 8981      		ldd r24,Y+1
- 687 045e 9A81      		ldd r25,Y+2
- 688 0460 2295      		swap r18
- 689 0462 207F      		andi r18,lo8(-16)
- 690 0464 FC01      		movw r30,r24
- 691 0466 3189      		ldd r19,Z+17
- 692 0468 3F70      		andi r19,lo8(15)
- 693 046a 232B      		or r18,r19
- 694 046c FC01      		movw r30,r24
- 695 046e 218B      		std Z+17,r18
- 185:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		
- 186:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		memcpy(frame->payload, req->data, req->size);
- 696               		.loc 1 186 0
- 697 0470 8D81      		ldd r24,Y+5
- 698 0472 9E81      		ldd r25,Y+6
- 699 0474 FC01      		movw r30,r24
- 700 0476 8685      		ldd r24,Z+14
- 701 0478 482F      		mov r20,r24
- 702 047a 50E0      		ldi r21,0
- 703 047c 8D81      		ldd r24,Y+5
- 704 047e 9E81      		ldd r25,Y+6
- 705 0480 FC01      		movw r30,r24
- 706 0482 2485      		ldd r18,Z+12
- 707 0484 3585      		ldd r19,Z+13
- 708 0486 8981      		ldd r24,Y+1
- 709 0488 9A81      		ldd r25,Y+2
- 710 048a 8F57      		subi r24,127
- 711 048c 9F4F      		sbci r25,-1
- 712 048e FC01      		movw r30,r24
- 713 0490 8081      		ld r24,Z
- 714 0492 9181      		ldd r25,Z+1
- 715 0494 B901      		movw r22,r18
- 716 0496 0E94 0000 		call memcpy
- 187:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->size += req->size;
- 717               		.loc 1 187 0
- 718 049a 8981      		ldd r24,Y+1
- 719 049c 9A81      		ldd r25,Y+2
- 720 049e FC01      		movw r30,r24
- 721 04a0 2181      		ldd r18,Z+1
- 722 04a2 8D81      		ldd r24,Y+5
- 723 04a4 9E81      		ldd r25,Y+6
- 724 04a6 FC01      		movw r30,r24
- 725 04a8 8685      		ldd r24,Z+14
- 726 04aa 280F      		add r18,r24
- 727 04ac 8981      		ldd r24,Y+1
- 728 04ae 9A81      		ldd r25,Y+2
- 729 04b0 FC01      		movw r30,r24
- 730 04b2 2183      		std Z+1,r18
- 188:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		
- 189:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		nwkTxFrame(frame);
- 731               		.loc 1 189 0
- 732 04b4 8981      		ldd r24,Y+1
- 733 04b6 9A81      		ldd r25,Y+2
- 734 04b8 0E94 0000 		call nwkTxFrame
- 735               	.L6:
- 736               	/* epilogue start */
- 190:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
- 191:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** }
- 737               		.loc 1 191 0
- 738 04bc 2696      		adiw r28,6
- 739 04be 0FB6      		in __tmp_reg__,__SREG__
- 740 04c0 F894      		cli
- 741 04c2 DEBF      		out __SP_H__,r29
- 742 04c4 0FBE      		out __SREG__,__tmp_reg__
- 743 04c6 CDBF      		out __SP_L__,r28
- 744 04c8 DF91      		pop r29
- 745 04ca CF91      		pop r28
- 746 04cc 0895      		ret
- 747               		.cfi_endproc
- 748               	.LFE68:
- 751               	nwkDataReqTxConf:
- 752               	.LFB69:
- 192:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 193:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** /*************************************************************************//**
- 194:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *  @brief Frame transmission confirmation handler
- 195:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *  @param[in] frame Pointer to the sent frame
- 196:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *****************************************************************************/
- 197:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** static void nwkDataReqTxConf(NwkFrame_t *frame)
- 198:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** {
- 753               		.loc 1 198 0
- 754               		.cfi_startproc
- 755 04ce CF93      		push r28
- 756               	.LCFI11:
- 757               		.cfi_def_cfa_offset 3
- 758               		.cfi_offset 28, -2
- 759 04d0 DF93      		push r29
- 760               	.LCFI12:
- 761               		.cfi_def_cfa_offset 4
- 762               		.cfi_offset 29, -3
- 763 04d2 00D0      		rcall .
- 764 04d4 00D0      		rcall .
- 765               	.LCFI13:
- 766               		.cfi_def_cfa_offset 8
- 767 04d6 CDB7      		in r28,__SP_L__
- 768 04d8 DEB7      		in r29,__SP_H__
- 769               	.LCFI14:
- 770               		.cfi_def_cfa_register 28
- 771               	/* prologue: function */
- 772               	/* frame size = 4 */
- 773               	/* stack size = 6 */
- 774               	.L__stack_usage = 6
- 775 04da 9C83      		std Y+4,r25
- 776 04dc 8B83      		std Y+3,r24
- 777               	.LBB3:
- 199:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	for (NWK_DataReq_t *req = nwkDataReqQueue; req; req = req->next) {
- 778               		.loc 1 199 0
- 779 04de 8091 0000 		lds r24,nwkDataReqQueue
- 780 04e2 9091 0000 		lds r25,nwkDataReqQueue+1
- 781 04e6 9A83      		std Y+2,r25
- 782 04e8 8983      		std Y+1,r24
- 783 04ea 00C0      		rjmp .L17
- 784               	.L20:
- 200:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		if (req->frame == frame) {
- 785               		.loc 1 200 0
- 786 04ec 8981      		ldd r24,Y+1
- 787 04ee 9A81      		ldd r25,Y+2
- 788 04f0 FC01      		movw r30,r24
- 789 04f2 2281      		ldd r18,Z+2
- 790 04f4 3381      		ldd r19,Z+3
- 791 04f6 8B81      		ldd r24,Y+3
- 792 04f8 9C81      		ldd r25,Y+4
- 793 04fa 2817      		cp r18,r24
- 794 04fc 3907      		cpc r19,r25
- 795 04fe 01F4      		brne .L18
- 201:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			req->status = frame->tx.status;
- 796               		.loc 1 201 0
- 797 0500 8B81      		ldd r24,Y+3
- 798 0502 9C81      		ldd r25,Y+4
- 799 0504 8D57      		subi r24,125
- 800 0506 9F4F      		sbci r25,-1
- 801 0508 FC01      		movw r30,r24
- 802 050a 2081      		ld r18,Z
- 803 050c 8981      		ldd r24,Y+1
- 804 050e 9A81      		ldd r25,Y+2
- 805 0510 FC01      		movw r30,r24
- 806 0512 218B      		std Z+17,r18
- 202:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			req->control = frame->tx.control;
- 807               		.loc 1 202 0
- 808 0514 8B81      		ldd r24,Y+3
- 809 0516 9C81      		ldd r25,Y+4
- 810 0518 8A57      		subi r24,122
- 811 051a 9F4F      		sbci r25,-1
- 812 051c FC01      		movw r30,r24
- 813 051e 2081      		ld r18,Z
- 814 0520 8981      		ldd r24,Y+1
- 815 0522 9A81      		ldd r25,Y+2
- 816 0524 FC01      		movw r30,r24
- 817 0526 228B      		std Z+18,r18
- 203:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			req->state = NWK_DATA_REQ_STATE_CONFIRM;
- 818               		.loc 1 203 0
- 819 0528 8981      		ldd r24,Y+1
- 820 052a 9A81      		ldd r25,Y+2
- 821 052c 22E0      		ldi r18,lo8(2)
- 822 052e FC01      		movw r30,r24
- 823 0530 2483      		std Z+4,r18
- 204:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			break;
- 824               		.loc 1 204 0
- 825 0532 00C0      		rjmp .L19
- 826               	.L18:
- 199:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		if (req->frame == frame) {
- 827               		.loc 1 199 0 discriminator 2
- 828 0534 8981      		ldd r24,Y+1
- 829 0536 9A81      		ldd r25,Y+2
- 830 0538 FC01      		movw r30,r24
- 831 053a 8081      		ld r24,Z
- 832 053c 9181      		ldd r25,Z+1
- 833 053e 9A83      		std Y+2,r25
- 834 0540 8983      		std Y+1,r24
- 835               	.L17:
- 199:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		if (req->frame == frame) {
- 836               		.loc 1 199 0 is_stmt 0 discriminator 1
- 837 0542 8981      		ldd r24,Y+1
- 838 0544 9A81      		ldd r25,Y+2
- 839 0546 892B      		or r24,r25
- 840 0548 01F4      		brne .L20
- 841               	.L19:
- 842               	.LBE3:
- 205:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
- 206:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
- 207:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 208:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	nwkFrameFree(frame);
- 843               		.loc 1 208 0 is_stmt 1
- 844 054a 8B81      		ldd r24,Y+3
- 845 054c 9C81      		ldd r25,Y+4
- 846 054e 0E94 0000 		call nwkFrameFree
- 209:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** }
- 847               		.loc 1 209 0
- 848 0552 0000      		nop
- 849               	/* epilogue start */
- 850 0554 0F90      		pop __tmp_reg__
- 851 0556 0F90      		pop __tmp_reg__
- 852 0558 0F90      		pop __tmp_reg__
- 853 055a 0F90      		pop __tmp_reg__
- 854 055c DF91      		pop r29
- 855 055e CF91      		pop r28
- 856 0560 0895      		ret
- 857               		.cfi_endproc
- 858               	.LFE69:
- 861               	nwkDataReqConfirm:
- 862               	.LFB70:
+ 145:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		// set biderectional time slots: 0 - downlink 1 - uplink
+ 146:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->LLbeacon.Flags.txDir 		= 0b0;
+ 346               		.loc 1 146 0
+ 347 01d4 8981      		ldd r24,Y+1
+ 348 01d6 9A81      		ldd r25,Y+2
+ 349 01d8 FC01      		movw r30,r24
+ 350 01da 2581      		ldd r18,Z+5
+ 351 01dc 277F      		andi r18,lo8(-9)
+ 352 01de FC01      		movw r30,r24
+ 353 01e0 2583      		std Z+5,r18
+ 147:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->LLbeacon.Flags.reserved 	= 0b0;
+ 354               		.loc 1 147 0
+ 355 01e2 8981      		ldd r24,Y+1
+ 356 01e4 9A81      		ldd r25,Y+2
+ 357 01e6 FC01      		movw r30,r24
+ 358 01e8 2581      		ldd r18,Z+5
+ 359 01ea 2F7E      		andi r18,lo8(-17)
+ 360 01ec FC01      		movw r30,r24
+ 361 01ee 2583      		std Z+5,r18
+ 148:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		// set number of managment timeslots
+ 149:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->LLbeacon.Flags.numMgmtTimeslots = NWK_NUMBER_OF_MGMT_TIMESLOTS;
+ 362               		.loc 1 149 0
+ 363 01f0 8981      		ldd r24,Y+1
+ 364 01f2 9A81      		ldd r25,Y+2
+ 365 01f4 FC01      		movw r30,r24
+ 366 01f6 2581      		ldd r18,Z+5
+ 367 01f8 206E      		ori r18,lo8(-32)
+ 368 01fa FC01      		movw r30,r24
+ 369 01fc 2583      		std Z+5,r18
+ 150:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 151:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		if (req->options & 	NWK_OPT_LLDN_BEACON_SECOND)
+ 370               		.loc 1 151 0
+ 371 01fe 8D81      		ldd r24,Y+5
+ 372 0200 9E81      		ldd r25,Y+6
+ 373 0202 FC01      		movw r30,r24
+ 374 0204 8185      		ldd r24,Z+9
+ 375 0206 9285      		ldd r25,Z+10
+ 376 0208 8827      		clr r24
+ 377 020a 9870      		andi r25,8
+ 378 020c 892B      		or r24,r25
+ 379 020e 01F0      		breq .L17
+ 152:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		 frame->LLbeacon.confSeqNumber = 0x01;
+ 380               		.loc 1 152 0
+ 381 0210 8981      		ldd r24,Y+1
+ 382 0212 9A81      		ldd r25,Y+2
+ 383 0214 21E0      		ldi r18,lo8(1)
+ 384 0216 FC01      		movw r30,r24
+ 385 0218 2783      		std Z+7,r18
+ 386 021a 00C0      		rjmp .L18
+ 387               	.L17:
+ 153:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		else if (req->options & 	NWK_OPT_LLDN_BEACON_THIRD)
+ 388               		.loc 1 153 0
+ 389 021c 8D81      		ldd r24,Y+5
+ 390 021e 9E81      		ldd r25,Y+6
+ 391 0220 FC01      		movw r30,r24
+ 392 0222 8185      		ldd r24,Z+9
+ 393 0224 9285      		ldd r25,Z+10
+ 394 0226 8827      		clr r24
+ 395 0228 9071      		andi r25,16
+ 396 022a 892B      		or r24,r25
+ 397 022c 01F0      		breq .L19
+ 154:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			frame->LLbeacon.confSeqNumber = 0x02;
+ 398               		.loc 1 154 0
+ 399 022e 8981      		ldd r24,Y+1
+ 400 0230 9A81      		ldd r25,Y+2
+ 401 0232 22E0      		ldi r18,lo8(2)
+ 402 0234 FC01      		movw r30,r24
+ 403 0236 2783      		std Z+7,r18
+ 404 0238 00C0      		rjmp .L18
+ 405               	.L19:
+ 155:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		else frame->LLbeacon.confSeqNumber = 0x00;
+ 406               		.loc 1 155 0
+ 407 023a 8981      		ldd r24,Y+1
+ 408 023c 9A81      		ldd r25,Y+2
+ 409 023e FC01      		movw r30,r24
+ 410 0240 1782      		std Z+7,__zero_reg__
+ 411               	.L18:
+ 156:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 157:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->LLbeacon.TimeSlotSize 	= 0xff; // calculation needs to be implemented, see timers first
+ 412               		.loc 1 157 0
+ 413 0242 8981      		ldd r24,Y+1
+ 414 0244 9A81      		ldd r25,Y+2
+ 415 0246 2FEF      		ldi r18,lo8(-1)
+ 416 0248 FC01      		movw r30,r24
+ 417 024a 2087      		std Z+8,r18
+ 158:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 159:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		uint8_t* shortAddr = (uint8_t* )nwkIb.addr;
+ 418               		.loc 1 159 0
+ 419 024c 8091 0000 		lds r24,nwkIb
+ 420 0250 9091 0000 		lds r25,nwkIb+1
+ 421 0254 9C83      		std Y+4,r25
+ 422 0256 8B83      		std Y+3,r24
+ 160:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->LLbeacon.PanId = shortAddr[0];
+ 423               		.loc 1 160 0
+ 424 0258 8B81      		ldd r24,Y+3
+ 425 025a 9C81      		ldd r25,Y+4
+ 426 025c FC01      		movw r30,r24
+ 427 025e 2081      		ld r18,Z
+ 428 0260 8981      		ldd r24,Y+1
+ 429 0262 9A81      		ldd r25,Y+2
+ 430 0264 FC01      		movw r30,r24
+ 431 0266 2683      		std Z+6,r18
+ 161:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		// set Frame Control, Security Header and Sequence Nuber fields
+ 162:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		nwkTxBeaconFrameLLDN(frame);
+ 432               		.loc 1 162 0
+ 433 0268 8981      		ldd r24,Y+1
+ 434 026a 9A81      		ldd r25,Y+2
+ 435 026c 0E94 0000 		call nwkTxBeaconFrameLLDN
+ 436               	.LBE2:
+ 437 0270 00C0      		rjmp .L20
+ 438               	.L12:
+ 163:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
+ 164:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	else if(req->options & NWK_OPT_MAC_COMMAND ||
+ 439               		.loc 1 164 0
+ 440 0272 8D81      		ldd r24,Y+5
+ 441 0274 9E81      		ldd r25,Y+6
+ 442 0276 FC01      		movw r30,r24
+ 443 0278 8185      		ldd r24,Z+9
+ 444 027a 9285      		ldd r25,Z+10
+ 445 027c 9923      		tst r25
+ 446 027e 04F0      		brlt .L21
+ 165:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 					req->options & NWK_OPT_LLDN_DATA 	||
+ 447               		.loc 1 165 0 discriminator 1
+ 448 0280 8D81      		ldd r24,Y+5
+ 449 0282 9E81      		ldd r25,Y+6
+ 450 0284 FC01      		movw r30,r24
+ 451 0286 8185      		ldd r24,Z+9
+ 452 0288 9285      		ldd r25,Z+10
+ 453 028a 8827      		clr r24
+ 454 028c 9072      		andi r25,32
+ 164:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 					req->options & NWK_OPT_LLDN_DATA 	||
+ 455               		.loc 1 164 0 discriminator 1
+ 456 028e 892B      		or r24,r25
+ 457 0290 01F4      		brne .L21
+ 166:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 					req->options & NWK_OPT_LLDN_ACK )
+ 458               		.loc 1 166 0
+ 459 0292 8D81      		ldd r24,Y+5
+ 460 0294 9E81      		ldd r25,Y+6
+ 461 0296 FC01      		movw r30,r24
+ 462 0298 8185      		ldd r24,Z+9
+ 463 029a 9285      		ldd r25,Z+10
+ 464 029c 8827      		clr r24
+ 465 029e 9074      		andi r25,64
+ 165:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 					req->options & NWK_OPT_LLDN_DATA 	||
+ 466               		.loc 1 165 0
+ 467 02a0 892B      		or r24,r25
+ 468 02a2 01F0      		breq .L22
+ 469               	.L21:
+ 167:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	{
+ 168:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->tx.control = 0;
+ 470               		.loc 1 168 0
+ 471 02a4 8981      		ldd r24,Y+1
+ 472 02a6 9A81      		ldd r25,Y+2
+ 473 02a8 8A57      		subi r24,122
+ 474 02aa 9F4F      		sbci r25,-1
+ 475 02ac FC01      		movw r30,r24
+ 476 02ae 1082      		st Z,__zero_reg__
+ 169:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		memcpy(frame->payload, req->data, req->size);
+ 477               		.loc 1 169 0
+ 478 02b0 8D81      		ldd r24,Y+5
+ 479 02b2 9E81      		ldd r25,Y+6
+ 480 02b4 FC01      		movw r30,r24
+ 481 02b6 8585      		ldd r24,Z+13
+ 482 02b8 482F      		mov r20,r24
+ 483 02ba 50E0      		ldi r21,0
+ 484 02bc 8D81      		ldd r24,Y+5
+ 485 02be 9E81      		ldd r25,Y+6
+ 486 02c0 FC01      		movw r30,r24
+ 487 02c2 2385      		ldd r18,Z+11
+ 488 02c4 3485      		ldd r19,Z+12
+ 489 02c6 8981      		ldd r24,Y+1
+ 490 02c8 9A81      		ldd r25,Y+2
+ 491 02ca 8F57      		subi r24,127
+ 492 02cc 9F4F      		sbci r25,-1
+ 493 02ce FC01      		movw r30,r24
+ 494 02d0 8081      		ld r24,Z
+ 495 02d2 9181      		ldd r25,Z+1
+ 496 02d4 B901      		movw r22,r18
+ 497 02d6 0E94 0000 		call memcpy
+ 170:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->size += req->size;
+ 498               		.loc 1 170 0
+ 499 02da 8981      		ldd r24,Y+1
+ 500 02dc 9A81      		ldd r25,Y+2
+ 501 02de FC01      		movw r30,r24
+ 502 02e0 2181      		ldd r18,Z+1
+ 503 02e2 8D81      		ldd r24,Y+5
+ 504 02e4 9E81      		ldd r25,Y+6
+ 505 02e6 FC01      		movw r30,r24
+ 506 02e8 8585      		ldd r24,Z+13
+ 507 02ea 280F      		add r18,r24
+ 508 02ec 8981      		ldd r24,Y+1
+ 509 02ee 9A81      		ldd r25,Y+2
+ 510 02f0 FC01      		movw r30,r24
+ 511 02f2 2183      		std Z+1,r18
+ 171:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		nwkTxMacCommandFrameLLDN(frame, req->options);
+ 512               		.loc 1 171 0
+ 513 02f4 8D81      		ldd r24,Y+5
+ 514 02f6 9E81      		ldd r25,Y+6
+ 515 02f8 FC01      		movw r30,r24
+ 516 02fa 2185      		ldd r18,Z+9
+ 517 02fc 3285      		ldd r19,Z+10
+ 518 02fe 8981      		ldd r24,Y+1
+ 519 0300 9A81      		ldd r25,Y+2
+ 520 0302 B901      		movw r22,r18
+ 521 0304 0E94 0000 		call nwkTxMacCommandFrameLLDN
+ 522 0308 00C0      		rjmp .L20
+ 523               	.L22:
+ 172:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
+ 173:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	else if(req->options & NWK_OPT_BEACON )
+ 524               		.loc 1 173 0
+ 525 030a 8D81      		ldd r24,Y+5
+ 526 030c 9E81      		ldd r25,Y+6
+ 527 030e FC01      		movw r30,r24
+ 528 0310 8185      		ldd r24,Z+9
+ 529 0312 9285      		ldd r25,Z+10
+ 530 0314 8072      		andi r24,32
+ 531 0316 9927      		clr r25
+ 532 0318 892B      		or r24,r25
+ 533 031a 01F4      		brne .+2
+ 534 031c 00C0      		rjmp .L23
+ 174:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	{
+ 175:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->tx.control = 0;
+ 535               		.loc 1 175 0
+ 536 031e 8981      		ldd r24,Y+1
+ 537 0320 9A81      		ldd r25,Y+2
+ 538 0322 8A57      		subi r24,122
+ 539 0324 9F4F      		sbci r25,-1
+ 540 0326 FC01      		movw r30,r24
+ 541 0328 1082      		st Z,__zero_reg__
+ 176:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 177:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macSFS.beaconOrder = BI_COEF;
+ 542               		.loc 1 177 0
+ 543 032a 8981      		ldd r24,Y+1
+ 544 032c 9A81      		ldd r25,Y+2
+ 545 032e FC01      		movw r30,r24
+ 546 0330 2185      		ldd r18,Z+9
+ 547 0332 207F      		andi r18,lo8(-16)
+ 548 0334 2860      		ori r18,lo8(8)
+ 549 0336 FC01      		movw r30,r24
+ 550 0338 2187      		std Z+9,r18
+ 178:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macSFS.superframeOrder = SD_COEF;
+ 551               		.loc 1 178 0
+ 552 033a 8981      		ldd r24,Y+1
+ 553 033c 9A81      		ldd r25,Y+2
+ 554 033e FC01      		movw r30,r24
+ 555 0340 2185      		ldd r18,Z+9
+ 556 0342 2F70      		andi r18,lo8(15)
+ 557 0344 2066      		ori r18,lo8(96)
+ 558 0346 FC01      		movw r30,r24
+ 559 0348 2187      		std Z+9,r18
+ 179:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macSFS.finalCAPslot = FINAL_CAP_SLOT;
+ 560               		.loc 1 179 0
+ 561 034a 8981      		ldd r24,Y+1
+ 562 034c 9A81      		ldd r25,Y+2
+ 563 034e FC01      		movw r30,r24
+ 564 0350 2285      		ldd r18,Z+10
+ 565 0352 207F      		andi r18,lo8(-16)
+ 566 0354 2160      		ori r18,lo8(1)
+ 567 0356 FC01      		movw r30,r24
+ 568 0358 2287      		std Z+10,r18
+ 180:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macSFS.BatteryLifeExtension = TDMA_BATTERY_EXTENSION;
+ 569               		.loc 1 180 0
+ 570 035a 8981      		ldd r24,Y+1
+ 571 035c 9A81      		ldd r25,Y+2
+ 572 035e FC01      		movw r30,r24
+ 573 0360 2285      		ldd r18,Z+10
+ 574 0362 2061      		ori r18,lo8(16)
+ 575 0364 FC01      		movw r30,r24
+ 576 0366 2287      		std Z+10,r18
+ 181:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macSFS.PANCoordinator = 1;
+ 577               		.loc 1 181 0
+ 578 0368 8981      		ldd r24,Y+1
+ 579 036a 9A81      		ldd r25,Y+2
+ 580 036c FC01      		movw r30,r24
+ 581 036e 2285      		ldd r18,Z+10
+ 582 0370 2064      		ori r18,lo8(64)
+ 583 0372 FC01      		movw r30,r24
+ 584 0374 2287      		std Z+10,r18
+ 182:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macSFS.AssociationPermit = 0;
+ 585               		.loc 1 182 0
+ 586 0376 8981      		ldd r24,Y+1
+ 587 0378 9A81      		ldd r25,Y+2
+ 588 037a FC01      		movw r30,r24
+ 589 037c 2285      		ldd r18,Z+10
+ 590 037e 2F77      		andi r18,lo8(127)
+ 591 0380 FC01      		movw r30,r24
+ 592 0382 2287      		std Z+10,r18
+ 183:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 184:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macGTS = 0;
+ 593               		.loc 1 184 0
+ 594 0384 8981      		ldd r24,Y+1
+ 595 0386 9A81      		ldd r25,Y+2
+ 596 0388 FC01      		movw r30,r24
+ 597 038a 1386      		std Z+11,__zero_reg__
+ 185:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->beacon.macPending = 0;
+ 598               		.loc 1 185 0
+ 599 038c 8981      		ldd r24,Y+1
+ 600 038e 9A81      		ldd r25,Y+2
+ 601 0390 FC01      		movw r30,r24
+ 602 0392 1486      		std Z+12,__zero_reg__
+ 186:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 187:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		memcpy(frame->payload, req->data, req->size);
+ 603               		.loc 1 187 0
+ 604 0394 8D81      		ldd r24,Y+5
+ 605 0396 9E81      		ldd r25,Y+6
+ 606 0398 FC01      		movw r30,r24
+ 607 039a 8585      		ldd r24,Z+13
+ 608 039c 482F      		mov r20,r24
+ 609 039e 50E0      		ldi r21,0
+ 610 03a0 8D81      		ldd r24,Y+5
+ 611 03a2 9E81      		ldd r25,Y+6
+ 612 03a4 FC01      		movw r30,r24
+ 613 03a6 2385      		ldd r18,Z+11
+ 614 03a8 3485      		ldd r19,Z+12
+ 615 03aa 8981      		ldd r24,Y+1
+ 616 03ac 9A81      		ldd r25,Y+2
+ 617 03ae 8F57      		subi r24,127
+ 618 03b0 9F4F      		sbci r25,-1
+ 619 03b2 FC01      		movw r30,r24
+ 620 03b4 8081      		ld r24,Z
+ 621 03b6 9181      		ldd r25,Z+1
+ 622 03b8 B901      		movw r22,r18
+ 623 03ba 0E94 0000 		call memcpy
+ 188:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->size += req->size;
+ 624               		.loc 1 188 0
+ 625 03be 8981      		ldd r24,Y+1
+ 626 03c0 9A81      		ldd r25,Y+2
+ 627 03c2 FC01      		movw r30,r24
+ 628 03c4 2181      		ldd r18,Z+1
+ 629 03c6 8D81      		ldd r24,Y+5
+ 630 03c8 9E81      		ldd r25,Y+6
+ 631 03ca FC01      		movw r30,r24
+ 632 03cc 8585      		ldd r24,Z+13
+ 633 03ce 280F      		add r18,r24
+ 634 03d0 8981      		ldd r24,Y+1
+ 635 03d2 9A81      		ldd r25,Y+2
+ 636 03d4 FC01      		movw r30,r24
+ 637 03d6 2183      		std Z+1,r18
+ 189:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 190:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		nwkTxBeaconFrame(frame);
+ 638               		.loc 1 190 0
+ 639 03d8 8981      		ldd r24,Y+1
+ 640 03da 9A81      		ldd r25,Y+2
+ 641 03dc 0E94 0000 		call nwkTxBeaconFrame
+ 642 03e0 00C0      		rjmp .L20
+ 643               	.L23:
+ 191:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
+ 192:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	else
+ 193:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	{
+ 194:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->tx.control = (req->options & NWK_OPT_BROADCAST_PAN_ID) ? NWK_TX_CONTROL_BROADCAST_PAN_ID :
+ 644               		.loc 1 194 0
+ 645 03e2 8D81      		ldd r24,Y+5
+ 646 03e4 9E81      		ldd r25,Y+6
+ 647 03e6 FC01      		movw r30,r24
+ 648 03e8 8185      		ldd r24,Z+9
+ 649 03ea 9285      		ldd r25,Z+10
+ 650 03ec 8470      		andi r24,4
+ 651 03ee 9927      		clr r25
+ 652 03f0 21E0      		ldi r18,lo8(1)
+ 653 03f2 892B      		or r24,r25
+ 654 03f4 01F4      		brne .L24
+ 655 03f6 20E0      		ldi r18,0
+ 656               	.L24:
+ 657 03f8 8981      		ldd r24,Y+1
+ 658 03fa 9A81      		ldd r25,Y+2
+ 659 03fc 8A57      		subi r24,122
+ 660 03fe 9F4F      		sbci r25,-1
+ 661 0400 FC01      		movw r30,r24
+ 662 0402 2083      		st Z,r18
+ 195:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 196:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkFcf.ackRequest = (req->options & NWK_OPT_ACK_REQUEST) ? 1 : 0;
+ 663               		.loc 1 196 0
+ 664 0404 8D81      		ldd r24,Y+5
+ 665 0406 9E81      		ldd r25,Y+6
+ 666 0408 FC01      		movw r30,r24
+ 667 040a 8185      		ldd r24,Z+9
+ 668 040c 9285      		ldd r25,Z+10
+ 669 040e 8170      		andi r24,1
+ 670 0410 9927      		clr r25
+ 671 0412 21E0      		ldi r18,lo8(1)
+ 672 0414 892B      		or r24,r25
+ 673 0416 01F4      		brne .L25
+ 674 0418 20E0      		ldi r18,0
+ 675               	.L25:
+ 676 041a 8981      		ldd r24,Y+1
+ 677 041c 9A81      		ldd r25,Y+2
+ 678 041e 2170      		andi r18,lo8(1)
+ 679 0420 FC01      		movw r30,r24
+ 680 0422 3385      		ldd r19,Z+11
+ 681 0424 3E7F      		andi r19,lo8(-2)
+ 682 0426 232B      		or r18,r19
+ 683 0428 FC01      		movw r30,r24
+ 684 042a 2387      		std Z+11,r18
+ 197:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkFcf.linkLocal = (req->options & NWK_OPT_LINK_LOCAL) ? 1 : 0;
+ 685               		.loc 1 197 0
+ 686 042c 8D81      		ldd r24,Y+5
+ 687 042e 9E81      		ldd r25,Y+6
+ 688 0430 FC01      		movw r30,r24
+ 689 0432 8185      		ldd r24,Z+9
+ 690 0434 9285      		ldd r25,Z+10
+ 691 0436 8870      		andi r24,8
+ 692 0438 9927      		clr r25
+ 693 043a 21E0      		ldi r18,lo8(1)
+ 694 043c 892B      		or r24,r25
+ 695 043e 01F4      		brne .L26
+ 696 0440 20E0      		ldi r18,0
+ 697               	.L26:
+ 698 0442 8981      		ldd r24,Y+1
+ 699 0444 9A81      		ldd r25,Y+2
+ 700 0446 2170      		andi r18,lo8(1)
+ 701 0448 220F      		lsl r18
+ 702 044a 220F      		lsl r18
+ 703 044c FC01      		movw r30,r24
+ 704 044e 3385      		ldd r19,Z+11
+ 705 0450 3B7F      		andi r19,lo8(-5)
+ 706 0452 232B      		or r18,r19
+ 707 0454 FC01      		movw r30,r24
+ 708 0456 2387      		std Z+11,r18
+ 198:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkFcf.beacon = (req->options & NWK_OPT_BEACON) ? 1 : 0;
+ 709               		.loc 1 198 0
+ 710 0458 8D81      		ldd r24,Y+5
+ 711 045a 9E81      		ldd r25,Y+6
+ 712 045c FC01      		movw r30,r24
+ 713 045e 8185      		ldd r24,Z+9
+ 714 0460 9285      		ldd r25,Z+10
+ 715 0462 8072      		andi r24,32
+ 716 0464 9927      		clr r25
+ 717 0466 21E0      		ldi r18,lo8(1)
+ 718 0468 892B      		or r24,r25
+ 719 046a 01F4      		brne .L27
+ 720 046c 20E0      		ldi r18,0
+ 721               	.L27:
+ 722 046e 8981      		ldd r24,Y+1
+ 723 0470 9A81      		ldd r25,Y+2
+ 724 0472 2170      		andi r18,lo8(1)
+ 725 0474 2295      		swap r18
+ 726 0476 207F      		andi r18,lo8(-16)
+ 727 0478 FC01      		movw r30,r24
+ 728 047a 3385      		ldd r19,Z+11
+ 729 047c 3F7E      		andi r19,lo8(-17)
+ 730 047e 232B      		or r18,r19
+ 731 0480 FC01      		movw r30,r24
+ 732 0482 2387      		std Z+11,r18
+ 199:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 200:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** #ifdef NWK_ENABLE_SECURITY
+ 201:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkFcf.security = (req->options & NWK_OPT_ENABLE_SECURITY) ? 1 : 0;
+ 202:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** #endif
+ 203:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 204:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** #ifdef NWK_ENABLE_MULTICAST
+ 205:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkFcf.multicast = (req->options & NWK_OPT_MULTICAST) ? 1 : 0;
+ 206:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 207:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		if(frame->header.nwkFcf.multicast)
+ 208:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		{
+ 209:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			NwkFrameMulticastHeader_t *mcHeader = (NwkFrameMulticastHeader_t *)frame->payload;
  210:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 211:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** /*************************************************************************//**
- 212:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *  @brief Confirms request @req to the application and remove it from the queue
- 213:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *  @param[in] req Pointer to the request parameters
- 214:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *****************************************************************************/
- 215:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** static void nwkDataReqConfirm(NWK_DataReq_t *req)
- 216:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** {
- 863               		.loc 1 216 0
- 864               		.cfi_startproc
- 865 0562 CF93      		push r28
- 866               	.LCFI15:
- 867               		.cfi_def_cfa_offset 3
- 868               		.cfi_offset 28, -2
- 869 0564 DF93      		push r29
- 870               	.LCFI16:
- 871               		.cfi_def_cfa_offset 4
- 872               		.cfi_offset 29, -3
- 873 0566 00D0      		rcall .
- 874 0568 00D0      		rcall .
- 875               	.LCFI17:
- 876               		.cfi_def_cfa_offset 8
- 877 056a CDB7      		in r28,__SP_L__
- 878 056c DEB7      		in r29,__SP_H__
- 879               	.LCFI18:
- 880               		.cfi_def_cfa_register 28
- 881               	/* prologue: function */
- 882               	/* frame size = 4 */
- 883               	/* stack size = 6 */
- 884               	.L__stack_usage = 6
- 885 056e 9C83      		std Y+4,r25
- 886 0570 8B83      		std Y+3,r24
- 217:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	if (nwkDataReqQueue == req) {
- 887               		.loc 1 217 0
- 888 0572 2091 0000 		lds r18,nwkDataReqQueue
- 889 0576 3091 0000 		lds r19,nwkDataReqQueue+1
- 890 057a 8B81      		ldd r24,Y+3
- 891 057c 9C81      		ldd r25,Y+4
- 892 057e 2817      		cp r18,r24
- 893 0580 3907      		cpc r19,r25
- 894 0582 01F4      		brne .L22
- 218:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		nwkDataReqQueue = nwkDataReqQueue->next;
- 895               		.loc 1 218 0
- 896 0584 8091 0000 		lds r24,nwkDataReqQueue
- 897 0588 9091 0000 		lds r25,nwkDataReqQueue+1
- 898 058c FC01      		movw r30,r24
- 899 058e 8081      		ld r24,Z
- 900 0590 9181      		ldd r25,Z+1
- 901 0592 9093 0000 		sts nwkDataReqQueue+1,r25
- 902 0596 8093 0000 		sts nwkDataReqQueue,r24
- 903 059a 00C0      		rjmp .L23
- 904               	.L22:
- 905               	.LBB4:
- 219:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	} else {
- 220:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		NWK_DataReq_t *prev = nwkDataReqQueue;
- 906               		.loc 1 220 0
- 907 059c 8091 0000 		lds r24,nwkDataReqQueue
- 908 05a0 9091 0000 		lds r25,nwkDataReqQueue+1
- 909 05a4 9A83      		std Y+2,r25
- 910 05a6 8983      		std Y+1,r24
- 221:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		while (prev->next != req) {
- 911               		.loc 1 221 0
- 912 05a8 00C0      		rjmp .L24
- 913               	.L25:
- 222:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			prev = prev->next;
- 914               		.loc 1 222 0
- 915 05aa 8981      		ldd r24,Y+1
- 916 05ac 9A81      		ldd r25,Y+2
- 917 05ae FC01      		movw r30,r24
- 918 05b0 8081      		ld r24,Z
- 919 05b2 9181      		ldd r25,Z+1
- 920 05b4 9A83      		std Y+2,r25
- 921 05b6 8983      		std Y+1,r24
- 922               	.L24:
- 221:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		while (prev->next != req) {
- 923               		.loc 1 221 0
- 924 05b8 8981      		ldd r24,Y+1
- 925 05ba 9A81      		ldd r25,Y+2
- 926 05bc FC01      		movw r30,r24
- 927 05be 2081      		ld r18,Z
- 928 05c0 3181      		ldd r19,Z+1
- 929 05c2 8B81      		ldd r24,Y+3
- 930 05c4 9C81      		ldd r25,Y+4
- 931 05c6 2817      		cp r18,r24
- 932 05c8 3907      		cpc r19,r25
- 933 05ca 01F4      		brne .L25
- 223:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
- 224:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		prev->next = ((NWK_DataReq_t *)prev->next)->next;
- 934               		.loc 1 224 0
- 935 05cc 8981      		ldd r24,Y+1
- 936 05ce 9A81      		ldd r25,Y+2
- 937 05d0 FC01      		movw r30,r24
- 938 05d2 8081      		ld r24,Z
- 939 05d4 9181      		ldd r25,Z+1
- 940 05d6 FC01      		movw r30,r24
- 941 05d8 2081      		ld r18,Z
- 942 05da 3181      		ldd r19,Z+1
- 943 05dc 8981      		ldd r24,Y+1
- 944 05de 9A81      		ldd r25,Y+2
- 945 05e0 FC01      		movw r30,r24
- 946 05e2 3183      		std Z+1,r19
- 947 05e4 2083      		st Z,r18
- 948               	.L23:
- 949               	.LBE4:
- 225:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
+ 211:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			mcHeader->memberRadius = req->memberRadius;
+ 212:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			mcHeader->maxMemberRadius = req->memberRadius;
+ 213:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			mcHeader->nonMemberRadius = req->nonMemberRadius;
+ 214:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			mcHeader->maxNonMemberRadius = req->nonMemberRadius;
+ 215:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 216:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			frame->payload += sizeof(NwkFrameMulticastHeader_t);
+ 217:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			frame->size += sizeof(NwkFrameMulticastHeader_t);
+ 218:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
+ 219:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** #endif
+ 220:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 221:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkSeq = ++nwkIb.nwkSeqNum;
+ 733               		.loc 1 221 0
+ 734 0484 8091 0000 		lds r24,nwkIb+4
+ 735 0488 8F5F      		subi r24,lo8(-(1))
+ 736 048a 8093 0000 		sts nwkIb+4,r24
+ 737 048e 2091 0000 		lds r18,nwkIb+4
+ 738 0492 8981      		ldd r24,Y+1
+ 739 0494 9A81      		ldd r25,Y+2
+ 740 0496 FC01      		movw r30,r24
+ 741 0498 2487      		std Z+12,r18
+ 222:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkSrcAddr = nwkIb.addr;
+ 742               		.loc 1 222 0
+ 743 049a 2091 0000 		lds r18,nwkIb
+ 744 049e 3091 0000 		lds r19,nwkIb+1
+ 745 04a2 8981      		ldd r24,Y+1
+ 746 04a4 9A81      		ldd r25,Y+2
+ 747 04a6 FC01      		movw r30,r24
+ 748 04a8 3687      		std Z+14,r19
+ 749 04aa 2587      		std Z+13,r18
+ 223:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkDstAddr = req->dstAddr;
+ 750               		.loc 1 223 0
+ 751 04ac 8D81      		ldd r24,Y+5
+ 752 04ae 9E81      		ldd r25,Y+6
+ 753 04b0 FC01      		movw r30,r24
+ 754 04b2 2581      		ldd r18,Z+5
+ 755 04b4 3681      		ldd r19,Z+6
+ 756 04b6 8981      		ldd r24,Y+1
+ 757 04b8 9A81      		ldd r25,Y+2
+ 758 04ba FC01      		movw r30,r24
+ 759 04bc 308B      		std Z+16,r19
+ 760 04be 2787      		std Z+15,r18
+ 224:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkSrcEndpoint = req->srcEndpoint;
+ 761               		.loc 1 224 0
+ 762 04c0 8D81      		ldd r24,Y+5
+ 763 04c2 9E81      		ldd r25,Y+6
+ 764 04c4 FC01      		movw r30,r24
+ 765 04c6 8085      		ldd r24,Z+8
+ 766 04c8 282F      		mov r18,r24
+ 767 04ca 2F70      		andi r18,lo8(15)
+ 768 04cc 8981      		ldd r24,Y+1
+ 769 04ce 9A81      		ldd r25,Y+2
+ 770 04d0 2F70      		andi r18,lo8(15)
+ 771 04d2 FC01      		movw r30,r24
+ 772 04d4 3189      		ldd r19,Z+17
+ 773 04d6 307F      		andi r19,lo8(-16)
+ 774 04d8 232B      		or r18,r19
+ 775 04da FC01      		movw r30,r24
+ 776 04dc 218B      		std Z+17,r18
+ 225:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->header.nwkDstEndpoint = req->dstEndpoint;
+ 777               		.loc 1 225 0
+ 778 04de 8D81      		ldd r24,Y+5
+ 779 04e0 9E81      		ldd r25,Y+6
+ 780 04e2 FC01      		movw r30,r24
+ 781 04e4 8781      		ldd r24,Z+7
+ 782 04e6 282F      		mov r18,r24
+ 783 04e8 2F70      		andi r18,lo8(15)
+ 784 04ea 8981      		ldd r24,Y+1
+ 785 04ec 9A81      		ldd r25,Y+2
+ 786 04ee 2295      		swap r18
+ 787 04f0 207F      		andi r18,lo8(-16)
+ 788 04f2 FC01      		movw r30,r24
+ 789 04f4 3189      		ldd r19,Z+17
+ 790 04f6 3F70      		andi r19,lo8(15)
+ 791 04f8 232B      		or r18,r19
+ 792 04fa FC01      		movw r30,r24
+ 793 04fc 218B      		std Z+17,r18
  226:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 227:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	nwkIb.lock--;
- 950               		.loc 1 227 0
- 951 05e6 8091 0000 		lds r24,nwkIb+38
- 952 05ea 9091 0000 		lds r25,nwkIb+38+1
- 953 05ee 0197      		sbiw r24,1
- 954 05f0 9093 0000 		sts nwkIb+38+1,r25
- 955 05f4 8093 0000 		sts nwkIb+38,r24
- 228:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 229:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	if(req->confirm != NULL)
- 956               		.loc 1 229 0
- 957 05f8 8B81      		ldd r24,Y+3
- 958 05fa 9C81      		ldd r25,Y+4
- 959 05fc FC01      		movw r30,r24
- 960 05fe 8785      		ldd r24,Z+15
- 961 0600 9089      		ldd r25,Z+16
- 962 0602 892B      		or r24,r25
- 963 0604 01F0      		breq .L27
- 230:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	{
- 231:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		req->confirm(req);
- 964               		.loc 1 231 0
- 965 0606 8B81      		ldd r24,Y+3
- 966 0608 9C81      		ldd r25,Y+4
- 967 060a FC01      		movw r30,r24
- 968 060c 2785      		ldd r18,Z+15
- 969 060e 3089      		ldd r19,Z+16
- 970 0610 8B81      		ldd r24,Y+3
- 971 0612 9C81      		ldd r25,Y+4
- 972 0614 F901      		movw r30,r18
- 973 0616 0995      		icall
- 974               	.L27:
- 232:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
- 233:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** }
- 975               		.loc 1 233 0
- 976 0618 0000      		nop
- 977               	/* epilogue start */
- 978 061a 0F90      		pop __tmp_reg__
- 979 061c 0F90      		pop __tmp_reg__
- 980 061e 0F90      		pop __tmp_reg__
- 981 0620 0F90      		pop __tmp_reg__
- 982 0622 DF91      		pop r29
- 983 0624 CF91      		pop r28
- 984 0626 0895      		ret
- 985               		.cfi_endproc
- 986               	.LFE70:
- 988               	.global	nwkDataReqTaskHandler
- 990               	nwkDataReqTaskHandler:
- 991               	.LFB71:
+ 227:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		memcpy(frame->payload, req->data, req->size);
+ 794               		.loc 1 227 0
+ 795 04fe 8D81      		ldd r24,Y+5
+ 796 0500 9E81      		ldd r25,Y+6
+ 797 0502 FC01      		movw r30,r24
+ 798 0504 8585      		ldd r24,Z+13
+ 799 0506 482F      		mov r20,r24
+ 800 0508 50E0      		ldi r21,0
+ 801 050a 8D81      		ldd r24,Y+5
+ 802 050c 9E81      		ldd r25,Y+6
+ 803 050e FC01      		movw r30,r24
+ 804 0510 2385      		ldd r18,Z+11
+ 805 0512 3485      		ldd r19,Z+12
+ 806 0514 8981      		ldd r24,Y+1
+ 807 0516 9A81      		ldd r25,Y+2
+ 808 0518 8F57      		subi r24,127
+ 809 051a 9F4F      		sbci r25,-1
+ 810 051c FC01      		movw r30,r24
+ 811 051e 8081      		ld r24,Z
+ 812 0520 9181      		ldd r25,Z+1
+ 813 0522 B901      		movw r22,r18
+ 814 0524 0E94 0000 		call memcpy
+ 228:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		frame->size += req->size;
+ 815               		.loc 1 228 0
+ 816 0528 8981      		ldd r24,Y+1
+ 817 052a 9A81      		ldd r25,Y+2
+ 818 052c FC01      		movw r30,r24
+ 819 052e 2181      		ldd r18,Z+1
+ 820 0530 8D81      		ldd r24,Y+5
+ 821 0532 9E81      		ldd r25,Y+6
+ 822 0534 FC01      		movw r30,r24
+ 823 0536 8585      		ldd r24,Z+13
+ 824 0538 280F      		add r18,r24
+ 825 053a 8981      		ldd r24,Y+1
+ 826 053c 9A81      		ldd r25,Y+2
+ 827 053e FC01      		movw r30,r24
+ 828 0540 2183      		std Z+1,r18
+ 229:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 230:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		nwkTxFrame(frame);
+ 829               		.loc 1 230 0
+ 830 0542 8981      		ldd r24,Y+1
+ 831 0544 9A81      		ldd r25,Y+2
+ 832 0546 0E94 0000 		call nwkTxFrame
+ 833               	.L20:
+ 231:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
+ 232:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	req->frame = frame;
+ 834               		.loc 1 232 0
+ 835 054a 8D81      		ldd r24,Y+5
+ 836 054c 9E81      		ldd r25,Y+6
+ 837 054e 2981      		ldd r18,Y+1
+ 838 0550 3A81      		ldd r19,Y+2
+ 839 0552 FC01      		movw r30,r24
+ 840 0554 3383      		std Z+3,r19
+ 841 0556 2283      		std Z+2,r18
+ 233:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	req->state = NWK_DATA_REQ_STATE_WAIT_CONF;
+ 842               		.loc 1 233 0
+ 843 0558 8D81      		ldd r24,Y+5
+ 844 055a 9E81      		ldd r25,Y+6
+ 845 055c 21E0      		ldi r18,lo8(1)
+ 846 055e FC01      		movw r30,r24
+ 847 0560 2483      		std Z+4,r18
  234:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 235:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** /*************************************************************************//**
- 236:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *  @brief Data Request module task handler
- 237:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *****************************************************************************/
- 238:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** void nwkDataReqTaskHandler(void)
- 239:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** {
- 992               		.loc 1 239 0
- 993               		.cfi_startproc
- 994 0628 CF93      		push r28
- 995               	.LCFI19:
- 996               		.cfi_def_cfa_offset 3
- 997               		.cfi_offset 28, -2
- 998 062a DF93      		push r29
- 999               	.LCFI20:
- 1000               		.cfi_def_cfa_offset 4
- 1001               		.cfi_offset 29, -3
- 1002 062c 00D0      		rcall .
- 1003               	.LCFI21:
- 1004               		.cfi_def_cfa_offset 6
- 1005 062e CDB7      		in r28,__SP_L__
- 1006 0630 DEB7      		in r29,__SP_H__
- 1007               	.LCFI22:
- 1008               		.cfi_def_cfa_register 28
- 1009               	/* prologue: function */
- 1010               	/* frame size = 2 */
- 1011               	/* stack size = 4 */
- 1012               	.L__stack_usage = 4
- 1013               	.LBB5:
- 240:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	for (NWK_DataReq_t *req = nwkDataReqQueue; req; req = req->next) {
- 1014               		.loc 1 240 0
- 1015 0632 8091 0000 		lds r24,nwkDataReqQueue
- 1016 0636 9091 0000 		lds r25,nwkDataReqQueue+1
- 1017 063a 9A83      		std Y+2,r25
- 1018 063c 8983      		std Y+1,r24
- 1019 063e 00C0      		rjmp .L29
- 1020               	.L36:
- 241:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		switch (req->state) {
- 1021               		.loc 1 241 0
- 1022 0640 8981      		ldd r24,Y+1
- 1023 0642 9A81      		ldd r25,Y+2
- 1024 0644 FC01      		movw r30,r24
- 1025 0646 8481      		ldd r24,Z+4
- 1026 0648 882F      		mov r24,r24
- 1027 064a 90E0      		ldi r25,0
- 1028 064c 8130      		cpi r24,1
- 1029 064e 9105      		cpc r25,__zero_reg__
- 1030 0650 01F0      		breq .L37
- 1031 0652 8230      		cpi r24,2
- 1032 0654 9105      		cpc r25,__zero_reg__
- 1033 0656 01F0      		breq .L32
- 1034 0658 892B      		or r24,r25
- 1035 065a 01F0      		breq .L33
- 242:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		case NWK_DATA_REQ_STATE_INITIAL:
- 243:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		{
- 244:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			nwkDataReqSendFrame(req);
- 245:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			return;
- 246:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
- 247:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		break;
- 248:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 249:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		case NWK_DATA_REQ_STATE_WAIT_CONF:
- 250:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			break;
- 251:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 252:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		case NWK_DATA_REQ_STATE_CONFIRM:
- 253:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		{
- 254:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			nwkDataReqConfirm(req);
- 255:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			return;
- 256:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
- 257:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		break;
- 258:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 259:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		default:
- 260:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			break;
- 1036               		.loc 1 260 0
- 1037 065c 00C0      		rjmp .L35
- 1038               	.L33:
- 244:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			return;
- 1039               		.loc 1 244 0
- 1040 065e 8981      		ldd r24,Y+1
- 1041 0660 9A81      		ldd r25,Y+2
- 1042 0662 0E94 0000 		call nwkDataReqSendFrame
- 245:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
- 1043               		.loc 1 245 0
- 1044 0666 00C0      		rjmp .L28
- 1045               	.L32:
- 254:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			return;
- 1046               		.loc 1 254 0
- 1047 0668 8981      		ldd r24,Y+1
- 1048 066a 9A81      		ldd r25,Y+2
- 1049 066c 0E94 0000 		call nwkDataReqConfirm
- 255:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
- 1050               		.loc 1 255 0
- 1051 0670 00C0      		rjmp .L28
- 1052               	.L37:
- 250:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
- 1053               		.loc 1 250 0
- 1054 0672 0000      		nop
- 1055               	.L35:
- 240:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		switch (req->state) {
- 1056               		.loc 1 240 0 discriminator 2
- 1057 0674 8981      		ldd r24,Y+1
- 1058 0676 9A81      		ldd r25,Y+2
- 1059 0678 FC01      		movw r30,r24
- 1060 067a 8081      		ld r24,Z
- 1061 067c 9181      		ldd r25,Z+1
- 1062 067e 9A83      		std Y+2,r25
- 1063 0680 8983      		std Y+1,r24
- 1064               	.L29:
- 240:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		switch (req->state) {
- 1065               		.loc 1 240 0 is_stmt 0 discriminator 1
- 1066 0682 8981      		ldd r24,Y+1
- 1067 0684 9A81      		ldd r25,Y+2
- 1068 0686 892B      		or r24,r25
- 1069 0688 01F4      		brne .L36
- 1070               	.L28:
- 1071               	/* epilogue start */
- 1072               	.LBE5:
- 261:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
- 262:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
- 263:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** }
- 1073               		.loc 1 263 0 is_stmt 1
- 1074 068a 0F90      		pop __tmp_reg__
- 1075 068c 0F90      		pop __tmp_reg__
- 1076 068e DF91      		pop r29
- 1077 0690 CF91      		pop r28
- 1078 0692 0895      		ret
- 1079               		.cfi_endproc
- 1080               	.LFE71:
- 1082               	.Letext0:
- 1083               		.file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
- 1084               		.file 3 "../../../stack/LwMesh/TDMA/nwk/inc/nwkFrame.h"
- 1085               		.file 4 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
- 1086               		.file 5 "../../../stack/LwMesh/TDMA/nwk/inc/nwkDataReq.h"
- 1087               		.file 6 "../../../stack/LwMesh/TDMA/nwk/inc/nwk.h"
- 1088               		.file 7 "../../../stack/LwMesh/TDMA/nwk/inc/nwkTx.h"
+ 235:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	frame->tx.confirm = nwkDataReqTxConf;
+ 848               		.loc 1 235 0
+ 849 0562 8981      		ldd r24,Y+1
+ 850 0564 9A81      		ldd r25,Y+2
+ 851 0566 8957      		subi r24,121
+ 852 0568 9F4F      		sbci r25,-1
+ 853 056a 20E0      		ldi r18,lo8(gs(nwkDataReqTxConf))
+ 854 056c 30E0      		ldi r19,hi8(gs(nwkDataReqTxConf))
+ 855 056e FC01      		movw r30,r24
+ 856 0570 3183      		std Z+1,r19
+ 857 0572 2083      		st Z,r18
+ 858               	.L6:
+ 859               	/* epilogue start */
+ 236:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** }
+ 860               		.loc 1 236 0
+ 861 0574 2696      		adiw r28,6
+ 862 0576 0FB6      		in __tmp_reg__,__SREG__
+ 863 0578 F894      		cli
+ 864 057a DEBF      		out __SP_H__,r29
+ 865 057c 0FBE      		out __SREG__,__tmp_reg__
+ 866 057e CDBF      		out __SP_L__,r28
+ 867 0580 DF91      		pop r29
+ 868 0582 CF91      		pop r28
+ 869 0584 0895      		ret
+ 870               		.cfi_endproc
+ 871               	.LFE68:
+ 874               	nwkDataReqTxConf:
+ 875               	.LFB69:
+ 237:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 238:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** /*************************************************************************//**
+ 239:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *  @brief Frame transmission confirmation handler
+ 240:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *  @param[in] frame Pointer to the sent frame
+ 241:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *****************************************************************************/
+ 242:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** static void nwkDataReqTxConf(NwkFrame_t *frame)
+ 243:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** {
+ 876               		.loc 1 243 0
+ 877               		.cfi_startproc
+ 878 0586 CF93      		push r28
+ 879               	.LCFI11:
+ 880               		.cfi_def_cfa_offset 3
+ 881               		.cfi_offset 28, -2
+ 882 0588 DF93      		push r29
+ 883               	.LCFI12:
+ 884               		.cfi_def_cfa_offset 4
+ 885               		.cfi_offset 29, -3
+ 886 058a 00D0      		rcall .
+ 887 058c 00D0      		rcall .
+ 888               	.LCFI13:
+ 889               		.cfi_def_cfa_offset 8
+ 890 058e CDB7      		in r28,__SP_L__
+ 891 0590 DEB7      		in r29,__SP_H__
+ 892               	.LCFI14:
+ 893               		.cfi_def_cfa_register 28
+ 894               	/* prologue: function */
+ 895               	/* frame size = 4 */
+ 896               	/* stack size = 6 */
+ 897               	.L__stack_usage = 6
+ 898 0592 9C83      		std Y+4,r25
+ 899 0594 8B83      		std Y+3,r24
+ 900               	.LBB3:
+ 244:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	for (NWK_DataReq_t *req = nwkDataReqQueue; req; req = req->next) {
+ 901               		.loc 1 244 0
+ 902 0596 8091 0000 		lds r24,nwkDataReqQueue
+ 903 059a 9091 0000 		lds r25,nwkDataReqQueue+1
+ 904 059e 9A83      		std Y+2,r25
+ 905 05a0 8983      		std Y+1,r24
+ 906 05a2 00C0      		rjmp .L29
+ 907               	.L32:
+ 245:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		if (req->frame == frame) {
+ 908               		.loc 1 245 0
+ 909 05a4 8981      		ldd r24,Y+1
+ 910 05a6 9A81      		ldd r25,Y+2
+ 911 05a8 FC01      		movw r30,r24
+ 912 05aa 2281      		ldd r18,Z+2
+ 913 05ac 3381      		ldd r19,Z+3
+ 914 05ae 8B81      		ldd r24,Y+3
+ 915 05b0 9C81      		ldd r25,Y+4
+ 916 05b2 2817      		cp r18,r24
+ 917 05b4 3907      		cpc r19,r25
+ 918 05b6 01F4      		brne .L30
+ 246:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			req->status = frame->tx.status;
+ 919               		.loc 1 246 0
+ 920 05b8 8B81      		ldd r24,Y+3
+ 921 05ba 9C81      		ldd r25,Y+4
+ 922 05bc 8D57      		subi r24,125
+ 923 05be 9F4F      		sbci r25,-1
+ 924 05c0 FC01      		movw r30,r24
+ 925 05c2 2081      		ld r18,Z
+ 926 05c4 8981      		ldd r24,Y+1
+ 927 05c6 9A81      		ldd r25,Y+2
+ 928 05c8 FC01      		movw r30,r24
+ 929 05ca 208B      		std Z+16,r18
+ 247:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			req->control = frame->tx.control;
+ 930               		.loc 1 247 0
+ 931 05cc 8B81      		ldd r24,Y+3
+ 932 05ce 9C81      		ldd r25,Y+4
+ 933 05d0 8A57      		subi r24,122
+ 934 05d2 9F4F      		sbci r25,-1
+ 935 05d4 FC01      		movw r30,r24
+ 936 05d6 2081      		ld r18,Z
+ 937 05d8 8981      		ldd r24,Y+1
+ 938 05da 9A81      		ldd r25,Y+2
+ 939 05dc FC01      		movw r30,r24
+ 940 05de 218B      		std Z+17,r18
+ 248:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			req->state = NWK_DATA_REQ_STATE_CONFIRM;
+ 941               		.loc 1 248 0
+ 942 05e0 8981      		ldd r24,Y+1
+ 943 05e2 9A81      		ldd r25,Y+2
+ 944 05e4 22E0      		ldi r18,lo8(2)
+ 945 05e6 FC01      		movw r30,r24
+ 946 05e8 2483      		std Z+4,r18
+ 249:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			break;
+ 947               		.loc 1 249 0
+ 948 05ea 00C0      		rjmp .L31
+ 949               	.L30:
+ 244:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		if (req->frame == frame) {
+ 950               		.loc 1 244 0 discriminator 2
+ 951 05ec 8981      		ldd r24,Y+1
+ 952 05ee 9A81      		ldd r25,Y+2
+ 953 05f0 FC01      		movw r30,r24
+ 954 05f2 8081      		ld r24,Z
+ 955 05f4 9181      		ldd r25,Z+1
+ 956 05f6 9A83      		std Y+2,r25
+ 957 05f8 8983      		std Y+1,r24
+ 958               	.L29:
+ 244:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		if (req->frame == frame) {
+ 959               		.loc 1 244 0 is_stmt 0 discriminator 1
+ 960 05fa 8981      		ldd r24,Y+1
+ 961 05fc 9A81      		ldd r25,Y+2
+ 962 05fe 892B      		or r24,r25
+ 963 0600 01F4      		brne .L32
+ 964               	.L31:
+ 965               	.LBE3:
+ 250:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
+ 251:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
+ 252:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 253:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	nwkFrameFree(frame);
+ 966               		.loc 1 253 0 is_stmt 1
+ 967 0602 8B81      		ldd r24,Y+3
+ 968 0604 9C81      		ldd r25,Y+4
+ 969 0606 0E94 0000 		call nwkFrameFree
+ 254:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** }
+ 970               		.loc 1 254 0
+ 971 060a 0000      		nop
+ 972               	/* epilogue start */
+ 973 060c 0F90      		pop __tmp_reg__
+ 974 060e 0F90      		pop __tmp_reg__
+ 975 0610 0F90      		pop __tmp_reg__
+ 976 0612 0F90      		pop __tmp_reg__
+ 977 0614 DF91      		pop r29
+ 978 0616 CF91      		pop r28
+ 979 0618 0895      		ret
+ 980               		.cfi_endproc
+ 981               	.LFE69:
+ 984               	nwkDataReqConfirm:
+ 985               	.LFB70:
+ 255:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 256:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** /*************************************************************************//**
+ 257:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *  @brief Confirms request @req to the application and remove it from the queue
+ 258:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *  @param[in] req Pointer to the request parameters
+ 259:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *****************************************************************************/
+ 260:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** static void nwkDataReqConfirm(NWK_DataReq_t *req)
+ 261:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** {
+ 986               		.loc 1 261 0
+ 987               		.cfi_startproc
+ 988 061a CF93      		push r28
+ 989               	.LCFI15:
+ 990               		.cfi_def_cfa_offset 3
+ 991               		.cfi_offset 28, -2
+ 992 061c DF93      		push r29
+ 993               	.LCFI16:
+ 994               		.cfi_def_cfa_offset 4
+ 995               		.cfi_offset 29, -3
+ 996 061e 00D0      		rcall .
+ 997 0620 00D0      		rcall .
+ 998               	.LCFI17:
+ 999               		.cfi_def_cfa_offset 8
+ 1000 0622 CDB7      		in r28,__SP_L__
+ 1001 0624 DEB7      		in r29,__SP_H__
+ 1002               	.LCFI18:
+ 1003               		.cfi_def_cfa_register 28
+ 1004               	/* prologue: function */
+ 1005               	/* frame size = 4 */
+ 1006               	/* stack size = 6 */
+ 1007               	.L__stack_usage = 6
+ 1008 0626 9C83      		std Y+4,r25
+ 1009 0628 8B83      		std Y+3,r24
+ 262:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	if (nwkDataReqQueue == req) {
+ 1010               		.loc 1 262 0
+ 1011 062a 2091 0000 		lds r18,nwkDataReqQueue
+ 1012 062e 3091 0000 		lds r19,nwkDataReqQueue+1
+ 1013 0632 8B81      		ldd r24,Y+3
+ 1014 0634 9C81      		ldd r25,Y+4
+ 1015 0636 2817      		cp r18,r24
+ 1016 0638 3907      		cpc r19,r25
+ 1017 063a 01F4      		brne .L34
+ 263:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		nwkDataReqQueue = nwkDataReqQueue->next;
+ 1018               		.loc 1 263 0
+ 1019 063c 8091 0000 		lds r24,nwkDataReqQueue
+ 1020 0640 9091 0000 		lds r25,nwkDataReqQueue+1
+ 1021 0644 FC01      		movw r30,r24
+ 1022 0646 8081      		ld r24,Z
+ 1023 0648 9181      		ldd r25,Z+1
+ 1024 064a 9093 0000 		sts nwkDataReqQueue+1,r25
+ 1025 064e 8093 0000 		sts nwkDataReqQueue,r24
+ 1026 0652 00C0      		rjmp .L35
+ 1027               	.L34:
+ 1028               	.LBB4:
+ 264:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	} else {
+ 265:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		NWK_DataReq_t *prev = nwkDataReqQueue;
+ 1029               		.loc 1 265 0
+ 1030 0654 8091 0000 		lds r24,nwkDataReqQueue
+ 1031 0658 9091 0000 		lds r25,nwkDataReqQueue+1
+ 1032 065c 9A83      		std Y+2,r25
+ 1033 065e 8983      		std Y+1,r24
+ 266:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		while (prev->next != req) {
+ 1034               		.loc 1 266 0
+ 1035 0660 00C0      		rjmp .L36
+ 1036               	.L37:
+ 267:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			prev = prev->next;
+ 1037               		.loc 1 267 0
+ 1038 0662 8981      		ldd r24,Y+1
+ 1039 0664 9A81      		ldd r25,Y+2
+ 1040 0666 FC01      		movw r30,r24
+ 1041 0668 8081      		ld r24,Z
+ 1042 066a 9181      		ldd r25,Z+1
+ 1043 066c 9A83      		std Y+2,r25
+ 1044 066e 8983      		std Y+1,r24
+ 1045               	.L36:
+ 266:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		while (prev->next != req) {
+ 1046               		.loc 1 266 0
+ 1047 0670 8981      		ldd r24,Y+1
+ 1048 0672 9A81      		ldd r25,Y+2
+ 1049 0674 FC01      		movw r30,r24
+ 1050 0676 2081      		ld r18,Z
+ 1051 0678 3181      		ldd r19,Z+1
+ 1052 067a 8B81      		ldd r24,Y+3
+ 1053 067c 9C81      		ldd r25,Y+4
+ 1054 067e 2817      		cp r18,r24
+ 1055 0680 3907      		cpc r19,r25
+ 1056 0682 01F4      		brne .L37
+ 268:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
+ 269:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		prev->next = ((NWK_DataReq_t *)prev->next)->next;
+ 1057               		.loc 1 269 0
+ 1058 0684 8981      		ldd r24,Y+1
+ 1059 0686 9A81      		ldd r25,Y+2
+ 1060 0688 FC01      		movw r30,r24
+ 1061 068a 8081      		ld r24,Z
+ 1062 068c 9181      		ldd r25,Z+1
+ 1063 068e FC01      		movw r30,r24
+ 1064 0690 2081      		ld r18,Z
+ 1065 0692 3181      		ldd r19,Z+1
+ 1066 0694 8981      		ldd r24,Y+1
+ 1067 0696 9A81      		ldd r25,Y+2
+ 1068 0698 FC01      		movw r30,r24
+ 1069 069a 3183      		std Z+1,r19
+ 1070 069c 2083      		st Z,r18
+ 1071               	.L35:
+ 1072               	.LBE4:
+ 270:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
+ 271:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 272:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	nwkIb.lock--;
+ 1073               		.loc 1 272 0
+ 1074 069e 8091 0000 		lds r24,nwkIb+38
+ 1075 06a2 9091 0000 		lds r25,nwkIb+38+1
+ 1076 06a6 0197      		sbiw r24,1
+ 1077 06a8 9093 0000 		sts nwkIb+38+1,r25
+ 1078 06ac 8093 0000 		sts nwkIb+38,r24
+ 273:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 274:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	if(req->confirm != NULL)
+ 1079               		.loc 1 274 0
+ 1080 06b0 8B81      		ldd r24,Y+3
+ 1081 06b2 9C81      		ldd r25,Y+4
+ 1082 06b4 FC01      		movw r30,r24
+ 1083 06b6 8685      		ldd r24,Z+14
+ 1084 06b8 9785      		ldd r25,Z+15
+ 1085 06ba 892B      		or r24,r25
+ 1086 06bc 01F0      		breq .L39
+ 275:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	{
+ 276:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		req->confirm(req);
+ 1087               		.loc 1 276 0
+ 1088 06be 8B81      		ldd r24,Y+3
+ 1089 06c0 9C81      		ldd r25,Y+4
+ 1090 06c2 FC01      		movw r30,r24
+ 1091 06c4 2685      		ldd r18,Z+14
+ 1092 06c6 3785      		ldd r19,Z+15
+ 1093 06c8 8B81      		ldd r24,Y+3
+ 1094 06ca 9C81      		ldd r25,Y+4
+ 1095 06cc F901      		movw r30,r18
+ 1096 06ce 0995      		icall
+ 1097               	.L39:
+ 277:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
+ 278:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** }
+ 1098               		.loc 1 278 0
+ 1099 06d0 0000      		nop
+ 1100               	/* epilogue start */
+ 1101 06d2 0F90      		pop __tmp_reg__
+ 1102 06d4 0F90      		pop __tmp_reg__
+ 1103 06d6 0F90      		pop __tmp_reg__
+ 1104 06d8 0F90      		pop __tmp_reg__
+ 1105 06da DF91      		pop r29
+ 1106 06dc CF91      		pop r28
+ 1107 06de 0895      		ret
+ 1108               		.cfi_endproc
+ 1109               	.LFE70:
+ 1111               	.global	nwkDataReqTaskHandler
+ 1113               	nwkDataReqTaskHandler:
+ 1114               	.LFB71:
+ 279:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 280:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** /*************************************************************************//**
+ 281:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *  @brief Data Request module task handler
+ 282:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** *****************************************************************************/
+ 283:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** void nwkDataReqTaskHandler(void)
+ 284:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** {
+ 1115               		.loc 1 284 0
+ 1116               		.cfi_startproc
+ 1117 06e0 CF93      		push r28
+ 1118               	.LCFI19:
+ 1119               		.cfi_def_cfa_offset 3
+ 1120               		.cfi_offset 28, -2
+ 1121 06e2 DF93      		push r29
+ 1122               	.LCFI20:
+ 1123               		.cfi_def_cfa_offset 4
+ 1124               		.cfi_offset 29, -3
+ 1125 06e4 00D0      		rcall .
+ 1126               	.LCFI21:
+ 1127               		.cfi_def_cfa_offset 6
+ 1128 06e6 CDB7      		in r28,__SP_L__
+ 1129 06e8 DEB7      		in r29,__SP_H__
+ 1130               	.LCFI22:
+ 1131               		.cfi_def_cfa_register 28
+ 1132               	/* prologue: function */
+ 1133               	/* frame size = 2 */
+ 1134               	/* stack size = 4 */
+ 1135               	.L__stack_usage = 4
+ 1136               	.LBB5:
+ 285:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	for (NWK_DataReq_t *req = nwkDataReqQueue; req; req = req->next) {
+ 1137               		.loc 1 285 0
+ 1138 06ea 8091 0000 		lds r24,nwkDataReqQueue
+ 1139 06ee 9091 0000 		lds r25,nwkDataReqQueue+1
+ 1140 06f2 9A83      		std Y+2,r25
+ 1141 06f4 8983      		std Y+1,r24
+ 1142 06f6 00C0      		rjmp .L41
+ 1143               	.L48:
+ 286:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		switch (req->state) {
+ 1144               		.loc 1 286 0
+ 1145 06f8 8981      		ldd r24,Y+1
+ 1146 06fa 9A81      		ldd r25,Y+2
+ 1147 06fc FC01      		movw r30,r24
+ 1148 06fe 8481      		ldd r24,Z+4
+ 1149 0700 882F      		mov r24,r24
+ 1150 0702 90E0      		ldi r25,0
+ 1151 0704 8130      		cpi r24,1
+ 1152 0706 9105      		cpc r25,__zero_reg__
+ 1153 0708 01F0      		breq .L49
+ 1154 070a 8230      		cpi r24,2
+ 1155 070c 9105      		cpc r25,__zero_reg__
+ 1156 070e 01F0      		breq .L44
+ 1157 0710 892B      		or r24,r25
+ 1158 0712 01F0      		breq .L45
+ 287:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		case NWK_DATA_REQ_STATE_INITIAL:
+ 288:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		{
+ 289:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			nwkDataReqSendFrame(req);
+ 290:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			return;
+ 291:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
+ 292:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		break;
+ 293:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 294:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		case NWK_DATA_REQ_STATE_WAIT_CONF:
+ 295:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			break;
+ 296:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 297:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		case NWK_DATA_REQ_STATE_CONFIRM:
+ 298:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		{
+ 299:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			nwkDataReqConfirm(req);
+ 300:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			return;
+ 301:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
+ 302:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		break;
+ 303:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 304:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		default:
+ 305:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			break;
+ 1159               		.loc 1 305 0
+ 1160 0714 00C0      		rjmp .L47
+ 1161               	.L45:
+ 289:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			return;
+ 1162               		.loc 1 289 0
+ 1163 0716 8981      		ldd r24,Y+1
+ 1164 0718 9A81      		ldd r25,Y+2
+ 1165 071a 0E94 0000 		call nwkDataReqSendFrame
+ 290:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
+ 1166               		.loc 1 290 0
+ 1167 071e 00C0      		rjmp .L40
+ 1168               	.L44:
+ 299:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 			return;
+ 1169               		.loc 1 299 0
+ 1170 0720 8981      		ldd r24,Y+1
+ 1171 0722 9A81      		ldd r25,Y+2
+ 1172 0724 0E94 0000 		call nwkDataReqConfirm
+ 300:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
+ 1173               		.loc 1 300 0
+ 1174 0728 00C0      		rjmp .L40
+ 1175               	.L49:
+ 295:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 
+ 1176               		.loc 1 295 0
+ 1177 072a 0000      		nop
+ 1178               	.L47:
+ 285:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		switch (req->state) {
+ 1179               		.loc 1 285 0 discriminator 2
+ 1180 072c 8981      		ldd r24,Y+1
+ 1181 072e 9A81      		ldd r25,Y+2
+ 1182 0730 FC01      		movw r30,r24
+ 1183 0732 8081      		ld r24,Z
+ 1184 0734 9181      		ldd r25,Z+1
+ 1185 0736 9A83      		std Y+2,r25
+ 1186 0738 8983      		std Y+1,r24
+ 1187               	.L41:
+ 285:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		switch (req->state) {
+ 1188               		.loc 1 285 0 is_stmt 0 discriminator 1
+ 1189 073a 8981      		ldd r24,Y+1
+ 1190 073c 9A81      		ldd r25,Y+2
+ 1191 073e 892B      		or r24,r25
+ 1192 0740 01F4      		brne .L48
+ 1193               	.L40:
+ 1194               	/* epilogue start */
+ 1195               	.LBE5:
+ 306:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 		}
+ 307:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** 	}
+ 308:../../../stack/LwMesh/TDMA/nwk/src/nwkDataReq.c **** }
+ 1196               		.loc 1 308 0 is_stmt 1
+ 1197 0742 0F90      		pop __tmp_reg__
+ 1198 0744 0F90      		pop __tmp_reg__
+ 1199 0746 DF91      		pop r29
+ 1200 0748 CF91      		pop r28
+ 1201 074a 0895      		ret
+ 1202               		.cfi_endproc
+ 1203               	.LFE71:
+ 1205               	.Letext0:
+ 1206               		.file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 1207               		.file 3 "../../../stack/LwMesh/TDMA/nwk/inc/nwkFrame.h"
+ 1208               		.file 4 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
+ 1209               		.file 5 "../../../stack/LwMesh/TDMA/nwk/inc/nwkDataReq.h"
+ 1210               		.file 6 "../../../stack/LwMesh/TDMA/nwk/inc/nwk.h"
+ 1211               		.file 7 "../../../stack/LwMesh/TDMA/nwk/inc/nwkTx.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 nwkDataReq.c
-C:\Users\guilh\AppData\Local\Temp\cckXet9h.s:2      *ABS*:0000003e __SP_H__
-C:\Users\guilh\AppData\Local\Temp\cckXet9h.s:3      *ABS*:0000003d __SP_L__
-C:\Users\guilh\AppData\Local\Temp\cckXet9h.s:4      *ABS*:0000003f __SREG__
-C:\Users\guilh\AppData\Local\Temp\cckXet9h.s:5      *ABS*:0000003b __RAMPZ__
-C:\Users\guilh\AppData\Local\Temp\cckXet9h.s:6      *ABS*:00000000 __tmp_reg__
-C:\Users\guilh\AppData\Local\Temp\cckXet9h.s:7      *ABS*:00000001 __zero_reg__
-C:\Users\guilh\AppData\Local\Temp\cckXet9h.s:14     .bss.nwkDataReqQueue:00000000 nwkDataReqQueue
-C:\Users\guilh\AppData\Local\Temp\cckXet9h.s:19     .text:00000000 nwkDataReqInit
-C:\Users\guilh\AppData\Local\Temp\cckXet9h.s:54     .text:00000018 NWK_DataReq
-C:\Users\guilh\AppData\Local\Temp\cckXet9h.s:146    .text:000000a0 nwkDataReqSendFrame
-C:\Users\guilh\AppData\Local\Temp\cckXet9h.s:751    .text:000004ce nwkDataReqTxConf
-C:\Users\guilh\AppData\Local\Temp\cckXet9h.s:861    .text:00000562 nwkDataReqConfirm
-C:\Users\guilh\AppData\Local\Temp\cckXet9h.s:990    .text:00000628 nwkDataReqTaskHandler
+C:\Users\guilh\AppData\Local\Temp\ccqj9HBD.s:2      *ABS*:0000003e __SP_H__
+C:\Users\guilh\AppData\Local\Temp\ccqj9HBD.s:3      *ABS*:0000003d __SP_L__
+C:\Users\guilh\AppData\Local\Temp\ccqj9HBD.s:4      *ABS*:0000003f __SREG__
+C:\Users\guilh\AppData\Local\Temp\ccqj9HBD.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\guilh\AppData\Local\Temp\ccqj9HBD.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\guilh\AppData\Local\Temp\ccqj9HBD.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\guilh\AppData\Local\Temp\ccqj9HBD.s:14     .bss.nwkDataReqQueue:00000000 nwkDataReqQueue
+C:\Users\guilh\AppData\Local\Temp\ccqj9HBD.s:19     .text:00000000 nwkDataReqInit
+C:\Users\guilh\AppData\Local\Temp\ccqj9HBD.s:54     .text:00000018 NWK_DataReq
+C:\Users\guilh\AppData\Local\Temp\ccqj9HBD.s:146    .text:000000a0 nwkDataReqSendFrame
+C:\Users\guilh\AppData\Local\Temp\ccqj9HBD.s:874    .text:00000586 nwkDataReqTxConf
+C:\Users\guilh\AppData\Local\Temp\ccqj9HBD.s:984    .text:0000061a nwkDataReqConfirm
+C:\Users\guilh\AppData\Local\Temp\ccqj9HBD.s:1113   .text:000006e0 nwkDataReqTaskHandler
 
 UNDEFINED SYMBOLS
 nwkIb
 nwkFrameAlloc
+nwkFrameAlloc_LLDN
+nwkTxBeaconFrameLLDN
 memcpy
+nwkTxMacCommandFrameLLDN
 nwkTxBeaconFrame
 nwkTxFrame
 nwkFrameFree

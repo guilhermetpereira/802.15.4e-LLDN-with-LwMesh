@@ -110,32 +110,77 @@ void NWK_DataReq(NWK_DataReq_t *req)
 static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 {
 	NwkFrame_t *frame;
-
-	if (NULL == (frame = nwkFrameAlloc())) {
-		req->state = NWK_DATA_REQ_STATE_CONFIRM;
-		req->status = NWK_OUT_OF_MEMORY_STATUS;
-		return;
+	if(req->options < NWK_OPT_LLDN_BEACON ) // use original frame allocation
+	{																			 	// this is not optimezed for
+		if(NULL == (frame = nwkFrameAlloc()))	// NWK_OPT_BEACON
+		{
+			req->state = NWK_DATA_REQ_STATE_CONFIRM;
+			req->status = NWK_OUT_OF_MEMORY_STATUS;
+			return;
+		}
+	}	else {		// use LLDN allocation, alocattes depending on header size
+		if( NULL == (frame = ((req->options & NWK_OPT_LLDN_BEACON) ? nwkFrameAlloc_LLDN(true) : nwkFrameAlloc_LLDN(false))))
+		{
+			// if there isn't space avaible in frame buffer queue, requested message
+			// can't be process
+			req->state = NWK_DATA_REQ_STATE_CONFIRM;
+			req->status = NWK_OUT_OF_MEMORY_STATUS;
+			return;
+		}
 	}
 
-	req->frame = frame;
-	req->state = NWK_DATA_REQ_STATE_WAIT_CONF;
-
-	frame->tx.confirm = nwkDataReqTxConf;
-
-	if(req->options & NWK_OPT_BEACON)
+	if(req->options & NWK_OPT_LLDN_BEACON)
 	{
-		frame->size += sizeof(NwkFrameBeaconHeader_t);
-		frame->payload += sizeof(NwkFrameBeaconHeader_t);
-		
 		frame->tx.control = 0;
-		
+		// Set Flag depending on current state of coordinator
+		if (req->options & NWK_OPT_LLDN_BEACON_ONLINE)
+			frame->LLbeacon.Flags.txState = 0b000; // online mode
+		else if (req->options & NWK_OPT_LLDN_BEACON_DISCOVERY)
+			frame->LLbeacon.Flags.txState = 0b100; // discovery mode
+		else if (req->options & NWK_OPT_LLDN_BEACON_CONFIG)
+			frame->LLbeacon.Flags.txState = 0b110; // configuration mode
+		else if (req->options & NWK_OPT_LLDN_BEACON_RESET)
+			frame->LLbeacon.Flags.txState = 0b111; // full reset mode
+
+		// set biderectional time slots: 0 - downlink 1 - uplink
+		frame->LLbeacon.Flags.txDir 		= 0b0;
+		frame->LLbeacon.Flags.reserved 	= 0b0;
+		// set number of managment timeslots
+		frame->LLbeacon.Flags.numMgmtTimeslots = NWK_NUMBER_OF_MGMT_TIMESLOTS;
+
+		if (req->options & 	NWK_OPT_LLDN_BEACON_SECOND)
+		 frame->LLbeacon.confSeqNumber = 0x01;
+		else if (req->options & 	NWK_OPT_LLDN_BEACON_THIRD)
+			frame->LLbeacon.confSeqNumber = 0x02;
+		else frame->LLbeacon.confSeqNumber = 0x00;
+
+		frame->LLbeacon.TimeSlotSize 	= 0xff; // calculation needs to be implemented, see timers first
+
+		uint8_t* shortAddr = (uint8_t* )nwkIb.addr;
+		frame->LLbeacon.PanId = shortAddr[0];
+		// set Frame Control, Security Header and Sequence Nuber fields
+		nwkTxBeaconFrameLLDN(frame);
+	}
+	else if(req->options & NWK_OPT_MAC_COMMAND ||
+					req->options & NWK_OPT_LLDN_DATA 	||
+					req->options & NWK_OPT_LLDN_ACK )
+	{
+		frame->tx.control = 0;
+		memcpy(frame->payload, req->data, req->size);
+		frame->size += req->size;
+		nwkTxMacCommandFrameLLDN(frame, req->options);
+	}
+	else if(req->options & NWK_OPT_BEACON )
+	{
+		frame->tx.control = 0;
+
 		frame->beacon.macSFS.beaconOrder = BI_COEF;
 		frame->beacon.macSFS.superframeOrder = SD_COEF;
 		frame->beacon.macSFS.finalCAPslot = FINAL_CAP_SLOT;
 		frame->beacon.macSFS.BatteryLifeExtension = TDMA_BATTERY_EXTENSION;
 		frame->beacon.macSFS.PANCoordinator = 1;
 		frame->beacon.macSFS.AssociationPermit = 0;
-		
+
 		frame->beacon.macGTS = 0;
 		frame->beacon.macPending = 0;
 
@@ -146,9 +191,6 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 	}
 	else
 	{
-		frame->size += sizeof(NwkFrameHeader_t);
-		frame->payload += sizeof(NwkFrameHeader_t);
-
 		frame->tx.control = (req->options & NWK_OPT_BROADCAST_PAN_ID) ? NWK_TX_CONTROL_BROADCAST_PAN_ID : 0;
 
 		frame->header.nwkFcf.ackRequest = (req->options & NWK_OPT_ACK_REQUEST) ? 1 : 0;
@@ -162,7 +204,7 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 #ifdef NWK_ENABLE_MULTICAST
 		frame->header.nwkFcf.multicast = (req->options & NWK_OPT_MULTICAST) ? 1 : 0;
 
-		if (frame->header.nwkFcf.multicast)
+		if(frame->header.nwkFcf.multicast)
 		{
 			NwkFrameMulticastHeader_t *mcHeader = (NwkFrameMulticastHeader_t *)frame->payload;
 
@@ -174,7 +216,6 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 			frame->payload += sizeof(NwkFrameMulticastHeader_t);
 			frame->size += sizeof(NwkFrameMulticastHeader_t);
 		}
-
 #endif
 
 		frame->header.nwkSeq = ++nwkIb.nwkSeqNum;
@@ -182,12 +223,16 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 		frame->header.nwkDstAddr = req->dstAddr;
 		frame->header.nwkSrcEndpoint = req->srcEndpoint;
 		frame->header.nwkDstEndpoint = req->dstEndpoint;
-		
+
 		memcpy(frame->payload, req->data, req->size);
 		frame->size += req->size;
-		
+
 		nwkTxFrame(frame);
 	}
+	req->frame = frame;
+	req->state = NWK_DATA_REQ_STATE_WAIT_CONF;
+
+	frame->tx.confirm = nwkDataReqTxConf;
 }
 
 /*************************************************************************//**
