@@ -51,12 +51,14 @@
 /*- Definitions ------------------------------------------------------------*/
 #define PHY_CRC_SIZE          2
 #define IRQ_CLEAR_VALUE       0xff
+
 /*- Types ------------------------------------------------------------------*/
-typedef enum {
-	PHY_STATE_INITIAL,
-	PHY_STATE_IDLE,
-	PHY_STATE_SLEEP,
-	PHY_STATE_TX_WAIT_END,
+typedef enum
+{
+  PHY_STATE_INITIAL,
+  PHY_STATE_IDLE,
+  PHY_STATE_SLEEP,
+  PHY_STATE_TX_WAIT_END,
 } PhyState_t;
 
 /*- Prototypes -------------------------------------------------------------*/
@@ -74,51 +76,73 @@ static bool phyRxState;
 *****************************************************************************/
 void PHY_Init(void)
 {
-	sysclk_enable_peripheral_clock(&TRX_CTRL_0);
+  TRXPR_REG_s.trxrst = 1;
 
-	TRXPR_REG_s.trxrst = 1;
+  phyRxState = false;
+  phyState = PHY_STATE_IDLE;
 
-	phyRxState = false;
-	phyState = PHY_STATE_IDLE;
+  phyTrxSetState(TRX_CMD_TRX_OFF);
 
-	phyTrxSetState(TRX_CMD_TRX_OFF);
-
-	TRX_CTRL_2_REG_s.rxSafeMode = 1;
+  TRX_CTRL_2_REG_s.rxSafeMode = 1;
 
 #ifdef PHY_ENABLE_RANDOM_NUMBER_GENERATOR
-	CSMA_SEED_0_REG = (uint8_t)PHY_RandomReq();
+  CSMA_SEED_0_REG = (uint8_t)PHY_RandomReq();
 #endif
-
+#if defined(PLATFORM_WM100)
 #if (ANTENNA_DIVERSITY == 1)
 	ANT_DIV_REG_s.antCtrl = 2;
 	RX_CTRL_REG_s.pdtThres = 0x03;
 	ANT_DIV_REG_s.antDivEn = 1;
 	ANT_DIV_REG_s.antExtSwEn = 1;
-#else
-	#if (ANTENNA_DEFAULT != 0)
-		ANT_DIV_REG_s.antExtSwEn = 1;
-		ANT_DIV_REG_s.antCtrl = ANTENNA_DEFAULT;
-	#endif // ANTENNA_DEFAULT
 #endif // ANTENNA_DIVERSITY
 #ifdef EXT_RF_FRONT_END_CTRL
 	TRX_CTRL_1_REG_s.paExtEn = 1;
+	HAL_GPIO_RF_FRONT_END_EN_set();
 #endif // EXT_RF_FRONT_END_CTRL
+#endif // PLATFORM_WM100
 }
-
 void PHY_SetTdmaMode(bool mode)
 {
 	if(mode)
 	{
 		XAH_CTRL_0_REG_s.maxFrameRetries = 0;
-		XAH_CTRL_0_REG_s.maxCsmaRetries = 7;
-	
-		CSMA_SEED_1_REG_s.aackDisAck = 1;	// Disable ACK even if requested		
+		XAH_CTRL_0_REG_s.maxCsmaRetries = 7; // disable csma
+
+		CSMA_SEED_1_REG_s.aackDisAck = 1;	// Disable ACK even if requested
 	}
 	else
 	{
 		XAH_CTRL_0_REG_s.maxFrameRetries = 3;
 		XAH_CTRL_0_REG_s.maxCsmaRetries = 4;
-		
+
+		CSMA_SEED_1_REG_s.aackDisAck = 0;
+	}
+}
+void PHY_SetPromiscuousMode(bool mode)
+{
+	uint8_t ieee_address[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+	if(mode)
+	{
+		PHY_SetShortAddr(0);
+		PHY_SetPanId(0);
+		PHY_SetIEEEAddr(ieee_address);
+
+// AACK_UPLD_RES_FT = 1, AACK_FLT_RES_FT = 0:
+//	Any non-corrupted frame with a reserved frame type is indicated by a
+//	TRX24_RX_END interrupt. No further address filtering is applied on those frames.
+//	A TRX24_AMI interrupt is never generated and the acknowledgment subfield is
+//	ignored.
+
+		XAH_CTRL_1_REG_s.aackPromMode = 1;	// Enable promiscuous mode
+		XAH_CTRL_1_REG_s.aackUpldResFt = 1;	// Enable reserved frame type reception ; this was changed to one
+                                        // so that the addres isn't checked by filter
+		XAH_CTRL_1_REG_s.aackFltrResFt = 0;	// Disable filter of reserved frame types
+		CSMA_SEED_1_REG_s.aackDisAck = 1;		// Disable generation of acknowledgment
+	}
+	else
+	{
+		XAH_CTRL_1_REG = 0;
 		CSMA_SEED_1_REG_s.aackDisAck = 0;
 	}
 }
@@ -127,38 +151,82 @@ void PHY_SetTdmaMode(bool mode)
 *****************************************************************************/
 void PHY_SetRxState(bool rx)
 {
-	phyRxState = rx;
-	phySetRxState();
+  phyRxState = rx;
+  phySetRxState();
 }
 
 /*************************************************************************//**
 *****************************************************************************/
 void PHY_SetChannel(uint8_t channel)
 {
-	PHY_CC_CCA_REG_s.channel = channel;
+  PHY_CC_CCA_REG_s.channel = channel;
 }
 
 /*************************************************************************//**
 *****************************************************************************/
+void PHY_SetPage(uint8_t page)
+{
+	switch(page)
+	{
+		case 0:		/* compliant O-QPSK */
+		{
+			TRX_CTRL_2_REG_s.oqpskDataRate = 0;	// RATE_250_KBPS
+			/* Apply compliant ACK timing */
+			XAH_CTRL_1_REG_s.aackAckTime = 0;	// ACK_TIME_12_SYMBOLS
+			/* Use full sensitivity */
+			RX_SYN_REG_s.rxPdtLevel = 0x00;
+			break;
+		}
+		case 2:		/* non-compliant OQPSK mode 1 */
+		{
+			TRX_CTRL_2_REG_s.oqpskDataRate = 1;	// RATE_500_KBPS
+			/* Apply compliant ACK timing */
+			XAH_CTRL_1_REG_s.aackAckTime = 1;	// ACK_TIME_2_SYMBOLS
+			/* Use full sensitivity */
+			RX_SYN_REG_s.rxPdtLevel = 0x00;
+			break;
+		}
+		case 16:	/* non-compliant OQPSK mode 2 */
+		{
+			TRX_CTRL_2_REG_s.oqpskDataRate = 2;	// RATE_1_MBPS
+			/* Apply compliant ACK timing */
+			XAH_CTRL_1_REG_s.aackAckTime = 1;	// ACK_TIME_2_SYMBOLS
+			/* Use full sensitivity */
+			RX_SYN_REG_s.rxPdtLevel = 0x00;
+			break;
+		}
+		case 17:	/* non-compliant OQPSK mode 3 */
+		{
+			TRX_CTRL_2_REG_s.oqpskDataRate = 3;	// RATE_2_MBPS
+			/* Apply compliant ACK timing */
+			XAH_CTRL_1_REG_s.aackAckTime = 1;	// ACK_TIME_2_SYMBOLS
+			/* Use reduced sensitivity for 2Mbit mode */
+			RX_SYN_REG_s.rxPdtLevel = 0x01;
+			break;
+		}
+	}
+}
+/*************************************************************************//**
+*****************************************************************************/
 void PHY_SetPanId(uint16_t panId)
 {
-	uint8_t *d = (uint8_t *)&panId;
+  uint8_t *d = (uint8_t *)&panId;
 
-	PAN_ID_0_REG = d[0];
-	PAN_ID_1_REG = d[1];
+  PAN_ID_0_REG = d[0];
+  PAN_ID_1_REG = d[1];
 }
 
 /*************************************************************************//**
 *****************************************************************************/
 void PHY_SetShortAddr(uint16_t addr)
 {
-	uint8_t *d = (uint8_t *)&addr;
+  uint8_t *d = (uint8_t *)&addr;
 
-	SHORT_ADDR_0_REG = d[0];
-	SHORT_ADDR_1_REG = d[1];
+  SHORT_ADDR_0_REG = d[0];
+  SHORT_ADDR_1_REG = d[1];
 
 #ifndef PHY_ENABLE_RANDOM_NUMBER_GENERATOR
-	CSMA_SEED_0_REG = d[0] + d[1];
+  CSMA_SEED_0_REG = d[0] + d[1];
 #endif
 }
 
@@ -166,146 +234,152 @@ void PHY_SetShortAddr(uint16_t addr)
 *****************************************************************************/
 void PHY_SetTxPower(uint8_t txPower)
 {
-	PHY_TX_PWR_REG_s.txPwr = txPower;
+  PHY_TX_PWR_REG_s.txPwr = txPower;
 }
 
 /*************************************************************************//**
 *****************************************************************************/
 void PHY_Sleep(void)
 {
-	if(phyState != PHY_STATE_SLEEP)
-	{
-		phyTrxSetState(TRX_CMD_TRX_OFF);
-		TRXPR_REG_s.slptr = 1;
-		phyState = PHY_STATE_SLEEP;		
-	}
-	
-#if (ANTENNA_DIVERSITY == 1)
-	ANT_DIV_REG_s.antExtSwEn = 0;
-	ANT_DIV_REG_s.antDivEn = 0;
-#else
-	#if (ANTENNA_DEFAULT != 0)
+  phyTrxSetState(TRX_CMD_TRX_OFF);
+  TRXPR_REG_s.slptr = 1;
+  phyState = PHY_STATE_SLEEP;
+#if defined(PLATFORM_WM100)
+	#if (ANTENNA_DIVERSITY == 1)
 		ANT_DIV_REG_s.antExtSwEn = 0;
-		ANT_DIV_REG_s.antCtrl = 0;
-	#endif // ANTENNA_DEFAULT
-#endif // ANTENNA_DIVERSITY
-#ifdef EXT_RF_FRONT_END_CTRL
-	TRX_CTRL_1_REG_s.paExtEn = 0;
-#endif // EXT_RF_FRONT_END_CTRL
+		ANT_DIV_REG_s.antDivEn = 0;
+	#endif // ANTENNA_DIVERSITY
+	#ifdef EXT_RF_FRONT_END_CTRL
+		TRX_CTRL_1_REG_s.paExtEn = 0;
+		HAL_GPIO_RF_FRONT_END_EN_clr();
+	#endif // EXT_RF_FRONT_END_CTRL
+#endif // PLATFORM_WM100
 }
 
 /*************************************************************************//**
 *****************************************************************************/
 void PHY_Wakeup(void)
 {
-	TRXPR_REG_s.slptr = 0;
-	phySetRxState();
-	phyState = PHY_STATE_IDLE;
+  TRXPR_REG_s.slptr = 0;
+  phySetRxState();
+  phyState = PHY_STATE_IDLE;
 }
 
 /*************************************************************************//**
 *****************************************************************************/
-void PHY_DataReq(uint8_t *data)
+void PHY_DataReq(uint8_t *data, uint8_t size)
 {
-	phyTrxSetState(TRX_CMD_TX_ARET_ON);
+  phyTrxSetState(TRX_CMD_TX_ARET_ON);
 
-	TRX_FRAME_BUFFER(0) = data[0] + PHY_CRC_SIZE;
-	for (uint8_t i = 0; i < data[0]; i++) {
-		TRX_FRAME_BUFFER(i + 1) = data[i + 1];
-	}
+  IRQ_STATUS_REG = IRQ_CLEAR_VALUE;
 
-	phyState = PHY_STATE_TX_WAIT_END;
-	TRX_STATE_REG = TRX_CMD_TX_START;
+  TRX_FRAME_BUFFER(0) = size + PHY_CRC_SIZE;
+  for (uint8_t i = 0; i < size; i++)
+    TRX_FRAME_BUFFER(i+1) = data[i];
+
+  phyState = PHY_STATE_TX_WAIT_END;
+  TRX_STATE_REG = TRX_CMD_TX_START;
 }
 
+#ifdef PHY_ENABLE_RANDOM_NUMBER_GENERATOR
 /*************************************************************************//**
 *****************************************************************************/
 uint16_t PHY_RandomReq(void)
 {
-	uint16_t rnd = 0;
+  uint16_t rnd = 0;
 
-	phyTrxSetState(TRX_CMD_RX_ON);
+  phyTrxSetState(TRX_CMD_RX_ON);
 
-	for (uint8_t i = 0; i < 16; i += 2) {
-		delay_us(RANDOM_NUMBER_UPDATE_INTERVAL);
-		rnd |= PHY_RSSI_REG_s.rndValue << i;
-	}
+  for (uint8_t i = 0; i < 16; i += 2)
+  {
+    HAL_Delay(RANDOM_NUMBER_UPDATE_INTERVAL);
+    rnd |= PHY_RSSI_REG_s.rndValue << i;
+  }
 
-	phySetRxState();
+  phySetRxState();
 
-	return rnd;
+  return rnd;
 }
+#endif
 
+#ifdef PHY_ENABLE_AES_MODULE
 /*************************************************************************//**
 *****************************************************************************/
 void PHY_EncryptReq(uint8_t *text, uint8_t *key)
 {
-	sal_aes_setup(key, AES_MODE_ECB, AES_DIR_ENCRYPT);
-	sal_aes_exec(text);
-	sal_aes_read(text);
-}
+  for (uint8_t i = 0; i < AES_BLOCK_SIZE; i++)
+    AES_KEY = key[i];
 
+  AES_CTRL = (0<<AES_CTRL_DIR) | (0<<AES_CTRL_MODE);
+
+  for (uint8_t i = 0; i < AES_BLOCK_SIZE; i++)
+    AES_STATE = text[i];
+
+  AES_CTRL |= (1<<AES_CTRL_REQUEST);
+
+  while (0 == (AES_STATUS & (1<<AES_STATUS_RY)));
+
+  for (uint8_t i = 0; i < AES_BLOCK_SIZE; i++)
+    text[i] = AES_STATE;
+}
+#endif
+
+#ifdef PHY_ENABLE_ENERGY_DETECTION
 /*************************************************************************//**
 *****************************************************************************/
 int8_t PHY_EdReq(void)
 {
-	int8_t ed;
+  int8_t ed;
 
-	phyTrxSetState(TRX_CMD_RX_ON);
+  phyTrxSetState(TRX_CMD_RX_ON);
 
-	IRQ_STATUS_REG_s.ccaEdDone = 1;
-	PHY_ED_LEVEL_REG = 0;
-	while (0 == IRQ_STATUS_REG_s.ccaEdDone) {
-	}
+  IRQ_STATUS_REG_s.ccaEdDone = 1;
+  PHY_ED_LEVEL_REG = 0;
+  while (0 == IRQ_STATUS_REG_s.ccaEdDone);
 
-	ed = (int8_t)PHY_ED_LEVEL_REG + PHY_RSSI_BASE_VAL;
+  ed = (int8_t)PHY_ED_LEVEL_REG + PHY_RSSI_BASE_VAL;
 
-	phySetRxState();
+  phySetRxState();
 
-	return ed;
+  return ed;
 }
+#endif
 
 /*************************************************************************//**
 *****************************************************************************/
 static void phySetRxState(void)
 {
-	phyTrxSetState(TRX_CMD_TRX_OFF);
+  phyTrxSetState(TRX_CMD_TRX_OFF);
 
-	IRQ_STATUS_REG = IRQ_CLEAR_VALUE;
+  IRQ_STATUS_REG = IRQ_CLEAR_VALUE;
 
-	if (phyRxState) {
-		phyTrxSetState(TRX_CMD_RX_AACK_ON);
-	}
+  if (phyRxState)
+    phyTrxSetState(TRX_CMD_RX_AACK_ON);
 }
 
 /*************************************************************************//**
 *****************************************************************************/
 static void phyTrxSetState(uint8_t state)
 {
-#if (ANTENNA_DIVERSITY == 1) || defined(EXT_RF_FRONT_END_CTRL)
+  #if defined(PLATFORM_WM100)
 	if(phyState == PHY_STATE_SLEEP)
 	{
-	#if (ANTENNA_DIVERSITY == 1)
+#if (ANTENNA_DIVERSITY == 1)
 		ANT_DIV_REG_s.antDivEn = 1;
 		ANT_DIV_REG_s.antExtSwEn = 1;
-	#else
-		#if (ANTENNA_DEFAULT != 0)
-			ANT_DIV_REG_s.antExtSwEn = 1;
-			ANT_DIV_REG_s.antCtrl = ANTENNA_DEFAULT;
-		#endif // ANTENNA_DEFAULT
-	#endif // ANTENNA_DIVERSITY
-	#ifdef EXT_RF_FRONT_END_CTRL
+#endif // ANTENNA_DIVERSITY
+#ifdef EXT_RF_FRONT_END_CTRL
 		TRX_CTRL_1_REG_s.paExtEn = 1;
-	#endif // EXT_RF_FRONT_END_CTRL
+		HAL_GPIO_RF_FRONT_END_EN_set();
+#endif // EXT_RF_FRONT_END_CTRL
 	}
 #endif // PLATFORM_WM100
 
-	do {TRX_STATE_REG = TRX_CMD_FORCE_TRX_OFF;
-	} while (TRX_STATUS_TRX_OFF !=
-			TRX_STATUS_REG_s.trxStatus);
+  TRX_STATE_REG = TRX_CMD_FORCE_TRX_OFF;
+  while (TRX_STATUS_TRX_OFF != TRX_STATUS_REG_s.trxStatus);
 
-	do {TRX_STATE_REG = state; } while (state !=
-			TRX_STATUS_REG_s.trxStatus);
+  TRX_STATE_REG = state;
+  while (state != TRX_STATUS_REG_s.trxStatus);
 }
 
 /*************************************************************************//**
@@ -327,53 +401,53 @@ void PHY_SetIEEEAddr(uint8_t *ieee_addr)
 *****************************************************************************/
 void PHY_TaskHandler(void)
 {
-	if (PHY_STATE_SLEEP == phyState) {
-		return;
-	}
+  if (PHY_STATE_SLEEP == phyState)
+    return;
 
-	if (IRQ_STATUS_REG_s.rxEnd) {
-		PHY_DataInd_t ind;
-		uint8_t size = TST_RX_LENGTH_REG;
+  if (IRQ_STATUS_REG_s.rxEnd)
+  {
+    PHY_DataInd_t ind;
+    uint8_t size = TST_RX_LENGTH_REG;
 
-		for (uint8_t i = 0; i < size + 1 /*lqi*/; i++) {
-			phyRxBuffer[i] = TRX_FRAME_BUFFER(i);
-		}
+    for (uint8_t i = 0; i < size + 1/*lqi*/; i++)
+      phyRxBuffer[i] = TRX_FRAME_BUFFER(i);
 
-		ind.data = phyRxBuffer;
-		ind.size = size - PHY_CRC_SIZE;
-		ind.lqi  = phyRxBuffer[size];
-		ind.rssi = (int8_t)PHY_ED_LEVEL_REG + PHY_RSSI_BASE_VAL;
-		PHY_DataInd(&ind);
+    ind.data = phyRxBuffer;
+    ind.size = size - PHY_CRC_SIZE;
+    ind.lqi  = phyRxBuffer[size];
+    ind.rssi = (int8_t)PHY_ED_LEVEL_REG + PHY_RSSI_BASE_VAL;
+    PHY_DataInd(&ind);
 
-		while (TRX_STATUS_RX_AACK_ON != TRX_STATUS_REG_s.trxStatus) {
-		}
+    while (TRX_STATUS_RX_AACK_ON != TRX_STATUS_REG_s.trxStatus);
 
-		IRQ_STATUS_REG_s.rxEnd = 1;
-		TRX_CTRL_2_REG_s.rxSafeMode = 0;
-		TRX_CTRL_2_REG_s.rxSafeMode = 1;
-	} else if (IRQ_STATUS_REG_s.txEnd) {
-		if (TRX_STATUS_TX_ARET_ON == TRX_STATUS_REG_s.trxStatus) {
-			uint8_t status = TRX_STATE_REG_s.tracStatus;
+    IRQ_STATUS_REG_s.rxEnd = 1;
+    TRX_CTRL_2_REG_s.rxSafeMode = 0;
+    TRX_CTRL_2_REG_s.rxSafeMode = 1;
+  }
 
-			if (TRAC_STATUS_SUCCESS == status) {
-				status = PHY_STATUS_SUCCESS;
-			} else if (TRAC_STATUS_CHANNEL_ACCESS_FAILURE ==
-					status) {
-				status = PHY_STATUS_CHANNEL_ACCESS_FAILURE;
-			} else if (TRAC_STATUS_NO_ACK == status) {
-				status = PHY_STATUS_NO_ACK;
-			} else {
-				status = PHY_STATUS_ERROR;
-			}
+  else if (IRQ_STATUS_REG_s.txEnd)
+  {
+    if (TRX_STATUS_TX_ARET_ON == TRX_STATUS_REG_s.trxStatus)
+    {
+      uint8_t status = TRX_STATE_REG_s.tracStatus;
 
-			phySetRxState();
-			phyState = PHY_STATE_IDLE;
+      if (TRAC_STATUS_SUCCESS == status)
+        status = PHY_STATUS_SUCCESS;
+      else if (TRAC_STATUS_CHANNEL_ACCESS_FAILURE == status)
+        status = PHY_STATUS_CHANNEL_ACCESS_FAILURE;
+      else if (TRAC_STATUS_NO_ACK == status)
+        status = PHY_STATUS_NO_ACK;
+      else
+        status = PHY_STATUS_ERROR;
 
-			PHY_DataConf(status);
-		}
+      phySetRxState();
+      phyState = PHY_STATE_IDLE;
 
-		IRQ_STATUS_REG_s.txEnd = 1;
-	}
+      PHY_DataConf(status);
+    }
+
+    IRQ_STATUS_REG_s.txEnd = 1;
+  }
 }
 
-#endif /* PHY_ATMEGARFA1 */
+#endif // HAL_ATMEGARFA1

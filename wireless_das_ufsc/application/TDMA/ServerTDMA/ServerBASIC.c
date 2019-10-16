@@ -430,6 +430,7 @@ int main(void)
 #endif
 	cpu_irq_enable();
 
+
 #if APP_COORDINATOR
 #if 0
 	stdio_usb_init();
