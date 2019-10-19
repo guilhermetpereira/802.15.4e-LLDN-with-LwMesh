@@ -1,0 +1,3328 @@
+   1               		.file	"init_mega_rf.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               	.global	board_init
+  13               	board_init:
+  14               	.LFB65:
+  15               		.file 1 "../../../board/WM100_DUINO/src/init_mega_rf.c"
+   1:../../../board/WM100_DUINO/src/init_mega_rf.c **** /**
+   2:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * \file
+   3:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *
+   4:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * \brief ATMEGA256RFR2 WM100-DUINO board initialization.
+   5:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *
+   6:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * Copyright (c) 2013 Atmel Corporation. All rights reserved.
+   7:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *
+   8:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * \asf_license_start
+   9:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *
+  10:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * \page License
+  11:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *
+  12:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *
+  15:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *    this list of conditions and the following disclaimer.
+  17:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *
+  18:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *    and/or other materials provided with the distribution.
+  21:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *
+  22:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *    from this software without specific prior written permission.
+  24:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *
+  25:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *    Atmel microcontroller product.
+  27:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *
+  28:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *
+  40:../../../board/WM100_DUINO/src/init_mega_rf.c ****  * \asf_license_stop
+  41:../../../board/WM100_DUINO/src/init_mega_rf.c ****  *
+  42:../../../board/WM100_DUINO/src/init_mega_rf.c ****  */
+  43:../../../board/WM100_DUINO/src/init_mega_rf.c **** #include <conf_board.h>
+  44:../../../board/WM100_DUINO/src/init_mega_rf.c **** #include <board.h>
+  45:../../../board/WM100_DUINO/src/init_mega_rf.c **** #include <ioport.h>
+  46:../../../board/WM100_DUINO/src/init_mega_rf.c **** 
+  47:../../../board/WM100_DUINO/src/init_mega_rf.c **** void board_init(void)
+  48:../../../board/WM100_DUINO/src/init_mega_rf.c **** {
+  16               		.loc 1 48 0
+  17               		.cfi_startproc
+  18 0000 CF93      		push r28
+  19               	.LCFI0:
+  20               		.cfi_def_cfa_offset 3
+  21               		.cfi_offset 28, -2
+  22 0002 DF93      		push r29
+  23               	.LCFI1:
+  24               		.cfi_def_cfa_offset 4
+  25               		.cfi_offset 29, -3
+  26 0004 CDB7      		in r28,__SP_L__
+  27 0006 DEB7      		in r29,__SP_H__
+  28               	.LCFI2:
+  29               		.cfi_def_cfa_register 28
+  30 0008 CE56      		subi r28,110
+  31 000a D109      		sbc r29,__zero_reg__
+  32               	.LCFI3:
+  33               		.cfi_def_cfa_offset 114
+  34 000c 0FB6      		in __tmp_reg__,__SREG__
+  35 000e F894      		cli
+  36 0010 DEBF      		out __SP_H__,r29
+  37 0012 0FBE      		out __SREG__,__tmp_reg__
+  38 0014 CDBF      		out __SP_L__,r28
+  39               	/* prologue: function */
+  40               	/* frame size = 110 */
+  41               	/* stack size = 112 */
+  42               	.L__stack_usage = 112
+  43 0016 83E2      		ldi r24,lo8(35)
+  44 0018 8983      		std Y+1,r24
+  45 001a CE01      		movw r24,r28
+  46 001c 8B59      		subi r24,-101
+  47 001e 9F4F      		sbci r25,-1
+  48 0020 23E0      		ldi r18,lo8(3)
+  49 0022 30E0      		ldi r19,0
+  50 0024 FC01      		movw r30,r24
+  51 0026 3183      		std Z+1,r19
+  52 0028 2083      		st Z,r18
+  53 002a CE01      		movw r24,r28
+  54 002c 8959      		subi r24,-103
+  55 002e 9F4F      		sbci r25,-1
+  56 0030 2981      		ldd r18,Y+1
+  57 0032 FC01      		movw r30,r24
+  58 0034 2083      		st Z,r18
+  59               	.LBB112:
+  60               	.LBB113:
+  61               	.LBB114:
+  62               	.LBB115:
+  63               		.file 2 "../../../platform/common/services/ioport/mega_rf/ioport.h"
+   1:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+   2:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \file
+   3:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+   4:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief MEGA and MEGA_RF architecture specific IOPORT service implementation
+   5:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * header file.
+   6:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+   7:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * Copyright (c) 2012 - 2013 Atmel Corporation. All rights reserved.
+   8:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+   9:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \asf_license_start
+  10:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  11:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \page License
+  12:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  13:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * Redistribution and use in source and binary forms, with or without
+  14:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * modification, are permitted provided that the following conditions are met:
+  15:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  16:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  17:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *    this list of conditions and the following disclaimer.
+  18:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  19:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  20:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *    this list of conditions and the following disclaimer in the documentation
+  21:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *    and/or other materials provided with the distribution.
+  22:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  23:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  24:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *    from this software without specific prior written permission.
+  25:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  26:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * 4. This software may only be redistributed and used in connection with an
+  27:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *    Atmel microcontroller product.
+  28:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  29:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  30:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  31:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  32:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  33:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  34:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  35:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  36:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  37:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  38:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  39:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  40:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  41:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \asf_license_stop
+  42:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  43:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+  44:../../../platform/common/services/ioport/mega_rf/ioport.h **** #ifndef IOPORT_MEGA_RF_H
+  45:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_MEGA_RF_H
+  46:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  47:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_CREATE_PIN(port, pin) ((IOPORT_ ## port) * 8 + (pin))
+  48:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_BASE_ADDRESS 0x20
+  49:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORT_OFFSET  0x03
+  50:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  51:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** \name IOPORT port numbers */
+  52:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @{ */
+  53:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  54:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if MEGA_XX0_1 || MEGA_RF || MEGA_UNSPECIFIED || MEGA_XX4 || MEGA_XX4_A
+  55:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTA    0 /* not connected to pins for megaRF*/
+  56:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+  57:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  58:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if MEGA_XX0_1 || MEGA_RF || MEGA_UNSPECIFIED || MEGA_XX8 || MEGA_XX8_A || \
+  59:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	MEGA_XX4 || MEGA_XX4_A
+  60:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTB    1
+  61:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTC    2 /* not connected to pins for megaRF*/
+  62:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTD    3
+  63:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+  64:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  65:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if MEGA_XX0_1 || MEGA_RF
+  66:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTE    4
+  67:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTF    5
+  68:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTG    6
+  69:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+  70:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  71:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if MEGA_XX0
+  72:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTH    7
+  73:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTI    8
+  74:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTJ    9
+  75:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTK    10
+  76:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PORTL    11
+  77:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+  78:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @} */
+  79:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  80:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+  81:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \weakgroup ioport_service_group
+  82:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \section ioport_modes IOPORT Modes
+  83:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  84:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * For details on these please see the megaRF Manual.
+  85:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+  86:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * @{
+  87:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+  88:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  89:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** \name IOPORT Mode bit definitions */
+  90:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @{ */
+  91:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_MODE_PULLDOWN        (0x01) /*!< Pull-down */
+  92:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_MODE_PULLUP          (0x00) /*!< Pull-up */
+  93:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @} */
+  94:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+  95:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t ioport_mode_t;
+  96:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t ioport_pin_t;
+  97:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t ioport_port_t;
+  98:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t ioport_port_mask_t;
+  99:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 100:../../../platform/common/services/ioport/mega_rf/ioport.h **** /* I/O Ports */
+ 101:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef struct PORT_struct {
+ 102:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	volatile uint8_t PINCRL;         /* I/O Port PIN DATA READ ONLY */
+ 103:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	volatile uint8_t DIR;            /* I/O Port Data Direction Set */
+ 104:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	volatile uint8_t PORTDATA;       /* I/O Port DATA register */
+ 105:../../../platform/common/services/ioport/mega_rf/ioport.h **** } PORT_t;
+ 106:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 107:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 108:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief A pin mask
+ 109:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 110:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * This type is used to describe the port pin mask on the part.
+ 111:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 112:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t pin_mask_t;
+ 113:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 114:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 115:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief A PORT pin
+ 116:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 117:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * This type is used to describe the PORT pins on the part.
+ 118:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 119:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t port_pin_t;
+ 120:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 121:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 122:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief Pin configuration flags
+ 123:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 124:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * This is a bitmask containing configuration flags for the pins that shall be
+ 125:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * configured.
+ 126:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 127:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint16_t port_pin_flags_t;
+ 128:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 129:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 130:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief A port id
+ 131:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 132:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * This type is used to describe the port id on the part (0 is PORTA).
+ 133:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 134:../../../platform/common/services/ioport/mega_rf/ioport.h **** typedef uint8_t port_id_t;
+ 135:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 136:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** \name Initial Output State Flags */
+ 137:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 138:../../../platform/common/services/ioport/mega_rf/ioport.h **** /*With Port as input port the initial status is either tri state
+ 139:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * or pulled high, based on PORTX value, and check the PUD value to make
+ 140:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * sure pull up resistance is not disabled*/
+ 141:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @{ */
+ 142:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_INIT_LOW           0 << 1  /*!< Initial Output State Low */
+ 143:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_INIT_HIGH          1 << 1 /*!< Initial Output State High */
+ 144:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 145:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @} */
+ 146:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 147:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** \name Output and Pull Configuration Flags */
+ 148:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @{ */
+ 149:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PULL_DOWN          (0 << 2) /*!< Pull-Down (when input) */
+ 150:../../../platform/common/services/ioport/mega_rf/ioport.h **** #define IOPORT_PULL_UP            (1 << 2) /*!< Pull-Up (when input) */
+ 151:../../../platform/common/services/ioport/mega_rf/ioport.h **** /** @} */
+ 152:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 153:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 154:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief: To get the port number from pin nuber
+ 155:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 156:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 157:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static inline ioport_port_t arch_ioport_pin_to_port_id(
+ 158:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		uint8_t pin)
+ 159:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 160:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return pin >> 3;
+ 161:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 162:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 163:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 164:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief: To get the base address of port number
+ 165:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: port number e.g. IOPORT_PORTB
+ 166:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 167:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static PORT_t *arch_ioport_port_to_base(uint8_t port)
+ 168:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return (PORT_t *)((uintptr_t)(IOPORT_BASE_ADDRESS +
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 171:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 172:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 173:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 174:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief: To get the base address of port number from defined pin
+ 175:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 176:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 177:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static PORT_t *arch_ioport_pin_to_base(ioport_pin_t pin)
+ 178:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 179:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return arch_ioport_port_to_base(pin >> 3);
+ 180:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 181:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 182:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 183:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief: To get the 8-bit pin mask for pin
+ 184:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 185:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 186:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static ioport_port_mask_t arch_ioport_pin_to_mask
+ 187:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	(ioport_pin_t pin)
+ 188:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return 1U << (pin & 0x07);
+  64               		.loc 2 189 0
+  65 0036 CE01      		movw r24,r28
+  66 0038 8959      		subi r24,-103
+  67 003a 9F4F      		sbci r25,-1
+  68 003c FC01      		movw r30,r24
+  69 003e 8081      		ld r24,Z
+  70 0040 882F      		mov r24,r24
+  71 0042 90E0      		ldi r25,0
+  72 0044 9C01      		movw r18,r24
+  73 0046 2770      		andi r18,7
+  74 0048 3327      		clr r19
+  75 004a 81E0      		ldi r24,lo8(1)
+  76 004c 90E0      		ldi r25,0
+  77 004e 00C0      		rjmp 2f
+  78               		1:
+  79 0050 880F      		lsl r24
+  80 0052 991F      		rol r25
+  81               		2:
+  82 0054 2A95      		dec r18
+  83 0056 02F4      		brpl 1b
+  84 0058 482F      		mov r20,r24
+  85 005a CE01      		movw r24,r28
+  86 005c 8859      		subi r24,-104
+  87 005e 9F4F      		sbci r25,-1
+  88 0060 2981      		ldd r18,Y+1
+  89 0062 FC01      		movw r30,r24
+  90 0064 2083      		st Z,r18
+  91               	.LBE115:
+  92               	.LBE114:
+  93               	.LBB116:
+  94               	.LBB117:
+ 179:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+  95               		.loc 2 179 0
+  96 0066 CE01      		movw r24,r28
+  97 0068 8859      		subi r24,-104
+  98 006a 9F4F      		sbci r25,-1
+  99 006c FC01      		movw r30,r24
+ 100 006e 8081      		ld r24,Z
+ 101 0070 282F      		mov r18,r24
+ 102 0072 2695      		lsr r18
+ 103 0074 2695      		lsr r18
+ 104 0076 2695      		lsr r18
+ 105 0078 CE01      		movw r24,r28
+ 106 007a 8759      		subi r24,-105
+ 107 007c 9F4F      		sbci r25,-1
+ 108 007e FC01      		movw r30,r24
+ 109 0080 2083      		st Z,r18
+ 110               	.LBB118:
+ 111               	.LBB119:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 112               		.loc 2 170 0
+ 113 0082 CE01      		movw r24,r28
+ 114 0084 8759      		subi r24,-105
+ 115 0086 9F4F      		sbci r25,-1
+ 116 0088 FC01      		movw r30,r24
+ 117 008a 8081      		ld r24,Z
+ 118 008c 282F      		mov r18,r24
+ 119 008e 30E0      		ldi r19,0
+ 120 0090 C901      		movw r24,r18
+ 121 0092 880F      		lsl r24
+ 122 0094 991F      		rol r25
+ 123 0096 820F      		add r24,r18
+ 124 0098 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 125               		.loc 2 169 0
+ 126 009a 8096      		adiw r24,32
+ 127 009c 9C01      		movw r18,r24
+ 128 009e CE01      		movw r24,r28
+ 129 00a0 8659      		subi r24,-106
+ 130 00a2 9F4F      		sbci r25,-1
+ 131 00a4 FC01      		movw r30,r24
+ 132 00a6 3183      		std Z+1,r19
+ 133 00a8 2083      		st Z,r18
+ 134 00aa CE01      		movw r24,r28
+ 135 00ac 8459      		subi r24,-108
+ 136 00ae 9F4F      		sbci r25,-1
+ 137 00b0 FC01      		movw r30,r24
+ 138 00b2 4083      		st Z,r20
+ 139 00b4 CE01      		movw r24,r28
+ 140 00b6 8359      		subi r24,-109
+ 141 00b8 9F4F      		sbci r25,-1
+ 142 00ba 9E01      		movw r18,r28
+ 143 00bc 2B59      		subi r18,-101
+ 144 00be 3F4F      		sbci r19,-1
+ 145 00c0 F901      		movw r30,r18
+ 146 00c2 2081      		ld r18,Z
+ 147 00c4 3181      		ldd r19,Z+1
+ 148 00c6 FC01      		movw r30,r24
+ 149 00c8 3183      		std Z+1,r19
+ 150 00ca 2083      		st Z,r18
+ 151               	.LBE119:
+ 152               	.LBE118:
+ 153               	.LBE117:
+ 154               	.LBE116:
+ 155               	.LBB120:
+ 156               	.LBB121:
+ 190:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 191:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 192:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 193:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief Set multiple pin modes in a single GPIO port, such as pull-up,
+ 194:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * pull-down, etc. configuration.
+ 195:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 196:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param port GPIO port to configure  e.g. IOPORT_PORTB
+ 197:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mask Pin mask of pins to configure
+ 198:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mode Mode masks to configure for the specified pins (\ref
+ 199:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * ioport_modes)
+ 200:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 201:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_port_mode(ioport_port_t port,
+ 202:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_port_mask_t mask, ioport_mode_t mode)
+ 203:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 204:../../../platform/common/services/ioport/mega_rf/ioport.h **** #ifdef MEGA_RF
+ 205:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_port_to_base(port);
+ 206:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (mode == IOPORT_MODE_PULLUP) {
+ 207:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->PORTDATA = mask;
+ 208:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else if (mode == IOPORT_MODE_PULLDOWN) {
+ 209:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->PORTDATA = ~mask;
+ 210:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 211:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+ 212:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 213:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 214:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 215:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief Set multiple pin modes in a single GPIO port, such as pull-up,
+ 216:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * pull-down, etc. configuration.
+ 217:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 218:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 219:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mask Pin mask of pins to configure
+ 220:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mode Mode masks to configure for the specified pins (\ref
+ 221:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * ioport_modes)
+ 222:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 223:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_pin_mode(ioport_pin_t pin,
+ 224:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_mode_t mode)
+ 225:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 226:../../../platform/common/services/ioport/mega_rf/ioport.h **** #ifdef MEGA_RF
+ 227:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_pin_to_base(pin);
+ 228:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	ioport_pin_t mask_pin = arch_ioport_pin_to_mask(pin);
+ 229:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (mode == IOPORT_MODE_PULLUP) {
+ 230:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->PORTDATA |=  mask_pin;
+ 231:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else if (mode == IOPORT_MODE_PULLDOWN) {
+ 232:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->PORTDATA &= ~mask_pin;
+ 233:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 234:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+ 235:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 236:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 237:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 238:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : Set port direction as input or output.
+ 239:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param port GPIO port to configure  e.g. IOPORT_PORTB
+ 240:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mask Pin mask of pins to configure
+ 241:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mode dir, \refer ioport_direction
+ 242:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 243:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_port_dir(ioport_port_t port,
+ 244:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_port_mask_t mask, enum ioport_direction dir)
+ 245:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 246:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_port_to_base(port);
+ 247:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 248:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (dir == IOPORT_DIR_OUTPUT) {
+ 249:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->DIR = mask;
+ 250:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else if (dir == IOPORT_DIR_INPUT) {
+ 251:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->DIR = ~mask;
+ 252:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 253:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 254:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 255:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 256:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : Set pin direction as input or output.
+ 257:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 258:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mask Pin mask of pins to configure
+ 259:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mode dir, \refer ioport_direction
+ 260:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 261:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_pin_dir(ioport_pin_t pin,
+ 262:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		enum ioport_direction dir)
+ 263:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 264:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_pin_to_base(pin);
+ 265:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 266:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (dir == IOPORT_DIR_OUTPUT) {
+ 267:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->DIR |= arch_ioport_pin_to_mask(pin);
+ 268:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else if (dir == IOPORT_DIR_INPUT) {
+ 269:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->DIR &=  ~arch_ioport_pin_to_mask(pin);
+ 270:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 271:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 272:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 273:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 274:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : Set pin level to high or low.
+ 275:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 276:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: level high/low
+ 277:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 278:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_pin_level(ioport_pin_t pin,
+ 279:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		bool level)
+ 280:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 281:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base_add = arch_ioport_port_to_base(pin >> 3);
+ 282:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 283:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (level) {
+ 284:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base_add->PORTDATA
+ 285:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			= (base_add->PORTDATA  | arch_ioport_pin_to_mask
+ 286:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin));
+ 287:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 288:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base_add->PORTDATA
+ 289:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			= (base_add->PORTDATA  & (~arch_ioport_pin_to_mask
+ 290:../../../platform/common/services/ioport/mega_rf/ioport.h **** 					(pin)));
+ 291:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 292:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 293:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 294:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 295:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : Set port multiple pins level to high or low.
+ 296:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param port GPIO port to configure  e.g. IOPORT_PORTB
+ 297:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: mask Pin mask of pins to configure.
+ 298:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: level high/low
+ 299:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 300:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_port_level(ioport_port_t port,
+ 301:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_port_mask_t mask, ioport_port_mask_t level)
+ 302:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 303:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_port_to_base(port);
+ 304:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 305:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (level) {
+ 306:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->PORTDATA |= mask;
+ 307:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 308:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		base->PORTDATA &= ~mask;
+ 309:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 310:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 311:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 312:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 313:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : Get pin level of pin.
+ 314:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 315:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \return: level high/low
+ 316:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 317:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static bool arch_ioport_get_pin_level(ioport_pin_t pin)
+ 318:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 319:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_pin_to_base(pin);
+ 320:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return base->PINCRL & arch_ioport_pin_to_mask(pin);
+ 321:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 322:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 323:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 324:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : Get multiple pins level of single port.
+ 325:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param port GPIO port to configure  e.g. IOPORT_PORTB
+ 326:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mask Pin mask of pins to read data.
+ 327:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \return: 8 bit value based on level voltage on pins.
+ 328:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 329:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static ioport_port_mask_t arch_ioport_get_port_level(
+ 330:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_port_t port, ioport_port_mask_t mask)
+ 331:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 332:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_port_to_base(port);
+ 333:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 334:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return (base->PINCRL & mask);
+ 335:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 336:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 337:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 338:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : To toggle the pin
+ 339:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 340:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 341:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_toggle_pin_level(ioport_pin_t pin)
+ 342:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 343:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_pin_to_base(pin);
+ 344:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 345:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	base->PINCRL = arch_ioport_pin_to_mask(pin);
+ 346:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 347:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 348:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 349:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : To toggle the multiple pins on a single port.
+ 350:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param port GPIO port to toggle  e.g. IOPORT_PORTB
+ 351:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param mask Pin mask of pins to read data.
+ 352:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 353:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 354:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_toggle_port_level(ioport_port_t port,
+ 355:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_port_mask_t mask)
+ 356:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 357:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	PORT_t *base = arch_ioport_port_to_base(port);
+ 358:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 359:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	base->PINCRL = mask;
+ 360:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 361:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 362:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 363:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : To configure a single GPIO pin for trigger modes:
+ 364:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *  sense the edge/level/both trigger.
+ 365:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 366:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param pin_sense, refer to \ioport_sense.
+ 367:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 368:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 369:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_pin_sense_mode(ioport_pin_t pin,
+ 370:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		enum ioport_sense pin_sense)
+ 371:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 372:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	uint8_t flags = cpu_irq_save();
+ 373:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	port_id_t port_id = arch_ioport_pin_to_port_id(pin);
+ 374:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if  MEGA_XX0_1 || MEGA_RF
+ 375:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (port_id == IOPORT_PORTD && ((pin & 0x07) < 0x04)) {
+ 376:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRA &= ~((0x03) << ((pin & 0x03) * 2));
+ 377:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRA |= pin_sense << ((pin & 0x03) * 2);
+ 378:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else if (port_id == IOPORT_PORTE && ((pin & 0x07) > 0x03)) {
+ 379:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRB &= ~((0x03) << ((pin & 0x03) * 2));
+ 380:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRB |= pin_sense << ((pin & 0x03) * 2);
+ 381:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 382:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+ 383:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 384:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if  MEGA_XX8
+ 385:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (port_id == IOPORT_PORTD &&
+ 386:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			((pin & 0x07) == 2 || (pin & 0x07) == 3)) {
+ 387:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRA &= ~((0x03) << (((pin & 0x03) - 2) * 2));
+ 388:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRA |= pin_sense << (((pin & 0x03) - 2) * 2);
+ 389:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 390:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+ 391:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 392:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if  MEGA_XX4
+ 393:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (port_id == IOPORT_PORTD &&
+ 394:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			((pin & 0x07) == 2 || (pin & 0x07) == 3)) {
+ 395:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRA &= ~((0x03) << (((pin & 0x03) - 2) * 2));
+ 396:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRA |= pin_sense << (((pin & 0x03) - 2) * 2);
+ 397:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 398:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 399:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (port_id == IOPORT_PORTB && ((pin & 0x07) == 2)) {
+ 400:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRA &= ~((0x03) << 4);
+ 401:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRA |= pin_sense << 4;
+ 402:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 403:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+ 404:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	cpu_irq_restore(flags);
+ 405:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 406:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 407:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 408:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : To configure a multiple pins for trigger modes: sense the edge/
+ 409:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *  level/both trigger.
+ 410:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 411:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param pin_sense, refer to \ioport_sense.
+ 412:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 413:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_set_port_sense_mode(ioport_port_t port,
+ 414:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_port_mask_t mask, enum ioport_sense pin_sense)
+ 415:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 416:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	uint8_t flags = cpu_irq_save();
+ 417:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 418:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if  !MEGA_UNSPECIFIED
+ 419:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (port == IOPORT_PORTD) {
+ 420:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRA =  mask;
+ 421:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRA &= (pin_sense << 6) || (pin_sense << 4) ||
+ 422:../../../platform/common/services/ioport/mega_rf/ioport.h **** 				(pin_sense << 2) ||
+ 423:../../../platform/common/services/ioport/mega_rf/ioport.h **** 				(pin_sense);
+ 424:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 425:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+ 426:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if  MEGA_XX8
+ 427:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (port == IOPORT_PORTD) {
+ 428:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRA = mask;
+ 429:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRA &= (pin_sense << 2) || (pin_sense);
+ 430:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 431:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+ 432:../../../platform/common/services/ioport/mega_rf/ioport.h **** #if  MEGA_XX0_1 || MEGA_RF
+ 433:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	else if (port == IOPORT_PORTE) {
+ 434:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRB = mask;
+ 435:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		EICRB &= (pin_sense << 6) || (pin_sense << 4) ||
+ 436:../../../platform/common/services/ioport/mega_rf/ioport.h **** 				(pin_sense << 2) ||
+ 437:../../../platform/common/services/ioport/mega_rf/ioport.h **** 				(pin_sense);
+ 438:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	}
+ 439:../../../platform/common/services/ioport/mega_rf/ioport.h **** #endif
+ 440:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 441:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	cpu_irq_restore(flags);
+ 442:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 443:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 444:../../../platform/common/services/ioport/mega_rf/ioport.h **** /****************************************************************************
+ 445:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 446:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * Functional register are not available for this architecture through
+ 447:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * IOPORT register.
+ 448:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 449:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *****************************************************************************/
+ 450:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_init(void)
+ 451:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 452:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 453:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 454:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_enable_pin(ioport_pin_t pin)
+ 455:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 456:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	(void) pin;
+ 457:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 458:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 459:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_enable_port(ioport_port_t port,
+ 460:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_port_mask_t mask)
+ 461:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 462:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	(void) port;
+ 463:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	(void) mask;
+ 464:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 465:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 466:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_disable_pin(ioport_pin_t pin)
+ 467:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 468:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	(void) pin;
+ 469:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 470:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 471:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static void arch_ioport_disable_port(ioport_port_t port,
+ 472:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		ioport_port_mask_t mask)
+ 473:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 474:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	(void) port;
+ 475:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	(void) mask;
+ 476:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 477:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 478:../../../platform/common/services/ioport/mega_rf/ioport.h **** /****************************************************************************/
+ 479:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 480:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 481:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : To get the port address pointer from pin
+ 482:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param: pin. the pin number defined by IOPORT_CREATE_PIN
+ 483:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \return pointer to base address of ports(8 bit)
+ 484:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 485:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static inline PORT_t *ioport_pin_to_port(port_pin_t pin)
+ 486:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 487:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return arch_ioport_pin_to_base(pin);
+ 488:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 489:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 490:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 491:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief : To get the port address pointer from port number
+ 492:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param port GPIO port to toggle  e.g. IOPORT_PORTB
+ 493:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \return pointer to base address of ports(8 bit)
+ 494:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 495:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 496:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static inline PORT_t *ioport_id_pin_to_port(port_id_t port)
+ 497:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 498:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	return arch_ioport_port_to_base(port);
+ 499:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 500:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 501:../../../platform/common/services/ioport/mega_rf/ioport.h **** /**
+ 502:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \brief Configure the IO PORT pin function for a set of pins on a port
+ 503:../../../platform/common/services/ioport/mega_rf/ioport.h ****  *
+ 504:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param port Pointer to the port
+ 505:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param pin_mask Mask containing the pins that should be configured
+ 506:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * \param flags Bitmask of flags specifying additional configuration
+ 507:../../../platform/common/services/ioport/mega_rf/ioport.h ****  * parameters.
+ 508:../../../platform/common/services/ioport/mega_rf/ioport.h ****  */
+ 509:../../../platform/common/services/ioport/mega_rf/ioport.h **** __always_inline static inline void ioport_configure_port_pin(void *port,
+ 510:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		pin_mask_t pin_mask,
+ 511:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		port_pin_flags_t flags)
+ 512:../../../platform/common/services/ioport/mega_rf/ioport.h **** {
+ 513:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	/* Select direction and initial pin state */
+ 514:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	if (flags & IOPORT_DIR_OUTPUT) {
+ 157               		.loc 2 514 0
+ 158 00cc CE01      		movw r24,r28
+ 159 00ce 8359      		subi r24,-109
+ 160 00d0 9F4F      		sbci r25,-1
+ 161 00d2 FC01      		movw r30,r24
+ 162 00d4 8081      		ld r24,Z
+ 163 00d6 9181      		ldd r25,Z+1
+ 164 00d8 8170      		andi r24,1
+ 165 00da 9927      		clr r25
+ 166 00dc 892B      		or r24,r25
+ 167 00de 01F4      		brne .+2
+ 168 00e0 00C0      		rjmp .L5
+ 515:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_INIT_HIGH) {
+ 169               		.loc 2 515 0
+ 170 00e2 CE01      		movw r24,r28
+ 171 00e4 8359      		subi r24,-109
+ 172 00e6 9F4F      		sbci r25,-1
+ 173 00e8 FC01      		movw r30,r24
+ 174 00ea 8081      		ld r24,Z
+ 175 00ec 9181      		ldd r25,Z+1
+ 176 00ee 8270      		andi r24,2
+ 177 00f0 9927      		clr r25
+ 178 00f2 892B      		or r24,r25
+ 179 00f4 01F0      		breq .L6
+ 516:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 180               		.loc 2 516 0
+ 181 00f6 CE01      		movw r24,r28
+ 182 00f8 8659      		subi r24,-106
+ 183 00fa 9F4F      		sbci r25,-1
+ 184 00fc FC01      		movw r30,r24
+ 185 00fe 8081      		ld r24,Z
+ 186 0100 9181      		ldd r25,Z+1
+ 187 0102 0296      		adiw r24,2
+ 188 0104 9E01      		movw r18,r28
+ 189 0106 2659      		subi r18,-106
+ 190 0108 3F4F      		sbci r19,-1
+ 191 010a F901      		movw r30,r18
+ 192 010c 2081      		ld r18,Z
+ 193 010e 3181      		ldd r19,Z+1
+ 194 0110 2E5F      		subi r18,-2
+ 195 0112 3F4F      		sbci r19,-1
+ 196 0114 F901      		movw r30,r18
+ 197 0116 4081      		ld r20,Z
+ 198 0118 9E01      		movw r18,r28
+ 199 011a 2459      		subi r18,-108
+ 200 011c 3F4F      		sbci r19,-1
+ 201 011e F901      		movw r30,r18
+ 202 0120 2081      		ld r18,Z
+ 203 0122 242B      		or r18,r20
+ 204 0124 FC01      		movw r30,r24
+ 205 0126 2083      		st Z,r18
+ 206 0128 00C0      		rjmp .L7
+ 207               	.L6:
+ 517:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 518:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) &= ~pin_mask;
+ 208               		.loc 2 518 0
+ 209 012a CE01      		movw r24,r28
+ 210 012c 8659      		subi r24,-106
+ 211 012e 9F4F      		sbci r25,-1
+ 212 0130 FC01      		movw r30,r24
+ 213 0132 8081      		ld r24,Z
+ 214 0134 9181      		ldd r25,Z+1
+ 215 0136 0296      		adiw r24,2
+ 216 0138 9E01      		movw r18,r28
+ 217 013a 2659      		subi r18,-106
+ 218 013c 3F4F      		sbci r19,-1
+ 219 013e F901      		movw r30,r18
+ 220 0140 2081      		ld r18,Z
+ 221 0142 3181      		ldd r19,Z+1
+ 222 0144 2E5F      		subi r18,-2
+ 223 0146 3F4F      		sbci r19,-1
+ 224 0148 F901      		movw r30,r18
+ 225 014a 2081      		ld r18,Z
+ 226 014c 422F      		mov r20,r18
+ 227 014e 9E01      		movw r18,r28
+ 228 0150 2459      		subi r18,-108
+ 229 0152 3F4F      		sbci r19,-1
+ 230 0154 F901      		movw r30,r18
+ 231 0156 2081      		ld r18,Z
+ 232 0158 2095      		com r18
+ 233 015a 2423      		and r18,r20
+ 234 015c FC01      		movw r30,r24
+ 235 015e 2083      		st Z,r18
+ 236               	.L7:
+ 519:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		}
+ 520:../../../platform/common/services/ioport/mega_rf/ioport.h **** 
+ 521:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		*((uint8_t *)port + 1) |= pin_mask;
+ 237               		.loc 2 521 0
+ 238 0160 CE01      		movw r24,r28
+ 239 0162 8659      		subi r24,-106
+ 240 0164 9F4F      		sbci r25,-1
+ 241 0166 FC01      		movw r30,r24
+ 242 0168 8081      		ld r24,Z
+ 243 016a 9181      		ldd r25,Z+1
+ 244 016c 0196      		adiw r24,1
+ 245 016e 9E01      		movw r18,r28
+ 246 0170 2659      		subi r18,-106
+ 247 0172 3F4F      		sbci r19,-1
+ 248 0174 F901      		movw r30,r18
+ 249 0176 2081      		ld r18,Z
+ 250 0178 3181      		ldd r19,Z+1
+ 251 017a 2F5F      		subi r18,-1
+ 252 017c 3F4F      		sbci r19,-1
+ 253 017e F901      		movw r30,r18
+ 254 0180 4081      		ld r20,Z
+ 255 0182 9E01      		movw r18,r28
+ 256 0184 2459      		subi r18,-108
+ 257 0186 3F4F      		sbci r19,-1
+ 258 0188 F901      		movw r30,r18
+ 259 018a 2081      		ld r18,Z
+ 260 018c 242B      		or r18,r20
+ 261 018e FC01      		movw r30,r24
+ 262 0190 2083      		st Z,r18
+ 263 0192 00C0      		rjmp .L8
+ 264               	.L5:
+ 522:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 523:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		*((uint8_t *)port + 1) &= ~pin_mask;
+ 265               		.loc 2 523 0
+ 266 0194 CE01      		movw r24,r28
+ 267 0196 8659      		subi r24,-106
+ 268 0198 9F4F      		sbci r25,-1
+ 269 019a FC01      		movw r30,r24
+ 270 019c 8081      		ld r24,Z
+ 271 019e 9181      		ldd r25,Z+1
+ 272 01a0 0196      		adiw r24,1
+ 273 01a2 9E01      		movw r18,r28
+ 274 01a4 2659      		subi r18,-106
+ 275 01a6 3F4F      		sbci r19,-1
+ 276 01a8 F901      		movw r30,r18
+ 277 01aa 2081      		ld r18,Z
+ 278 01ac 3181      		ldd r19,Z+1
+ 279 01ae 2F5F      		subi r18,-1
+ 280 01b0 3F4F      		sbci r19,-1
+ 281 01b2 F901      		movw r30,r18
+ 282 01b4 2081      		ld r18,Z
+ 283 01b6 422F      		mov r20,r18
+ 284 01b8 9E01      		movw r18,r28
+ 285 01ba 2459      		subi r18,-108
+ 286 01bc 3F4F      		sbci r19,-1
+ 287 01be F901      		movw r30,r18
+ 288 01c0 2081      		ld r18,Z
+ 289 01c2 2095      		com r18
+ 290 01c4 2423      		and r18,r20
+ 291 01c6 FC01      		movw r30,r24
+ 292 01c8 2083      		st Z,r18
+ 524:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_PULL_UP) {
+ 293               		.loc 2 524 0
+ 294 01ca CE01      		movw r24,r28
+ 295 01cc 8359      		subi r24,-109
+ 296 01ce 9F4F      		sbci r25,-1
+ 297 01d0 FC01      		movw r30,r24
+ 298 01d2 8081      		ld r24,Z
+ 299 01d4 9181      		ldd r25,Z+1
+ 300 01d6 8470      		andi r24,4
+ 301 01d8 9927      		clr r25
+ 302 01da 892B      		or r24,r25
+ 303 01dc 01F0      		breq .L9
+ 525:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 304               		.loc 2 525 0
+ 305 01de CE01      		movw r24,r28
+ 306 01e0 8659      		subi r24,-106
+ 307 01e2 9F4F      		sbci r25,-1
+ 308 01e4 FC01      		movw r30,r24
+ 309 01e6 8081      		ld r24,Z
+ 310 01e8 9181      		ldd r25,Z+1
+ 311 01ea 0296      		adiw r24,2
+ 312 01ec 9E01      		movw r18,r28
+ 313 01ee 2659      		subi r18,-106
+ 314 01f0 3F4F      		sbci r19,-1
+ 315 01f2 F901      		movw r30,r18
+ 316 01f4 2081      		ld r18,Z
+ 317 01f6 3181      		ldd r19,Z+1
+ 318 01f8 2E5F      		subi r18,-2
+ 319 01fa 3F4F      		sbci r19,-1
+ 320 01fc F901      		movw r30,r18
+ 321 01fe 4081      		ld r20,Z
+ 322 0200 9E01      		movw r18,r28
+ 323 0202 2459      		subi r18,-108
+ 324 0204 3F4F      		sbci r19,-1
+ 325 0206 F901      		movw r30,r18
+ 326 0208 2081      		ld r18,Z
+ 327 020a 242B      		or r18,r20
+ 328 020c FC01      		movw r30,r24
+ 329 020e 2083      		st Z,r18
+ 330 0210 00C0      		rjmp .L8
+ 331               	.L9:
+ 526:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 527:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) &= ~pin_mask;
+ 332               		.loc 2 527 0
+ 333 0212 CE01      		movw r24,r28
+ 334 0214 8659      		subi r24,-106
+ 335 0216 9F4F      		sbci r25,-1
+ 336 0218 FC01      		movw r30,r24
+ 337 021a 8081      		ld r24,Z
+ 338 021c 9181      		ldd r25,Z+1
+ 339 021e 0296      		adiw r24,2
+ 340 0220 9E01      		movw r18,r28
+ 341 0222 2659      		subi r18,-106
+ 342 0224 3F4F      		sbci r19,-1
+ 343 0226 F901      		movw r30,r18
+ 344 0228 2081      		ld r18,Z
+ 345 022a 3181      		ldd r19,Z+1
+ 346 022c 2E5F      		subi r18,-2
+ 347 022e 3F4F      		sbci r19,-1
+ 348 0230 F901      		movw r30,r18
+ 349 0232 2081      		ld r18,Z
+ 350 0234 422F      		mov r20,r18
+ 351 0236 9E01      		movw r18,r28
+ 352 0238 2459      		subi r18,-108
+ 353 023a 3F4F      		sbci r19,-1
+ 354 023c F901      		movw r30,r18
+ 355 023e 2081      		ld r18,Z
+ 356 0240 2095      		com r18
+ 357 0242 2423      		and r18,r20
+ 358 0244 FC01      		movw r30,r24
+ 359 0246 2083      		st Z,r18
+ 360               	.L8:
+ 361 0248 84E2      		ldi r24,lo8(36)
+ 362 024a 8A83      		std Y+2,r24
+ 363 024c CE01      		movw r24,r28
+ 364 024e 855A      		subi r24,-91
+ 365 0250 9F4F      		sbci r25,-1
+ 366 0252 23E0      		ldi r18,lo8(3)
+ 367 0254 30E0      		ldi r19,0
+ 368 0256 FC01      		movw r30,r24
+ 369 0258 3183      		std Z+1,r19
+ 370 025a 2083      		st Z,r18
+ 371 025c CE01      		movw r24,r28
+ 372 025e 835A      		subi r24,-93
+ 373 0260 9F4F      		sbci r25,-1
+ 374 0262 2A81      		ldd r18,Y+2
+ 375 0264 FC01      		movw r30,r24
+ 376 0266 2083      		st Z,r18
+ 377               	.LBE121:
+ 378               	.LBE120:
+ 379               	.LBE113:
+ 380               	.LBE112:
+ 381               	.LBB122:
+ 382               	.LBB123:
+ 383               	.LBB124:
+ 384               	.LBB125:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 385               		.loc 2 189 0
+ 386 0268 CE01      		movw r24,r28
+ 387 026a 835A      		subi r24,-93
+ 388 026c 9F4F      		sbci r25,-1
+ 389 026e FC01      		movw r30,r24
+ 390 0270 8081      		ld r24,Z
+ 391 0272 882F      		mov r24,r24
+ 392 0274 90E0      		ldi r25,0
+ 393 0276 9C01      		movw r18,r24
+ 394 0278 2770      		andi r18,7
+ 395 027a 3327      		clr r19
+ 396 027c 81E0      		ldi r24,lo8(1)
+ 397 027e 90E0      		ldi r25,0
+ 398 0280 00C0      		rjmp 2f
+ 399               		1:
+ 400 0282 880F      		lsl r24
+ 401 0284 991F      		rol r25
+ 402               		2:
+ 403 0286 2A95      		dec r18
+ 404 0288 02F4      		brpl 1b
+ 405 028a 482F      		mov r20,r24
+ 406 028c CE01      		movw r24,r28
+ 407 028e 825A      		subi r24,-94
+ 408 0290 9F4F      		sbci r25,-1
+ 409 0292 2A81      		ldd r18,Y+2
+ 410 0294 FC01      		movw r30,r24
+ 411 0296 2083      		st Z,r18
+ 412               	.LBE125:
+ 413               	.LBE124:
+ 414               	.LBB126:
+ 415               	.LBB127:
+ 179:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 416               		.loc 2 179 0
+ 417 0298 CE01      		movw r24,r28
+ 418 029a 825A      		subi r24,-94
+ 419 029c 9F4F      		sbci r25,-1
+ 420 029e FC01      		movw r30,r24
+ 421 02a0 8081      		ld r24,Z
+ 422 02a2 282F      		mov r18,r24
+ 423 02a4 2695      		lsr r18
+ 424 02a6 2695      		lsr r18
+ 425 02a8 2695      		lsr r18
+ 426 02aa CE01      		movw r24,r28
+ 427 02ac 815A      		subi r24,-95
+ 428 02ae 9F4F      		sbci r25,-1
+ 429 02b0 FC01      		movw r30,r24
+ 430 02b2 2083      		st Z,r18
+ 431               	.LBB128:
+ 432               	.LBB129:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 433               		.loc 2 170 0
+ 434 02b4 CE01      		movw r24,r28
+ 435 02b6 815A      		subi r24,-95
+ 436 02b8 9F4F      		sbci r25,-1
+ 437 02ba FC01      		movw r30,r24
+ 438 02bc 8081      		ld r24,Z
+ 439 02be 282F      		mov r18,r24
+ 440 02c0 30E0      		ldi r19,0
+ 441 02c2 C901      		movw r24,r18
+ 442 02c4 880F      		lsl r24
+ 443 02c6 991F      		rol r25
+ 444 02c8 820F      		add r24,r18
+ 445 02ca 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 446               		.loc 2 169 0
+ 447 02cc 8096      		adiw r24,32
+ 448 02ce 9C01      		movw r18,r24
+ 449 02d0 CE01      		movw r24,r28
+ 450 02d2 805A      		subi r24,-96
+ 451 02d4 9F4F      		sbci r25,-1
+ 452 02d6 FC01      		movw r30,r24
+ 453 02d8 3183      		std Z+1,r19
+ 454 02da 2083      		st Z,r18
+ 455 02dc CE01      		movw r24,r28
+ 456 02de 8E59      		subi r24,-98
+ 457 02e0 9F4F      		sbci r25,-1
+ 458 02e2 FC01      		movw r30,r24
+ 459 02e4 4083      		st Z,r20
+ 460 02e6 CE01      		movw r24,r28
+ 461 02e8 8D59      		subi r24,-99
+ 462 02ea 9F4F      		sbci r25,-1
+ 463 02ec 9E01      		movw r18,r28
+ 464 02ee 255A      		subi r18,-91
+ 465 02f0 3F4F      		sbci r19,-1
+ 466 02f2 F901      		movw r30,r18
+ 467 02f4 2081      		ld r18,Z
+ 468 02f6 3181      		ldd r19,Z+1
+ 469 02f8 FC01      		movw r30,r24
+ 470 02fa 3183      		std Z+1,r19
+ 471 02fc 2083      		st Z,r18
+ 472               	.LBE129:
+ 473               	.LBE128:
+ 474               	.LBE127:
+ 475               	.LBE126:
+ 476               	.LBB130:
+ 477               	.LBB131:
+ 514:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_INIT_HIGH) {
+ 478               		.loc 2 514 0
+ 479 02fe CE01      		movw r24,r28
+ 480 0300 8D59      		subi r24,-99
+ 481 0302 9F4F      		sbci r25,-1
+ 482 0304 FC01      		movw r30,r24
+ 483 0306 8081      		ld r24,Z
+ 484 0308 9181      		ldd r25,Z+1
+ 485 030a 8170      		andi r24,1
+ 486 030c 9927      		clr r25
+ 487 030e 892B      		or r24,r25
+ 488 0310 01F4      		brne .+2
+ 489 0312 00C0      		rjmp .L13
+ 515:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 490               		.loc 2 515 0
+ 491 0314 CE01      		movw r24,r28
+ 492 0316 8D59      		subi r24,-99
+ 493 0318 9F4F      		sbci r25,-1
+ 494 031a FC01      		movw r30,r24
+ 495 031c 8081      		ld r24,Z
+ 496 031e 9181      		ldd r25,Z+1
+ 497 0320 8270      		andi r24,2
+ 498 0322 9927      		clr r25
+ 499 0324 892B      		or r24,r25
+ 500 0326 01F0      		breq .L14
+ 516:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 501               		.loc 2 516 0
+ 502 0328 CE01      		movw r24,r28
+ 503 032a 805A      		subi r24,-96
+ 504 032c 9F4F      		sbci r25,-1
+ 505 032e FC01      		movw r30,r24
+ 506 0330 8081      		ld r24,Z
+ 507 0332 9181      		ldd r25,Z+1
+ 508 0334 0296      		adiw r24,2
+ 509 0336 9E01      		movw r18,r28
+ 510 0338 205A      		subi r18,-96
+ 511 033a 3F4F      		sbci r19,-1
+ 512 033c F901      		movw r30,r18
+ 513 033e 2081      		ld r18,Z
+ 514 0340 3181      		ldd r19,Z+1
+ 515 0342 2E5F      		subi r18,-2
+ 516 0344 3F4F      		sbci r19,-1
+ 517 0346 F901      		movw r30,r18
+ 518 0348 4081      		ld r20,Z
+ 519 034a 9E01      		movw r18,r28
+ 520 034c 2E59      		subi r18,-98
+ 521 034e 3F4F      		sbci r19,-1
+ 522 0350 F901      		movw r30,r18
+ 523 0352 2081      		ld r18,Z
+ 524 0354 242B      		or r18,r20
+ 525 0356 FC01      		movw r30,r24
+ 526 0358 2083      		st Z,r18
+ 527 035a 00C0      		rjmp .L15
+ 528               	.L14:
+ 518:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		}
+ 529               		.loc 2 518 0
+ 530 035c CE01      		movw r24,r28
+ 531 035e 805A      		subi r24,-96
+ 532 0360 9F4F      		sbci r25,-1
+ 533 0362 FC01      		movw r30,r24
+ 534 0364 8081      		ld r24,Z
+ 535 0366 9181      		ldd r25,Z+1
+ 536 0368 0296      		adiw r24,2
+ 537 036a 9E01      		movw r18,r28
+ 538 036c 205A      		subi r18,-96
+ 539 036e 3F4F      		sbci r19,-1
+ 540 0370 F901      		movw r30,r18
+ 541 0372 2081      		ld r18,Z
+ 542 0374 3181      		ldd r19,Z+1
+ 543 0376 2E5F      		subi r18,-2
+ 544 0378 3F4F      		sbci r19,-1
+ 545 037a F901      		movw r30,r18
+ 546 037c 2081      		ld r18,Z
+ 547 037e 422F      		mov r20,r18
+ 548 0380 9E01      		movw r18,r28
+ 549 0382 2E59      		subi r18,-98
+ 550 0384 3F4F      		sbci r19,-1
+ 551 0386 F901      		movw r30,r18
+ 552 0388 2081      		ld r18,Z
+ 553 038a 2095      		com r18
+ 554 038c 2423      		and r18,r20
+ 555 038e FC01      		movw r30,r24
+ 556 0390 2083      		st Z,r18
+ 557               	.L15:
+ 521:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 558               		.loc 2 521 0
+ 559 0392 CE01      		movw r24,r28
+ 560 0394 805A      		subi r24,-96
+ 561 0396 9F4F      		sbci r25,-1
+ 562 0398 FC01      		movw r30,r24
+ 563 039a 8081      		ld r24,Z
+ 564 039c 9181      		ldd r25,Z+1
+ 565 039e 0196      		adiw r24,1
+ 566 03a0 9E01      		movw r18,r28
+ 567 03a2 205A      		subi r18,-96
+ 568 03a4 3F4F      		sbci r19,-1
+ 569 03a6 F901      		movw r30,r18
+ 570 03a8 2081      		ld r18,Z
+ 571 03aa 3181      		ldd r19,Z+1
+ 572 03ac 2F5F      		subi r18,-1
+ 573 03ae 3F4F      		sbci r19,-1
+ 574 03b0 F901      		movw r30,r18
+ 575 03b2 4081      		ld r20,Z
+ 576 03b4 9E01      		movw r18,r28
+ 577 03b6 2E59      		subi r18,-98
+ 578 03b8 3F4F      		sbci r19,-1
+ 579 03ba F901      		movw r30,r18
+ 580 03bc 2081      		ld r18,Z
+ 581 03be 242B      		or r18,r20
+ 582 03c0 FC01      		movw r30,r24
+ 583 03c2 2083      		st Z,r18
+ 584 03c4 00C0      		rjmp .L16
+ 585               	.L13:
+ 523:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_PULL_UP) {
+ 586               		.loc 2 523 0
+ 587 03c6 CE01      		movw r24,r28
+ 588 03c8 805A      		subi r24,-96
+ 589 03ca 9F4F      		sbci r25,-1
+ 590 03cc FC01      		movw r30,r24
+ 591 03ce 8081      		ld r24,Z
+ 592 03d0 9181      		ldd r25,Z+1
+ 593 03d2 0196      		adiw r24,1
+ 594 03d4 9E01      		movw r18,r28
+ 595 03d6 205A      		subi r18,-96
+ 596 03d8 3F4F      		sbci r19,-1
+ 597 03da F901      		movw r30,r18
+ 598 03dc 2081      		ld r18,Z
+ 599 03de 3181      		ldd r19,Z+1
+ 600 03e0 2F5F      		subi r18,-1
+ 601 03e2 3F4F      		sbci r19,-1
+ 602 03e4 F901      		movw r30,r18
+ 603 03e6 2081      		ld r18,Z
+ 604 03e8 422F      		mov r20,r18
+ 605 03ea 9E01      		movw r18,r28
+ 606 03ec 2E59      		subi r18,-98
+ 607 03ee 3F4F      		sbci r19,-1
+ 608 03f0 F901      		movw r30,r18
+ 609 03f2 2081      		ld r18,Z
+ 610 03f4 2095      		com r18
+ 611 03f6 2423      		and r18,r20
+ 612 03f8 FC01      		movw r30,r24
+ 613 03fa 2083      		st Z,r18
+ 524:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 614               		.loc 2 524 0
+ 615 03fc CE01      		movw r24,r28
+ 616 03fe 8D59      		subi r24,-99
+ 617 0400 9F4F      		sbci r25,-1
+ 618 0402 FC01      		movw r30,r24
+ 619 0404 8081      		ld r24,Z
+ 620 0406 9181      		ldd r25,Z+1
+ 621 0408 8470      		andi r24,4
+ 622 040a 9927      		clr r25
+ 623 040c 892B      		or r24,r25
+ 624 040e 01F0      		breq .L17
+ 525:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 625               		.loc 2 525 0
+ 626 0410 CE01      		movw r24,r28
+ 627 0412 805A      		subi r24,-96
+ 628 0414 9F4F      		sbci r25,-1
+ 629 0416 FC01      		movw r30,r24
+ 630 0418 8081      		ld r24,Z
+ 631 041a 9181      		ldd r25,Z+1
+ 632 041c 0296      		adiw r24,2
+ 633 041e 9E01      		movw r18,r28
+ 634 0420 205A      		subi r18,-96
+ 635 0422 3F4F      		sbci r19,-1
+ 636 0424 F901      		movw r30,r18
+ 637 0426 2081      		ld r18,Z
+ 638 0428 3181      		ldd r19,Z+1
+ 639 042a 2E5F      		subi r18,-2
+ 640 042c 3F4F      		sbci r19,-1
+ 641 042e F901      		movw r30,r18
+ 642 0430 4081      		ld r20,Z
+ 643 0432 9E01      		movw r18,r28
+ 644 0434 2E59      		subi r18,-98
+ 645 0436 3F4F      		sbci r19,-1
+ 646 0438 F901      		movw r30,r18
+ 647 043a 2081      		ld r18,Z
+ 648 043c 242B      		or r18,r20
+ 649 043e FC01      		movw r30,r24
+ 650 0440 2083      		st Z,r18
+ 651 0442 00C0      		rjmp .L16
+ 652               	.L17:
+ 653               		.loc 2 527 0
+ 654 0444 CE01      		movw r24,r28
+ 655 0446 805A      		subi r24,-96
+ 656 0448 9F4F      		sbci r25,-1
+ 657 044a FC01      		movw r30,r24
+ 658 044c 8081      		ld r24,Z
+ 659 044e 9181      		ldd r25,Z+1
+ 660 0450 0296      		adiw r24,2
+ 661 0452 9E01      		movw r18,r28
+ 662 0454 205A      		subi r18,-96
+ 663 0456 3F4F      		sbci r19,-1
+ 664 0458 F901      		movw r30,r18
+ 665 045a 2081      		ld r18,Z
+ 666 045c 3181      		ldd r19,Z+1
+ 667 045e 2E5F      		subi r18,-2
+ 668 0460 3F4F      		sbci r19,-1
+ 669 0462 F901      		movw r30,r18
+ 670 0464 2081      		ld r18,Z
+ 671 0466 422F      		mov r20,r18
+ 672 0468 9E01      		movw r18,r28
+ 673 046a 2E59      		subi r18,-98
+ 674 046c 3F4F      		sbci r19,-1
+ 675 046e F901      		movw r30,r18
+ 676 0470 2081      		ld r18,Z
+ 677 0472 2095      		com r18
+ 678 0474 2423      		and r18,r20
+ 679 0476 FC01      		movw r30,r24
+ 680 0478 2083      		st Z,r18
+ 681               	.L16:
+ 682 047a 85E2      		ldi r24,lo8(37)
+ 683 047c 8B83      		std Y+3,r24
+ 684 047e CE01      		movw r24,r28
+ 685 0480 8F5A      		subi r24,-81
+ 686 0482 9F4F      		sbci r25,-1
+ 687 0484 23E0      		ldi r18,lo8(3)
+ 688 0486 30E0      		ldi r19,0
+ 689 0488 FC01      		movw r30,r24
+ 690 048a 3183      		std Z+1,r19
+ 691 048c 2083      		st Z,r18
+ 692 048e CE01      		movw r24,r28
+ 693 0490 8D5A      		subi r24,-83
+ 694 0492 9F4F      		sbci r25,-1
+ 695 0494 2B81      		ldd r18,Y+3
+ 696 0496 FC01      		movw r30,r24
+ 697 0498 2083      		st Z,r18
+ 698               	.LBE131:
+ 699               	.LBE130:
+ 700               	.LBE123:
+ 701               	.LBE122:
+ 702               	.LBB132:
+ 703               	.LBB133:
+ 704               	.LBB134:
+ 705               	.LBB135:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 706               		.loc 2 189 0
+ 707 049a CE01      		movw r24,r28
+ 708 049c 8D5A      		subi r24,-83
+ 709 049e 9F4F      		sbci r25,-1
+ 710 04a0 FC01      		movw r30,r24
+ 711 04a2 8081      		ld r24,Z
+ 712 04a4 882F      		mov r24,r24
+ 713 04a6 90E0      		ldi r25,0
+ 714 04a8 9C01      		movw r18,r24
+ 715 04aa 2770      		andi r18,7
+ 716 04ac 3327      		clr r19
+ 717 04ae 81E0      		ldi r24,lo8(1)
+ 718 04b0 90E0      		ldi r25,0
+ 719 04b2 00C0      		rjmp 2f
+ 720               		1:
+ 721 04b4 880F      		lsl r24
+ 722 04b6 991F      		rol r25
+ 723               		2:
+ 724 04b8 2A95      		dec r18
+ 725 04ba 02F4      		brpl 1b
+ 726 04bc 482F      		mov r20,r24
+ 727 04be CE01      		movw r24,r28
+ 728 04c0 8C5A      		subi r24,-84
+ 729 04c2 9F4F      		sbci r25,-1
+ 730 04c4 2B81      		ldd r18,Y+3
+ 731 04c6 FC01      		movw r30,r24
+ 732 04c8 2083      		st Z,r18
+ 733               	.LBE135:
+ 734               	.LBE134:
+ 735               	.LBB136:
+ 736               	.LBB137:
+ 179:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 737               		.loc 2 179 0
+ 738 04ca CE01      		movw r24,r28
+ 739 04cc 8C5A      		subi r24,-84
+ 740 04ce 9F4F      		sbci r25,-1
+ 741 04d0 FC01      		movw r30,r24
+ 742 04d2 8081      		ld r24,Z
+ 743 04d4 282F      		mov r18,r24
+ 744 04d6 2695      		lsr r18
+ 745 04d8 2695      		lsr r18
+ 746 04da 2695      		lsr r18
+ 747 04dc CE01      		movw r24,r28
+ 748 04de 8B5A      		subi r24,-85
+ 749 04e0 9F4F      		sbci r25,-1
+ 750 04e2 FC01      		movw r30,r24
+ 751 04e4 2083      		st Z,r18
+ 752               	.LBB138:
+ 753               	.LBB139:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 754               		.loc 2 170 0
+ 755 04e6 CE01      		movw r24,r28
+ 756 04e8 8B5A      		subi r24,-85
+ 757 04ea 9F4F      		sbci r25,-1
+ 758 04ec FC01      		movw r30,r24
+ 759 04ee 8081      		ld r24,Z
+ 760 04f0 282F      		mov r18,r24
+ 761 04f2 30E0      		ldi r19,0
+ 762 04f4 C901      		movw r24,r18
+ 763 04f6 880F      		lsl r24
+ 764 04f8 991F      		rol r25
+ 765 04fa 820F      		add r24,r18
+ 766 04fc 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 767               		.loc 2 169 0
+ 768 04fe 8096      		adiw r24,32
+ 769 0500 9C01      		movw r18,r24
+ 770 0502 CE01      		movw r24,r28
+ 771 0504 8A5A      		subi r24,-86
+ 772 0506 9F4F      		sbci r25,-1
+ 773 0508 FC01      		movw r30,r24
+ 774 050a 3183      		std Z+1,r19
+ 775 050c 2083      		st Z,r18
+ 776 050e CE01      		movw r24,r28
+ 777 0510 885A      		subi r24,-88
+ 778 0512 9F4F      		sbci r25,-1
+ 779 0514 FC01      		movw r30,r24
+ 780 0516 4083      		st Z,r20
+ 781 0518 CE01      		movw r24,r28
+ 782 051a 875A      		subi r24,-89
+ 783 051c 9F4F      		sbci r25,-1
+ 784 051e 9E01      		movw r18,r28
+ 785 0520 2F5A      		subi r18,-81
+ 786 0522 3F4F      		sbci r19,-1
+ 787 0524 F901      		movw r30,r18
+ 788 0526 2081      		ld r18,Z
+ 789 0528 3181      		ldd r19,Z+1
+ 790 052a FC01      		movw r30,r24
+ 791 052c 3183      		std Z+1,r19
+ 792 052e 2083      		st Z,r18
+ 793               	.LBE139:
+ 794               	.LBE138:
+ 795               	.LBE137:
+ 796               	.LBE136:
+ 797               	.LBB140:
+ 798               	.LBB141:
+ 514:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_INIT_HIGH) {
+ 799               		.loc 2 514 0
+ 800 0530 CE01      		movw r24,r28
+ 801 0532 875A      		subi r24,-89
+ 802 0534 9F4F      		sbci r25,-1
+ 803 0536 FC01      		movw r30,r24
+ 804 0538 8081      		ld r24,Z
+ 805 053a 9181      		ldd r25,Z+1
+ 806 053c 8170      		andi r24,1
+ 807 053e 9927      		clr r25
+ 808 0540 892B      		or r24,r25
+ 809 0542 01F4      		brne .+2
+ 810 0544 00C0      		rjmp .L21
+ 515:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 811               		.loc 2 515 0
+ 812 0546 CE01      		movw r24,r28
+ 813 0548 875A      		subi r24,-89
+ 814 054a 9F4F      		sbci r25,-1
+ 815 054c FC01      		movw r30,r24
+ 816 054e 8081      		ld r24,Z
+ 817 0550 9181      		ldd r25,Z+1
+ 818 0552 8270      		andi r24,2
+ 819 0554 9927      		clr r25
+ 820 0556 892B      		or r24,r25
+ 821 0558 01F0      		breq .L22
+ 516:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 822               		.loc 2 516 0
+ 823 055a CE01      		movw r24,r28
+ 824 055c 8A5A      		subi r24,-86
+ 825 055e 9F4F      		sbci r25,-1
+ 826 0560 FC01      		movw r30,r24
+ 827 0562 8081      		ld r24,Z
+ 828 0564 9181      		ldd r25,Z+1
+ 829 0566 0296      		adiw r24,2
+ 830 0568 9E01      		movw r18,r28
+ 831 056a 2A5A      		subi r18,-86
+ 832 056c 3F4F      		sbci r19,-1
+ 833 056e F901      		movw r30,r18
+ 834 0570 2081      		ld r18,Z
+ 835 0572 3181      		ldd r19,Z+1
+ 836 0574 2E5F      		subi r18,-2
+ 837 0576 3F4F      		sbci r19,-1
+ 838 0578 F901      		movw r30,r18
+ 839 057a 4081      		ld r20,Z
+ 840 057c 9E01      		movw r18,r28
+ 841 057e 285A      		subi r18,-88
+ 842 0580 3F4F      		sbci r19,-1
+ 843 0582 F901      		movw r30,r18
+ 844 0584 2081      		ld r18,Z
+ 845 0586 242B      		or r18,r20
+ 846 0588 FC01      		movw r30,r24
+ 847 058a 2083      		st Z,r18
+ 848 058c 00C0      		rjmp .L23
+ 849               	.L22:
+ 518:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		}
+ 850               		.loc 2 518 0
+ 851 058e CE01      		movw r24,r28
+ 852 0590 8A5A      		subi r24,-86
+ 853 0592 9F4F      		sbci r25,-1
+ 854 0594 FC01      		movw r30,r24
+ 855 0596 8081      		ld r24,Z
+ 856 0598 9181      		ldd r25,Z+1
+ 857 059a 0296      		adiw r24,2
+ 858 059c 9E01      		movw r18,r28
+ 859 059e 2A5A      		subi r18,-86
+ 860 05a0 3F4F      		sbci r19,-1
+ 861 05a2 F901      		movw r30,r18
+ 862 05a4 2081      		ld r18,Z
+ 863 05a6 3181      		ldd r19,Z+1
+ 864 05a8 2E5F      		subi r18,-2
+ 865 05aa 3F4F      		sbci r19,-1
+ 866 05ac F901      		movw r30,r18
+ 867 05ae 2081      		ld r18,Z
+ 868 05b0 422F      		mov r20,r18
+ 869 05b2 9E01      		movw r18,r28
+ 870 05b4 285A      		subi r18,-88
+ 871 05b6 3F4F      		sbci r19,-1
+ 872 05b8 F901      		movw r30,r18
+ 873 05ba 2081      		ld r18,Z
+ 874 05bc 2095      		com r18
+ 875 05be 2423      		and r18,r20
+ 876 05c0 FC01      		movw r30,r24
+ 877 05c2 2083      		st Z,r18
+ 878               	.L23:
+ 521:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 879               		.loc 2 521 0
+ 880 05c4 CE01      		movw r24,r28
+ 881 05c6 8A5A      		subi r24,-86
+ 882 05c8 9F4F      		sbci r25,-1
+ 883 05ca FC01      		movw r30,r24
+ 884 05cc 8081      		ld r24,Z
+ 885 05ce 9181      		ldd r25,Z+1
+ 886 05d0 0196      		adiw r24,1
+ 887 05d2 9E01      		movw r18,r28
+ 888 05d4 2A5A      		subi r18,-86
+ 889 05d6 3F4F      		sbci r19,-1
+ 890 05d8 F901      		movw r30,r18
+ 891 05da 2081      		ld r18,Z
+ 892 05dc 3181      		ldd r19,Z+1
+ 893 05de 2F5F      		subi r18,-1
+ 894 05e0 3F4F      		sbci r19,-1
+ 895 05e2 F901      		movw r30,r18
+ 896 05e4 4081      		ld r20,Z
+ 897 05e6 9E01      		movw r18,r28
+ 898 05e8 285A      		subi r18,-88
+ 899 05ea 3F4F      		sbci r19,-1
+ 900 05ec F901      		movw r30,r18
+ 901 05ee 2081      		ld r18,Z
+ 902 05f0 242B      		or r18,r20
+ 903 05f2 FC01      		movw r30,r24
+ 904 05f4 2083      		st Z,r18
+ 905 05f6 00C0      		rjmp .L24
+ 906               	.L21:
+ 523:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_PULL_UP) {
+ 907               		.loc 2 523 0
+ 908 05f8 CE01      		movw r24,r28
+ 909 05fa 8A5A      		subi r24,-86
+ 910 05fc 9F4F      		sbci r25,-1
+ 911 05fe FC01      		movw r30,r24
+ 912 0600 8081      		ld r24,Z
+ 913 0602 9181      		ldd r25,Z+1
+ 914 0604 0196      		adiw r24,1
+ 915 0606 9E01      		movw r18,r28
+ 916 0608 2A5A      		subi r18,-86
+ 917 060a 3F4F      		sbci r19,-1
+ 918 060c F901      		movw r30,r18
+ 919 060e 2081      		ld r18,Z
+ 920 0610 3181      		ldd r19,Z+1
+ 921 0612 2F5F      		subi r18,-1
+ 922 0614 3F4F      		sbci r19,-1
+ 923 0616 F901      		movw r30,r18
+ 924 0618 2081      		ld r18,Z
+ 925 061a 422F      		mov r20,r18
+ 926 061c 9E01      		movw r18,r28
+ 927 061e 285A      		subi r18,-88
+ 928 0620 3F4F      		sbci r19,-1
+ 929 0622 F901      		movw r30,r18
+ 930 0624 2081      		ld r18,Z
+ 931 0626 2095      		com r18
+ 932 0628 2423      		and r18,r20
+ 933 062a FC01      		movw r30,r24
+ 934 062c 2083      		st Z,r18
+ 524:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 935               		.loc 2 524 0
+ 936 062e CE01      		movw r24,r28
+ 937 0630 875A      		subi r24,-89
+ 938 0632 9F4F      		sbci r25,-1
+ 939 0634 FC01      		movw r30,r24
+ 940 0636 8081      		ld r24,Z
+ 941 0638 9181      		ldd r25,Z+1
+ 942 063a 8470      		andi r24,4
+ 943 063c 9927      		clr r25
+ 944 063e 892B      		or r24,r25
+ 945 0640 01F0      		breq .L25
+ 525:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 946               		.loc 2 525 0
+ 947 0642 CE01      		movw r24,r28
+ 948 0644 8A5A      		subi r24,-86
+ 949 0646 9F4F      		sbci r25,-1
+ 950 0648 FC01      		movw r30,r24
+ 951 064a 8081      		ld r24,Z
+ 952 064c 9181      		ldd r25,Z+1
+ 953 064e 0296      		adiw r24,2
+ 954 0650 9E01      		movw r18,r28
+ 955 0652 2A5A      		subi r18,-86
+ 956 0654 3F4F      		sbci r19,-1
+ 957 0656 F901      		movw r30,r18
+ 958 0658 2081      		ld r18,Z
+ 959 065a 3181      		ldd r19,Z+1
+ 960 065c 2E5F      		subi r18,-2
+ 961 065e 3F4F      		sbci r19,-1
+ 962 0660 F901      		movw r30,r18
+ 963 0662 4081      		ld r20,Z
+ 964 0664 9E01      		movw r18,r28
+ 965 0666 285A      		subi r18,-88
+ 966 0668 3F4F      		sbci r19,-1
+ 967 066a F901      		movw r30,r18
+ 968 066c 2081      		ld r18,Z
+ 969 066e 242B      		or r18,r20
+ 970 0670 FC01      		movw r30,r24
+ 971 0672 2083      		st Z,r18
+ 972 0674 00C0      		rjmp .L24
+ 973               	.L25:
+ 974               		.loc 2 527 0
+ 975 0676 CE01      		movw r24,r28
+ 976 0678 8A5A      		subi r24,-86
+ 977 067a 9F4F      		sbci r25,-1
+ 978 067c FC01      		movw r30,r24
+ 979 067e 8081      		ld r24,Z
+ 980 0680 9181      		ldd r25,Z+1
+ 981 0682 0296      		adiw r24,2
+ 982 0684 9E01      		movw r18,r28
+ 983 0686 2A5A      		subi r18,-86
+ 984 0688 3F4F      		sbci r19,-1
+ 985 068a F901      		movw r30,r18
+ 986 068c 2081      		ld r18,Z
+ 987 068e 3181      		ldd r19,Z+1
+ 988 0690 2E5F      		subi r18,-2
+ 989 0692 3F4F      		sbci r19,-1
+ 990 0694 F901      		movw r30,r18
+ 991 0696 2081      		ld r18,Z
+ 992 0698 422F      		mov r20,r18
+ 993 069a 9E01      		movw r18,r28
+ 994 069c 285A      		subi r18,-88
+ 995 069e 3F4F      		sbci r19,-1
+ 996 06a0 F901      		movw r30,r18
+ 997 06a2 2081      		ld r18,Z
+ 998 06a4 2095      		com r18
+ 999 06a6 2423      		and r18,r20
+ 1000 06a8 FC01      		movw r30,r24
+ 1001 06aa 2083      		st Z,r18
+ 1002               	.L24:
+ 1003 06ac 8EE0      		ldi r24,lo8(14)
+ 1004 06ae 8C83      		std Y+4,r24
+ 1005 06b0 CE01      		movw r24,r28
+ 1006 06b2 895B      		subi r24,-71
+ 1007 06b4 9F4F      		sbci r25,-1
+ 1008 06b6 24E0      		ldi r18,lo8(4)
+ 1009 06b8 30E0      		ldi r19,0
+ 1010 06ba FC01      		movw r30,r24
+ 1011 06bc 3183      		std Z+1,r19
+ 1012 06be 2083      		st Z,r18
+ 1013 06c0 CE01      		movw r24,r28
+ 1014 06c2 875B      		subi r24,-73
+ 1015 06c4 9F4F      		sbci r25,-1
+ 1016 06c6 2C81      		ldd r18,Y+4
+ 1017 06c8 FC01      		movw r30,r24
+ 1018 06ca 2083      		st Z,r18
+ 1019               	.LBE141:
+ 1020               	.LBE140:
+ 1021               	.LBE133:
+ 1022               	.LBE132:
+ 1023               	.LBB142:
+ 1024               	.LBB143:
+ 1025               	.LBB144:
+ 1026               	.LBB145:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1027               		.loc 2 189 0
+ 1028 06cc CE01      		movw r24,r28
+ 1029 06ce 875B      		subi r24,-73
+ 1030 06d0 9F4F      		sbci r25,-1
+ 1031 06d2 FC01      		movw r30,r24
+ 1032 06d4 8081      		ld r24,Z
+ 1033 06d6 882F      		mov r24,r24
+ 1034 06d8 90E0      		ldi r25,0
+ 1035 06da 9C01      		movw r18,r24
+ 1036 06dc 2770      		andi r18,7
+ 1037 06de 3327      		clr r19
+ 1038 06e0 81E0      		ldi r24,lo8(1)
+ 1039 06e2 90E0      		ldi r25,0
+ 1040 06e4 00C0      		rjmp 2f
+ 1041               		1:
+ 1042 06e6 880F      		lsl r24
+ 1043 06e8 991F      		rol r25
+ 1044               		2:
+ 1045 06ea 2A95      		dec r18
+ 1046 06ec 02F4      		brpl 1b
+ 1047 06ee 482F      		mov r20,r24
+ 1048 06f0 CE01      		movw r24,r28
+ 1049 06f2 865B      		subi r24,-74
+ 1050 06f4 9F4F      		sbci r25,-1
+ 1051 06f6 2C81      		ldd r18,Y+4
+ 1052 06f8 FC01      		movw r30,r24
+ 1053 06fa 2083      		st Z,r18
+ 1054               	.LBE145:
+ 1055               	.LBE144:
+ 1056               	.LBB146:
+ 1057               	.LBB147:
+ 179:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1058               		.loc 2 179 0
+ 1059 06fc CE01      		movw r24,r28
+ 1060 06fe 865B      		subi r24,-74
+ 1061 0700 9F4F      		sbci r25,-1
+ 1062 0702 FC01      		movw r30,r24
+ 1063 0704 8081      		ld r24,Z
+ 1064 0706 282F      		mov r18,r24
+ 1065 0708 2695      		lsr r18
+ 1066 070a 2695      		lsr r18
+ 1067 070c 2695      		lsr r18
+ 1068 070e CE01      		movw r24,r28
+ 1069 0710 855B      		subi r24,-75
+ 1070 0712 9F4F      		sbci r25,-1
+ 1071 0714 FC01      		movw r30,r24
+ 1072 0716 2083      		st Z,r18
+ 1073               	.LBB148:
+ 1074               	.LBB149:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1075               		.loc 2 170 0
+ 1076 0718 CE01      		movw r24,r28
+ 1077 071a 855B      		subi r24,-75
+ 1078 071c 9F4F      		sbci r25,-1
+ 1079 071e FC01      		movw r30,r24
+ 1080 0720 8081      		ld r24,Z
+ 1081 0722 282F      		mov r18,r24
+ 1082 0724 30E0      		ldi r19,0
+ 1083 0726 C901      		movw r24,r18
+ 1084 0728 880F      		lsl r24
+ 1085 072a 991F      		rol r25
+ 1086 072c 820F      		add r24,r18
+ 1087 072e 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 1088               		.loc 2 169 0
+ 1089 0730 8096      		adiw r24,32
+ 1090 0732 9C01      		movw r18,r24
+ 1091 0734 CE01      		movw r24,r28
+ 1092 0736 845B      		subi r24,-76
+ 1093 0738 9F4F      		sbci r25,-1
+ 1094 073a FC01      		movw r30,r24
+ 1095 073c 3183      		std Z+1,r19
+ 1096 073e 2083      		st Z,r18
+ 1097 0740 CE01      		movw r24,r28
+ 1098 0742 825B      		subi r24,-78
+ 1099 0744 9F4F      		sbci r25,-1
+ 1100 0746 FC01      		movw r30,r24
+ 1101 0748 4083      		st Z,r20
+ 1102 074a CE01      		movw r24,r28
+ 1103 074c 815B      		subi r24,-79
+ 1104 074e 9F4F      		sbci r25,-1
+ 1105 0750 9E01      		movw r18,r28
+ 1106 0752 295B      		subi r18,-71
+ 1107 0754 3F4F      		sbci r19,-1
+ 1108 0756 F901      		movw r30,r18
+ 1109 0758 2081      		ld r18,Z
+ 1110 075a 3181      		ldd r19,Z+1
+ 1111 075c FC01      		movw r30,r24
+ 1112 075e 3183      		std Z+1,r19
+ 1113 0760 2083      		st Z,r18
+ 1114               	.LBE149:
+ 1115               	.LBE148:
+ 1116               	.LBE147:
+ 1117               	.LBE146:
+ 1118               	.LBB150:
+ 1119               	.LBB151:
+ 514:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_INIT_HIGH) {
+ 1120               		.loc 2 514 0
+ 1121 0762 CE01      		movw r24,r28
+ 1122 0764 815B      		subi r24,-79
+ 1123 0766 9F4F      		sbci r25,-1
+ 1124 0768 FC01      		movw r30,r24
+ 1125 076a 8081      		ld r24,Z
+ 1126 076c 9181      		ldd r25,Z+1
+ 1127 076e 8170      		andi r24,1
+ 1128 0770 9927      		clr r25
+ 1129 0772 892B      		or r24,r25
+ 1130 0774 01F4      		brne .+2
+ 1131 0776 00C0      		rjmp .L29
+ 515:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 1132               		.loc 2 515 0
+ 1133 0778 CE01      		movw r24,r28
+ 1134 077a 815B      		subi r24,-79
+ 1135 077c 9F4F      		sbci r25,-1
+ 1136 077e FC01      		movw r30,r24
+ 1137 0780 8081      		ld r24,Z
+ 1138 0782 9181      		ldd r25,Z+1
+ 1139 0784 8270      		andi r24,2
+ 1140 0786 9927      		clr r25
+ 1141 0788 892B      		or r24,r25
+ 1142 078a 01F0      		breq .L30
+ 516:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 1143               		.loc 2 516 0
+ 1144 078c CE01      		movw r24,r28
+ 1145 078e 845B      		subi r24,-76
+ 1146 0790 9F4F      		sbci r25,-1
+ 1147 0792 FC01      		movw r30,r24
+ 1148 0794 8081      		ld r24,Z
+ 1149 0796 9181      		ldd r25,Z+1
+ 1150 0798 0296      		adiw r24,2
+ 1151 079a 9E01      		movw r18,r28
+ 1152 079c 245B      		subi r18,-76
+ 1153 079e 3F4F      		sbci r19,-1
+ 1154 07a0 F901      		movw r30,r18
+ 1155 07a2 2081      		ld r18,Z
+ 1156 07a4 3181      		ldd r19,Z+1
+ 1157 07a6 2E5F      		subi r18,-2
+ 1158 07a8 3F4F      		sbci r19,-1
+ 1159 07aa F901      		movw r30,r18
+ 1160 07ac 4081      		ld r20,Z
+ 1161 07ae 9E01      		movw r18,r28
+ 1162 07b0 225B      		subi r18,-78
+ 1163 07b2 3F4F      		sbci r19,-1
+ 1164 07b4 F901      		movw r30,r18
+ 1165 07b6 2081      		ld r18,Z
+ 1166 07b8 242B      		or r18,r20
+ 1167 07ba FC01      		movw r30,r24
+ 1168 07bc 2083      		st Z,r18
+ 1169 07be 00C0      		rjmp .L31
+ 1170               	.L30:
+ 518:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		}
+ 1171               		.loc 2 518 0
+ 1172 07c0 CE01      		movw r24,r28
+ 1173 07c2 845B      		subi r24,-76
+ 1174 07c4 9F4F      		sbci r25,-1
+ 1175 07c6 FC01      		movw r30,r24
+ 1176 07c8 8081      		ld r24,Z
+ 1177 07ca 9181      		ldd r25,Z+1
+ 1178 07cc 0296      		adiw r24,2
+ 1179 07ce 9E01      		movw r18,r28
+ 1180 07d0 245B      		subi r18,-76
+ 1181 07d2 3F4F      		sbci r19,-1
+ 1182 07d4 F901      		movw r30,r18
+ 1183 07d6 2081      		ld r18,Z
+ 1184 07d8 3181      		ldd r19,Z+1
+ 1185 07da 2E5F      		subi r18,-2
+ 1186 07dc 3F4F      		sbci r19,-1
+ 1187 07de F901      		movw r30,r18
+ 1188 07e0 2081      		ld r18,Z
+ 1189 07e2 422F      		mov r20,r18
+ 1190 07e4 9E01      		movw r18,r28
+ 1191 07e6 225B      		subi r18,-78
+ 1192 07e8 3F4F      		sbci r19,-1
+ 1193 07ea F901      		movw r30,r18
+ 1194 07ec 2081      		ld r18,Z
+ 1195 07ee 2095      		com r18
+ 1196 07f0 2423      		and r18,r20
+ 1197 07f2 FC01      		movw r30,r24
+ 1198 07f4 2083      		st Z,r18
+ 1199               	.L31:
+ 521:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 1200               		.loc 2 521 0
+ 1201 07f6 CE01      		movw r24,r28
+ 1202 07f8 845B      		subi r24,-76
+ 1203 07fa 9F4F      		sbci r25,-1
+ 1204 07fc FC01      		movw r30,r24
+ 1205 07fe 8081      		ld r24,Z
+ 1206 0800 9181      		ldd r25,Z+1
+ 1207 0802 0196      		adiw r24,1
+ 1208 0804 9E01      		movw r18,r28
+ 1209 0806 245B      		subi r18,-76
+ 1210 0808 3F4F      		sbci r19,-1
+ 1211 080a F901      		movw r30,r18
+ 1212 080c 2081      		ld r18,Z
+ 1213 080e 3181      		ldd r19,Z+1
+ 1214 0810 2F5F      		subi r18,-1
+ 1215 0812 3F4F      		sbci r19,-1
+ 1216 0814 F901      		movw r30,r18
+ 1217 0816 4081      		ld r20,Z
+ 1218 0818 9E01      		movw r18,r28
+ 1219 081a 225B      		subi r18,-78
+ 1220 081c 3F4F      		sbci r19,-1
+ 1221 081e F901      		movw r30,r18
+ 1222 0820 2081      		ld r18,Z
+ 1223 0822 242B      		or r18,r20
+ 1224 0824 FC01      		movw r30,r24
+ 1225 0826 2083      		st Z,r18
+ 1226 0828 00C0      		rjmp .L32
+ 1227               	.L29:
+ 523:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_PULL_UP) {
+ 1228               		.loc 2 523 0
+ 1229 082a CE01      		movw r24,r28
+ 1230 082c 845B      		subi r24,-76
+ 1231 082e 9F4F      		sbci r25,-1
+ 1232 0830 FC01      		movw r30,r24
+ 1233 0832 8081      		ld r24,Z
+ 1234 0834 9181      		ldd r25,Z+1
+ 1235 0836 0196      		adiw r24,1
+ 1236 0838 9E01      		movw r18,r28
+ 1237 083a 245B      		subi r18,-76
+ 1238 083c 3F4F      		sbci r19,-1
+ 1239 083e F901      		movw r30,r18
+ 1240 0840 2081      		ld r18,Z
+ 1241 0842 3181      		ldd r19,Z+1
+ 1242 0844 2F5F      		subi r18,-1
+ 1243 0846 3F4F      		sbci r19,-1
+ 1244 0848 F901      		movw r30,r18
+ 1245 084a 2081      		ld r18,Z
+ 1246 084c 422F      		mov r20,r18
+ 1247 084e 9E01      		movw r18,r28
+ 1248 0850 225B      		subi r18,-78
+ 1249 0852 3F4F      		sbci r19,-1
+ 1250 0854 F901      		movw r30,r18
+ 1251 0856 2081      		ld r18,Z
+ 1252 0858 2095      		com r18
+ 1253 085a 2423      		and r18,r20
+ 1254 085c FC01      		movw r30,r24
+ 1255 085e 2083      		st Z,r18
+ 524:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 1256               		.loc 2 524 0
+ 1257 0860 CE01      		movw r24,r28
+ 1258 0862 815B      		subi r24,-79
+ 1259 0864 9F4F      		sbci r25,-1
+ 1260 0866 FC01      		movw r30,r24
+ 1261 0868 8081      		ld r24,Z
+ 1262 086a 9181      		ldd r25,Z+1
+ 1263 086c 8470      		andi r24,4
+ 1264 086e 9927      		clr r25
+ 1265 0870 892B      		or r24,r25
+ 1266 0872 01F0      		breq .L33
+ 525:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 1267               		.loc 2 525 0
+ 1268 0874 CE01      		movw r24,r28
+ 1269 0876 845B      		subi r24,-76
+ 1270 0878 9F4F      		sbci r25,-1
+ 1271 087a FC01      		movw r30,r24
+ 1272 087c 8081      		ld r24,Z
+ 1273 087e 9181      		ldd r25,Z+1
+ 1274 0880 0296      		adiw r24,2
+ 1275 0882 9E01      		movw r18,r28
+ 1276 0884 245B      		subi r18,-76
+ 1277 0886 3F4F      		sbci r19,-1
+ 1278 0888 F901      		movw r30,r18
+ 1279 088a 2081      		ld r18,Z
+ 1280 088c 3181      		ldd r19,Z+1
+ 1281 088e 2E5F      		subi r18,-2
+ 1282 0890 3F4F      		sbci r19,-1
+ 1283 0892 F901      		movw r30,r18
+ 1284 0894 4081      		ld r20,Z
+ 1285 0896 9E01      		movw r18,r28
+ 1286 0898 225B      		subi r18,-78
+ 1287 089a 3F4F      		sbci r19,-1
+ 1288 089c F901      		movw r30,r18
+ 1289 089e 2081      		ld r18,Z
+ 1290 08a0 242B      		or r18,r20
+ 1291 08a2 FC01      		movw r30,r24
+ 1292 08a4 2083      		st Z,r18
+ 1293 08a6 00C0      		rjmp .L32
+ 1294               	.L33:
+ 1295               		.loc 2 527 0
+ 1296 08a8 CE01      		movw r24,r28
+ 1297 08aa 845B      		subi r24,-76
+ 1298 08ac 9F4F      		sbci r25,-1
+ 1299 08ae FC01      		movw r30,r24
+ 1300 08b0 8081      		ld r24,Z
+ 1301 08b2 9181      		ldd r25,Z+1
+ 1302 08b4 0296      		adiw r24,2
+ 1303 08b6 9E01      		movw r18,r28
+ 1304 08b8 245B      		subi r18,-76
+ 1305 08ba 3F4F      		sbci r19,-1
+ 1306 08bc F901      		movw r30,r18
+ 1307 08be 2081      		ld r18,Z
+ 1308 08c0 3181      		ldd r19,Z+1
+ 1309 08c2 2E5F      		subi r18,-2
+ 1310 08c4 3F4F      		sbci r19,-1
+ 1311 08c6 F901      		movw r30,r18
+ 1312 08c8 2081      		ld r18,Z
+ 1313 08ca 422F      		mov r20,r18
+ 1314 08cc 9E01      		movw r18,r28
+ 1315 08ce 225B      		subi r18,-78
+ 1316 08d0 3F4F      		sbci r19,-1
+ 1317 08d2 F901      		movw r30,r18
+ 1318 08d4 2081      		ld r18,Z
+ 1319 08d6 2095      		com r18
+ 1320 08d8 2423      		and r18,r20
+ 1321 08da FC01      		movw r30,r24
+ 1322 08dc 2083      		st Z,r18
+ 1323               	.L32:
+ 1324 08de 81E2      		ldi r24,lo8(33)
+ 1325 08e0 8D83      		std Y+5,r24
+ 1326 08e2 83E0      		ldi r24,lo8(3)
+ 1327 08e4 90E0      		ldi r25,0
+ 1328 08e6 9EAF      		std Y+62,r25
+ 1329 08e8 8DAF      		std Y+61,r24
+ 1330 08ea 8D81      		ldd r24,Y+5
+ 1331 08ec 8FAF      		std Y+63,r24
+ 1332               	.LBE151:
+ 1333               	.LBE150:
+ 1334               	.LBE143:
+ 1335               	.LBE142:
+ 1336               	.LBB152:
+ 1337               	.LBB153:
+ 1338               	.LBB154:
+ 1339               	.LBB155:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1340               		.loc 2 189 0
+ 1341 08ee 8FAD      		ldd r24,Y+63
+ 1342 08f0 882F      		mov r24,r24
+ 1343 08f2 90E0      		ldi r25,0
+ 1344 08f4 9C01      		movw r18,r24
+ 1345 08f6 2770      		andi r18,7
+ 1346 08f8 3327      		clr r19
+ 1347 08fa 81E0      		ldi r24,lo8(1)
+ 1348 08fc 90E0      		ldi r25,0
+ 1349 08fe 00C0      		rjmp 2f
+ 1350               		1:
+ 1351 0900 880F      		lsl r24
+ 1352 0902 991F      		rol r25
+ 1353               		2:
+ 1354 0904 2A95      		dec r18
+ 1355 0906 02F4      		brpl 1b
+ 1356 0908 482F      		mov r20,r24
+ 1357 090a 2D81      		ldd r18,Y+5
+ 1358 090c CE01      		movw r24,r28
+ 1359 090e 805C      		subi r24,-64
+ 1360 0910 9F4F      		sbci r25,-1
+ 1361 0912 FC01      		movw r30,r24
+ 1362 0914 2083      		st Z,r18
+ 1363               	.LBE155:
+ 1364               	.LBE154:
+ 1365               	.LBB156:
+ 1366               	.LBB157:
+ 179:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1367               		.loc 2 179 0
+ 1368 0916 CE01      		movw r24,r28
+ 1369 0918 805C      		subi r24,-64
+ 1370 091a 9F4F      		sbci r25,-1
+ 1371 091c FC01      		movw r30,r24
+ 1372 091e 8081      		ld r24,Z
+ 1373 0920 282F      		mov r18,r24
+ 1374 0922 2695      		lsr r18
+ 1375 0924 2695      		lsr r18
+ 1376 0926 2695      		lsr r18
+ 1377 0928 CE01      		movw r24,r28
+ 1378 092a 8F5B      		subi r24,-65
+ 1379 092c 9F4F      		sbci r25,-1
+ 1380 092e FC01      		movw r30,r24
+ 1381 0930 2083      		st Z,r18
+ 1382               	.LBB158:
+ 1383               	.LBB159:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1384               		.loc 2 170 0
+ 1385 0932 CE01      		movw r24,r28
+ 1386 0934 8F5B      		subi r24,-65
+ 1387 0936 9F4F      		sbci r25,-1
+ 1388 0938 FC01      		movw r30,r24
+ 1389 093a 8081      		ld r24,Z
+ 1390 093c 282F      		mov r18,r24
+ 1391 093e 30E0      		ldi r19,0
+ 1392 0940 C901      		movw r24,r18
+ 1393 0942 880F      		lsl r24
+ 1394 0944 991F      		rol r25
+ 1395 0946 820F      		add r24,r18
+ 1396 0948 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 1397               		.loc 2 169 0
+ 1398 094a 8096      		adiw r24,32
+ 1399 094c 9C01      		movw r18,r24
+ 1400 094e CE01      		movw r24,r28
+ 1401 0950 8E5B      		subi r24,-66
+ 1402 0952 9F4F      		sbci r25,-1
+ 1403 0954 FC01      		movw r30,r24
+ 1404 0956 3183      		std Z+1,r19
+ 1405 0958 2083      		st Z,r18
+ 1406 095a CE01      		movw r24,r28
+ 1407 095c 8C5B      		subi r24,-68
+ 1408 095e 9F4F      		sbci r25,-1
+ 1409 0960 FC01      		movw r30,r24
+ 1410 0962 4083      		st Z,r20
+ 1411 0964 CE01      		movw r24,r28
+ 1412 0966 8B5B      		subi r24,-69
+ 1413 0968 9F4F      		sbci r25,-1
+ 1414 096a 2DAD      		ldd r18,Y+61
+ 1415 096c 3EAD      		ldd r19,Y+62
+ 1416 096e FC01      		movw r30,r24
+ 1417 0970 3183      		std Z+1,r19
+ 1418 0972 2083      		st Z,r18
+ 1419               	.LBE159:
+ 1420               	.LBE158:
+ 1421               	.LBE157:
+ 1422               	.LBE156:
+ 1423               	.LBB160:
+ 1424               	.LBB161:
+ 514:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_INIT_HIGH) {
+ 1425               		.loc 2 514 0
+ 1426 0974 CE01      		movw r24,r28
+ 1427 0976 8B5B      		subi r24,-69
+ 1428 0978 9F4F      		sbci r25,-1
+ 1429 097a FC01      		movw r30,r24
+ 1430 097c 8081      		ld r24,Z
+ 1431 097e 9181      		ldd r25,Z+1
+ 1432 0980 8170      		andi r24,1
+ 1433 0982 9927      		clr r25
+ 1434 0984 892B      		or r24,r25
+ 1435 0986 01F4      		brne .+2
+ 1436 0988 00C0      		rjmp .L37
+ 515:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 1437               		.loc 2 515 0
+ 1438 098a CE01      		movw r24,r28
+ 1439 098c 8B5B      		subi r24,-69
+ 1440 098e 9F4F      		sbci r25,-1
+ 1441 0990 FC01      		movw r30,r24
+ 1442 0992 8081      		ld r24,Z
+ 1443 0994 9181      		ldd r25,Z+1
+ 1444 0996 8270      		andi r24,2
+ 1445 0998 9927      		clr r25
+ 1446 099a 892B      		or r24,r25
+ 1447 099c 01F0      		breq .L38
+ 516:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 1448               		.loc 2 516 0
+ 1449 099e CE01      		movw r24,r28
+ 1450 09a0 8E5B      		subi r24,-66
+ 1451 09a2 9F4F      		sbci r25,-1
+ 1452 09a4 FC01      		movw r30,r24
+ 1453 09a6 8081      		ld r24,Z
+ 1454 09a8 9181      		ldd r25,Z+1
+ 1455 09aa 0296      		adiw r24,2
+ 1456 09ac 9E01      		movw r18,r28
+ 1457 09ae 2E5B      		subi r18,-66
+ 1458 09b0 3F4F      		sbci r19,-1
+ 1459 09b2 F901      		movw r30,r18
+ 1460 09b4 2081      		ld r18,Z
+ 1461 09b6 3181      		ldd r19,Z+1
+ 1462 09b8 2E5F      		subi r18,-2
+ 1463 09ba 3F4F      		sbci r19,-1
+ 1464 09bc F901      		movw r30,r18
+ 1465 09be 4081      		ld r20,Z
+ 1466 09c0 9E01      		movw r18,r28
+ 1467 09c2 2C5B      		subi r18,-68
+ 1468 09c4 3F4F      		sbci r19,-1
+ 1469 09c6 F901      		movw r30,r18
+ 1470 09c8 2081      		ld r18,Z
+ 1471 09ca 242B      		or r18,r20
+ 1472 09cc FC01      		movw r30,r24
+ 1473 09ce 2083      		st Z,r18
+ 1474 09d0 00C0      		rjmp .L39
+ 1475               	.L38:
+ 518:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		}
+ 1476               		.loc 2 518 0
+ 1477 09d2 CE01      		movw r24,r28
+ 1478 09d4 8E5B      		subi r24,-66
+ 1479 09d6 9F4F      		sbci r25,-1
+ 1480 09d8 FC01      		movw r30,r24
+ 1481 09da 8081      		ld r24,Z
+ 1482 09dc 9181      		ldd r25,Z+1
+ 1483 09de 0296      		adiw r24,2
+ 1484 09e0 9E01      		movw r18,r28
+ 1485 09e2 2E5B      		subi r18,-66
+ 1486 09e4 3F4F      		sbci r19,-1
+ 1487 09e6 F901      		movw r30,r18
+ 1488 09e8 2081      		ld r18,Z
+ 1489 09ea 3181      		ldd r19,Z+1
+ 1490 09ec 2E5F      		subi r18,-2
+ 1491 09ee 3F4F      		sbci r19,-1
+ 1492 09f0 F901      		movw r30,r18
+ 1493 09f2 2081      		ld r18,Z
+ 1494 09f4 422F      		mov r20,r18
+ 1495 09f6 9E01      		movw r18,r28
+ 1496 09f8 2C5B      		subi r18,-68
+ 1497 09fa 3F4F      		sbci r19,-1
+ 1498 09fc F901      		movw r30,r18
+ 1499 09fe 2081      		ld r18,Z
+ 1500 0a00 2095      		com r18
+ 1501 0a02 2423      		and r18,r20
+ 1502 0a04 FC01      		movw r30,r24
+ 1503 0a06 2083      		st Z,r18
+ 1504               	.L39:
+ 521:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 1505               		.loc 2 521 0
+ 1506 0a08 CE01      		movw r24,r28
+ 1507 0a0a 8E5B      		subi r24,-66
+ 1508 0a0c 9F4F      		sbci r25,-1
+ 1509 0a0e FC01      		movw r30,r24
+ 1510 0a10 8081      		ld r24,Z
+ 1511 0a12 9181      		ldd r25,Z+1
+ 1512 0a14 0196      		adiw r24,1
+ 1513 0a16 9E01      		movw r18,r28
+ 1514 0a18 2E5B      		subi r18,-66
+ 1515 0a1a 3F4F      		sbci r19,-1
+ 1516 0a1c F901      		movw r30,r18
+ 1517 0a1e 2081      		ld r18,Z
+ 1518 0a20 3181      		ldd r19,Z+1
+ 1519 0a22 2F5F      		subi r18,-1
+ 1520 0a24 3F4F      		sbci r19,-1
+ 1521 0a26 F901      		movw r30,r18
+ 1522 0a28 4081      		ld r20,Z
+ 1523 0a2a 9E01      		movw r18,r28
+ 1524 0a2c 2C5B      		subi r18,-68
+ 1525 0a2e 3F4F      		sbci r19,-1
+ 1526 0a30 F901      		movw r30,r18
+ 1527 0a32 2081      		ld r18,Z
+ 1528 0a34 242B      		or r18,r20
+ 1529 0a36 FC01      		movw r30,r24
+ 1530 0a38 2083      		st Z,r18
+ 1531 0a3a 00C0      		rjmp .L40
+ 1532               	.L37:
+ 523:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_PULL_UP) {
+ 1533               		.loc 2 523 0
+ 1534 0a3c CE01      		movw r24,r28
+ 1535 0a3e 8E5B      		subi r24,-66
+ 1536 0a40 9F4F      		sbci r25,-1
+ 1537 0a42 FC01      		movw r30,r24
+ 1538 0a44 8081      		ld r24,Z
+ 1539 0a46 9181      		ldd r25,Z+1
+ 1540 0a48 0196      		adiw r24,1
+ 1541 0a4a 9E01      		movw r18,r28
+ 1542 0a4c 2E5B      		subi r18,-66
+ 1543 0a4e 3F4F      		sbci r19,-1
+ 1544 0a50 F901      		movw r30,r18
+ 1545 0a52 2081      		ld r18,Z
+ 1546 0a54 3181      		ldd r19,Z+1
+ 1547 0a56 2F5F      		subi r18,-1
+ 1548 0a58 3F4F      		sbci r19,-1
+ 1549 0a5a F901      		movw r30,r18
+ 1550 0a5c 2081      		ld r18,Z
+ 1551 0a5e 422F      		mov r20,r18
+ 1552 0a60 9E01      		movw r18,r28
+ 1553 0a62 2C5B      		subi r18,-68
+ 1554 0a64 3F4F      		sbci r19,-1
+ 1555 0a66 F901      		movw r30,r18
+ 1556 0a68 2081      		ld r18,Z
+ 1557 0a6a 2095      		com r18
+ 1558 0a6c 2423      		and r18,r20
+ 1559 0a6e FC01      		movw r30,r24
+ 1560 0a70 2083      		st Z,r18
+ 524:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 1561               		.loc 2 524 0
+ 1562 0a72 CE01      		movw r24,r28
+ 1563 0a74 8B5B      		subi r24,-69
+ 1564 0a76 9F4F      		sbci r25,-1
+ 1565 0a78 FC01      		movw r30,r24
+ 1566 0a7a 8081      		ld r24,Z
+ 1567 0a7c 9181      		ldd r25,Z+1
+ 1568 0a7e 8470      		andi r24,4
+ 1569 0a80 9927      		clr r25
+ 1570 0a82 892B      		or r24,r25
+ 1571 0a84 01F0      		breq .L41
+ 525:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 1572               		.loc 2 525 0
+ 1573 0a86 CE01      		movw r24,r28
+ 1574 0a88 8E5B      		subi r24,-66
+ 1575 0a8a 9F4F      		sbci r25,-1
+ 1576 0a8c FC01      		movw r30,r24
+ 1577 0a8e 8081      		ld r24,Z
+ 1578 0a90 9181      		ldd r25,Z+1
+ 1579 0a92 0296      		adiw r24,2
+ 1580 0a94 9E01      		movw r18,r28
+ 1581 0a96 2E5B      		subi r18,-66
+ 1582 0a98 3F4F      		sbci r19,-1
+ 1583 0a9a F901      		movw r30,r18
+ 1584 0a9c 2081      		ld r18,Z
+ 1585 0a9e 3181      		ldd r19,Z+1
+ 1586 0aa0 2E5F      		subi r18,-2
+ 1587 0aa2 3F4F      		sbci r19,-1
+ 1588 0aa4 F901      		movw r30,r18
+ 1589 0aa6 4081      		ld r20,Z
+ 1590 0aa8 9E01      		movw r18,r28
+ 1591 0aaa 2C5B      		subi r18,-68
+ 1592 0aac 3F4F      		sbci r19,-1
+ 1593 0aae F901      		movw r30,r18
+ 1594 0ab0 2081      		ld r18,Z
+ 1595 0ab2 242B      		or r18,r20
+ 1596 0ab4 FC01      		movw r30,r24
+ 1597 0ab6 2083      		st Z,r18
+ 1598 0ab8 00C0      		rjmp .L40
+ 1599               	.L41:
+ 1600               		.loc 2 527 0
+ 1601 0aba CE01      		movw r24,r28
+ 1602 0abc 8E5B      		subi r24,-66
+ 1603 0abe 9F4F      		sbci r25,-1
+ 1604 0ac0 FC01      		movw r30,r24
+ 1605 0ac2 8081      		ld r24,Z
+ 1606 0ac4 9181      		ldd r25,Z+1
+ 1607 0ac6 0296      		adiw r24,2
+ 1608 0ac8 9E01      		movw r18,r28
+ 1609 0aca 2E5B      		subi r18,-66
+ 1610 0acc 3F4F      		sbci r19,-1
+ 1611 0ace F901      		movw r30,r18
+ 1612 0ad0 2081      		ld r18,Z
+ 1613 0ad2 3181      		ldd r19,Z+1
+ 1614 0ad4 2E5F      		subi r18,-2
+ 1615 0ad6 3F4F      		sbci r19,-1
+ 1616 0ad8 F901      		movw r30,r18
+ 1617 0ada 2081      		ld r18,Z
+ 1618 0adc 422F      		mov r20,r18
+ 1619 0ade 9E01      		movw r18,r28
+ 1620 0ae0 2C5B      		subi r18,-68
+ 1621 0ae2 3F4F      		sbci r19,-1
+ 1622 0ae4 F901      		movw r30,r18
+ 1623 0ae6 2081      		ld r18,Z
+ 1624 0ae8 2095      		com r18
+ 1625 0aea 2423      		and r18,r20
+ 1626 0aec FC01      		movw r30,r24
+ 1627 0aee 2083      		st Z,r18
+ 1628               	.L40:
+ 1629 0af0 80E2      		ldi r24,lo8(32)
+ 1630 0af2 8E83      		std Y+6,r24
+ 1631 0af4 1CAA      		std Y+52,__zero_reg__
+ 1632 0af6 1BAA      		std Y+51,__zero_reg__
+ 1633 0af8 8E81      		ldd r24,Y+6
+ 1634 0afa 8DAB      		std Y+53,r24
+ 1635               	.LBE161:
+ 1636               	.LBE160:
+ 1637               	.LBE153:
+ 1638               	.LBE152:
+ 1639               	.LBB162:
+ 1640               	.LBB163:
+ 1641               	.LBB164:
+ 1642               	.LBB165:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1643               		.loc 2 189 0
+ 1644 0afc 8DA9      		ldd r24,Y+53
+ 1645 0afe 882F      		mov r24,r24
+ 1646 0b00 90E0      		ldi r25,0
+ 1647 0b02 9C01      		movw r18,r24
+ 1648 0b04 2770      		andi r18,7
+ 1649 0b06 3327      		clr r19
+ 1650 0b08 81E0      		ldi r24,lo8(1)
+ 1651 0b0a 90E0      		ldi r25,0
+ 1652 0b0c 00C0      		rjmp 2f
+ 1653               		1:
+ 1654 0b0e 880F      		lsl r24
+ 1655 0b10 991F      		rol r25
+ 1656               		2:
+ 1657 0b12 2A95      		dec r18
+ 1658 0b14 02F4      		brpl 1b
+ 1659 0b16 482F      		mov r20,r24
+ 1660 0b18 8E81      		ldd r24,Y+6
+ 1661 0b1a 8EAB      		std Y+54,r24
+ 1662               	.LBE165:
+ 1663               	.LBE164:
+ 1664               	.LBB166:
+ 1665               	.LBB167:
+ 179:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1666               		.loc 2 179 0
+ 1667 0b1c 8EA9      		ldd r24,Y+54
+ 1668 0b1e 8695      		lsr r24
+ 1669 0b20 8695      		lsr r24
+ 1670 0b22 8695      		lsr r24
+ 1671 0b24 8FAB      		std Y+55,r24
+ 1672               	.LBB168:
+ 1673               	.LBB169:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1674               		.loc 2 170 0
+ 1675 0b26 8FA9      		ldd r24,Y+55
+ 1676 0b28 282F      		mov r18,r24
+ 1677 0b2a 30E0      		ldi r19,0
+ 1678 0b2c C901      		movw r24,r18
+ 1679 0b2e 880F      		lsl r24
+ 1680 0b30 991F      		rol r25
+ 1681 0b32 820F      		add r24,r18
+ 1682 0b34 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 1683               		.loc 2 169 0
+ 1684 0b36 8096      		adiw r24,32
+ 1685 0b38 99AF      		std Y+57,r25
+ 1686 0b3a 88AF      		std Y+56,r24
+ 1687 0b3c 4AAF      		std Y+58,r20
+ 1688 0b3e 8BA9      		ldd r24,Y+51
+ 1689 0b40 9CA9      		ldd r25,Y+52
+ 1690 0b42 9CAF      		std Y+60,r25
+ 1691 0b44 8BAF      		std Y+59,r24
+ 1692               	.LBE169:
+ 1693               	.LBE168:
+ 1694               	.LBE167:
+ 1695               	.LBE166:
+ 1696               	.LBB170:
+ 1697               	.LBB171:
+ 514:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_INIT_HIGH) {
+ 1698               		.loc 2 514 0
+ 1699 0b46 8BAD      		ldd r24,Y+59
+ 1700 0b48 9CAD      		ldd r25,Y+60
+ 1701 0b4a 8170      		andi r24,1
+ 1702 0b4c 9927      		clr r25
+ 1703 0b4e 892B      		or r24,r25
+ 1704 0b50 01F0      		breq .L45
+ 515:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 1705               		.loc 2 515 0
+ 1706 0b52 8BAD      		ldd r24,Y+59
+ 1707 0b54 9CAD      		ldd r25,Y+60
+ 1708 0b56 8270      		andi r24,2
+ 1709 0b58 9927      		clr r25
+ 1710 0b5a 892B      		or r24,r25
+ 1711 0b5c 01F0      		breq .L46
+ 516:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 1712               		.loc 2 516 0
+ 1713 0b5e 88AD      		ldd r24,Y+56
+ 1714 0b60 99AD      		ldd r25,Y+57
+ 1715 0b62 0296      		adiw r24,2
+ 1716 0b64 28AD      		ldd r18,Y+56
+ 1717 0b66 39AD      		ldd r19,Y+57
+ 1718 0b68 2E5F      		subi r18,-2
+ 1719 0b6a 3F4F      		sbci r19,-1
+ 1720 0b6c F901      		movw r30,r18
+ 1721 0b6e 3081      		ld r19,Z
+ 1722 0b70 2AAD      		ldd r18,Y+58
+ 1723 0b72 232B      		or r18,r19
+ 1724 0b74 FC01      		movw r30,r24
+ 1725 0b76 2083      		st Z,r18
+ 1726 0b78 00C0      		rjmp .L47
+ 1727               	.L46:
+ 518:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		}
+ 1728               		.loc 2 518 0
+ 1729 0b7a 88AD      		ldd r24,Y+56
+ 1730 0b7c 99AD      		ldd r25,Y+57
+ 1731 0b7e 0296      		adiw r24,2
+ 1732 0b80 28AD      		ldd r18,Y+56
+ 1733 0b82 39AD      		ldd r19,Y+57
+ 1734 0b84 2E5F      		subi r18,-2
+ 1735 0b86 3F4F      		sbci r19,-1
+ 1736 0b88 F901      		movw r30,r18
+ 1737 0b8a 2081      		ld r18,Z
+ 1738 0b8c 322F      		mov r19,r18
+ 1739 0b8e 2AAD      		ldd r18,Y+58
+ 1740 0b90 2095      		com r18
+ 1741 0b92 2323      		and r18,r19
+ 1742 0b94 FC01      		movw r30,r24
+ 1743 0b96 2083      		st Z,r18
+ 1744               	.L47:
+ 521:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 1745               		.loc 2 521 0
+ 1746 0b98 88AD      		ldd r24,Y+56
+ 1747 0b9a 99AD      		ldd r25,Y+57
+ 1748 0b9c 0196      		adiw r24,1
+ 1749 0b9e 28AD      		ldd r18,Y+56
+ 1750 0ba0 39AD      		ldd r19,Y+57
+ 1751 0ba2 2F5F      		subi r18,-1
+ 1752 0ba4 3F4F      		sbci r19,-1
+ 1753 0ba6 F901      		movw r30,r18
+ 1754 0ba8 3081      		ld r19,Z
+ 1755 0baa 2AAD      		ldd r18,Y+58
+ 1756 0bac 232B      		or r18,r19
+ 1757 0bae FC01      		movw r30,r24
+ 1758 0bb0 2083      		st Z,r18
+ 1759 0bb2 00C0      		rjmp .L48
+ 1760               	.L45:
+ 523:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_PULL_UP) {
+ 1761               		.loc 2 523 0
+ 1762 0bb4 88AD      		ldd r24,Y+56
+ 1763 0bb6 99AD      		ldd r25,Y+57
+ 1764 0bb8 0196      		adiw r24,1
+ 1765 0bba 28AD      		ldd r18,Y+56
+ 1766 0bbc 39AD      		ldd r19,Y+57
+ 1767 0bbe 2F5F      		subi r18,-1
+ 1768 0bc0 3F4F      		sbci r19,-1
+ 1769 0bc2 F901      		movw r30,r18
+ 1770 0bc4 2081      		ld r18,Z
+ 1771 0bc6 322F      		mov r19,r18
+ 1772 0bc8 2AAD      		ldd r18,Y+58
+ 1773 0bca 2095      		com r18
+ 1774 0bcc 2323      		and r18,r19
+ 1775 0bce FC01      		movw r30,r24
+ 1776 0bd0 2083      		st Z,r18
+ 524:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 1777               		.loc 2 524 0
+ 1778 0bd2 8BAD      		ldd r24,Y+59
+ 1779 0bd4 9CAD      		ldd r25,Y+60
+ 1780 0bd6 8470      		andi r24,4
+ 1781 0bd8 9927      		clr r25
+ 1782 0bda 892B      		or r24,r25
+ 1783 0bdc 01F0      		breq .L49
+ 525:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 1784               		.loc 2 525 0
+ 1785 0bde 88AD      		ldd r24,Y+56
+ 1786 0be0 99AD      		ldd r25,Y+57
+ 1787 0be2 0296      		adiw r24,2
+ 1788 0be4 28AD      		ldd r18,Y+56
+ 1789 0be6 39AD      		ldd r19,Y+57
+ 1790 0be8 2E5F      		subi r18,-2
+ 1791 0bea 3F4F      		sbci r19,-1
+ 1792 0bec F901      		movw r30,r18
+ 1793 0bee 3081      		ld r19,Z
+ 1794 0bf0 2AAD      		ldd r18,Y+58
+ 1795 0bf2 232B      		or r18,r19
+ 1796 0bf4 FC01      		movw r30,r24
+ 1797 0bf6 2083      		st Z,r18
+ 1798 0bf8 00C0      		rjmp .L48
+ 1799               	.L49:
+ 1800               		.loc 2 527 0
+ 1801 0bfa 88AD      		ldd r24,Y+56
+ 1802 0bfc 99AD      		ldd r25,Y+57
+ 1803 0bfe 0296      		adiw r24,2
+ 1804 0c00 28AD      		ldd r18,Y+56
+ 1805 0c02 39AD      		ldd r19,Y+57
+ 1806 0c04 2E5F      		subi r18,-2
+ 1807 0c06 3F4F      		sbci r19,-1
+ 1808 0c08 F901      		movw r30,r18
+ 1809 0c0a 2081      		ld r18,Z
+ 1810 0c0c 322F      		mov r19,r18
+ 1811 0c0e 2AAD      		ldd r18,Y+58
+ 1812 0c10 2095      		com r18
+ 1813 0c12 2323      		and r18,r19
+ 1814 0c14 FC01      		movw r30,r24
+ 1815 0c16 2083      		st Z,r18
+ 1816               	.L48:
+ 1817 0c18 8BE1      		ldi r24,lo8(27)
+ 1818 0c1a 8F83      		std Y+7,r24
+ 1819 0c1c 83E0      		ldi r24,lo8(3)
+ 1820 0c1e 90E0      		ldi r25,0
+ 1821 0c20 9AA7      		std Y+42,r25
+ 1822 0c22 89A7      		std Y+41,r24
+ 1823 0c24 8F81      		ldd r24,Y+7
+ 1824 0c26 8BA7      		std Y+43,r24
+ 1825               	.LBE171:
+ 1826               	.LBE170:
+ 1827               	.LBE163:
+ 1828               	.LBE162:
+ 1829               	.LBB172:
+ 1830               	.LBB173:
+ 1831               	.LBB174:
+ 1832               	.LBB175:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1833               		.loc 2 189 0
+ 1834 0c28 8BA5      		ldd r24,Y+43
+ 1835 0c2a 882F      		mov r24,r24
+ 1836 0c2c 90E0      		ldi r25,0
+ 1837 0c2e 9C01      		movw r18,r24
+ 1838 0c30 2770      		andi r18,7
+ 1839 0c32 3327      		clr r19
+ 1840 0c34 81E0      		ldi r24,lo8(1)
+ 1841 0c36 90E0      		ldi r25,0
+ 1842 0c38 00C0      		rjmp 2f
+ 1843               		1:
+ 1844 0c3a 880F      		lsl r24
+ 1845 0c3c 991F      		rol r25
+ 1846               		2:
+ 1847 0c3e 2A95      		dec r18
+ 1848 0c40 02F4      		brpl 1b
+ 1849 0c42 482F      		mov r20,r24
+ 1850 0c44 8F81      		ldd r24,Y+7
+ 1851 0c46 8CA7      		std Y+44,r24
+ 1852               	.LBE175:
+ 1853               	.LBE174:
+ 1854               	.LBB176:
+ 1855               	.LBB177:
+ 179:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1856               		.loc 2 179 0
+ 1857 0c48 8CA5      		ldd r24,Y+44
+ 1858 0c4a 8695      		lsr r24
+ 1859 0c4c 8695      		lsr r24
+ 1860 0c4e 8695      		lsr r24
+ 1861 0c50 8DA7      		std Y+45,r24
+ 1862               	.LBB178:
+ 1863               	.LBB179:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 1864               		.loc 2 170 0
+ 1865 0c52 8DA5      		ldd r24,Y+45
+ 1866 0c54 282F      		mov r18,r24
+ 1867 0c56 30E0      		ldi r19,0
+ 1868 0c58 C901      		movw r24,r18
+ 1869 0c5a 880F      		lsl r24
+ 1870 0c5c 991F      		rol r25
+ 1871 0c5e 820F      		add r24,r18
+ 1872 0c60 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 1873               		.loc 2 169 0
+ 1874 0c62 8096      		adiw r24,32
+ 1875 0c64 9FA7      		std Y+47,r25
+ 1876 0c66 8EA7      		std Y+46,r24
+ 1877 0c68 48AB      		std Y+48,r20
+ 1878 0c6a 89A5      		ldd r24,Y+41
+ 1879 0c6c 9AA5      		ldd r25,Y+42
+ 1880 0c6e 9AAB      		std Y+50,r25
+ 1881 0c70 89AB      		std Y+49,r24
+ 1882               	.LBE179:
+ 1883               	.LBE178:
+ 1884               	.LBE177:
+ 1885               	.LBE176:
+ 1886               	.LBB180:
+ 1887               	.LBB181:
+ 514:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_INIT_HIGH) {
+ 1888               		.loc 2 514 0
+ 1889 0c72 89A9      		ldd r24,Y+49
+ 1890 0c74 9AA9      		ldd r25,Y+50
+ 1891 0c76 8170      		andi r24,1
+ 1892 0c78 9927      		clr r25
+ 1893 0c7a 892B      		or r24,r25
+ 1894 0c7c 01F0      		breq .L53
+ 515:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 1895               		.loc 2 515 0
+ 1896 0c7e 89A9      		ldd r24,Y+49
+ 1897 0c80 9AA9      		ldd r25,Y+50
+ 1898 0c82 8270      		andi r24,2
+ 1899 0c84 9927      		clr r25
+ 1900 0c86 892B      		or r24,r25
+ 1901 0c88 01F0      		breq .L54
+ 516:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 1902               		.loc 2 516 0
+ 1903 0c8a 8EA5      		ldd r24,Y+46
+ 1904 0c8c 9FA5      		ldd r25,Y+47
+ 1905 0c8e 0296      		adiw r24,2
+ 1906 0c90 2EA5      		ldd r18,Y+46
+ 1907 0c92 3FA5      		ldd r19,Y+47
+ 1908 0c94 2E5F      		subi r18,-2
+ 1909 0c96 3F4F      		sbci r19,-1
+ 1910 0c98 F901      		movw r30,r18
+ 1911 0c9a 3081      		ld r19,Z
+ 1912 0c9c 28A9      		ldd r18,Y+48
+ 1913 0c9e 232B      		or r18,r19
+ 1914 0ca0 FC01      		movw r30,r24
+ 1915 0ca2 2083      		st Z,r18
+ 1916 0ca4 00C0      		rjmp .L55
+ 1917               	.L54:
+ 518:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		}
+ 1918               		.loc 2 518 0
+ 1919 0ca6 8EA5      		ldd r24,Y+46
+ 1920 0ca8 9FA5      		ldd r25,Y+47
+ 1921 0caa 0296      		adiw r24,2
+ 1922 0cac 2EA5      		ldd r18,Y+46
+ 1923 0cae 3FA5      		ldd r19,Y+47
+ 1924 0cb0 2E5F      		subi r18,-2
+ 1925 0cb2 3F4F      		sbci r19,-1
+ 1926 0cb4 F901      		movw r30,r18
+ 1927 0cb6 2081      		ld r18,Z
+ 1928 0cb8 322F      		mov r19,r18
+ 1929 0cba 28A9      		ldd r18,Y+48
+ 1930 0cbc 2095      		com r18
+ 1931 0cbe 2323      		and r18,r19
+ 1932 0cc0 FC01      		movw r30,r24
+ 1933 0cc2 2083      		st Z,r18
+ 1934               	.L55:
+ 521:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 1935               		.loc 2 521 0
+ 1936 0cc4 8EA5      		ldd r24,Y+46
+ 1937 0cc6 9FA5      		ldd r25,Y+47
+ 1938 0cc8 0196      		adiw r24,1
+ 1939 0cca 2EA5      		ldd r18,Y+46
+ 1940 0ccc 3FA5      		ldd r19,Y+47
+ 1941 0cce 2F5F      		subi r18,-1
+ 1942 0cd0 3F4F      		sbci r19,-1
+ 1943 0cd2 F901      		movw r30,r18
+ 1944 0cd4 3081      		ld r19,Z
+ 1945 0cd6 28A9      		ldd r18,Y+48
+ 1946 0cd8 232B      		or r18,r19
+ 1947 0cda FC01      		movw r30,r24
+ 1948 0cdc 2083      		st Z,r18
+ 1949 0cde 00C0      		rjmp .L56
+ 1950               	.L53:
+ 523:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_PULL_UP) {
+ 1951               		.loc 2 523 0
+ 1952 0ce0 8EA5      		ldd r24,Y+46
+ 1953 0ce2 9FA5      		ldd r25,Y+47
+ 1954 0ce4 0196      		adiw r24,1
+ 1955 0ce6 2EA5      		ldd r18,Y+46
+ 1956 0ce8 3FA5      		ldd r19,Y+47
+ 1957 0cea 2F5F      		subi r18,-1
+ 1958 0cec 3F4F      		sbci r19,-1
+ 1959 0cee F901      		movw r30,r18
+ 1960 0cf0 2081      		ld r18,Z
+ 1961 0cf2 322F      		mov r19,r18
+ 1962 0cf4 28A9      		ldd r18,Y+48
+ 1963 0cf6 2095      		com r18
+ 1964 0cf8 2323      		and r18,r19
+ 1965 0cfa FC01      		movw r30,r24
+ 1966 0cfc 2083      		st Z,r18
+ 524:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 1967               		.loc 2 524 0
+ 1968 0cfe 89A9      		ldd r24,Y+49
+ 1969 0d00 9AA9      		ldd r25,Y+50
+ 1970 0d02 8470      		andi r24,4
+ 1971 0d04 9927      		clr r25
+ 1972 0d06 892B      		or r24,r25
+ 1973 0d08 01F0      		breq .L57
+ 525:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 1974               		.loc 2 525 0
+ 1975 0d0a 8EA5      		ldd r24,Y+46
+ 1976 0d0c 9FA5      		ldd r25,Y+47
+ 1977 0d0e 0296      		adiw r24,2
+ 1978 0d10 2EA5      		ldd r18,Y+46
+ 1979 0d12 3FA5      		ldd r19,Y+47
+ 1980 0d14 2E5F      		subi r18,-2
+ 1981 0d16 3F4F      		sbci r19,-1
+ 1982 0d18 F901      		movw r30,r18
+ 1983 0d1a 3081      		ld r19,Z
+ 1984 0d1c 28A9      		ldd r18,Y+48
+ 1985 0d1e 232B      		or r18,r19
+ 1986 0d20 FC01      		movw r30,r24
+ 1987 0d22 2083      		st Z,r18
+ 1988 0d24 00C0      		rjmp .L56
+ 1989               	.L57:
+ 1990               		.loc 2 527 0
+ 1991 0d26 8EA5      		ldd r24,Y+46
+ 1992 0d28 9FA5      		ldd r25,Y+47
+ 1993 0d2a 0296      		adiw r24,2
+ 1994 0d2c 2EA5      		ldd r18,Y+46
+ 1995 0d2e 3FA5      		ldd r19,Y+47
+ 1996 0d30 2E5F      		subi r18,-2
+ 1997 0d32 3F4F      		sbci r19,-1
+ 1998 0d34 F901      		movw r30,r18
+ 1999 0d36 2081      		ld r18,Z
+ 2000 0d38 322F      		mov r19,r18
+ 2001 0d3a 28A9      		ldd r18,Y+48
+ 2002 0d3c 2095      		com r18
+ 2003 0d3e 2323      		and r18,r19
+ 2004 0d40 FC01      		movw r30,r24
+ 2005 0d42 2083      		st Z,r18
+ 2006               	.L56:
+ 2007 0d44 8AE1      		ldi r24,lo8(26)
+ 2008 0d46 8887      		std Y+8,r24
+ 2009 0d48 18A2      		std Y+32,__zero_reg__
+ 2010 0d4a 1F8E      		std Y+31,__zero_reg__
+ 2011 0d4c 8885      		ldd r24,Y+8
+ 2012 0d4e 89A3      		std Y+33,r24
+ 2013               	.LBE181:
+ 2014               	.LBE180:
+ 2015               	.LBE173:
+ 2016               	.LBE172:
+ 2017               	.LBB182:
+ 2018               	.LBB183:
+ 2019               	.LBB184:
+ 2020               	.LBB185:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 2021               		.loc 2 189 0
+ 2022 0d50 89A1      		ldd r24,Y+33
+ 2023 0d52 882F      		mov r24,r24
+ 2024 0d54 90E0      		ldi r25,0
+ 2025 0d56 9C01      		movw r18,r24
+ 2026 0d58 2770      		andi r18,7
+ 2027 0d5a 3327      		clr r19
+ 2028 0d5c 81E0      		ldi r24,lo8(1)
+ 2029 0d5e 90E0      		ldi r25,0
+ 2030 0d60 00C0      		rjmp 2f
+ 2031               		1:
+ 2032 0d62 880F      		lsl r24
+ 2033 0d64 991F      		rol r25
+ 2034               		2:
+ 2035 0d66 2A95      		dec r18
+ 2036 0d68 02F4      		brpl 1b
+ 2037 0d6a 482F      		mov r20,r24
+ 2038 0d6c 8885      		ldd r24,Y+8
+ 2039 0d6e 8AA3      		std Y+34,r24
+ 2040               	.LBE185:
+ 2041               	.LBE184:
+ 2042               	.LBB186:
+ 2043               	.LBB187:
+ 179:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 2044               		.loc 2 179 0
+ 2045 0d70 8AA1      		ldd r24,Y+34
+ 2046 0d72 8695      		lsr r24
+ 2047 0d74 8695      		lsr r24
+ 2048 0d76 8695      		lsr r24
+ 2049 0d78 8BA3      		std Y+35,r24
+ 2050               	.LBB188:
+ 2051               	.LBB189:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 2052               		.loc 2 170 0
+ 2053 0d7a 8BA1      		ldd r24,Y+35
+ 2054 0d7c 282F      		mov r18,r24
+ 2055 0d7e 30E0      		ldi r19,0
+ 2056 0d80 C901      		movw r24,r18
+ 2057 0d82 880F      		lsl r24
+ 2058 0d84 991F      		rol r25
+ 2059 0d86 820F      		add r24,r18
+ 2060 0d88 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 2061               		.loc 2 169 0
+ 2062 0d8a 8096      		adiw r24,32
+ 2063 0d8c 9DA3      		std Y+37,r25
+ 2064 0d8e 8CA3      		std Y+36,r24
+ 2065 0d90 4EA3      		std Y+38,r20
+ 2066 0d92 8F8D      		ldd r24,Y+31
+ 2067 0d94 98A1      		ldd r25,Y+32
+ 2068 0d96 98A7      		std Y+40,r25
+ 2069 0d98 8FA3      		std Y+39,r24
+ 2070               	.LBE189:
+ 2071               	.LBE188:
+ 2072               	.LBE187:
+ 2073               	.LBE186:
+ 2074               	.LBB190:
+ 2075               	.LBB191:
+ 514:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_INIT_HIGH) {
+ 2076               		.loc 2 514 0
+ 2077 0d9a 8FA1      		ldd r24,Y+39
+ 2078 0d9c 98A5      		ldd r25,Y+40
+ 2079 0d9e 8170      		andi r24,1
+ 2080 0da0 9927      		clr r25
+ 2081 0da2 892B      		or r24,r25
+ 2082 0da4 01F0      		breq .L61
+ 515:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 2083               		.loc 2 515 0
+ 2084 0da6 8FA1      		ldd r24,Y+39
+ 2085 0da8 98A5      		ldd r25,Y+40
+ 2086 0daa 8270      		andi r24,2
+ 2087 0dac 9927      		clr r25
+ 2088 0dae 892B      		or r24,r25
+ 2089 0db0 01F0      		breq .L62
+ 516:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 2090               		.loc 2 516 0
+ 2091 0db2 8CA1      		ldd r24,Y+36
+ 2092 0db4 9DA1      		ldd r25,Y+37
+ 2093 0db6 0296      		adiw r24,2
+ 2094 0db8 2CA1      		ldd r18,Y+36
+ 2095 0dba 3DA1      		ldd r19,Y+37
+ 2096 0dbc 2E5F      		subi r18,-2
+ 2097 0dbe 3F4F      		sbci r19,-1
+ 2098 0dc0 F901      		movw r30,r18
+ 2099 0dc2 3081      		ld r19,Z
+ 2100 0dc4 2EA1      		ldd r18,Y+38
+ 2101 0dc6 232B      		or r18,r19
+ 2102 0dc8 FC01      		movw r30,r24
+ 2103 0dca 2083      		st Z,r18
+ 2104 0dcc 00C0      		rjmp .L63
+ 2105               	.L62:
+ 518:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		}
+ 2106               		.loc 2 518 0
+ 2107 0dce 8CA1      		ldd r24,Y+36
+ 2108 0dd0 9DA1      		ldd r25,Y+37
+ 2109 0dd2 0296      		adiw r24,2
+ 2110 0dd4 2CA1      		ldd r18,Y+36
+ 2111 0dd6 3DA1      		ldd r19,Y+37
+ 2112 0dd8 2E5F      		subi r18,-2
+ 2113 0dda 3F4F      		sbci r19,-1
+ 2114 0ddc F901      		movw r30,r18
+ 2115 0dde 2081      		ld r18,Z
+ 2116 0de0 322F      		mov r19,r18
+ 2117 0de2 2EA1      		ldd r18,Y+38
+ 2118 0de4 2095      		com r18
+ 2119 0de6 2323      		and r18,r19
+ 2120 0de8 FC01      		movw r30,r24
+ 2121 0dea 2083      		st Z,r18
+ 2122               	.L63:
+ 521:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 2123               		.loc 2 521 0
+ 2124 0dec 8CA1      		ldd r24,Y+36
+ 2125 0dee 9DA1      		ldd r25,Y+37
+ 2126 0df0 0196      		adiw r24,1
+ 2127 0df2 2CA1      		ldd r18,Y+36
+ 2128 0df4 3DA1      		ldd r19,Y+37
+ 2129 0df6 2F5F      		subi r18,-1
+ 2130 0df8 3F4F      		sbci r19,-1
+ 2131 0dfa F901      		movw r30,r18
+ 2132 0dfc 3081      		ld r19,Z
+ 2133 0dfe 2EA1      		ldd r18,Y+38
+ 2134 0e00 232B      		or r18,r19
+ 2135 0e02 FC01      		movw r30,r24
+ 2136 0e04 2083      		st Z,r18
+ 2137 0e06 00C0      		rjmp .L64
+ 2138               	.L61:
+ 523:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_PULL_UP) {
+ 2139               		.loc 2 523 0
+ 2140 0e08 8CA1      		ldd r24,Y+36
+ 2141 0e0a 9DA1      		ldd r25,Y+37
+ 2142 0e0c 0196      		adiw r24,1
+ 2143 0e0e 2CA1      		ldd r18,Y+36
+ 2144 0e10 3DA1      		ldd r19,Y+37
+ 2145 0e12 2F5F      		subi r18,-1
+ 2146 0e14 3F4F      		sbci r19,-1
+ 2147 0e16 F901      		movw r30,r18
+ 2148 0e18 2081      		ld r18,Z
+ 2149 0e1a 322F      		mov r19,r18
+ 2150 0e1c 2EA1      		ldd r18,Y+38
+ 2151 0e1e 2095      		com r18
+ 2152 0e20 2323      		and r18,r19
+ 2153 0e22 FC01      		movw r30,r24
+ 2154 0e24 2083      		st Z,r18
+ 524:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 2155               		.loc 2 524 0
+ 2156 0e26 8FA1      		ldd r24,Y+39
+ 2157 0e28 98A5      		ldd r25,Y+40
+ 2158 0e2a 8470      		andi r24,4
+ 2159 0e2c 9927      		clr r25
+ 2160 0e2e 892B      		or r24,r25
+ 2161 0e30 01F0      		breq .L65
+ 525:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 2162               		.loc 2 525 0
+ 2163 0e32 8CA1      		ldd r24,Y+36
+ 2164 0e34 9DA1      		ldd r25,Y+37
+ 2165 0e36 0296      		adiw r24,2
+ 2166 0e38 2CA1      		ldd r18,Y+36
+ 2167 0e3a 3DA1      		ldd r19,Y+37
+ 2168 0e3c 2E5F      		subi r18,-2
+ 2169 0e3e 3F4F      		sbci r19,-1
+ 2170 0e40 F901      		movw r30,r18
+ 2171 0e42 3081      		ld r19,Z
+ 2172 0e44 2EA1      		ldd r18,Y+38
+ 2173 0e46 232B      		or r18,r19
+ 2174 0e48 FC01      		movw r30,r24
+ 2175 0e4a 2083      		st Z,r18
+ 2176 0e4c 00C0      		rjmp .L64
+ 2177               	.L65:
+ 2178               		.loc 2 527 0
+ 2179 0e4e 8CA1      		ldd r24,Y+36
+ 2180 0e50 9DA1      		ldd r25,Y+37
+ 2181 0e52 0296      		adiw r24,2
+ 2182 0e54 2CA1      		ldd r18,Y+36
+ 2183 0e56 3DA1      		ldd r19,Y+37
+ 2184 0e58 2E5F      		subi r18,-2
+ 2185 0e5a 3F4F      		sbci r19,-1
+ 2186 0e5c F901      		movw r30,r18
+ 2187 0e5e 2081      		ld r18,Z
+ 2188 0e60 322F      		mov r19,r18
+ 2189 0e62 2EA1      		ldd r18,Y+38
+ 2190 0e64 2095      		com r18
+ 2191 0e66 2323      		and r18,r19
+ 2192 0e68 FC01      		movw r30,r24
+ 2193 0e6a 2083      		st Z,r18
+ 2194               	.L64:
+ 2195 0e6c 85E3      		ldi r24,lo8(53)
+ 2196 0e6e 8987      		std Y+9,r24
+ 2197 0e70 83E0      		ldi r24,lo8(3)
+ 2198 0e72 90E0      		ldi r25,0
+ 2199 0e74 9E8B      		std Y+22,r25
+ 2200 0e76 8D8B      		std Y+21,r24
+ 2201 0e78 8985      		ldd r24,Y+9
+ 2202 0e7a 8F8B      		std Y+23,r24
+ 2203               	.LBE191:
+ 2204               	.LBE190:
+ 2205               	.LBE183:
+ 2206               	.LBE182:
+ 2207               	.LBB192:
+ 2208               	.LBB193:
+ 2209               	.LBB194:
+ 2210               	.LBB195:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 2211               		.loc 2 189 0
+ 2212 0e7c 8F89      		ldd r24,Y+23
+ 2213 0e7e 882F      		mov r24,r24
+ 2214 0e80 90E0      		ldi r25,0
+ 2215 0e82 9C01      		movw r18,r24
+ 2216 0e84 2770      		andi r18,7
+ 2217 0e86 3327      		clr r19
+ 2218 0e88 81E0      		ldi r24,lo8(1)
+ 2219 0e8a 90E0      		ldi r25,0
+ 2220 0e8c 00C0      		rjmp 2f
+ 2221               		1:
+ 2222 0e8e 880F      		lsl r24
+ 2223 0e90 991F      		rol r25
+ 2224               		2:
+ 2225 0e92 2A95      		dec r18
+ 2226 0e94 02F4      		brpl 1b
+ 2227 0e96 482F      		mov r20,r24
+ 2228 0e98 8985      		ldd r24,Y+9
+ 2229 0e9a 888F      		std Y+24,r24
+ 2230               	.LBE195:
+ 2231               	.LBE194:
+ 2232               	.LBB196:
+ 2233               	.LBB197:
+ 179:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 2234               		.loc 2 179 0
+ 2235 0e9c 888D      		ldd r24,Y+24
+ 2236 0e9e 8695      		lsr r24
+ 2237 0ea0 8695      		lsr r24
+ 2238 0ea2 8695      		lsr r24
+ 2239 0ea4 898F      		std Y+25,r24
+ 2240               	.LBB198:
+ 2241               	.LBB199:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 2242               		.loc 2 170 0
+ 2243 0ea6 898D      		ldd r24,Y+25
+ 2244 0ea8 282F      		mov r18,r24
+ 2245 0eaa 30E0      		ldi r19,0
+ 2246 0eac C901      		movw r24,r18
+ 2247 0eae 880F      		lsl r24
+ 2248 0eb0 991F      		rol r25
+ 2249 0eb2 820F      		add r24,r18
+ 2250 0eb4 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 2251               		.loc 2 169 0
+ 2252 0eb6 8096      		adiw r24,32
+ 2253 0eb8 9B8F      		std Y+27,r25
+ 2254 0eba 8A8F      		std Y+26,r24
+ 2255 0ebc 4C8F      		std Y+28,r20
+ 2256 0ebe 8D89      		ldd r24,Y+21
+ 2257 0ec0 9E89      		ldd r25,Y+22
+ 2258 0ec2 9E8F      		std Y+30,r25
+ 2259 0ec4 8D8F      		std Y+29,r24
+ 2260               	.LBE199:
+ 2261               	.LBE198:
+ 2262               	.LBE197:
+ 2263               	.LBE196:
+ 2264               	.LBB200:
+ 2265               	.LBB201:
+ 514:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_INIT_HIGH) {
+ 2266               		.loc 2 514 0
+ 2267 0ec6 8D8D      		ldd r24,Y+29
+ 2268 0ec8 9E8D      		ldd r25,Y+30
+ 2269 0eca 8170      		andi r24,1
+ 2270 0ecc 9927      		clr r25
+ 2271 0ece 892B      		or r24,r25
+ 2272 0ed0 01F0      		breq .L69
+ 515:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 2273               		.loc 2 515 0
+ 2274 0ed2 8D8D      		ldd r24,Y+29
+ 2275 0ed4 9E8D      		ldd r25,Y+30
+ 2276 0ed6 8270      		andi r24,2
+ 2277 0ed8 9927      		clr r25
+ 2278 0eda 892B      		or r24,r25
+ 2279 0edc 01F0      		breq .L70
+ 516:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 2280               		.loc 2 516 0
+ 2281 0ede 8A8D      		ldd r24,Y+26
+ 2282 0ee0 9B8D      		ldd r25,Y+27
+ 2283 0ee2 0296      		adiw r24,2
+ 2284 0ee4 2A8D      		ldd r18,Y+26
+ 2285 0ee6 3B8D      		ldd r19,Y+27
+ 2286 0ee8 2E5F      		subi r18,-2
+ 2287 0eea 3F4F      		sbci r19,-1
+ 2288 0eec F901      		movw r30,r18
+ 2289 0eee 3081      		ld r19,Z
+ 2290 0ef0 2C8D      		ldd r18,Y+28
+ 2291 0ef2 232B      		or r18,r19
+ 2292 0ef4 FC01      		movw r30,r24
+ 2293 0ef6 2083      		st Z,r18
+ 2294 0ef8 00C0      		rjmp .L71
+ 2295               	.L70:
+ 518:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		}
+ 2296               		.loc 2 518 0
+ 2297 0efa 8A8D      		ldd r24,Y+26
+ 2298 0efc 9B8D      		ldd r25,Y+27
+ 2299 0efe 0296      		adiw r24,2
+ 2300 0f00 2A8D      		ldd r18,Y+26
+ 2301 0f02 3B8D      		ldd r19,Y+27
+ 2302 0f04 2E5F      		subi r18,-2
+ 2303 0f06 3F4F      		sbci r19,-1
+ 2304 0f08 F901      		movw r30,r18
+ 2305 0f0a 2081      		ld r18,Z
+ 2306 0f0c 322F      		mov r19,r18
+ 2307 0f0e 2C8D      		ldd r18,Y+28
+ 2308 0f10 2095      		com r18
+ 2309 0f12 2323      		and r18,r19
+ 2310 0f14 FC01      		movw r30,r24
+ 2311 0f16 2083      		st Z,r18
+ 2312               	.L71:
+ 521:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 2313               		.loc 2 521 0
+ 2314 0f18 8A8D      		ldd r24,Y+26
+ 2315 0f1a 9B8D      		ldd r25,Y+27
+ 2316 0f1c 0196      		adiw r24,1
+ 2317 0f1e 2A8D      		ldd r18,Y+26
+ 2318 0f20 3B8D      		ldd r19,Y+27
+ 2319 0f22 2F5F      		subi r18,-1
+ 2320 0f24 3F4F      		sbci r19,-1
+ 2321 0f26 F901      		movw r30,r18
+ 2322 0f28 3081      		ld r19,Z
+ 2323 0f2a 2C8D      		ldd r18,Y+28
+ 2324 0f2c 232B      		or r18,r19
+ 2325 0f2e FC01      		movw r30,r24
+ 2326 0f30 2083      		st Z,r18
+ 2327 0f32 00C0      		rjmp .L72
+ 2328               	.L69:
+ 523:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_PULL_UP) {
+ 2329               		.loc 2 523 0
+ 2330 0f34 8A8D      		ldd r24,Y+26
+ 2331 0f36 9B8D      		ldd r25,Y+27
+ 2332 0f38 0196      		adiw r24,1
+ 2333 0f3a 2A8D      		ldd r18,Y+26
+ 2334 0f3c 3B8D      		ldd r19,Y+27
+ 2335 0f3e 2F5F      		subi r18,-1
+ 2336 0f40 3F4F      		sbci r19,-1
+ 2337 0f42 F901      		movw r30,r18
+ 2338 0f44 2081      		ld r18,Z
+ 2339 0f46 322F      		mov r19,r18
+ 2340 0f48 2C8D      		ldd r18,Y+28
+ 2341 0f4a 2095      		com r18
+ 2342 0f4c 2323      		and r18,r19
+ 2343 0f4e FC01      		movw r30,r24
+ 2344 0f50 2083      		st Z,r18
+ 524:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 2345               		.loc 2 524 0
+ 2346 0f52 8D8D      		ldd r24,Y+29
+ 2347 0f54 9E8D      		ldd r25,Y+30
+ 2348 0f56 8470      		andi r24,4
+ 2349 0f58 9927      		clr r25
+ 2350 0f5a 892B      		or r24,r25
+ 2351 0f5c 01F0      		breq .L73
+ 525:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 2352               		.loc 2 525 0
+ 2353 0f5e 8A8D      		ldd r24,Y+26
+ 2354 0f60 9B8D      		ldd r25,Y+27
+ 2355 0f62 0296      		adiw r24,2
+ 2356 0f64 2A8D      		ldd r18,Y+26
+ 2357 0f66 3B8D      		ldd r19,Y+27
+ 2358 0f68 2E5F      		subi r18,-2
+ 2359 0f6a 3F4F      		sbci r19,-1
+ 2360 0f6c F901      		movw r30,r18
+ 2361 0f6e 3081      		ld r19,Z
+ 2362 0f70 2C8D      		ldd r18,Y+28
+ 2363 0f72 232B      		or r18,r19
+ 2364 0f74 FC01      		movw r30,r24
+ 2365 0f76 2083      		st Z,r18
+ 2366 0f78 00C0      		rjmp .L72
+ 2367               	.L73:
+ 2368               		.loc 2 527 0
+ 2369 0f7a 8A8D      		ldd r24,Y+26
+ 2370 0f7c 9B8D      		ldd r25,Y+27
+ 2371 0f7e 0296      		adiw r24,2
+ 2372 0f80 2A8D      		ldd r18,Y+26
+ 2373 0f82 3B8D      		ldd r19,Y+27
+ 2374 0f84 2E5F      		subi r18,-2
+ 2375 0f86 3F4F      		sbci r19,-1
+ 2376 0f88 F901      		movw r30,r18
+ 2377 0f8a 2081      		ld r18,Z
+ 2378 0f8c 322F      		mov r19,r18
+ 2379 0f8e 2C8D      		ldd r18,Y+28
+ 2380 0f90 2095      		com r18
+ 2381 0f92 2323      		and r18,r19
+ 2382 0f94 FC01      		movw r30,r24
+ 2383 0f96 2083      		st Z,r18
+ 2384               	.L72:
+ 2385 0f98 8DE1      		ldi r24,lo8(29)
+ 2386 0f9a 8A87      		std Y+10,r24
+ 2387 0f9c 83E0      		ldi r24,lo8(3)
+ 2388 0f9e 90E0      		ldi r25,0
+ 2389 0fa0 9C87      		std Y+12,r25
+ 2390 0fa2 8B87      		std Y+11,r24
+ 2391 0fa4 8A85      		ldd r24,Y+10
+ 2392 0fa6 8D87      		std Y+13,r24
+ 2393               	.LBE201:
+ 2394               	.LBE200:
+ 2395               	.LBE193:
+ 2396               	.LBE192:
+ 2397               	.LBB202:
+ 2398               	.LBB203:
+ 2399               	.LBB204:
+ 2400               	.LBB205:
+ 189:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 2401               		.loc 2 189 0
+ 2402 0fa8 8D85      		ldd r24,Y+13
+ 2403 0faa 882F      		mov r24,r24
+ 2404 0fac 90E0      		ldi r25,0
+ 2405 0fae 9C01      		movw r18,r24
+ 2406 0fb0 2770      		andi r18,7
+ 2407 0fb2 3327      		clr r19
+ 2408 0fb4 81E0      		ldi r24,lo8(1)
+ 2409 0fb6 90E0      		ldi r25,0
+ 2410 0fb8 00C0      		rjmp 2f
+ 2411               		1:
+ 2412 0fba 880F      		lsl r24
+ 2413 0fbc 991F      		rol r25
+ 2414               		2:
+ 2415 0fbe 2A95      		dec r18
+ 2416 0fc0 02F4      		brpl 1b
+ 2417 0fc2 482F      		mov r20,r24
+ 2418 0fc4 8A85      		ldd r24,Y+10
+ 2419 0fc6 8E87      		std Y+14,r24
+ 2420               	.LBE205:
+ 2421               	.LBE204:
+ 2422               	.LBB206:
+ 2423               	.LBB207:
+ 179:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 2424               		.loc 2 179 0
+ 2425 0fc8 8E85      		ldd r24,Y+14
+ 2426 0fca 8695      		lsr r24
+ 2427 0fcc 8695      		lsr r24
+ 2428 0fce 8695      		lsr r24
+ 2429 0fd0 8F87      		std Y+15,r24
+ 2430               	.LBB208:
+ 2431               	.LBB209:
+ 170:../../../platform/common/services/ioport/mega_rf/ioport.h **** }
+ 2432               		.loc 2 170 0
+ 2433 0fd2 8F85      		ldd r24,Y+15
+ 2434 0fd4 282F      		mov r18,r24
+ 2435 0fd6 30E0      		ldi r19,0
+ 2436 0fd8 C901      		movw r24,r18
+ 2437 0fda 880F      		lsl r24
+ 2438 0fdc 991F      		rol r25
+ 2439 0fde 820F      		add r24,r18
+ 2440 0fe0 931F      		adc r25,r19
+ 169:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	       (port * IOPORT_PORT_OFFSET)));
+ 2441               		.loc 2 169 0
+ 2442 0fe2 8096      		adiw r24,32
+ 2443 0fe4 998B      		std Y+17,r25
+ 2444 0fe6 888B      		std Y+16,r24
+ 2445 0fe8 4A8B      		std Y+18,r20
+ 2446 0fea 8B85      		ldd r24,Y+11
+ 2447 0fec 9C85      		ldd r25,Y+12
+ 2448 0fee 9C8B      		std Y+20,r25
+ 2449 0ff0 8B8B      		std Y+19,r24
+ 2450               	.LBE209:
+ 2451               	.LBE208:
+ 2452               	.LBE207:
+ 2453               	.LBE206:
+ 2454               	.LBB210:
+ 2455               	.LBB211:
+ 514:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_INIT_HIGH) {
+ 2456               		.loc 2 514 0
+ 2457 0ff2 8B89      		ldd r24,Y+19
+ 2458 0ff4 9C89      		ldd r25,Y+20
+ 2459 0ff6 8170      		andi r24,1
+ 2460 0ff8 9927      		clr r25
+ 2461 0ffa 892B      		or r24,r25
+ 2462 0ffc 01F0      		breq .L77
+ 515:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 2463               		.loc 2 515 0
+ 2464 0ffe 8B89      		ldd r24,Y+19
+ 2465 1000 9C89      		ldd r25,Y+20
+ 2466 1002 8270      		andi r24,2
+ 2467 1004 9927      		clr r25
+ 2468 1006 892B      		or r24,r25
+ 2469 1008 01F0      		breq .L78
+ 516:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 2470               		.loc 2 516 0
+ 2471 100a 8889      		ldd r24,Y+16
+ 2472 100c 9989      		ldd r25,Y+17
+ 2473 100e 0296      		adiw r24,2
+ 2474 1010 2889      		ldd r18,Y+16
+ 2475 1012 3989      		ldd r19,Y+17
+ 2476 1014 2E5F      		subi r18,-2
+ 2477 1016 3F4F      		sbci r19,-1
+ 2478 1018 F901      		movw r30,r18
+ 2479 101a 3081      		ld r19,Z
+ 2480 101c 2A89      		ldd r18,Y+18
+ 2481 101e 232B      		or r18,r19
+ 2482 1020 FC01      		movw r30,r24
+ 2483 1022 2083      		st Z,r18
+ 2484 1024 00C0      		rjmp .L79
+ 2485               	.L78:
+ 518:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		}
+ 2486               		.loc 2 518 0
+ 2487 1026 8889      		ldd r24,Y+16
+ 2488 1028 9989      		ldd r25,Y+17
+ 2489 102a 0296      		adiw r24,2
+ 2490 102c 2889      		ldd r18,Y+16
+ 2491 102e 3989      		ldd r19,Y+17
+ 2492 1030 2E5F      		subi r18,-2
+ 2493 1032 3F4F      		sbci r19,-1
+ 2494 1034 F901      		movw r30,r18
+ 2495 1036 2081      		ld r18,Z
+ 2496 1038 322F      		mov r19,r18
+ 2497 103a 2A89      		ldd r18,Y+18
+ 2498 103c 2095      		com r18
+ 2499 103e 2323      		and r18,r19
+ 2500 1040 FC01      		movw r30,r24
+ 2501 1042 2083      		st Z,r18
+ 2502               	.L79:
+ 521:../../../platform/common/services/ioport/mega_rf/ioport.h **** 	} else {
+ 2503               		.loc 2 521 0
+ 2504 1044 8889      		ldd r24,Y+16
+ 2505 1046 9989      		ldd r25,Y+17
+ 2506 1048 0196      		adiw r24,1
+ 2507 104a 2889      		ldd r18,Y+16
+ 2508 104c 3989      		ldd r19,Y+17
+ 2509 104e 2F5F      		subi r18,-1
+ 2510 1050 3F4F      		sbci r19,-1
+ 2511 1052 F901      		movw r30,r18
+ 2512 1054 3081      		ld r19,Z
+ 2513 1056 2A89      		ldd r18,Y+18
+ 2514 1058 232B      		or r18,r19
+ 2515 105a FC01      		movw r30,r24
+ 2516 105c 2083      		st Z,r18
+ 2517               	.LBE211:
+ 2518               	.LBE210:
+ 2519               	.LBE203:
+ 2520               	.LBE202:
+  49:../../../board/WM100_DUINO/src/init_mega_rf.c **** 	ioport_configure_pin(LED0_GPIO, IOPORT_DIR_OUTPUT | IOPORT_INIT_HIGH);
+  50:../../../board/WM100_DUINO/src/init_mega_rf.c **** 	ioport_configure_pin(LED1_GPIO, IOPORT_DIR_OUTPUT | IOPORT_INIT_HIGH);
+  51:../../../board/WM100_DUINO/src/init_mega_rf.c **** 	ioport_configure_pin(LED2_GPIO, IOPORT_DIR_OUTPUT | IOPORT_INIT_HIGH);
+  52:../../../board/WM100_DUINO/src/init_mega_rf.c **** 	gpio_configure_pin(GPIO_PUSH_BUTTON_0,IOPORT_DIR_INPUT | IOPORT_PULL_UP);
+  53:../../../board/WM100_DUINO/src/init_mega_rf.c **** 
+  54:../../../board/WM100_DUINO/src/init_mega_rf.c **** #ifdef CONF_BOARD_ENABLE_USARTA0
+  55:../../../board/WM100_DUINO/src/init_mega_rf.c **** 	ioport_configure_pin(USARTA0_TXD, IOPORT_DIR_OUTPUT | IOPORT_INIT_HIGH);
+  56:../../../board/WM100_DUINO/src/init_mega_rf.c **** 	ioport_configure_pin(USARTA0_RXD, IOPORT_DIR_INPUT);
+  57:../../../board/WM100_DUINO/src/init_mega_rf.c **** #endif
+  58:../../../board/WM100_DUINO/src/init_mega_rf.c **** #ifdef CONF_BOARD_ENABLE_USARTA1
+  59:../../../board/WM100_DUINO/src/init_mega_rf.c **** 	ioport_configure_pin(USARTA1_TXD, IOPORT_DIR_OUTPUT | IOPORT_INIT_HIGH);
+  60:../../../board/WM100_DUINO/src/init_mega_rf.c **** 	ioport_configure_pin(USARTA1_RXD, IOPORT_DIR_INPUT);
+  61:../../../board/WM100_DUINO/src/init_mega_rf.c **** #endif
+  62:../../../board/WM100_DUINO/src/init_mega_rf.c **** #ifdef EXT_RF_FRONT_END_CTRL
+  63:../../../board/WM100_DUINO/src/init_mega_rf.c **** 	ioport_configure_pin(RF_FRONT_END_EN, IOPORT_DIR_OUTPUT | IOPORT_INIT_HIGH);
+  64:../../../board/WM100_DUINO/src/init_mega_rf.c **** 	ioport_configure_pin(RF_FRONT_END_LNA_EN, IOPORT_DIR_OUTPUT | IOPORT_INIT_HIGH);
+  65:../../../board/WM100_DUINO/src/init_mega_rf.c **** #endif
+  66:../../../board/WM100_DUINO/src/init_mega_rf.c **** }
+ 2521               		.loc 1 66 0
+ 2522 105e 00C0      		rjmp .L82
+ 2523               	.L77:
+ 2524               	.LBB218:
+ 2525               	.LBB216:
+ 2526               	.LBB214:
+ 2527               	.LBB212:
+ 523:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		if (flags & IOPORT_PULL_UP) {
+ 2528               		.loc 2 523 0
+ 2529 1060 8889      		ldd r24,Y+16
+ 2530 1062 9989      		ldd r25,Y+17
+ 2531 1064 0196      		adiw r24,1
+ 2532 1066 2889      		ldd r18,Y+16
+ 2533 1068 3989      		ldd r19,Y+17
+ 2534 106a 2F5F      		subi r18,-1
+ 2535 106c 3F4F      		sbci r19,-1
+ 2536 106e F901      		movw r30,r18
+ 2537 1070 2081      		ld r18,Z
+ 2538 1072 322F      		mov r19,r18
+ 2539 1074 2A89      		ldd r18,Y+18
+ 2540 1076 2095      		com r18
+ 2541 1078 2323      		and r18,r19
+ 2542 107a FC01      		movw r30,r24
+ 2543 107c 2083      		st Z,r18
+ 524:../../../platform/common/services/ioport/mega_rf/ioport.h **** 			*((uint8_t *)port + 2) |= pin_mask;
+ 2544               		.loc 2 524 0
+ 2545 107e 8B89      		ldd r24,Y+19
+ 2546 1080 9C89      		ldd r25,Y+20
+ 2547 1082 8470      		andi r24,4
+ 2548 1084 9927      		clr r25
+ 2549 1086 892B      		or r24,r25
+ 2550 1088 01F0      		breq .L81
+ 525:../../../platform/common/services/ioport/mega_rf/ioport.h **** 		} else {
+ 2551               		.loc 2 525 0
+ 2552 108a 8889      		ldd r24,Y+16
+ 2553 108c 9989      		ldd r25,Y+17
+ 2554 108e 0296      		adiw r24,2
+ 2555 1090 2889      		ldd r18,Y+16
+ 2556 1092 3989      		ldd r19,Y+17
+ 2557 1094 2E5F      		subi r18,-2
+ 2558 1096 3F4F      		sbci r19,-1
+ 2559 1098 F901      		movw r30,r18
+ 2560 109a 3081      		ld r19,Z
+ 2561 109c 2A89      		ldd r18,Y+18
+ 2562 109e 232B      		or r18,r19
+ 2563 10a0 FC01      		movw r30,r24
+ 2564 10a2 2083      		st Z,r18
+ 2565               	.LBE212:
+ 2566               	.LBE214:
+ 2567               	.LBE216:
+ 2568               	.LBE218:
+ 2569               		.loc 1 66 0
+ 2570 10a4 00C0      		rjmp .L82
+ 2571               	.L81:
+ 2572               	.LBB219:
+ 2573               	.LBB217:
+ 2574               	.LBB215:
+ 2575               	.LBB213:
+ 2576               		.loc 2 527 0
+ 2577 10a6 8889      		ldd r24,Y+16
+ 2578 10a8 9989      		ldd r25,Y+17
+ 2579 10aa 0296      		adiw r24,2
+ 2580 10ac 2889      		ldd r18,Y+16
+ 2581 10ae 3989      		ldd r19,Y+17
+ 2582 10b0 2E5F      		subi r18,-2
+ 2583 10b2 3F4F      		sbci r19,-1
+ 2584 10b4 F901      		movw r30,r18
+ 2585 10b6 2081      		ld r18,Z
+ 2586 10b8 322F      		mov r19,r18
+ 2587 10ba 2A89      		ldd r18,Y+18
+ 2588 10bc 2095      		com r18
+ 2589 10be 2323      		and r18,r19
+ 2590 10c0 FC01      		movw r30,r24
+ 2591 10c2 2083      		st Z,r18
+ 2592               	.L82:
+ 2593               	.LBE213:
+ 2594               	.LBE215:
+ 2595               	.LBE217:
+ 2596               	.LBE219:
+ 2597               		.loc 1 66 0
+ 2598 10c4 0000      		nop
+ 2599               	/* epilogue start */
+ 2600 10c6 C259      		subi r28,-110
+ 2601 10c8 DF4F      		sbci r29,-1
+ 2602 10ca 0FB6      		in __tmp_reg__,__SREG__
+ 2603 10cc F894      		cli
+ 2604 10ce DEBF      		out __SP_H__,r29
+ 2605 10d0 0FBE      		out __SREG__,__tmp_reg__
+ 2606 10d2 CDBF      		out __SP_L__,r28
+ 2607 10d4 DF91      		pop r29
+ 2608 10d6 CF91      		pop r28
+ 2609 10d8 0895      		ret
+ 2610               		.cfi_endproc
+ 2611               	.LFE65:
+ 2613               	.Letext0:
+ 2614               		.file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 2615               		.file 4 "../../../platform/common/services/ioport/ioport.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 init_mega_rf.c
+C:\Users\guilh\AppData\Local\Temp\ccr3o5vw.s:2      *ABS*:0000003e __SP_H__
+C:\Users\guilh\AppData\Local\Temp\ccr3o5vw.s:3      *ABS*:0000003d __SP_L__
+C:\Users\guilh\AppData\Local\Temp\ccr3o5vw.s:4      *ABS*:0000003f __SREG__
+C:\Users\guilh\AppData\Local\Temp\ccr3o5vw.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\guilh\AppData\Local\Temp\ccr3o5vw.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\guilh\AppData\Local\Temp\ccr3o5vw.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\guilh\AppData\Local\Temp\ccr3o5vw.s:13     .text:00000000 board_init
+
+NO UNDEFINED SYMBOLS

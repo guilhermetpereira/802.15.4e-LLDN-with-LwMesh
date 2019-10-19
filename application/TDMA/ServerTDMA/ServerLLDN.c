@@ -22,9 +22,29 @@
 	#include "ioport.h"
 	#include "conf_sleepmgr.h"
 	#include "board.h"
-	#include "Solver.h"
-	#include "Energy.h"
+	// #include "Solver.h"
+	// #include "Energy.h"
 	#include "platform.h"
+
+typedef enum AppState_t {
+	APP_STATE_INITIAL,
+	APP_STATE_IDLE,
+	APP_STATE_SEND_PREPARE,
+	APP_STATE_SEND,
+	APP_STATE_SEND_COLLAB,
+	APP_STATE_SEND_BUSY_DATA,
+	APP_STATE_SEND_BUSY_COLLAB,
+	APP_STATE_SLEEP_PREPARE,
+	APP_STATE_SLEEP,
+	APP_STATE_WAKEUP_AND_WAIT,
+	APP_STATE_WAKEUP_AND_COLLAB,
+	APP_STATE_WAKEUP_AND_SEND,
+	APP_STATE_WAKEUP_AND_SEND_COLLAB,
+	APP_STATE_RECEIVE_COLLAB,
+	APP_STATE_DO_COMPRESS,
+	APP_STATE_SERVER_STATISTICS,
+} AppState_t;
+
 
 	#if APP_COORDINATOR
 		#if (SIO2HOST_CHANNEL == SIO_USB)
@@ -42,6 +62,8 @@
 	#endif
 
 	#define HUMAM_READABLE			1
+	#define seconds_3  3 / SYMBOL_TIME 
+
 
 	#if (MASTER_MACSC == 1)
 		#include "macsc_megarf.h"
@@ -51,21 +73,45 @@
 	#endif
 
 	static volatile AppState_t		appState					= APP_STATE_INITIAL;
+	// equation for tTS gives time in seconds, the division by SYMBOL_TIME changes to symbols for counter usage
+	static float tTS =  ((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var) / SYMBOL_TIME ;
 	static SYS_Timer_t tmrSendData;
 
+	
 	static void tmrSendDataHandler(SYS_Timer_t *timer)
 	{
-	  printf("\nMESSAGE SENT");
+	  printf("\nSoftware Timer");
 	}
   
+  static void tdma_server_beacon(void)
+	{
+		macsc_enable_manual_bts();
+		printf("\n Hardware Timer");
+	}
 
 	static void appInit(void)
 	{
-		 // Set up Timer
-	  tmrSendData.interval = 2500;
-	  tmrSendData.mode = SYS_TIMER_PERIODIC_MODE;
-	  tmrSendData.handler = tmrSendDataHandler;
-	  SYS_TimerStart(&tmrSendData);
+		tmrSendData.interval = 3000;
+		tmrSendData.mode = SYS_TIMER_PERIODIC_MODE;
+		tmrSendData.handler = tmrSendDataHandler;
+	#if (MASTER_MACSC == 1)
+	SYS_TimerStart(&tmrSendData);
+
+
+	/*
+	 * Configure interrupts callback functions
+	 * overflow interrupt, compare 1,2,3 interrupts
+	 */
+	macsc_set_cmp1_int_cb(tdma_server_beacon);
+	/*
+	 * Configure MACSC to generate compare interrupts from channels 1,2,3
+	 * Set compare mode to absolute, set compare value.
+	 */
+	macsc_enable_manual_bts();
+	macsc_enable_cmp_int(MACSC_CC1);
+	macsc_use_cmp(MACSC_RELATIVE_CMP, seconds_3, MACSC_CC1);
+	#endif
+	
 
 	}
 

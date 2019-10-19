@@ -64,7 +64,7 @@
 	#define MASTER_MACSC		1
 #endif
 
-#define HUMAM_READABLE			0
+#define HUMAM_READABLE			1
 
 #if (MASTER_MACSC == 1)
 	#include "macsc_megarf.h"
@@ -118,7 +118,6 @@ static void toHexBuffer(uint8_t* out, uint8_t* in, uint16_t size)
 static void tdma_server_beacon(void)
 {
 	macsc_enable_manual_bts();
-
 	appState					= APP_STATE_SEND;
 }
 static void tdma_server_statistics(void)
@@ -188,7 +187,7 @@ static void server_statistics(void)
 		}
 		
 		EnergyStatistics_t*		energy = energy_get_statistics(i);
-		printf("%d, %" PRIu64 ", %d, %" PRIu64 ", %d, %s ", energy->rssi, energy->n_collab_msg, energy->n_collab_msg_turn, energy->n_recv_msg, energy->n_recv_msg_turn, energy->reach_coord ? "S" : "N");
+		//printf("%d, %" PRIu64 ", %d, %" PRIu64 ", %d, %s ", energy->rssi, energy->n_collab_msg, energy->n_collab_msg_turn, energy->n_recv_msg, energy->n_recv_msg_turn, energy->reach_coord ? "S" : "N");
 	}
 #endif
 	

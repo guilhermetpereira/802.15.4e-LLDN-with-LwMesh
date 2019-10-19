@@ -1,0 +1,1979 @@
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "tc.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .text
+  27              	 .align 1
+  28              	 .global tc_init
+  29              	 .syntax unified
+  30              	 .thumb
+  31              	 .thumb_func
+  32              	 .fpu softvfp
+  34              	tc_init:
+  35              	.LFB122:
+  36              	 .file 1 "../../../platform/sam/drivers/tc/tc.c"
+   1:../../../platform/sam/drivers/tc/tc.c **** /**
+   2:../../../platform/sam/drivers/tc/tc.c ****  * \file
+   3:../../../platform/sam/drivers/tc/tc.c ****  *
+   4:../../../platform/sam/drivers/tc/tc.c ****  * \brief SAM Timer Counter (TC) driver.
+   5:../../../platform/sam/drivers/tc/tc.c ****  *
+   6:../../../platform/sam/drivers/tc/tc.c ****  * Copyright (c) 2011-2014 Atmel Corporation. All rights reserved.
+   7:../../../platform/sam/drivers/tc/tc.c ****  *
+   8:../../../platform/sam/drivers/tc/tc.c ****  * \asf_license_start
+   9:../../../platform/sam/drivers/tc/tc.c ****  *
+  10:../../../platform/sam/drivers/tc/tc.c ****  * \page License
+  11:../../../platform/sam/drivers/tc/tc.c ****  *
+  12:../../../platform/sam/drivers/tc/tc.c ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/sam/drivers/tc/tc.c ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/sam/drivers/tc/tc.c ****  *
+  15:../../../platform/sam/drivers/tc/tc.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/sam/drivers/tc/tc.c ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/sam/drivers/tc/tc.c ****  *
+  18:../../../platform/sam/drivers/tc/tc.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/sam/drivers/tc/tc.c ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/sam/drivers/tc/tc.c ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/sam/drivers/tc/tc.c ****  *
+  22:../../../platform/sam/drivers/tc/tc.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/sam/drivers/tc/tc.c ****  *    from this software without specific prior written permission.
+  24:../../../platform/sam/drivers/tc/tc.c ****  *
+  25:../../../platform/sam/drivers/tc/tc.c ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/sam/drivers/tc/tc.c ****  *    Atmel microcontroller product.
+  27:../../../platform/sam/drivers/tc/tc.c ****  *
+  28:../../../platform/sam/drivers/tc/tc.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/sam/drivers/tc/tc.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/sam/drivers/tc/tc.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/sam/drivers/tc/tc.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/sam/drivers/tc/tc.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/sam/drivers/tc/tc.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/sam/drivers/tc/tc.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/sam/drivers/tc/tc.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/sam/drivers/tc/tc.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/sam/drivers/tc/tc.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/sam/drivers/tc/tc.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/sam/drivers/tc/tc.c ****  *
+  40:../../../platform/sam/drivers/tc/tc.c ****  * \asf_license_stop
+  41:../../../platform/sam/drivers/tc/tc.c ****  *
+  42:../../../platform/sam/drivers/tc/tc.c ****  */
+  43:../../../platform/sam/drivers/tc/tc.c **** 
+  44:../../../platform/sam/drivers/tc/tc.c **** #include <assert.h>
+  45:../../../platform/sam/drivers/tc/tc.c **** #include "tc.h"
+  46:../../../platform/sam/drivers/tc/tc.c **** 
+  47:../../../platform/sam/drivers/tc/tc.c **** /// @cond
+  48:../../../platform/sam/drivers/tc/tc.c **** /**INDENT-OFF**/
+  49:../../../platform/sam/drivers/tc/tc.c **** #ifdef __cplusplus
+  50:../../../platform/sam/drivers/tc/tc.c **** extern "C" {
+  51:../../../platform/sam/drivers/tc/tc.c **** #endif
+  52:../../../platform/sam/drivers/tc/tc.c **** /**INDENT-ON**/
+  53:../../../platform/sam/drivers/tc/tc.c **** /// @endcond
+  54:../../../platform/sam/drivers/tc/tc.c **** 
+  55:../../../platform/sam/drivers/tc/tc.c **** #ifndef TC_WPMR_WPKEY_PASSWD
+  56:../../../platform/sam/drivers/tc/tc.c **** #define TC_WPMR_WPKEY_PASSWD TC_WPMR_WPKEY((uint32_t)0x54494D)
+  57:../../../platform/sam/drivers/tc/tc.c **** #endif
+  58:../../../platform/sam/drivers/tc/tc.c **** 
+  59:../../../platform/sam/drivers/tc/tc.c **** /**
+  60:../../../platform/sam/drivers/tc/tc.c ****  * \brief Configure TC for timer, waveform generation, or capture.
+  61:../../../platform/sam/drivers/tc/tc.c ****  *
+  62:../../../platform/sam/drivers/tc/tc.c ****  * \param[in,out] p_tc   Module hardware register base address pointer
+  63:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel to configure
+  64:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_mode    Control mode register bitmask value to set
+  65:../../../platform/sam/drivers/tc/tc.c ****  *
+  66:../../../platform/sam/drivers/tc/tc.c ****  * \note For more information regarding <i>ul_mode</i> configuration refer to
+  67:../../../platform/sam/drivers/tc/tc.c ****  * the section  entitled "Channel Mode Register: Capture Mode" and.or section
+  68:../../../platform/sam/drivers/tc/tc.c ****  * "Waveform Operating Mode" in the device-specific datasheet.
+  69:../../../platform/sam/drivers/tc/tc.c ****  *
+  70:../../../platform/sam/drivers/tc/tc.c ****  * \note If the TC is configured for waveform generation then the external event
+  71:../../../platform/sam/drivers/tc/tc.c ****  * selection (EEVT) should only be set to TC_CMR_EEVT_TIOB, or the
+  72:../../../platform/sam/drivers/tc/tc.c ****  * equivalent value of 0, if it really is the intention to use TIOB as an
+  73:../../../platform/sam/drivers/tc/tc.c ****  * external event trigger. This is because this setting forces TIOB to be
+  74:../../../platform/sam/drivers/tc/tc.c ****  * an input, even if the external event trigger has not been enabled with
+  75:../../../platform/sam/drivers/tc/tc.c ****  * TC_CMR_ENETRG, and thus prevents normal operation of TIOB.
+  76:../../../platform/sam/drivers/tc/tc.c ****  */
+  77:../../../platform/sam/drivers/tc/tc.c **** void tc_init(
+  78:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+  79:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel,
+  80:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_mode)
+  81:../../../platform/sam/drivers/tc/tc.c **** {
+  37              	 .loc 1 81 0
+  38              	 .cfi_startproc
+  39              	 
+  40              	 
+  41              	 
+  42 0000 80B4     	 push {r7}
+  43              	.LCFI0:
+  44              	 .cfi_def_cfa_offset 4
+  45              	 .cfi_offset 7,-4
+  46 0002 87B0     	 sub sp,sp,#28
+  47              	.LCFI1:
+  48              	 .cfi_def_cfa_offset 32
+  49 0004 00AF     	 add r7,sp,#0
+  50              	.LCFI2:
+  51              	 .cfi_def_cfa_register 7
+  52 0006 F860     	 str r0,[r7,#12]
+  53 0008 B960     	 str r1,[r7,#8]
+  54 000a 7A60     	 str r2,[r7,#4]
+  82:../../../platform/sam/drivers/tc/tc.c **** 	TcChannel *tc_channel;
+  83:../../../platform/sam/drivers/tc/tc.c **** 
+  84:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+  85:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+  86:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+  87:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+  88:../../../platform/sam/drivers/tc/tc.c **** 	tc_channel = p_tc->TC_CHANNEL + ul_channel;
+  55              	 .loc 1 88 0
+  56 000c FA68     	 ldr r2,[r7,#12]
+  57 000e BB68     	 ldr r3,[r7,#8]
+  58 0010 9B01     	 lsls r3,r3,#6
+  59 0012 1344     	 add r3,r3,r2
+  60 0014 7B61     	 str r3,[r7,#20]
+  89:../../../platform/sam/drivers/tc/tc.c **** 
+  90:../../../platform/sam/drivers/tc/tc.c **** 	/*  Disable TC clock. */
+  91:../../../platform/sam/drivers/tc/tc.c **** 	tc_channel->TC_CCR = TC_CCR_CLKDIS;
+  61              	 .loc 1 91 0
+  62 0016 7B69     	 ldr r3,[r7,#20]
+  63 0018 0222     	 movs r2,#2
+  64 001a 1A60     	 str r2,[r3]
+  92:../../../platform/sam/drivers/tc/tc.c **** 
+  93:../../../platform/sam/drivers/tc/tc.c **** 	/*  Disable interrupts. */
+  94:../../../platform/sam/drivers/tc/tc.c **** 	tc_channel->TC_IDR = 0xFFFFFFFF;
+  65              	 .loc 1 94 0
+  66 001c 7B69     	 ldr r3,[r7,#20]
+  67 001e 4FF0FF32 	 mov r2,#-1
+  68 0022 9A62     	 str r2,[r3,#40]
+  95:../../../platform/sam/drivers/tc/tc.c **** 
+  96:../../../platform/sam/drivers/tc/tc.c **** 	/*  Clear status register. */
+  97:../../../platform/sam/drivers/tc/tc.c **** 	tc_channel->TC_SR;
+  69              	 .loc 1 97 0
+  70 0024 7B69     	 ldr r3,[r7,#20]
+  71 0026 1B6A     	 ldr r3,[r3,#32]
+  98:../../../platform/sam/drivers/tc/tc.c **** 
+  99:../../../platform/sam/drivers/tc/tc.c **** 	/*  Set mode. */
+ 100:../../../platform/sam/drivers/tc/tc.c **** 	tc_channel->TC_CMR = ul_mode;
+  72              	 .loc 1 100 0
+  73 0028 7B69     	 ldr r3,[r7,#20]
+  74 002a 7A68     	 ldr r2,[r7,#4]
+  75 002c 5A60     	 str r2,[r3,#4]
+ 101:../../../platform/sam/drivers/tc/tc.c **** }
+  76              	 .loc 1 101 0
+  77 002e 00BF     	 nop
+  78 0030 1C37     	 adds r7,r7,#28
+  79              	.LCFI3:
+  80              	 .cfi_def_cfa_offset 4
+  81 0032 BD46     	 mov sp,r7
+  82              	.LCFI4:
+  83              	 .cfi_def_cfa_register 13
+  84              	 
+  85 0034 80BC     	 pop {r7}
+  86              	.LCFI5:
+  87              	 .cfi_restore 7
+  88              	 .cfi_def_cfa_offset 0
+  89 0036 7047     	 bx lr
+  90              	 .cfi_endproc
+  91              	.LFE122:
+  93              	 .align 1
+  94              	 .global tc_sync_trigger
+  95              	 .syntax unified
+  96              	 .thumb
+  97              	 .thumb_func
+  98              	 .fpu softvfp
+ 100              	tc_sync_trigger:
+ 101              	.LFB123:
+ 102:../../../platform/sam/drivers/tc/tc.c **** 
+ 103:../../../platform/sam/drivers/tc/tc.c **** /**
+ 104:../../../platform/sam/drivers/tc/tc.c ****  * \brief Asserts a SYNC signal to generate a software trigger on
+ 105:../../../platform/sam/drivers/tc/tc.c ****  * all channels.
+ 106:../../../platform/sam/drivers/tc/tc.c ****  *
+ 107:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_tc Module hardware register base address pointer
+ 108:../../../platform/sam/drivers/tc/tc.c ****  *
+ 109:../../../platform/sam/drivers/tc/tc.c ****  */
+ 110:../../../platform/sam/drivers/tc/tc.c **** void tc_sync_trigger(
+ 111:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc)
+ 112:../../../platform/sam/drivers/tc/tc.c **** {
+ 102              	 .loc 1 112 0
+ 103              	 .cfi_startproc
+ 104              	 
+ 105              	 
+ 106              	 
+ 107 0038 80B4     	 push {r7}
+ 108              	.LCFI6:
+ 109              	 .cfi_def_cfa_offset 4
+ 110              	 .cfi_offset 7,-4
+ 111 003a 83B0     	 sub sp,sp,#12
+ 112              	.LCFI7:
+ 113              	 .cfi_def_cfa_offset 16
+ 114 003c 00AF     	 add r7,sp,#0
+ 115              	.LCFI8:
+ 116              	 .cfi_def_cfa_register 7
+ 117 003e 7860     	 str r0,[r7,#4]
+ 113:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 114:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 115:../../../platform/sam/drivers/tc/tc.c **** 	
+ 116:../../../platform/sam/drivers/tc/tc.c **** 	p_tc->TC_BCR = TC_BCR_SYNC;
+ 118              	 .loc 1 116 0
+ 119 0040 7B68     	 ldr r3,[r7,#4]
+ 120 0042 0122     	 movs r2,#1
+ 121 0044 C3F8C020 	 str r2,[r3,#192]
+ 117:../../../platform/sam/drivers/tc/tc.c **** }
+ 122              	 .loc 1 117 0
+ 123 0048 00BF     	 nop
+ 124 004a 0C37     	 adds r7,r7,#12
+ 125              	.LCFI9:
+ 126              	 .cfi_def_cfa_offset 4
+ 127 004c BD46     	 mov sp,r7
+ 128              	.LCFI10:
+ 129              	 .cfi_def_cfa_register 13
+ 130              	 
+ 131 004e 80BC     	 pop {r7}
+ 132              	.LCFI11:
+ 133              	 .cfi_restore 7
+ 134              	 .cfi_def_cfa_offset 0
+ 135 0050 7047     	 bx lr
+ 136              	 .cfi_endproc
+ 137              	.LFE123:
+ 139              	 .align 1
+ 140              	 .global tc_set_block_mode
+ 141              	 .syntax unified
+ 142              	 .thumb
+ 143              	 .thumb_func
+ 144              	 .fpu softvfp
+ 146              	tc_set_block_mode:
+ 147              	.LFB124:
+ 118:../../../platform/sam/drivers/tc/tc.c **** 
+ 119:../../../platform/sam/drivers/tc/tc.c **** /**
+ 120:../../../platform/sam/drivers/tc/tc.c ****  * \brief Configure the TC Block mode.
+ 121:../../../platform/sam/drivers/tc/tc.c ****  *
+ 122:../../../platform/sam/drivers/tc/tc.c ****  * \note The function tc_init() must be called prior to this one.
+ 123:../../../platform/sam/drivers/tc/tc.c ****  *
+ 124:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_tc        Module hardware register base address pointer
+ 125:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_blockmode Block mode register value to set
+ 126:../../../platform/sam/drivers/tc/tc.c ****  *
+ 127:../../../platform/sam/drivers/tc/tc.c ****  * \note For more information regarding <i>ul_blockmode</i> configuration refer to
+ 128:../../../platform/sam/drivers/tc/tc.c ****  * the section  entitled "TC Block Mode Register" in the device-specific datasheet.
+ 129:../../../platform/sam/drivers/tc/tc.c ****  */
+ 130:../../../platform/sam/drivers/tc/tc.c **** void tc_set_block_mode(
+ 131:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 132:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_blockmode)
+ 133:../../../platform/sam/drivers/tc/tc.c **** {
+ 148              	 .loc 1 133 0
+ 149              	 .cfi_startproc
+ 150              	 
+ 151              	 
+ 152              	 
+ 153 0052 80B4     	 push {r7}
+ 154              	.LCFI12:
+ 155              	 .cfi_def_cfa_offset 4
+ 156              	 .cfi_offset 7,-4
+ 157 0054 83B0     	 sub sp,sp,#12
+ 158              	.LCFI13:
+ 159              	 .cfi_def_cfa_offset 16
+ 160 0056 00AF     	 add r7,sp,#0
+ 161              	.LCFI14:
+ 162              	 .cfi_def_cfa_register 7
+ 163 0058 7860     	 str r0,[r7,#4]
+ 164 005a 3960     	 str r1,[r7]
+ 134:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 135:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 136:../../../platform/sam/drivers/tc/tc.c **** 	
+ 137:../../../platform/sam/drivers/tc/tc.c **** 	p_tc->TC_BMR = ul_blockmode;
+ 165              	 .loc 1 137 0
+ 166 005c 7B68     	 ldr r3,[r7,#4]
+ 167 005e 3A68     	 ldr r2,[r7]
+ 168 0060 C3F8C420 	 str r2,[r3,#196]
+ 138:../../../platform/sam/drivers/tc/tc.c **** }
+ 169              	 .loc 1 138 0
+ 170 0064 00BF     	 nop
+ 171 0066 0C37     	 adds r7,r7,#12
+ 172              	.LCFI15:
+ 173              	 .cfi_def_cfa_offset 4
+ 174 0068 BD46     	 mov sp,r7
+ 175              	.LCFI16:
+ 176              	 .cfi_def_cfa_register 13
+ 177              	 
+ 178 006a 80BC     	 pop {r7}
+ 179              	.LCFI17:
+ 180              	 .cfi_restore 7
+ 181              	 .cfi_def_cfa_offset 0
+ 182 006c 7047     	 bx lr
+ 183              	 .cfi_endproc
+ 184              	.LFE124:
+ 186              	 .align 1
+ 187              	 .global tc_init_2bit_gray
+ 188              	 .syntax unified
+ 189              	 .thumb
+ 190              	 .thumb_func
+ 191              	 .fpu softvfp
+ 193              	tc_init_2bit_gray:
+ 194              	.LFB125:
+ 139:../../../platform/sam/drivers/tc/tc.c **** 
+ 140:../../../platform/sam/drivers/tc/tc.c **** #if (!SAM3U) || defined(__DOXYGEN__)
+ 141:../../../platform/sam/drivers/tc/tc.c **** 
+ 142:../../../platform/sam/drivers/tc/tc.c **** /**
+ 143:../../../platform/sam/drivers/tc/tc.c ****  * \brief Configure TC for 2-bit Gray Counter for Stepper Motor.
+ 144:../../../platform/sam/drivers/tc/tc.c ****  * \note The function tc_init() must be called prior to this one.
+ 145:../../../platform/sam/drivers/tc/tc.c ****  *
+ 146:../../../platform/sam/drivers/tc/tc.c ****  * \note This function is not available on SAM3U devices.
+ 147:../../../platform/sam/drivers/tc/tc.c ****  *
+ 148:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_tc          Module hardware register base address pointer
+ 149:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel     Channel to configure
+ 150:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_steppermode Stepper motor mode register value to set
+ 151:../../../platform/sam/drivers/tc/tc.c ****  *
+ 152:../../../platform/sam/drivers/tc/tc.c ****  * \return 0 for OK.
+ 153:../../../platform/sam/drivers/tc/tc.c ****  */
+ 154:../../../platform/sam/drivers/tc/tc.c **** uint32_t tc_init_2bit_gray(
+ 155:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 156:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel,
+ 157:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_steppermode)
+ 158:../../../platform/sam/drivers/tc/tc.c **** {
+ 195              	 .loc 1 158 0
+ 196              	 .cfi_startproc
+ 197              	 
+ 198              	 
+ 199              	 
+ 200 006e 80B4     	 push {r7}
+ 201              	.LCFI18:
+ 202              	 .cfi_def_cfa_offset 4
+ 203              	 .cfi_offset 7,-4
+ 204 0070 85B0     	 sub sp,sp,#20
+ 205              	.LCFI19:
+ 206              	 .cfi_def_cfa_offset 24
+ 207 0072 00AF     	 add r7,sp,#0
+ 208              	.LCFI20:
+ 209              	 .cfi_def_cfa_register 7
+ 210 0074 F860     	 str r0,[r7,#12]
+ 211 0076 B960     	 str r1,[r7,#8]
+ 212 0078 7A60     	 str r2,[r7,#4]
+ 159:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 160:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 161:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 162:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 163:../../../platform/sam/drivers/tc/tc.c **** 
+ 164:../../../platform/sam/drivers/tc/tc.c **** 	p_tc->TC_CHANNEL[ul_channel].TC_SMMR = ul_steppermode;
+ 213              	 .loc 1 164 0
+ 214 007a FA68     	 ldr r2,[r7,#12]
+ 215 007c BB68     	 ldr r3,[r7,#8]
+ 216 007e 9B01     	 lsls r3,r3,#6
+ 217 0080 1344     	 add r3,r3,r2
+ 218 0082 0833     	 adds r3,r3,#8
+ 219 0084 7A68     	 ldr r2,[r7,#4]
+ 220 0086 1A60     	 str r2,[r3]
+ 165:../../../platform/sam/drivers/tc/tc.c **** 	return 0;
+ 221              	 .loc 1 165 0
+ 222 0088 0023     	 movs r3,#0
+ 166:../../../platform/sam/drivers/tc/tc.c **** }
+ 223              	 .loc 1 166 0
+ 224 008a 1846     	 mov r0,r3
+ 225 008c 1437     	 adds r7,r7,#20
+ 226              	.LCFI21:
+ 227              	 .cfi_def_cfa_offset 4
+ 228 008e BD46     	 mov sp,r7
+ 229              	.LCFI22:
+ 230              	 .cfi_def_cfa_register 13
+ 231              	 
+ 232 0090 80BC     	 pop {r7}
+ 233              	.LCFI23:
+ 234              	 .cfi_restore 7
+ 235              	 .cfi_def_cfa_offset 0
+ 236 0092 7047     	 bx lr
+ 237              	 .cfi_endproc
+ 238              	.LFE125:
+ 240              	 .align 1
+ 241              	 .global tc_start
+ 242              	 .syntax unified
+ 243              	 .thumb
+ 244              	 .thumb_func
+ 245              	 .fpu softvfp
+ 247              	tc_start:
+ 248              	.LFB126:
+ 167:../../../platform/sam/drivers/tc/tc.c **** 
+ 168:../../../platform/sam/drivers/tc/tc.c **** #endif /* (!SAM3U) || defined(__DOXYGEN__) */
+ 169:../../../platform/sam/drivers/tc/tc.c **** 
+ 170:../../../platform/sam/drivers/tc/tc.c **** /**
+ 171:../../../platform/sam/drivers/tc/tc.c ****  * \brief Start the TC clock on the specified channel.
+ 172:../../../platform/sam/drivers/tc/tc.c ****  *
+ 173:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_tc      Module hardware register base address pointer
+ 174:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel to configure
+ 175:../../../platform/sam/drivers/tc/tc.c ****  */
+ 176:../../../platform/sam/drivers/tc/tc.c **** void tc_start(
+ 177:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 178:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel)
+ 179:../../../platform/sam/drivers/tc/tc.c **** {
+ 249              	 .loc 1 179 0
+ 250              	 .cfi_startproc
+ 251              	 
+ 252              	 
+ 253              	 
+ 254 0094 80B4     	 push {r7}
+ 255              	.LCFI24:
+ 256              	 .cfi_def_cfa_offset 4
+ 257              	 .cfi_offset 7,-4
+ 258 0096 83B0     	 sub sp,sp,#12
+ 259              	.LCFI25:
+ 260              	 .cfi_def_cfa_offset 16
+ 261 0098 00AF     	 add r7,sp,#0
+ 262              	.LCFI26:
+ 263              	 .cfi_def_cfa_register 7
+ 264 009a 7860     	 str r0,[r7,#4]
+ 265 009c 3960     	 str r1,[r7]
+ 180:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 181:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 182:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 183:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 184:../../../platform/sam/drivers/tc/tc.c **** 
+ 185:../../../platform/sam/drivers/tc/tc.c **** 	p_tc->TC_CHANNEL[ul_channel].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
+ 266              	 .loc 1 185 0
+ 267 009e 7A68     	 ldr r2,[r7,#4]
+ 268 00a0 3B68     	 ldr r3,[r7]
+ 269 00a2 9B01     	 lsls r3,r3,#6
+ 270 00a4 1344     	 add r3,r3,r2
+ 271 00a6 0522     	 movs r2,#5
+ 272 00a8 1A60     	 str r2,[r3]
+ 186:../../../platform/sam/drivers/tc/tc.c **** }
+ 273              	 .loc 1 186 0
+ 274 00aa 00BF     	 nop
+ 275 00ac 0C37     	 adds r7,r7,#12
+ 276              	.LCFI27:
+ 277              	 .cfi_def_cfa_offset 4
+ 278 00ae BD46     	 mov sp,r7
+ 279              	.LCFI28:
+ 280              	 .cfi_def_cfa_register 13
+ 281              	 
+ 282 00b0 80BC     	 pop {r7}
+ 283              	.LCFI29:
+ 284              	 .cfi_restore 7
+ 285              	 .cfi_def_cfa_offset 0
+ 286 00b2 7047     	 bx lr
+ 287              	 .cfi_endproc
+ 288              	.LFE126:
+ 290              	 .align 1
+ 291              	 .global tc_stop
+ 292              	 .syntax unified
+ 293              	 .thumb
+ 294              	 .thumb_func
+ 295              	 .fpu softvfp
+ 297              	tc_stop:
+ 298              	.LFB127:
+ 187:../../../platform/sam/drivers/tc/tc.c **** 
+ 188:../../../platform/sam/drivers/tc/tc.c **** /**
+ 189:../../../platform/sam/drivers/tc/tc.c ****  * \brief Stop the TC clock on the specified channel.
+ 190:../../../platform/sam/drivers/tc/tc.c ****  *
+ 191:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_tc      Module hardware register base address pointer
+ 192:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel to configure
+ 193:../../../platform/sam/drivers/tc/tc.c ****  */
+ 194:../../../platform/sam/drivers/tc/tc.c **** void tc_stop(
+ 195:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 196:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel)
+ 197:../../../platform/sam/drivers/tc/tc.c **** {
+ 299              	 .loc 1 197 0
+ 300              	 .cfi_startproc
+ 301              	 
+ 302              	 
+ 303              	 
+ 304 00b4 80B4     	 push {r7}
+ 305              	.LCFI30:
+ 306              	 .cfi_def_cfa_offset 4
+ 307              	 .cfi_offset 7,-4
+ 308 00b6 83B0     	 sub sp,sp,#12
+ 309              	.LCFI31:
+ 310              	 .cfi_def_cfa_offset 16
+ 311 00b8 00AF     	 add r7,sp,#0
+ 312              	.LCFI32:
+ 313              	 .cfi_def_cfa_register 7
+ 314 00ba 7860     	 str r0,[r7,#4]
+ 315 00bc 3960     	 str r1,[r7]
+ 198:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 199:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 200:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 201:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 202:../../../platform/sam/drivers/tc/tc.c **** 
+ 203:../../../platform/sam/drivers/tc/tc.c **** 	p_tc->TC_CHANNEL[ul_channel].TC_CCR = TC_CCR_CLKDIS;
+ 316              	 .loc 1 203 0
+ 317 00be 7A68     	 ldr r2,[r7,#4]
+ 318 00c0 3B68     	 ldr r3,[r7]
+ 319 00c2 9B01     	 lsls r3,r3,#6
+ 320 00c4 1344     	 add r3,r3,r2
+ 321 00c6 0222     	 movs r2,#2
+ 322 00c8 1A60     	 str r2,[r3]
+ 204:../../../platform/sam/drivers/tc/tc.c **** }
+ 323              	 .loc 1 204 0
+ 324 00ca 00BF     	 nop
+ 325 00cc 0C37     	 adds r7,r7,#12
+ 326              	.LCFI33:
+ 327              	 .cfi_def_cfa_offset 4
+ 328 00ce BD46     	 mov sp,r7
+ 329              	.LCFI34:
+ 330              	 .cfi_def_cfa_register 13
+ 331              	 
+ 332 00d0 80BC     	 pop {r7}
+ 333              	.LCFI35:
+ 334              	 .cfi_restore 7
+ 335              	 .cfi_def_cfa_offset 0
+ 336 00d2 7047     	 bx lr
+ 337              	 .cfi_endproc
+ 338              	.LFE127:
+ 340              	 .align 1
+ 341              	 .global tc_read_cv
+ 342              	 .syntax unified
+ 343              	 .thumb
+ 344              	 .thumb_func
+ 345              	 .fpu softvfp
+ 347              	tc_read_cv:
+ 348              	.LFB128:
+ 205:../../../platform/sam/drivers/tc/tc.c **** 
+ 206:../../../platform/sam/drivers/tc/tc.c **** /**
+ 207:../../../platform/sam/drivers/tc/tc.c ****  * \brief Read the counter value on the specified channel.
+ 208:../../../platform/sam/drivers/tc/tc.c ****  *
+ 209:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] p_tc       Module hardware register base address pointer
+ 210:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel to read
+ 211:../../../platform/sam/drivers/tc/tc.c ****  *
+ 212:../../../platform/sam/drivers/tc/tc.c ****  * \return The counter value.
+ 213:../../../platform/sam/drivers/tc/tc.c ****  */
+ 214:../../../platform/sam/drivers/tc/tc.c **** uint32_t tc_read_cv(
+ 215:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 216:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel)
+ 217:../../../platform/sam/drivers/tc/tc.c **** {
+ 349              	 .loc 1 217 0
+ 350              	 .cfi_startproc
+ 351              	 
+ 352              	 
+ 353              	 
+ 354 00d4 80B4     	 push {r7}
+ 355              	.LCFI36:
+ 356              	 .cfi_def_cfa_offset 4
+ 357              	 .cfi_offset 7,-4
+ 358 00d6 83B0     	 sub sp,sp,#12
+ 359              	.LCFI37:
+ 360              	 .cfi_def_cfa_offset 16
+ 361 00d8 00AF     	 add r7,sp,#0
+ 362              	.LCFI38:
+ 363              	 .cfi_def_cfa_register 7
+ 364 00da 7860     	 str r0,[r7,#4]
+ 365 00dc 3960     	 str r1,[r7]
+ 218:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 219:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 220:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 221:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 222:../../../platform/sam/drivers/tc/tc.c **** 
+ 223:../../../platform/sam/drivers/tc/tc.c **** 	return p_tc->TC_CHANNEL[ul_channel].TC_CV;
+ 366              	 .loc 1 223 0
+ 367 00de 7A68     	 ldr r2,[r7,#4]
+ 368 00e0 3B68     	 ldr r3,[r7]
+ 369 00e2 9B01     	 lsls r3,r3,#6
+ 370 00e4 1344     	 add r3,r3,r2
+ 371 00e6 1033     	 adds r3,r3,#16
+ 372 00e8 1B68     	 ldr r3,[r3]
+ 224:../../../platform/sam/drivers/tc/tc.c **** }
+ 373              	 .loc 1 224 0
+ 374 00ea 1846     	 mov r0,r3
+ 375 00ec 0C37     	 adds r7,r7,#12
+ 376              	.LCFI39:
+ 377              	 .cfi_def_cfa_offset 4
+ 378 00ee BD46     	 mov sp,r7
+ 379              	.LCFI40:
+ 380              	 .cfi_def_cfa_register 13
+ 381              	 
+ 382 00f0 80BC     	 pop {r7}
+ 383              	.LCFI41:
+ 384              	 .cfi_restore 7
+ 385              	 .cfi_def_cfa_offset 0
+ 386 00f2 7047     	 bx lr
+ 387              	 .cfi_endproc
+ 388              	.LFE128:
+ 390              	 .align 1
+ 391              	 .global tc_read_ra
+ 392              	 .syntax unified
+ 393              	 .thumb
+ 394              	 .thumb_func
+ 395              	 .fpu softvfp
+ 397              	tc_read_ra:
+ 398              	.LFB129:
+ 225:../../../platform/sam/drivers/tc/tc.c **** 
+ 226:../../../platform/sam/drivers/tc/tc.c **** /**
+ 227:../../../platform/sam/drivers/tc/tc.c ****  * \brief Read TC Register A (RA) on the specified channel.
+ 228:../../../platform/sam/drivers/tc/tc.c ****  *
+ 229:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] p_tc       Module hardware register base address pointer
+ 230:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel to read
+ 231:../../../platform/sam/drivers/tc/tc.c ****  *
+ 232:../../../platform/sam/drivers/tc/tc.c ****  * \return The TC Register A (RA) value.
+ 233:../../../platform/sam/drivers/tc/tc.c ****  */
+ 234:../../../platform/sam/drivers/tc/tc.c **** uint32_t tc_read_ra(
+ 235:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 236:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel)
+ 237:../../../platform/sam/drivers/tc/tc.c **** {
+ 399              	 .loc 1 237 0
+ 400              	 .cfi_startproc
+ 401              	 
+ 402              	 
+ 403              	 
+ 404 00f4 80B4     	 push {r7}
+ 405              	.LCFI42:
+ 406              	 .cfi_def_cfa_offset 4
+ 407              	 .cfi_offset 7,-4
+ 408 00f6 83B0     	 sub sp,sp,#12
+ 409              	.LCFI43:
+ 410              	 .cfi_def_cfa_offset 16
+ 411 00f8 00AF     	 add r7,sp,#0
+ 412              	.LCFI44:
+ 413              	 .cfi_def_cfa_register 7
+ 414 00fa 7860     	 str r0,[r7,#4]
+ 415 00fc 3960     	 str r1,[r7]
+ 238:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 239:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 240:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 241:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 242:../../../platform/sam/drivers/tc/tc.c **** 
+ 243:../../../platform/sam/drivers/tc/tc.c **** 	return p_tc->TC_CHANNEL[ul_channel].TC_RA;
+ 416              	 .loc 1 243 0
+ 417 00fe 7A68     	 ldr r2,[r7,#4]
+ 418 0100 3B68     	 ldr r3,[r7]
+ 419 0102 9B01     	 lsls r3,r3,#6
+ 420 0104 1344     	 add r3,r3,r2
+ 421 0106 1433     	 adds r3,r3,#20
+ 422 0108 1B68     	 ldr r3,[r3]
+ 244:../../../platform/sam/drivers/tc/tc.c **** }
+ 423              	 .loc 1 244 0
+ 424 010a 1846     	 mov r0,r3
+ 425 010c 0C37     	 adds r7,r7,#12
+ 426              	.LCFI45:
+ 427              	 .cfi_def_cfa_offset 4
+ 428 010e BD46     	 mov sp,r7
+ 429              	.LCFI46:
+ 430              	 .cfi_def_cfa_register 13
+ 431              	 
+ 432 0110 80BC     	 pop {r7}
+ 433              	.LCFI47:
+ 434              	 .cfi_restore 7
+ 435              	 .cfi_def_cfa_offset 0
+ 436 0112 7047     	 bx lr
+ 437              	 .cfi_endproc
+ 438              	.LFE129:
+ 440              	 .align 1
+ 441              	 .global tc_read_rb
+ 442              	 .syntax unified
+ 443              	 .thumb
+ 444              	 .thumb_func
+ 445              	 .fpu softvfp
+ 447              	tc_read_rb:
+ 448              	.LFB130:
+ 245:../../../platform/sam/drivers/tc/tc.c **** 
+ 246:../../../platform/sam/drivers/tc/tc.c **** /**
+ 247:../../../platform/sam/drivers/tc/tc.c ****  * \brief Read TC Register B (RB) on the specified channel.
+ 248:../../../platform/sam/drivers/tc/tc.c ****  *
+ 249:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] p_tc       Module hardware register base address pointer
+ 250:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel to read
+ 251:../../../platform/sam/drivers/tc/tc.c ****  *
+ 252:../../../platform/sam/drivers/tc/tc.c ****  * \return The TC Register B (RB) value.
+ 253:../../../platform/sam/drivers/tc/tc.c ****  */
+ 254:../../../platform/sam/drivers/tc/tc.c **** uint32_t tc_read_rb(
+ 255:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 256:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel)
+ 257:../../../platform/sam/drivers/tc/tc.c **** {
+ 449              	 .loc 1 257 0
+ 450              	 .cfi_startproc
+ 451              	 
+ 452              	 
+ 453              	 
+ 454 0114 80B4     	 push {r7}
+ 455              	.LCFI48:
+ 456              	 .cfi_def_cfa_offset 4
+ 457              	 .cfi_offset 7,-4
+ 458 0116 83B0     	 sub sp,sp,#12
+ 459              	.LCFI49:
+ 460              	 .cfi_def_cfa_offset 16
+ 461 0118 00AF     	 add r7,sp,#0
+ 462              	.LCFI50:
+ 463              	 .cfi_def_cfa_register 7
+ 464 011a 7860     	 str r0,[r7,#4]
+ 465 011c 3960     	 str r1,[r7]
+ 258:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 259:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 260:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 261:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 262:../../../platform/sam/drivers/tc/tc.c **** 
+ 263:../../../platform/sam/drivers/tc/tc.c **** 	return p_tc->TC_CHANNEL[ul_channel].TC_RB;
+ 466              	 .loc 1 263 0
+ 467 011e 7A68     	 ldr r2,[r7,#4]
+ 468 0120 3B68     	 ldr r3,[r7]
+ 469 0122 9B01     	 lsls r3,r3,#6
+ 470 0124 1344     	 add r3,r3,r2
+ 471 0126 1833     	 adds r3,r3,#24
+ 472 0128 1B68     	 ldr r3,[r3]
+ 264:../../../platform/sam/drivers/tc/tc.c **** }
+ 473              	 .loc 1 264 0
+ 474 012a 1846     	 mov r0,r3
+ 475 012c 0C37     	 adds r7,r7,#12
+ 476              	.LCFI51:
+ 477              	 .cfi_def_cfa_offset 4
+ 478 012e BD46     	 mov sp,r7
+ 479              	.LCFI52:
+ 480              	 .cfi_def_cfa_register 13
+ 481              	 
+ 482 0130 80BC     	 pop {r7}
+ 483              	.LCFI53:
+ 484              	 .cfi_restore 7
+ 485              	 .cfi_def_cfa_offset 0
+ 486 0132 7047     	 bx lr
+ 487              	 .cfi_endproc
+ 488              	.LFE130:
+ 490              	 .align 1
+ 491              	 .global tc_read_rc
+ 492              	 .syntax unified
+ 493              	 .thumb
+ 494              	 .thumb_func
+ 495              	 .fpu softvfp
+ 497              	tc_read_rc:
+ 498              	.LFB131:
+ 265:../../../platform/sam/drivers/tc/tc.c **** 
+ 266:../../../platform/sam/drivers/tc/tc.c **** /**
+ 267:../../../platform/sam/drivers/tc/tc.c ****  * \brief Read TC Register C (RC) on the specified channel.
+ 268:../../../platform/sam/drivers/tc/tc.c ****  *
+ 269:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] p_tc       Module hardware register base address pointer
+ 270:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel to read
+ 271:../../../platform/sam/drivers/tc/tc.c ****  *
+ 272:../../../platform/sam/drivers/tc/tc.c ****  * \return The Register C (RC) value.
+ 273:../../../platform/sam/drivers/tc/tc.c ****  */
+ 274:../../../platform/sam/drivers/tc/tc.c **** uint32_t tc_read_rc(
+ 275:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 276:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel)
+ 277:../../../platform/sam/drivers/tc/tc.c **** {
+ 499              	 .loc 1 277 0
+ 500              	 .cfi_startproc
+ 501              	 
+ 502              	 
+ 503              	 
+ 504 0134 80B4     	 push {r7}
+ 505              	.LCFI54:
+ 506              	 .cfi_def_cfa_offset 4
+ 507              	 .cfi_offset 7,-4
+ 508 0136 83B0     	 sub sp,sp,#12
+ 509              	.LCFI55:
+ 510              	 .cfi_def_cfa_offset 16
+ 511 0138 00AF     	 add r7,sp,#0
+ 512              	.LCFI56:
+ 513              	 .cfi_def_cfa_register 7
+ 514 013a 7860     	 str r0,[r7,#4]
+ 515 013c 3960     	 str r1,[r7]
+ 278:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 279:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 280:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 281:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 282:../../../platform/sam/drivers/tc/tc.c **** 
+ 283:../../../platform/sam/drivers/tc/tc.c **** 	return p_tc->TC_CHANNEL[ul_channel].TC_RC;
+ 516              	 .loc 1 283 0
+ 517 013e 7A68     	 ldr r2,[r7,#4]
+ 518 0140 3B68     	 ldr r3,[r7]
+ 519 0142 9B01     	 lsls r3,r3,#6
+ 520 0144 1344     	 add r3,r3,r2
+ 521 0146 1C33     	 adds r3,r3,#28
+ 522 0148 1B68     	 ldr r3,[r3]
+ 284:../../../platform/sam/drivers/tc/tc.c **** }
+ 523              	 .loc 1 284 0
+ 524 014a 1846     	 mov r0,r3
+ 525 014c 0C37     	 adds r7,r7,#12
+ 526              	.LCFI57:
+ 527              	 .cfi_def_cfa_offset 4
+ 528 014e BD46     	 mov sp,r7
+ 529              	.LCFI58:
+ 530              	 .cfi_def_cfa_register 13
+ 531              	 
+ 532 0150 80BC     	 pop {r7}
+ 533              	.LCFI59:
+ 534              	 .cfi_restore 7
+ 535              	 .cfi_def_cfa_offset 0
+ 536 0152 7047     	 bx lr
+ 537              	 .cfi_endproc
+ 538              	.LFE131:
+ 540              	 .align 1
+ 541              	 .global tc_write_ra
+ 542              	 .syntax unified
+ 543              	 .thumb
+ 544              	 .thumb_func
+ 545              	 .fpu softvfp
+ 547              	tc_write_ra:
+ 548              	.LFB132:
+ 285:../../../platform/sam/drivers/tc/tc.c **** 
+ 286:../../../platform/sam/drivers/tc/tc.c **** /**
+ 287:../../../platform/sam/drivers/tc/tc.c ****  * \brief Write to TC Register A (RA) on the specified channel.
+ 288:../../../platform/sam/drivers/tc/tc.c ****  *
+ 289:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_tc      Module hardware register base address pointer
+ 290:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel to write
+ 291:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_value   Value to write
+ 292:../../../platform/sam/drivers/tc/tc.c ****  */
+ 293:../../../platform/sam/drivers/tc/tc.c **** void tc_write_ra(
+ 294:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 295:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel,
+ 296:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_value)
+ 297:../../../platform/sam/drivers/tc/tc.c **** {
+ 549              	 .loc 1 297 0
+ 550              	 .cfi_startproc
+ 551              	 
+ 552              	 
+ 553              	 
+ 554 0154 80B4     	 push {r7}
+ 555              	.LCFI60:
+ 556              	 .cfi_def_cfa_offset 4
+ 557              	 .cfi_offset 7,-4
+ 558 0156 85B0     	 sub sp,sp,#20
+ 559              	.LCFI61:
+ 560              	 .cfi_def_cfa_offset 24
+ 561 0158 00AF     	 add r7,sp,#0
+ 562              	.LCFI62:
+ 563              	 .cfi_def_cfa_register 7
+ 564 015a F860     	 str r0,[r7,#12]
+ 565 015c B960     	 str r1,[r7,#8]
+ 566 015e 7A60     	 str r2,[r7,#4]
+ 298:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 299:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 300:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 301:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 302:../../../platform/sam/drivers/tc/tc.c **** 
+ 303:../../../platform/sam/drivers/tc/tc.c **** 	p_tc->TC_CHANNEL[ul_channel].TC_RA = ul_value;
+ 567              	 .loc 1 303 0
+ 568 0160 FA68     	 ldr r2,[r7,#12]
+ 569 0162 BB68     	 ldr r3,[r7,#8]
+ 570 0164 9B01     	 lsls r3,r3,#6
+ 571 0166 1344     	 add r3,r3,r2
+ 572 0168 1433     	 adds r3,r3,#20
+ 573 016a 7A68     	 ldr r2,[r7,#4]
+ 574 016c 1A60     	 str r2,[r3]
+ 304:../../../platform/sam/drivers/tc/tc.c **** }
+ 575              	 .loc 1 304 0
+ 576 016e 00BF     	 nop
+ 577 0170 1437     	 adds r7,r7,#20
+ 578              	.LCFI63:
+ 579              	 .cfi_def_cfa_offset 4
+ 580 0172 BD46     	 mov sp,r7
+ 581              	.LCFI64:
+ 582              	 .cfi_def_cfa_register 13
+ 583              	 
+ 584 0174 80BC     	 pop {r7}
+ 585              	.LCFI65:
+ 586              	 .cfi_restore 7
+ 587              	 .cfi_def_cfa_offset 0
+ 588 0176 7047     	 bx lr
+ 589              	 .cfi_endproc
+ 590              	.LFE132:
+ 592              	 .align 1
+ 593              	 .global tc_write_rb
+ 594              	 .syntax unified
+ 595              	 .thumb
+ 596              	 .thumb_func
+ 597              	 .fpu softvfp
+ 599              	tc_write_rb:
+ 600              	.LFB133:
+ 305:../../../platform/sam/drivers/tc/tc.c **** 
+ 306:../../../platform/sam/drivers/tc/tc.c **** /**
+ 307:../../../platform/sam/drivers/tc/tc.c ****  * \brief Write to TC Register B (RB) on the specified channel.
+ 308:../../../platform/sam/drivers/tc/tc.c ****  *
+ 309:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_tc      Module hardware register base address pointer
+ 310:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel to write
+ 311:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_value   Value to write
+ 312:../../../platform/sam/drivers/tc/tc.c ****  */
+ 313:../../../platform/sam/drivers/tc/tc.c **** void tc_write_rb(
+ 314:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 315:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel,
+ 316:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_value)
+ 317:../../../platform/sam/drivers/tc/tc.c **** {
+ 601              	 .loc 1 317 0
+ 602              	 .cfi_startproc
+ 603              	 
+ 604              	 
+ 605              	 
+ 606 0178 80B4     	 push {r7}
+ 607              	.LCFI66:
+ 608              	 .cfi_def_cfa_offset 4
+ 609              	 .cfi_offset 7,-4
+ 610 017a 85B0     	 sub sp,sp,#20
+ 611              	.LCFI67:
+ 612              	 .cfi_def_cfa_offset 24
+ 613 017c 00AF     	 add r7,sp,#0
+ 614              	.LCFI68:
+ 615              	 .cfi_def_cfa_register 7
+ 616 017e F860     	 str r0,[r7,#12]
+ 617 0180 B960     	 str r1,[r7,#8]
+ 618 0182 7A60     	 str r2,[r7,#4]
+ 318:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 319:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 320:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 321:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 322:../../../platform/sam/drivers/tc/tc.c **** 
+ 323:../../../platform/sam/drivers/tc/tc.c **** 	p_tc->TC_CHANNEL[ul_channel].TC_RB = ul_value;
+ 619              	 .loc 1 323 0
+ 620 0184 FA68     	 ldr r2,[r7,#12]
+ 621 0186 BB68     	 ldr r3,[r7,#8]
+ 622 0188 9B01     	 lsls r3,r3,#6
+ 623 018a 1344     	 add r3,r3,r2
+ 624 018c 1833     	 adds r3,r3,#24
+ 625 018e 7A68     	 ldr r2,[r7,#4]
+ 626 0190 1A60     	 str r2,[r3]
+ 324:../../../platform/sam/drivers/tc/tc.c **** }
+ 627              	 .loc 1 324 0
+ 628 0192 00BF     	 nop
+ 629 0194 1437     	 adds r7,r7,#20
+ 630              	.LCFI69:
+ 631              	 .cfi_def_cfa_offset 4
+ 632 0196 BD46     	 mov sp,r7
+ 633              	.LCFI70:
+ 634              	 .cfi_def_cfa_register 13
+ 635              	 
+ 636 0198 80BC     	 pop {r7}
+ 637              	.LCFI71:
+ 638              	 .cfi_restore 7
+ 639              	 .cfi_def_cfa_offset 0
+ 640 019a 7047     	 bx lr
+ 641              	 .cfi_endproc
+ 642              	.LFE133:
+ 644              	 .align 1
+ 645              	 .global tc_write_rc
+ 646              	 .syntax unified
+ 647              	 .thumb
+ 648              	 .thumb_func
+ 649              	 .fpu softvfp
+ 651              	tc_write_rc:
+ 652              	.LFB134:
+ 325:../../../platform/sam/drivers/tc/tc.c **** 
+ 326:../../../platform/sam/drivers/tc/tc.c **** /**
+ 327:../../../platform/sam/drivers/tc/tc.c ****  * \brief Write to TC Register C (RC) on the selected channel.
+ 328:../../../platform/sam/drivers/tc/tc.c ****  *
+ 329:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_tc      Module hardware register base address pointer
+ 330:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel to write
+ 331:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_value   Value to write
+ 332:../../../platform/sam/drivers/tc/tc.c ****  */
+ 333:../../../platform/sam/drivers/tc/tc.c **** void tc_write_rc(
+ 334:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 335:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel,
+ 336:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_value)
+ 337:../../../platform/sam/drivers/tc/tc.c **** {
+ 653              	 .loc 1 337 0
+ 654              	 .cfi_startproc
+ 655              	 
+ 656              	 
+ 657              	 
+ 658 019c 80B4     	 push {r7}
+ 659              	.LCFI72:
+ 660              	 .cfi_def_cfa_offset 4
+ 661              	 .cfi_offset 7,-4
+ 662 019e 85B0     	 sub sp,sp,#20
+ 663              	.LCFI73:
+ 664              	 .cfi_def_cfa_offset 24
+ 665 01a0 00AF     	 add r7,sp,#0
+ 666              	.LCFI74:
+ 667              	 .cfi_def_cfa_register 7
+ 668 01a2 F860     	 str r0,[r7,#12]
+ 669 01a4 B960     	 str r1,[r7,#8]
+ 670 01a6 7A60     	 str r2,[r7,#4]
+ 338:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 339:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 340:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 341:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 342:../../../platform/sam/drivers/tc/tc.c **** 
+ 343:../../../platform/sam/drivers/tc/tc.c **** 	p_tc->TC_CHANNEL[ul_channel].TC_RC = ul_value;
+ 671              	 .loc 1 343 0
+ 672 01a8 FA68     	 ldr r2,[r7,#12]
+ 673 01aa BB68     	 ldr r3,[r7,#8]
+ 674 01ac 9B01     	 lsls r3,r3,#6
+ 675 01ae 1344     	 add r3,r3,r2
+ 676 01b0 1C33     	 adds r3,r3,#28
+ 677 01b2 7A68     	 ldr r2,[r7,#4]
+ 678 01b4 1A60     	 str r2,[r3]
+ 344:../../../platform/sam/drivers/tc/tc.c **** }
+ 679              	 .loc 1 344 0
+ 680 01b6 00BF     	 nop
+ 681 01b8 1437     	 adds r7,r7,#20
+ 682              	.LCFI75:
+ 683              	 .cfi_def_cfa_offset 4
+ 684 01ba BD46     	 mov sp,r7
+ 685              	.LCFI76:
+ 686              	 .cfi_def_cfa_register 13
+ 687              	 
+ 688 01bc 80BC     	 pop {r7}
+ 689              	.LCFI77:
+ 690              	 .cfi_restore 7
+ 691              	 .cfi_def_cfa_offset 0
+ 692 01be 7047     	 bx lr
+ 693              	 .cfi_endproc
+ 694              	.LFE134:
+ 696              	 .align 1
+ 697              	 .global tc_enable_interrupt
+ 698              	 .syntax unified
+ 699              	 .thumb
+ 700              	 .thumb_func
+ 701              	 .fpu softvfp
+ 703              	tc_enable_interrupt:
+ 704              	.LFB135:
+ 345:../../../platform/sam/drivers/tc/tc.c **** 
+ 346:../../../platform/sam/drivers/tc/tc.c **** /**
+ 347:../../../platform/sam/drivers/tc/tc.c ****  * \brief Enable the TC interrupts on the specified channel.
+ 348:../../../platform/sam/drivers/tc/tc.c ****  *
+ 349:../../../platform/sam/drivers/tc/tc.c ****  * \param[in,out] p_tc   Module hardware register base address pointer
+ 350:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel to configure
+ 351:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_sources Bitmask of interrupt sources
+ 352:../../../platform/sam/drivers/tc/tc.c ****  *
+ 353:../../../platform/sam/drivers/tc/tc.c ****  * Where the input parameter <i>ul_sources</i> can be one or more of the following:
+ 354:../../../platform/sam/drivers/tc/tc.c ****  * <table>
+ 355:../../../platform/sam/drivers/tc/tc.c ****  * <tr>
+ 356:../../../platform/sam/drivers/tc/tc.c ****  *    <th>Parameter Value</th>
+ 357:../../../platform/sam/drivers/tc/tc.c ****  *    <th>Description</th>
+ 358:../../../platform/sam/drivers/tc/tc.c ****  * </tr>
+ 359:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IER_COVFS</td><td>Enables the Counter Overflow Interrupt</td></tr>
+ 360:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IER_LOVRS</td><td>Enables the Load Overrun Interrupt</td></tr>
+ 361:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IER_CPAS</td><td>Enables the RA Compare Interrupt</td></tr>
+ 362:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IER_CPBS</td><td>Enables the RB Compare Interrupt</td></tr>
+ 363:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IER_CPCS</td><td>Enables the RC Compare Interrupt</td></tr>
+ 364:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IER_LDRAS</td><td>Enables the RA Load Interrupt</td></tr>
+ 365:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IER_LDRBS</td><td>Enables the RB Load Interrupt</td></tr>
+ 366:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IER_ETRGS</td><td>Enables the External Trigger Interrupt</td></tr>
+ 367:../../../platform/sam/drivers/tc/tc.c ****  * </table>
+ 368:../../../platform/sam/drivers/tc/tc.c ****  */
+ 369:../../../platform/sam/drivers/tc/tc.c **** void tc_enable_interrupt(
+ 370:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 371:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel,
+ 372:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_sources)
+ 373:../../../platform/sam/drivers/tc/tc.c **** {
+ 705              	 .loc 1 373 0
+ 706              	 .cfi_startproc
+ 707              	 
+ 708              	 
+ 709              	 
+ 710 01c0 80B4     	 push {r7}
+ 711              	.LCFI78:
+ 712              	 .cfi_def_cfa_offset 4
+ 713              	 .cfi_offset 7,-4
+ 714 01c2 87B0     	 sub sp,sp,#28
+ 715              	.LCFI79:
+ 716              	 .cfi_def_cfa_offset 32
+ 717 01c4 00AF     	 add r7,sp,#0
+ 718              	.LCFI80:
+ 719              	 .cfi_def_cfa_register 7
+ 720 01c6 F860     	 str r0,[r7,#12]
+ 721 01c8 B960     	 str r1,[r7,#8]
+ 722 01ca 7A60     	 str r2,[r7,#4]
+ 374:../../../platform/sam/drivers/tc/tc.c **** 	TcChannel *tc_channel;
+ 375:../../../platform/sam/drivers/tc/tc.c **** 
+ 376:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 377:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 378:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 379:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 380:../../../platform/sam/drivers/tc/tc.c **** 	tc_channel = p_tc->TC_CHANNEL + ul_channel;
+ 723              	 .loc 1 380 0
+ 724 01cc FA68     	 ldr r2,[r7,#12]
+ 725 01ce BB68     	 ldr r3,[r7,#8]
+ 726 01d0 9B01     	 lsls r3,r3,#6
+ 727 01d2 1344     	 add r3,r3,r2
+ 728 01d4 7B61     	 str r3,[r7,#20]
+ 381:../../../platform/sam/drivers/tc/tc.c **** 	tc_channel->TC_IER = ul_sources;
+ 729              	 .loc 1 381 0
+ 730 01d6 7B69     	 ldr r3,[r7,#20]
+ 731 01d8 7A68     	 ldr r2,[r7,#4]
+ 732 01da 5A62     	 str r2,[r3,#36]
+ 382:../../../platform/sam/drivers/tc/tc.c **** }
+ 733              	 .loc 1 382 0
+ 734 01dc 00BF     	 nop
+ 735 01de 1C37     	 adds r7,r7,#28
+ 736              	.LCFI81:
+ 737              	 .cfi_def_cfa_offset 4
+ 738 01e0 BD46     	 mov sp,r7
+ 739              	.LCFI82:
+ 740              	 .cfi_def_cfa_register 13
+ 741              	 
+ 742 01e2 80BC     	 pop {r7}
+ 743              	.LCFI83:
+ 744              	 .cfi_restore 7
+ 745              	 .cfi_def_cfa_offset 0
+ 746 01e4 7047     	 bx lr
+ 747              	 .cfi_endproc
+ 748              	.LFE135:
+ 750              	 .align 1
+ 751              	 .global tc_disable_interrupt
+ 752              	 .syntax unified
+ 753              	 .thumb
+ 754              	 .thumb_func
+ 755              	 .fpu softvfp
+ 757              	tc_disable_interrupt:
+ 758              	.LFB136:
+ 383:../../../platform/sam/drivers/tc/tc.c **** 
+ 384:../../../platform/sam/drivers/tc/tc.c **** /**
+ 385:../../../platform/sam/drivers/tc/tc.c ****  * \brief Disable TC interrupts on the specified channel.
+ 386:../../../platform/sam/drivers/tc/tc.c ****  *
+ 387:../../../platform/sam/drivers/tc/tc.c ****  * \param[in,out] p_tc   Module hardware register base address pointer
+ 388:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel to configure
+ 389:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_sources A bitmask of Interrupt sources
+ 390:../../../platform/sam/drivers/tc/tc.c ****  *
+ 391:../../../platform/sam/drivers/tc/tc.c ****  * Where the input parameter <i>ul_sources</i> can be one or more of the following:
+ 392:../../../platform/sam/drivers/tc/tc.c ****  * <table>
+ 393:../../../platform/sam/drivers/tc/tc.c ****  * <tr>
+ 394:../../../platform/sam/drivers/tc/tc.c ****  *    <th>Parameter Value</th>
+ 395:../../../platform/sam/drivers/tc/tc.c ****  *    <th>Description</th>
+ 396:../../../platform/sam/drivers/tc/tc.c ****  * </tr>
+ 397:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IDR_COVFS</td><td>Disables the Counter Overflow Interrupt</td></tr>
+ 398:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IDR_LOVRS</td><td>Disables the Load Overrun Interrupt</td></tr>
+ 399:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IDR_CPAS</td><td>Disables the RA Compare Interrupt</td></tr>
+ 400:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IDR_CPBS</td><td>Disables the RB Compare Interrupt</td></tr>
+ 401:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IDR_CPCS</td><td>Disables the RC Compare Interrupt</td></tr>
+ 402:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IDR_LDRAS</td><td>Disables the RA Load Interrupt</td></tr>
+ 403:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IDR_LDRBS</td><td>Disables the RB Load Interrupt</td></tr>
+ 404:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_IDR_ETRGS</td><td>Disables the External Trigger Interrupt</td></tr>
+ 405:../../../platform/sam/drivers/tc/tc.c ****  * </table>
+ 406:../../../platform/sam/drivers/tc/tc.c ****  */
+ 407:../../../platform/sam/drivers/tc/tc.c **** void tc_disable_interrupt(
+ 408:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 409:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel,
+ 410:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_sources)
+ 411:../../../platform/sam/drivers/tc/tc.c **** {
+ 759              	 .loc 1 411 0
+ 760              	 .cfi_startproc
+ 761              	 
+ 762              	 
+ 763              	 
+ 764 01e6 80B4     	 push {r7}
+ 765              	.LCFI84:
+ 766              	 .cfi_def_cfa_offset 4
+ 767              	 .cfi_offset 7,-4
+ 768 01e8 87B0     	 sub sp,sp,#28
+ 769              	.LCFI85:
+ 770              	 .cfi_def_cfa_offset 32
+ 771 01ea 00AF     	 add r7,sp,#0
+ 772              	.LCFI86:
+ 773              	 .cfi_def_cfa_register 7
+ 774 01ec F860     	 str r0,[r7,#12]
+ 775 01ee B960     	 str r1,[r7,#8]
+ 776 01f0 7A60     	 str r2,[r7,#4]
+ 412:../../../platform/sam/drivers/tc/tc.c **** 	TcChannel *tc_channel;
+ 413:../../../platform/sam/drivers/tc/tc.c **** 
+ 414:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 415:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 416:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 417:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 418:../../../platform/sam/drivers/tc/tc.c **** 	tc_channel = p_tc->TC_CHANNEL + ul_channel;
+ 777              	 .loc 1 418 0
+ 778 01f2 FA68     	 ldr r2,[r7,#12]
+ 779 01f4 BB68     	 ldr r3,[r7,#8]
+ 780 01f6 9B01     	 lsls r3,r3,#6
+ 781 01f8 1344     	 add r3,r3,r2
+ 782 01fa 7B61     	 str r3,[r7,#20]
+ 419:../../../platform/sam/drivers/tc/tc.c **** 	tc_channel->TC_IDR = ul_sources;
+ 783              	 .loc 1 419 0
+ 784 01fc 7B69     	 ldr r3,[r7,#20]
+ 785 01fe 7A68     	 ldr r2,[r7,#4]
+ 786 0200 9A62     	 str r2,[r3,#40]
+ 420:../../../platform/sam/drivers/tc/tc.c **** }
+ 787              	 .loc 1 420 0
+ 788 0202 00BF     	 nop
+ 789 0204 1C37     	 adds r7,r7,#28
+ 790              	.LCFI87:
+ 791              	 .cfi_def_cfa_offset 4
+ 792 0206 BD46     	 mov sp,r7
+ 793              	.LCFI88:
+ 794              	 .cfi_def_cfa_register 13
+ 795              	 
+ 796 0208 80BC     	 pop {r7}
+ 797              	.LCFI89:
+ 798              	 .cfi_restore 7
+ 799              	 .cfi_def_cfa_offset 0
+ 800 020a 7047     	 bx lr
+ 801              	 .cfi_endproc
+ 802              	.LFE136:
+ 804              	 .align 1
+ 805              	 .global tc_get_interrupt_mask
+ 806              	 .syntax unified
+ 807              	 .thumb
+ 808              	 .thumb_func
+ 809              	 .fpu softvfp
+ 811              	tc_get_interrupt_mask:
+ 812              	.LFB137:
+ 421:../../../platform/sam/drivers/tc/tc.c **** 
+ 422:../../../platform/sam/drivers/tc/tc.c **** /**
+ 423:../../../platform/sam/drivers/tc/tc.c ****  * \brief Read the TC interrupt mask for the specified channel.
+ 424:../../../platform/sam/drivers/tc/tc.c ****  *
+ 425:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] p_tc       Module hardware register base address pointer
+ 426:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel to read
+ 427:../../../platform/sam/drivers/tc/tc.c ****  *
+ 428:../../../platform/sam/drivers/tc/tc.c ****  * \return The TC interrupt mask value.
+ 429:../../../platform/sam/drivers/tc/tc.c ****  */
+ 430:../../../platform/sam/drivers/tc/tc.c **** uint32_t tc_get_interrupt_mask(
+ 431:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 432:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel)
+ 433:../../../platform/sam/drivers/tc/tc.c **** {
+ 813              	 .loc 1 433 0
+ 814              	 .cfi_startproc
+ 815              	 
+ 816              	 
+ 817              	 
+ 818 020c 80B4     	 push {r7}
+ 819              	.LCFI90:
+ 820              	 .cfi_def_cfa_offset 4
+ 821              	 .cfi_offset 7,-4
+ 822 020e 85B0     	 sub sp,sp,#20
+ 823              	.LCFI91:
+ 824              	 .cfi_def_cfa_offset 24
+ 825 0210 00AF     	 add r7,sp,#0
+ 826              	.LCFI92:
+ 827              	 .cfi_def_cfa_register 7
+ 828 0212 7860     	 str r0,[r7,#4]
+ 829 0214 3960     	 str r1,[r7]
+ 434:../../../platform/sam/drivers/tc/tc.c **** 	TcChannel *tc_channel;
+ 435:../../../platform/sam/drivers/tc/tc.c **** 
+ 436:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 437:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 438:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 439:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 440:../../../platform/sam/drivers/tc/tc.c **** 	tc_channel = p_tc->TC_CHANNEL + ul_channel;
+ 830              	 .loc 1 440 0
+ 831 0216 7A68     	 ldr r2,[r7,#4]
+ 832 0218 3B68     	 ldr r3,[r7]
+ 833 021a 9B01     	 lsls r3,r3,#6
+ 834 021c 1344     	 add r3,r3,r2
+ 835 021e FB60     	 str r3,[r7,#12]
+ 441:../../../platform/sam/drivers/tc/tc.c **** 	return tc_channel->TC_IMR;
+ 836              	 .loc 1 441 0
+ 837 0220 FB68     	 ldr r3,[r7,#12]
+ 838 0222 DB6A     	 ldr r3,[r3,#44]
+ 442:../../../platform/sam/drivers/tc/tc.c **** }
+ 839              	 .loc 1 442 0
+ 840 0224 1846     	 mov r0,r3
+ 841 0226 1437     	 adds r7,r7,#20
+ 842              	.LCFI93:
+ 843              	 .cfi_def_cfa_offset 4
+ 844 0228 BD46     	 mov sp,r7
+ 845              	.LCFI94:
+ 846              	 .cfi_def_cfa_register 13
+ 847              	 
+ 848 022a 80BC     	 pop {r7}
+ 849              	.LCFI95:
+ 850              	 .cfi_restore 7
+ 851              	 .cfi_def_cfa_offset 0
+ 852 022c 7047     	 bx lr
+ 853              	 .cfi_endproc
+ 854              	.LFE137:
+ 856              	 .align 1
+ 857              	 .global tc_get_status
+ 858              	 .syntax unified
+ 859              	 .thumb
+ 860              	 .thumb_func
+ 861              	 .fpu softvfp
+ 863              	tc_get_status:
+ 864              	.LFB138:
+ 443:../../../platform/sam/drivers/tc/tc.c **** 
+ 444:../../../platform/sam/drivers/tc/tc.c **** /**
+ 445:../../../platform/sam/drivers/tc/tc.c ****  * \brief Get the current status for the specified TC channel.
+ 446:../../../platform/sam/drivers/tc/tc.c ****  *
+ 447:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] p_tc       Module hardware register base address pointer
+ 448:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_channel Channel number
+ 449:../../../platform/sam/drivers/tc/tc.c ****  *
+ 450:../../../platform/sam/drivers/tc/tc.c ****  * \return The current TC status.
+ 451:../../../platform/sam/drivers/tc/tc.c ****  */
+ 452:../../../platform/sam/drivers/tc/tc.c **** uint32_t tc_get_status(
+ 453:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 454:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_channel)
+ 455:../../../platform/sam/drivers/tc/tc.c **** {
+ 865              	 .loc 1 455 0
+ 866              	 .cfi_startproc
+ 867              	 
+ 868              	 
+ 869              	 
+ 870 022e 80B4     	 push {r7}
+ 871              	.LCFI96:
+ 872              	 .cfi_def_cfa_offset 4
+ 873              	 .cfi_offset 7,-4
+ 874 0230 85B0     	 sub sp,sp,#20
+ 875              	.LCFI97:
+ 876              	 .cfi_def_cfa_offset 24
+ 877 0232 00AF     	 add r7,sp,#0
+ 878              	.LCFI98:
+ 879              	 .cfi_def_cfa_register 7
+ 880 0234 7860     	 str r0,[r7,#4]
+ 881 0236 3960     	 str r1,[r7]
+ 456:../../../platform/sam/drivers/tc/tc.c **** 	TcChannel *tc_channel;
+ 457:../../../platform/sam/drivers/tc/tc.c **** 
+ 458:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 459:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 460:../../../platform/sam/drivers/tc/tc.c **** 	Assert(ul_channel <
+ 461:../../../platform/sam/drivers/tc/tc.c **** 			(sizeof(p_tc->TC_CHANNEL) / sizeof(p_tc->TC_CHANNEL[0])));
+ 462:../../../platform/sam/drivers/tc/tc.c **** 			
+ 463:../../../platform/sam/drivers/tc/tc.c **** 	tc_channel = p_tc->TC_CHANNEL + ul_channel;
+ 882              	 .loc 1 463 0
+ 883 0238 7A68     	 ldr r2,[r7,#4]
+ 884 023a 3B68     	 ldr r3,[r7]
+ 885 023c 9B01     	 lsls r3,r3,#6
+ 886 023e 1344     	 add r3,r3,r2
+ 887 0240 FB60     	 str r3,[r7,#12]
+ 464:../../../platform/sam/drivers/tc/tc.c **** 	return tc_channel->TC_SR;
+ 888              	 .loc 1 464 0
+ 889 0242 FB68     	 ldr r3,[r7,#12]
+ 890 0244 1B6A     	 ldr r3,[r3,#32]
+ 465:../../../platform/sam/drivers/tc/tc.c **** }
+ 891              	 .loc 1 465 0
+ 892 0246 1846     	 mov r0,r3
+ 893 0248 1437     	 adds r7,r7,#20
+ 894              	.LCFI99:
+ 895              	 .cfi_def_cfa_offset 4
+ 896 024a BD46     	 mov sp,r7
+ 897              	.LCFI100:
+ 898              	 .cfi_def_cfa_register 13
+ 899              	 
+ 900 024c 80BC     	 pop {r7}
+ 901              	.LCFI101:
+ 902              	 .cfi_restore 7
+ 903              	 .cfi_def_cfa_offset 0
+ 904 024e 7047     	 bx lr
+ 905              	 .cfi_endproc
+ 906              	.LFE138:
+ 908              	 .section .rodata
+ 909              	 .align 2
+ 910              	.LC0:
+ 911 0000 00000000 	 .word 0
+ 912 0004 02000000 	 .word 2
+ 913 0008 08000000 	 .word 8
+ 914 000c 20000000 	 .word 32
+ 915 0010 80000000 	 .word 128
+ 916              	 .text
+ 917              	 .align 1
+ 918              	 .global tc_find_mck_divisor
+ 919              	 .syntax unified
+ 920              	 .thumb
+ 921              	 .thumb_func
+ 922              	 .fpu softvfp
+ 924              	tc_find_mck_divisor:
+ 925              	.LFB139:
+ 466:../../../platform/sam/drivers/tc/tc.c **** 
+ 467:../../../platform/sam/drivers/tc/tc.c **** /* TC divisor used to find the lowest acceptable timer frequency */
+ 468:../../../platform/sam/drivers/tc/tc.c **** #define TC_DIV_FACTOR 65536
+ 469:../../../platform/sam/drivers/tc/tc.c **** 
+ 470:../../../platform/sam/drivers/tc/tc.c **** #if (!SAM4L) && !defined(__DOXYGEN__)
+ 471:../../../platform/sam/drivers/tc/tc.c **** 
+ 472:../../../platform/sam/drivers/tc/tc.c **** #ifndef FREQ_SLOW_CLOCK_EXT
+ 473:../../../platform/sam/drivers/tc/tc.c **** #define FREQ_SLOW_CLOCK_EXT 32768 /* External slow clock frequency (hz) */
+ 474:../../../platform/sam/drivers/tc/tc.c **** #endif
+ 475:../../../platform/sam/drivers/tc/tc.c **** 
+ 476:../../../platform/sam/drivers/tc/tc.c **** /**
+ 477:../../../platform/sam/drivers/tc/tc.c ****  * \brief Find the best MCK divisor.
+ 478:../../../platform/sam/drivers/tc/tc.c ****  *
+ 479:../../../platform/sam/drivers/tc/tc.c ****  * Finds the best MCK divisor given the timer frequency and MCK. The result
+ 480:../../../platform/sam/drivers/tc/tc.c ****  * is guaranteed to satisfy the following equation:
+ 481:../../../platform/sam/drivers/tc/tc.c ****  * \code (MCK / (DIV * 65536)) <= freq <= (MCK / DIV) \endcode
+ 482:../../../platform/sam/drivers/tc/tc.c ****  * with DIV being the lowest possible value, to maximize timing adjust resolution.
+ 483:../../../platform/sam/drivers/tc/tc.c ****  *
+ 484:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_freq     Desired timer frequency
+ 485:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_mck      Master clock frequency
+ 486:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_uldiv    Divisor value
+ 487:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_ultcclks TCCLKS field value for divisor
+ 488:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_boardmck Board clock frequency
+ 489:../../../platform/sam/drivers/tc/tc.c ****  *
+ 490:../../../platform/sam/drivers/tc/tc.c ****  * \return The divisor found status.
+ 491:../../../platform/sam/drivers/tc/tc.c ****  * \retval 0 No suitable divisor was found
+ 492:../../../platform/sam/drivers/tc/tc.c ****  * \retval 1 A divisor was found
+ 493:../../../platform/sam/drivers/tc/tc.c ****  */
+ 494:../../../platform/sam/drivers/tc/tc.c **** uint32_t tc_find_mck_divisor(
+ 495:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_freq,
+ 496:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_mck,
+ 497:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t *p_uldiv,
+ 498:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t *p_ultcclks,
+ 499:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_boardmck)
+ 500:../../../platform/sam/drivers/tc/tc.c **** {
+ 501:../../../platform/sam/drivers/tc/tc.c **** 	const uint32_t divisors[5] = { 2, 8, 32, 128,
+ 502:../../../platform/sam/drivers/tc/tc.c **** 			ul_boardmck / FREQ_SLOW_CLOCK_EXT };
+ 503:../../../platform/sam/drivers/tc/tc.c **** 	uint32_t ul_index;
+ 504:../../../platform/sam/drivers/tc/tc.c **** 	uint32_t ul_high, ul_low;
+ 505:../../../platform/sam/drivers/tc/tc.c **** 
+ 506:../../../platform/sam/drivers/tc/tc.c **** 	/*  Satisfy frequency bound. */
+ 507:../../../platform/sam/drivers/tc/tc.c **** 	for (ul_index = 0;
+ 508:../../../platform/sam/drivers/tc/tc.c **** 			ul_index < (sizeof(divisors) / sizeof(divisors[0]));
+ 509:../../../platform/sam/drivers/tc/tc.c **** 			ul_index++) {
+ 510:../../../platform/sam/drivers/tc/tc.c **** 		ul_high = ul_mck / divisors[ul_index];
+ 511:../../../platform/sam/drivers/tc/tc.c **** 		ul_low  = ul_high / TC_DIV_FACTOR;
+ 512:../../../platform/sam/drivers/tc/tc.c **** 		if (ul_freq > ul_high) {
+ 513:../../../platform/sam/drivers/tc/tc.c **** 			return 0;
+ 514:../../../platform/sam/drivers/tc/tc.c **** 		} else if (ul_freq >= ul_low) {
+ 515:../../../platform/sam/drivers/tc/tc.c **** 			break;
+ 516:../../../platform/sam/drivers/tc/tc.c **** 		}
+ 517:../../../platform/sam/drivers/tc/tc.c **** 	}
+ 518:../../../platform/sam/drivers/tc/tc.c **** 	if (ul_index >= (sizeof(divisors) / sizeof(divisors[0]))) {
+ 519:../../../platform/sam/drivers/tc/tc.c **** 		return 0;
+ 520:../../../platform/sam/drivers/tc/tc.c **** 	}
+ 521:../../../platform/sam/drivers/tc/tc.c **** 
+ 522:../../../platform/sam/drivers/tc/tc.c **** 	/*  Store results. */
+ 523:../../../platform/sam/drivers/tc/tc.c **** 	if (p_uldiv) {
+ 524:../../../platform/sam/drivers/tc/tc.c **** 		*p_uldiv = divisors[ul_index];
+ 525:../../../platform/sam/drivers/tc/tc.c **** 	}
+ 526:../../../platform/sam/drivers/tc/tc.c **** 
+ 527:../../../platform/sam/drivers/tc/tc.c **** 	if (p_ultcclks) {
+ 528:../../../platform/sam/drivers/tc/tc.c **** 		*p_ultcclks = ul_index;
+ 529:../../../platform/sam/drivers/tc/tc.c **** 	}
+ 530:../../../platform/sam/drivers/tc/tc.c **** 
+ 531:../../../platform/sam/drivers/tc/tc.c **** 	return 1;
+ 532:../../../platform/sam/drivers/tc/tc.c **** }
+ 533:../../../platform/sam/drivers/tc/tc.c **** 
+ 534:../../../platform/sam/drivers/tc/tc.c **** #endif /* (!SAM4L) */
+ 535:../../../platform/sam/drivers/tc/tc.c **** 
+ 536:../../../platform/sam/drivers/tc/tc.c **** #if (SAM4L) || defined(__DOXYGEN__)
+ 537:../../../platform/sam/drivers/tc/tc.c **** /**
+ 538:../../../platform/sam/drivers/tc/tc.c ****  * \brief Find the best PBA/MCK divisor.
+ 539:../../../platform/sam/drivers/tc/tc.c ****  *
+ 540:../../../platform/sam/drivers/tc/tc.c ****  * <b>For SAM4L devices:</b> Finds the best PBA divisor given the timer
+ 541:../../../platform/sam/drivers/tc/tc.c ****  * frequency and PBA clock. The result is guaranteed to satisfy the following equation:
+ 542:../../../platform/sam/drivers/tc/tc.c ****  * \code  (ul_pbaclk / (2* DIV * 65536)) <= freq <= (ul_pbaclk / (2* DIV)) \endcode
+ 543:../../../platform/sam/drivers/tc/tc.c ****  * with DIV being the lowest possible value, to maximize timing adjust resolution.
+ 544:../../../platform/sam/drivers/tc/tc.c ****  *
+ 545:../../../platform/sam/drivers/tc/tc.c ****  * <b>For non SAM4L devices:</b> Finds the best MCK divisor given the timer frequency
+ 546:../../../platform/sam/drivers/tc/tc.c ****  * and MCK. The result is guaranteed to satisfy the following equation:
+ 547:../../../platform/sam/drivers/tc/tc.c ****  * \code (MCK / (DIV * 65536)) <= freq <= (MCK / DIV) \endcode
+ 548:../../../platform/sam/drivers/tc/tc.c ****  * with DIV being the lowest possible value, to maximize timing adjust resolution.
+ 549:../../../platform/sam/drivers/tc/tc.c ****  *
+ 550:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_freq     Desired timer frequency
+ 551:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_mck      PBA clock frequency
+ 552:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_uldiv    Divisor value
+ 553:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_ultcclks TCCLKS field value for divisor
+ 554:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_boardmck Board clock frequency (set to 0 for SAM4L devices)
+ 555:../../../platform/sam/drivers/tc/tc.c ****  *
+ 556:../../../platform/sam/drivers/tc/tc.c ****  * \return The divisor found status.
+ 557:../../../platform/sam/drivers/tc/tc.c ****  * \retval 0 No suitable divisor was found
+ 558:../../../platform/sam/drivers/tc/tc.c ****  * \retval 1 A divisor was found
+ 559:../../../platform/sam/drivers/tc/tc.c ****  */
+ 560:../../../platform/sam/drivers/tc/tc.c **** uint32_t tc_find_mck_divisor(
+ 561:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_freq,
+ 562:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_mck,
+ 563:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t *p_uldiv,
+ 564:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t *p_ultcclks,
+ 565:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_boardmck)
+ 566:../../../platform/sam/drivers/tc/tc.c **** {
+ 926              	 .loc 1 566 0
+ 927              	 .cfi_startproc
+ 928              	 
+ 929              	 
+ 930              	 
+ 931 0250 B0B4     	 push {r4,r5,r7}
+ 932              	.LCFI102:
+ 933              	 .cfi_def_cfa_offset 12
+ 934              	 .cfi_offset 4,-12
+ 935              	 .cfi_offset 5,-8
+ 936              	 .cfi_offset 7,-4
+ 937 0252 8DB0     	 sub sp,sp,#52
+ 938              	.LCFI103:
+ 939              	 .cfi_def_cfa_offset 64
+ 940 0254 00AF     	 add r7,sp,#0
+ 941              	.LCFI104:
+ 942              	 .cfi_def_cfa_register 7
+ 943 0256 F860     	 str r0,[r7,#12]
+ 944 0258 B960     	 str r1,[r7,#8]
+ 945 025a 7A60     	 str r2,[r7,#4]
+ 946 025c 3B60     	 str r3,[r7]
+ 567:../../../platform/sam/drivers/tc/tc.c **** 	const uint32_t divisors[5] = { 0, 2, 8, 32, 128};
+ 947              	 .loc 1 567 0
+ 948 025e 244B     	 ldr r3,.L37
+ 949 0260 07F11004 	 add r4,r7,#16
+ 950 0264 1D46     	 mov r5,r3
+ 951 0266 0FCD     	 ldmia r5!,{r0,r1,r2,r3}
+ 952 0268 0FC4     	 stmia r4!,{r0,r1,r2,r3}
+ 953 026a 2B68     	 ldr r3,[r5]
+ 954 026c 2360     	 str r3,[r4]
+ 568:../../../platform/sam/drivers/tc/tc.c **** 	uint32_t ul_index;
+ 569:../../../platform/sam/drivers/tc/tc.c **** 	uint32_t ul_high, ul_low;
+ 570:../../../platform/sam/drivers/tc/tc.c **** 
+ 571:../../../platform/sam/drivers/tc/tc.c **** 	UNUSED(ul_boardmck);
+ 572:../../../platform/sam/drivers/tc/tc.c **** 
+ 573:../../../platform/sam/drivers/tc/tc.c **** 	/*  Satisfy frequency bound. */
+ 574:../../../platform/sam/drivers/tc/tc.c **** 	for (ul_index = 1;
+ 955              	 .loc 1 574 0
+ 956 026e 0123     	 movs r3,#1
+ 957 0270 FB62     	 str r3,[r7,#44]
+ 958 0272 1AE0     	 b .L26
+ 959              	.L31:
+ 575:../../../platform/sam/drivers/tc/tc.c **** 			ul_index < (sizeof(divisors) / sizeof(divisors[0]));
+ 576:../../../platform/sam/drivers/tc/tc.c **** 			ul_index++) {
+ 577:../../../platform/sam/drivers/tc/tc.c **** 		ul_high = ul_mck / divisors[ul_index];
+ 960              	 .loc 1 577 0
+ 961 0274 FB6A     	 ldr r3,[r7,#44]
+ 962 0276 9B00     	 lsls r3,r3,#2
+ 963 0278 07F13002 	 add r2,r7,#48
+ 964 027c 1344     	 add r3,r3,r2
+ 965 027e 53F8203C 	 ldr r3,[r3,#-32]
+ 966 0282 BA68     	 ldr r2,[r7,#8]
+ 967 0284 B2FBF3F3 	 udiv r3,r2,r3
+ 968 0288 BB62     	 str r3,[r7,#40]
+ 578:../../../platform/sam/drivers/tc/tc.c **** 		ul_low  = ul_high / TC_DIV_FACTOR;
+ 969              	 .loc 1 578 0
+ 970 028a BB6A     	 ldr r3,[r7,#40]
+ 971 028c 1B0C     	 lsrs r3,r3,#16
+ 972 028e 7B62     	 str r3,[r7,#36]
+ 579:../../../platform/sam/drivers/tc/tc.c **** 		if (ul_freq > ul_high) {
+ 973              	 .loc 1 579 0
+ 974 0290 FA68     	 ldr r2,[r7,#12]
+ 975 0292 BB6A     	 ldr r3,[r7,#40]
+ 976 0294 9A42     	 cmp r2,r3
+ 977 0296 01D9     	 bls .L27
+ 580:../../../platform/sam/drivers/tc/tc.c **** 			return 0;
+ 978              	 .loc 1 580 0
+ 979 0298 0023     	 movs r3,#0
+ 980 029a 23E0     	 b .L35
+ 981              	.L27:
+ 581:../../../platform/sam/drivers/tc/tc.c **** 		} else if (ul_freq >= ul_low) {
+ 982              	 .loc 1 581 0
+ 983 029c FA68     	 ldr r2,[r7,#12]
+ 984 029e 7B6A     	 ldr r3,[r7,#36]
+ 985 02a0 9A42     	 cmp r2,r3
+ 986 02a2 06D2     	 bcs .L36
+ 576:../../../platform/sam/drivers/tc/tc.c **** 		ul_high = ul_mck / divisors[ul_index];
+ 987              	 .loc 1 576 0
+ 988 02a4 FB6A     	 ldr r3,[r7,#44]
+ 989 02a6 0133     	 adds r3,r3,#1
+ 990 02a8 FB62     	 str r3,[r7,#44]
+ 991              	.L26:
+ 574:../../../platform/sam/drivers/tc/tc.c **** 			ul_index < (sizeof(divisors) / sizeof(divisors[0]));
+ 992              	 .loc 1 574 0 discriminator 1
+ 993 02aa FB6A     	 ldr r3,[r7,#44]
+ 994 02ac 042B     	 cmp r3,#4
+ 995 02ae E1D9     	 bls .L31
+ 996 02b0 00E0     	 b .L30
+ 997              	.L36:
+ 582:../../../platform/sam/drivers/tc/tc.c **** 			break;
+ 998              	 .loc 1 582 0
+ 999 02b2 00BF     	 nop
+ 1000              	.L30:
+ 583:../../../platform/sam/drivers/tc/tc.c **** 		}
+ 584:../../../platform/sam/drivers/tc/tc.c **** 	}
+ 585:../../../platform/sam/drivers/tc/tc.c **** 	if (ul_index >= (sizeof(divisors) / sizeof(divisors[0]))) {
+ 1001              	 .loc 1 585 0
+ 1002 02b4 FB6A     	 ldr r3,[r7,#44]
+ 1003 02b6 042B     	 cmp r3,#4
+ 1004 02b8 01D9     	 bls .L32
+ 586:../../../platform/sam/drivers/tc/tc.c **** 		return 0;
+ 1005              	 .loc 1 586 0
+ 1006 02ba 0023     	 movs r3,#0
+ 1007 02bc 12E0     	 b .L35
+ 1008              	.L32:
+ 587:../../../platform/sam/drivers/tc/tc.c **** 	}
+ 588:../../../platform/sam/drivers/tc/tc.c **** 
+ 589:../../../platform/sam/drivers/tc/tc.c **** 	/*  Store results. */
+ 590:../../../platform/sam/drivers/tc/tc.c **** 	if (p_uldiv) {
+ 1009              	 .loc 1 590 0
+ 1010 02be 7B68     	 ldr r3,[r7,#4]
+ 1011 02c0 002B     	 cmp r3,#0
+ 1012 02c2 08D0     	 beq .L33
+ 591:../../../platform/sam/drivers/tc/tc.c **** 		*p_uldiv = divisors[ul_index];
+ 1013              	 .loc 1 591 0
+ 1014 02c4 FB6A     	 ldr r3,[r7,#44]
+ 1015 02c6 9B00     	 lsls r3,r3,#2
+ 1016 02c8 07F13002 	 add r2,r7,#48
+ 1017 02cc 1344     	 add r3,r3,r2
+ 1018 02ce 53F8202C 	 ldr r2,[r3,#-32]
+ 1019 02d2 7B68     	 ldr r3,[r7,#4]
+ 1020 02d4 1A60     	 str r2,[r3]
+ 1021              	.L33:
+ 592:../../../platform/sam/drivers/tc/tc.c **** 	}
+ 593:../../../platform/sam/drivers/tc/tc.c **** 
+ 594:../../../platform/sam/drivers/tc/tc.c **** 	if (p_ultcclks) {
+ 1022              	 .loc 1 594 0
+ 1023 02d6 3B68     	 ldr r3,[r7]
+ 1024 02d8 002B     	 cmp r3,#0
+ 1025 02da 02D0     	 beq .L34
+ 595:../../../platform/sam/drivers/tc/tc.c **** 		*p_ultcclks = ul_index;
+ 1026              	 .loc 1 595 0
+ 1027 02dc 3B68     	 ldr r3,[r7]
+ 1028 02de FA6A     	 ldr r2,[r7,#44]
+ 1029 02e0 1A60     	 str r2,[r3]
+ 1030              	.L34:
+ 596:../../../platform/sam/drivers/tc/tc.c **** 	}
+ 597:../../../platform/sam/drivers/tc/tc.c **** 
+ 598:../../../platform/sam/drivers/tc/tc.c **** 	return 1;
+ 1031              	 .loc 1 598 0
+ 1032 02e2 0123     	 movs r3,#1
+ 1033              	.L35:
+ 599:../../../platform/sam/drivers/tc/tc.c **** }
+ 1034              	 .loc 1 599 0 discriminator 1
+ 1035 02e4 1846     	 mov r0,r3
+ 1036 02e6 3437     	 adds r7,r7,#52
+ 1037              	.LCFI105:
+ 1038              	 .cfi_def_cfa_offset 12
+ 1039 02e8 BD46     	 mov sp,r7
+ 1040              	.LCFI106:
+ 1041              	 .cfi_def_cfa_register 13
+ 1042              	 
+ 1043 02ea B0BC     	 pop {r4,r5,r7}
+ 1044              	.LCFI107:
+ 1045              	 .cfi_restore 7
+ 1046              	 .cfi_restore 5
+ 1047              	 .cfi_restore 4
+ 1048              	 .cfi_def_cfa_offset 0
+ 1049 02ec 7047     	 bx lr
+ 1050              	.L38:
+ 1051 02ee 00BF     	 .align 2
+ 1052              	.L37:
+ 1053 02f0 00000000 	 .word .LC0
+ 1054              	 .cfi_endproc
+ 1055              	.LFE139:
+ 1057              	 .align 1
+ 1058              	 .global tc_set_writeprotect
+ 1059              	 .syntax unified
+ 1060              	 .thumb
+ 1061              	 .thumb_func
+ 1062              	 .fpu softvfp
+ 1064              	tc_set_writeprotect:
+ 1065              	.LFB140:
+ 600:../../../platform/sam/drivers/tc/tc.c **** 
+ 601:../../../platform/sam/drivers/tc/tc.c **** #endif /* (SAM4L) || defined(__DOXYGEN__) */
+ 602:../../../platform/sam/drivers/tc/tc.c **** 
+ 603:../../../platform/sam/drivers/tc/tc.c **** #if (!SAM4L && !SAMG) || defined(__DOXYGEN__)
+ 604:../../../platform/sam/drivers/tc/tc.c **** 
+ 605:../../../platform/sam/drivers/tc/tc.c **** /**
+ 606:../../../platform/sam/drivers/tc/tc.c ****  * \brief Enable TC QDEC interrupts.
+ 607:../../../platform/sam/drivers/tc/tc.c ****  *
+ 608:../../../platform/sam/drivers/tc/tc.c ****  * \note This function is not available on SAM4L or SAMG devices.
+ 609:../../../platform/sam/drivers/tc/tc.c ****  *
+ 610:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_tc      Module hardware register base address pointer
+ 611:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_sources A bitmask of QDEC interrupts to be enabled
+ 612:../../../platform/sam/drivers/tc/tc.c ****  *
+ 613:../../../platform/sam/drivers/tc/tc.c ****  * Where the input parameter <i>ul_sources</i> can be one or more of the following:
+ 614:../../../platform/sam/drivers/tc/tc.c ****  * <table>
+ 615:../../../platform/sam/drivers/tc/tc.c ****  * <tr>
+ 616:../../../platform/sam/drivers/tc/tc.c ****  *    <th>Parameter Value</th>
+ 617:../../../platform/sam/drivers/tc/tc.c ****  *    <th>Description</th>
+ 618:../../../platform/sam/drivers/tc/tc.c ****  * </tr>
+ 619:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_QIER_IDX</td><td>Enable the rising edge detected on IDX input interrupt</td></tr>
+ 620:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_QIER_DIRCHG</td><td>Enable the change in rotation direction detected interrupt</t
+ 621:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_QIER_QERR</td><td>Enable the quadrature error detected on PHA/PHB interrupt</td><
+ 622:../../../platform/sam/drivers/tc/tc.c ****  * </table>
+ 623:../../../platform/sam/drivers/tc/tc.c ****  */
+ 624:../../../platform/sam/drivers/tc/tc.c **** void tc_enable_qdec_interrupt(
+ 625:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 626:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_sources)
+ 627:../../../platform/sam/drivers/tc/tc.c **** {
+ 628:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 629:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 630:../../../platform/sam/drivers/tc/tc.c **** 	
+ 631:../../../platform/sam/drivers/tc/tc.c **** 	p_tc->TC_QIER = ul_sources;
+ 632:../../../platform/sam/drivers/tc/tc.c **** }
+ 633:../../../platform/sam/drivers/tc/tc.c **** 
+ 634:../../../platform/sam/drivers/tc/tc.c **** /**
+ 635:../../../platform/sam/drivers/tc/tc.c ****  * \brief Disable TC QDEC interrupts.
+ 636:../../../platform/sam/drivers/tc/tc.c ****  *
+ 637:../../../platform/sam/drivers/tc/tc.c ****  * \note This function is not available on SAM4L or SAMG devices.
+ 638:../../../platform/sam/drivers/tc/tc.c ****  *
+ 639:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_tc      Module hardware register base address pointer
+ 640:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_sources A bitmask of QDEC interrupts to be disabled
+ 641:../../../platform/sam/drivers/tc/tc.c ****  *
+ 642:../../../platform/sam/drivers/tc/tc.c ****  * Where the input parameter <i>ul_sources</i> can be one or more of the following:
+ 643:../../../platform/sam/drivers/tc/tc.c ****  * <table>
+ 644:../../../platform/sam/drivers/tc/tc.c ****  * <tr>
+ 645:../../../platform/sam/drivers/tc/tc.c ****  *    <th>Parameter Value</th>
+ 646:../../../platform/sam/drivers/tc/tc.c ****  *    <th>Description</th>
+ 647:../../../platform/sam/drivers/tc/tc.c ****  * </tr>
+ 648:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_QIDR_IDX</td><td>Disable the rising edge detected on IDX input interrupt</td></tr
+ 649:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_QIDR_DIRCHG</td><td>Disable the change in rotation direction detected interrupt</
+ 650:../../../platform/sam/drivers/tc/tc.c ****  *     <tr><td>TC_QIDR_QERR</td><td>Disable the quadrature error detected on PHA/PHB interrupt</td>
+ 651:../../../platform/sam/drivers/tc/tc.c ****  * </table>
+ 652:../../../platform/sam/drivers/tc/tc.c ****  */
+ 653:../../../platform/sam/drivers/tc/tc.c **** void tc_disable_qdec_interrupt(
+ 654:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 655:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_sources)
+ 656:../../../platform/sam/drivers/tc/tc.c **** {
+ 657:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 658:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 659:../../../platform/sam/drivers/tc/tc.c **** 	
+ 660:../../../platform/sam/drivers/tc/tc.c **** 	p_tc->TC_QIDR = ul_sources;
+ 661:../../../platform/sam/drivers/tc/tc.c **** }
+ 662:../../../platform/sam/drivers/tc/tc.c **** 
+ 663:../../../platform/sam/drivers/tc/tc.c **** /**
+ 664:../../../platform/sam/drivers/tc/tc.c ****  * \brief Read TC QDEC interrupt mask.
+ 665:../../../platform/sam/drivers/tc/tc.c ****  *
+ 666:../../../platform/sam/drivers/tc/tc.c ****  * \note This function is not available on SAM4L or SAMG devices.
+ 667:../../../platform/sam/drivers/tc/tc.c ****  *
+ 668:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] p_tc Module hardware register base address pointer
+ 669:../../../platform/sam/drivers/tc/tc.c ****  *
+ 670:../../../platform/sam/drivers/tc/tc.c ****  * \return The QDEC interrupt mask value.
+ 671:../../../platform/sam/drivers/tc/tc.c ****  */
+ 672:../../../platform/sam/drivers/tc/tc.c **** uint32_t tc_get_qdec_interrupt_mask(
+ 673:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc)
+ 674:../../../platform/sam/drivers/tc/tc.c **** {
+ 675:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 676:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 677:../../../platform/sam/drivers/tc/tc.c **** 	
+ 678:../../../platform/sam/drivers/tc/tc.c **** 	return p_tc->TC_QIMR;
+ 679:../../../platform/sam/drivers/tc/tc.c **** }
+ 680:../../../platform/sam/drivers/tc/tc.c **** 
+ 681:../../../platform/sam/drivers/tc/tc.c **** /**
+ 682:../../../platform/sam/drivers/tc/tc.c ****  * \brief Get current TC QDEC interrupt status.
+ 683:../../../platform/sam/drivers/tc/tc.c ****  *
+ 684:../../../platform/sam/drivers/tc/tc.c ****  * \note This function is not available on SAM4L or SAMG devices.
+ 685:../../../platform/sam/drivers/tc/tc.c ****  *
+ 686:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] p_tc Module hardware register base address pointer
+ 687:../../../platform/sam/drivers/tc/tc.c ****  *
+ 688:../../../platform/sam/drivers/tc/tc.c ****  * \return The TC QDEC interrupt status.
+ 689:../../../platform/sam/drivers/tc/tc.c ****  */
+ 690:../../../platform/sam/drivers/tc/tc.c **** uint32_t tc_get_qdec_interrupt_status(
+ 691:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc)
+ 692:../../../platform/sam/drivers/tc/tc.c **** {
+ 693:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 694:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 695:../../../platform/sam/drivers/tc/tc.c **** 	
+ 696:../../../platform/sam/drivers/tc/tc.c **** 	return p_tc->TC_QISR;
+ 697:../../../platform/sam/drivers/tc/tc.c **** }
+ 698:../../../platform/sam/drivers/tc/tc.c **** 
+ 699:../../../platform/sam/drivers/tc/tc.c **** #endif /* (!SAM4L && !SAMG) || defined(__DOXYGEN__) */
+ 700:../../../platform/sam/drivers/tc/tc.c **** 
+ 701:../../../platform/sam/drivers/tc/tc.c **** #if (!SAM3U) || defined(__DOXYGEN__)
+ 702:../../../platform/sam/drivers/tc/tc.c **** 
+ 703:../../../platform/sam/drivers/tc/tc.c **** /**
+ 704:../../../platform/sam/drivers/tc/tc.c ****  * \brief Enable or disable write protection of TC registers.
+ 705:../../../platform/sam/drivers/tc/tc.c ****  *
+ 706:../../../platform/sam/drivers/tc/tc.c ****  * \note This function is not available on SAM3U devices.
+ 707:../../../platform/sam/drivers/tc/tc.c ****  *
+ 708:../../../platform/sam/drivers/tc/tc.c ****  * \param[out] p_tc     Module hardware register base address pointer
+ 709:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] ul_enable 1 to enable, 0 to disable
+ 710:../../../platform/sam/drivers/tc/tc.c ****  */
+ 711:../../../platform/sam/drivers/tc/tc.c **** void tc_set_writeprotect(
+ 712:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc,
+ 713:../../../platform/sam/drivers/tc/tc.c **** 		uint32_t ul_enable)
+ 714:../../../platform/sam/drivers/tc/tc.c **** {
+ 1066              	 .loc 1 714 0
+ 1067              	 .cfi_startproc
+ 1068              	 
+ 1069              	 
+ 1070              	 
+ 1071 02f4 80B4     	 push {r7}
+ 1072              	.LCFI108:
+ 1073              	 .cfi_def_cfa_offset 4
+ 1074              	 .cfi_offset 7,-4
+ 1075 02f6 83B0     	 sub sp,sp,#12
+ 1076              	.LCFI109:
+ 1077              	 .cfi_def_cfa_offset 16
+ 1078 02f8 00AF     	 add r7,sp,#0
+ 1079              	.LCFI110:
+ 1080              	 .cfi_def_cfa_register 7
+ 1081 02fa 7860     	 str r0,[r7,#4]
+ 1082 02fc 3960     	 str r1,[r7]
+ 715:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 716:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 717:../../../platform/sam/drivers/tc/tc.c **** 	
+ 718:../../../platform/sam/drivers/tc/tc.c **** 	if (ul_enable) {
+ 1083              	 .loc 1 718 0
+ 1084 02fe 3B68     	 ldr r3,[r7]
+ 1085 0300 002B     	 cmp r3,#0
+ 1086 0302 04D0     	 beq .L40
+ 719:../../../platform/sam/drivers/tc/tc.c **** 		p_tc->TC_WPMR = TC_WPMR_WPKEY_PASSWD | TC_WPMR_WPEN;
+ 1087              	 .loc 1 719 0
+ 1088 0304 7B68     	 ldr r3,[r7,#4]
+ 1089 0306 064A     	 ldr r2,.L43
+ 1090 0308 C3F8E420 	 str r2,[r3,#228]
+ 720:../../../platform/sam/drivers/tc/tc.c **** 	} else {
+ 721:../../../platform/sam/drivers/tc/tc.c **** 		p_tc->TC_WPMR = TC_WPMR_WPKEY_PASSWD;
+ 722:../../../platform/sam/drivers/tc/tc.c **** 	}
+ 723:../../../platform/sam/drivers/tc/tc.c **** }
+ 1091              	 .loc 1 723 0
+ 1092 030c 03E0     	 b .L42
+ 1093              	.L40:
+ 721:../../../platform/sam/drivers/tc/tc.c **** 	}
+ 1094              	 .loc 1 721 0
+ 1095 030e 7B68     	 ldr r3,[r7,#4]
+ 1096 0310 044A     	 ldr r2,.L43+4
+ 1097 0312 C3F8E420 	 str r2,[r3,#228]
+ 1098              	.L42:
+ 1099              	 .loc 1 723 0
+ 1100 0316 00BF     	 nop
+ 1101 0318 0C37     	 adds r7,r7,#12
+ 1102              	.LCFI111:
+ 1103              	 .cfi_def_cfa_offset 4
+ 1104 031a BD46     	 mov sp,r7
+ 1105              	.LCFI112:
+ 1106              	 .cfi_def_cfa_register 13
+ 1107              	 
+ 1108 031c 80BC     	 pop {r7}
+ 1109              	.LCFI113:
+ 1110              	 .cfi_restore 7
+ 1111              	 .cfi_def_cfa_offset 0
+ 1112 031e 7047     	 bx lr
+ 1113              	.L44:
+ 1114              	 .align 2
+ 1115              	.L43:
+ 1116 0320 014D4954 	 .word 1414089985
+ 1117 0324 004D4954 	 .word 1414089984
+ 1118              	 .cfi_endproc
+ 1119              	.LFE140:
+ 1121              	 .align 1
+ 1122              	 .global tc_get_feature
+ 1123              	 .syntax unified
+ 1124              	 .thumb
+ 1125              	 .thumb_func
+ 1126              	 .fpu softvfp
+ 1128              	tc_get_feature:
+ 1129              	.LFB141:
+ 724:../../../platform/sam/drivers/tc/tc.c **** 
+ 725:../../../platform/sam/drivers/tc/tc.c **** #endif /* (!SAM3U) || defined(__DOXYGEN__) */
+ 726:../../../platform/sam/drivers/tc/tc.c **** 
+ 727:../../../platform/sam/drivers/tc/tc.c **** #if SAM4L || defined(__DOXYGEN__)
+ 728:../../../platform/sam/drivers/tc/tc.c **** 
+ 729:../../../platform/sam/drivers/tc/tc.c **** /**
+ 730:../../../platform/sam/drivers/tc/tc.c ****  * \brief Indicate TC features.
+ 731:../../../platform/sam/drivers/tc/tc.c ****  *
+ 732:../../../platform/sam/drivers/tc/tc.c ****  * \note This function is only available on SAM4L devices.
+ 733:../../../platform/sam/drivers/tc/tc.c ****  *
+ 734:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] p_tc Module hardware register base address pointer
+ 735:../../../platform/sam/drivers/tc/tc.c ****  *
+ 736:../../../platform/sam/drivers/tc/tc.c ****  * \return The TC FEATURES register contents.
+ 737:../../../platform/sam/drivers/tc/tc.c ****  */
+ 738:../../../platform/sam/drivers/tc/tc.c **** uint32_t tc_get_feature(
+ 739:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc)
+ 740:../../../platform/sam/drivers/tc/tc.c **** {
+ 1130              	 .loc 1 740 0
+ 1131              	 .cfi_startproc
+ 1132              	 
+ 1133              	 
+ 1134              	 
+ 1135 0328 80B4     	 push {r7}
+ 1136              	.LCFI114:
+ 1137              	 .cfi_def_cfa_offset 4
+ 1138              	 .cfi_offset 7,-4
+ 1139 032a 83B0     	 sub sp,sp,#12
+ 1140              	.LCFI115:
+ 1141              	 .cfi_def_cfa_offset 16
+ 1142 032c 00AF     	 add r7,sp,#0
+ 1143              	.LCFI116:
+ 1144              	 .cfi_def_cfa_register 7
+ 1145 032e 7860     	 str r0,[r7,#4]
+ 741:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 742:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 743:../../../platform/sam/drivers/tc/tc.c **** 	
+ 744:../../../platform/sam/drivers/tc/tc.c **** 	return p_tc->TC_FEATURES;
+ 1146              	 .loc 1 744 0
+ 1147 0330 7B68     	 ldr r3,[r7,#4]
+ 1148 0332 D3F8F830 	 ldr r3,[r3,#248]
+ 745:../../../platform/sam/drivers/tc/tc.c **** }
+ 1149              	 .loc 1 745 0
+ 1150 0336 1846     	 mov r0,r3
+ 1151 0338 0C37     	 adds r7,r7,#12
+ 1152              	.LCFI117:
+ 1153              	 .cfi_def_cfa_offset 4
+ 1154 033a BD46     	 mov sp,r7
+ 1155              	.LCFI118:
+ 1156              	 .cfi_def_cfa_register 13
+ 1157              	 
+ 1158 033c 80BC     	 pop {r7}
+ 1159              	.LCFI119:
+ 1160              	 .cfi_restore 7
+ 1161              	 .cfi_def_cfa_offset 0
+ 1162 033e 7047     	 bx lr
+ 1163              	 .cfi_endproc
+ 1164              	.LFE141:
+ 1166              	 .align 1
+ 1167              	 .global tc_get_version
+ 1168              	 .syntax unified
+ 1169              	 .thumb
+ 1170              	 .thumb_func
+ 1171              	 .fpu softvfp
+ 1173              	tc_get_version:
+ 1174              	.LFB142:
+ 746:../../../platform/sam/drivers/tc/tc.c **** 
+ 747:../../../platform/sam/drivers/tc/tc.c **** /**
+ 748:../../../platform/sam/drivers/tc/tc.c ****  * \brief Indicate TC version.
+ 749:../../../platform/sam/drivers/tc/tc.c ****  *
+ 750:../../../platform/sam/drivers/tc/tc.c ****  * \note This function is only available on SAM4L devices.
+ 751:../../../platform/sam/drivers/tc/tc.c ****  *
+ 752:../../../platform/sam/drivers/tc/tc.c ****  * \param[in] p_tc Module hardware register base address pointer
+ 753:../../../platform/sam/drivers/tc/tc.c ****  *
+ 754:../../../platform/sam/drivers/tc/tc.c ****  * \return The TC VERSION register contents.
+ 755:../../../platform/sam/drivers/tc/tc.c ****  */
+ 756:../../../platform/sam/drivers/tc/tc.c **** uint32_t tc_get_version(
+ 757:../../../platform/sam/drivers/tc/tc.c **** 		Tc *p_tc)
+ 758:../../../platform/sam/drivers/tc/tc.c **** {
+ 1175              	 .loc 1 758 0
+ 1176              	 .cfi_startproc
+ 1177              	 
+ 1178              	 
+ 1179              	 
+ 1180 0340 80B4     	 push {r7}
+ 1181              	.LCFI120:
+ 1182              	 .cfi_def_cfa_offset 4
+ 1183              	 .cfi_offset 7,-4
+ 1184 0342 83B0     	 sub sp,sp,#12
+ 1185              	.LCFI121:
+ 1186              	 .cfi_def_cfa_offset 16
+ 1187 0344 00AF     	 add r7,sp,#0
+ 1188              	.LCFI122:
+ 1189              	 .cfi_def_cfa_register 7
+ 1190 0346 7860     	 str r0,[r7,#4]
+ 759:../../../platform/sam/drivers/tc/tc.c **** 	/* Validate inputs. */
+ 760:../../../platform/sam/drivers/tc/tc.c **** 	Assert(p_tc);
+ 761:../../../platform/sam/drivers/tc/tc.c **** 	
+ 762:../../../platform/sam/drivers/tc/tc.c **** 	return p_tc->TC_VERSION;
+ 1191              	 .loc 1 762 0
+ 1192 0348 7B68     	 ldr r3,[r7,#4]
+ 1193 034a D3F8FC30 	 ldr r3,[r3,#252]
+ 763:../../../platform/sam/drivers/tc/tc.c **** }
+ 1194              	 .loc 1 763 0
+ 1195 034e 1846     	 mov r0,r3
+ 1196 0350 0C37     	 adds r7,r7,#12
+ 1197              	.LCFI123:
+ 1198              	 .cfi_def_cfa_offset 4
+ 1199 0352 BD46     	 mov sp,r7
+ 1200              	.LCFI124:
+ 1201              	 .cfi_def_cfa_register 13
+ 1202              	 
+ 1203 0354 80BC     	 pop {r7}
+ 1204              	.LCFI125:
+ 1205              	 .cfi_restore 7
+ 1206              	 .cfi_def_cfa_offset 0
+ 1207 0356 7047     	 bx lr
+ 1208              	 .cfi_endproc
+ 1209              	.LFE142:
+ 1211              	.Letext0:
+ 1212              	 .file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 1213              	 .file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 1214              	 .file 4 "../../../platform/sam/utils/cmsis/sam4l/include/sam4lc4b.h"
+ 1215              	 .file 5 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+ 1216              	 .file 6 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 1217              	 .file 7 "../../../platform/sam/utils/cmsis/sam4l/include/component/component_tc.h"
+ 1218              	 .file 8 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 1219              	 .file 9 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 1220              	 .file 10 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 1221              	 .file 11 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 1222              	 .file 12 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+ 1223              	 .file 13 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 tc.c
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
+    {standard input}:27     .text:00000000 $t
+    {standard input}:34     .text:00000000 tc_init
+    {standard input}:100    .text:00000038 tc_sync_trigger
+    {standard input}:146    .text:00000052 tc_set_block_mode
+    {standard input}:193    .text:0000006e tc_init_2bit_gray
+    {standard input}:247    .text:00000094 tc_start
+    {standard input}:297    .text:000000b4 tc_stop
+    {standard input}:347    .text:000000d4 tc_read_cv
+    {standard input}:397    .text:000000f4 tc_read_ra
+    {standard input}:447    .text:00000114 tc_read_rb
+    {standard input}:497    .text:00000134 tc_read_rc
+    {standard input}:547    .text:00000154 tc_write_ra
+    {standard input}:599    .text:00000178 tc_write_rb
+    {standard input}:651    .text:0000019c tc_write_rc
+    {standard input}:703    .text:000001c0 tc_enable_interrupt
+    {standard input}:757    .text:000001e6 tc_disable_interrupt
+    {standard input}:811    .text:0000020c tc_get_interrupt_mask
+    {standard input}:863    .text:0000022e tc_get_status
+    {standard input}:909    .rodata:00000000 $d
+    {standard input}:924    .text:00000250 tc_find_mck_divisor
+    {standard input}:1053   .text:000002f0 $d
+    {standard input}:1057   .text:000002f4 $t
+    {standard input}:1064   .text:000002f4 tc_set_writeprotect
+    {standard input}:1116   .text:00000320 $d
+    {standard input}:1121   .text:00000328 $t
+    {standard input}:1128   .text:00000328 tc_get_feature
+    {standard input}:1173   .text:00000340 tc_get_version
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

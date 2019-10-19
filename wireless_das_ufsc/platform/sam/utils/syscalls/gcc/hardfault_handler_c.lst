@@ -1,0 +1,319 @@
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "hardfault_handler_c.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .text
+  27              	 .align 1
+  28              	 .global HardFault_Handler_C
+  29              	 .syntax unified
+  30              	 .thumb
+  31              	 .thumb_func
+  32              	 .fpu softvfp
+  34              	HardFault_Handler_C:
+  35              	.LFB126:
+  36              	 .file 1 "../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c"
+   1:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** /**
+   2:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * \file
+   3:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *
+   4:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * Copyright (c) 2012-2013 Atmel Corporation. All rights reserved.
+   5:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *
+   6:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * \asf_license_start
+   7:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *
+   8:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * \page License
+   9:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *
+  10:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * Redistribution and use in source and binary forms, with or without
+  11:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * modification, are permitted provided that the following conditions are met:
+  12:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *
+  13:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  14:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *    this list of conditions and the following disclaimer.
+  15:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *
+  16:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  17:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *    this list of conditions and the following disclaimer in the documentation
+  18:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *    and/or other materials provided with the distribution.
+  19:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *
+  20:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  21:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *    from this software without specific prior written permission.
+  22:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *
+  23:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * 4. This software may only be redistributed and used in connection with an
+  24:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *    Atmel microcontroller product.
+  25:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *
+  26:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  27:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  28:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  29:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  30:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  31:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  32:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  33:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  34:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  35:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  36:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  37:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *
+  38:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  * \asf_license_stop
+  39:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  *
+  40:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c ****  */
+  41:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 
+  42:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** #include <board.h>
+  43:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 
+  44:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** /// @cond 0
+  45:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** /**INDENT-OFF**/
+  46:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** #ifdef __cplusplus
+  47:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** extern "C" {
+  48:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** #endif
+  49:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** /**INDENT-ON**/
+  50:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** /// @endcond
+  51:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 
+  52:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** /*
+  53:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** http://blog.frankvh.com/
+  54:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 
+  55:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** Hard Fault Handler Usage
+  56:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 
+  57:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** The big thing the above handler gives you is the program counter, which is the
+  58:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** address where the processor was executing when the hard fault occurred. You can
+  59:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** then look at your listing file (or map file) to see what function and
+  60:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** instruction that was. Also useful is LR the Link Register, which contains the
+  61:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** return address of the last function call – it can show you where you came from
+  62:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** to get to this point.
+  63:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 
+  64:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** A few tips.
+  65:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 
+  66:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** The typical reason for a hardfault is actually a bus error (which was promoted
+  67:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** to a hard fault), because software tried to access an invalid region of memory.
+  68:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** There are a couple of common ways of doing this.
+  69:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** One is a bad pointer. It might be uninitialized, or not properly bounded (you
+  70:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** ran off the end of an array for example).
+  71:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** Another, more subtle, way of getting a bad pointer is by being sloppy with the
+  72:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** scope of variables. This is quite common with main() but can happen anywhere.
+  73:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** For example, you define a buffer or a structure as a local variable within
+  74:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** main(), but then you access that buffer or structure from some other function
+  75:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** (by passing a pointer to it). This is dangerous – you need to declare the
+  76:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** buffer or structure as “static” if you want to do that. Otherwise the buffer
+  77:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** or structure might be optimized away and not actually exist when that other
+  78:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** function tries to access it. If that structure contained a pointer for example,
+  79:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** that would become a bad pointer.
+  80:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 
+  81:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** Imprecise Bus Fault
+  82:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 
+  83:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** For the Cortex M3, an imprecise bus fault (as indicated by bit 10 in the CFSR
+  84:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** register) means that a write to an invalid address was attempted. If you look
+  85:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** at the program counter, the naughty naughty write is usually present in the 3
+  86:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** or so instructions leading up to the program counter address. Because of the
+  87:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** Cortex M3 write buffer system, the program counter might have advanced slightly
+  88:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** before the actual bus write took place, hence you need to look back slightly to
+  89:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** find the erroneous write.
+  90:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 
+  91:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** */
+  92:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 
+  93:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** #pragma GCC diagnostic push
+  94:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+  95:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 
+  96:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** // From Joseph Yiu, minor edits by FVH
+  97:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** // hard fault handler in C,
+  98:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** // with stack frame location as input parameter
+  99:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** // called from HardFault_Handler in file xxx.s
+ 100:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** void HardFault_Handler_C(unsigned int * hardfault_args)
+ 101:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** {
+  37              	 .loc 1 101 0
+  38              	 .cfi_startproc
+  39              	 
+  40              	 
+  41              	 
+  42 0000 80B4     	 push {r7}
+  43              	.LCFI0:
+  44              	 .cfi_def_cfa_offset 4
+  45              	 .cfi_offset 7,-4
+  46 0002 83B0     	 sub sp,sp,#12
+  47              	.LCFI1:
+  48              	 .cfi_def_cfa_offset 16
+  49 0004 00AF     	 add r7,sp,#0
+  50              	.LCFI2:
+  51              	 .cfi_def_cfa_register 7
+  52 0006 7860     	 str r0,[r7,#4]
+ 102:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	static unsigned int stacked_r0;
+ 103:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	static unsigned int stacked_r1;
+ 104:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	static unsigned int stacked_r2;
+ 105:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	static unsigned int stacked_r3;
+ 106:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	static unsigned int stacked_r12;
+ 107:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	static unsigned int stacked_lr;
+ 108:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	static unsigned int stacked_pc;
+ 109:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	static unsigned int stacked_psr;
+ 110:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	
+ 111:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	stacked_r0 = ((unsigned long) hardfault_args[0]);
+  53              	 .loc 1 111 0
+  54 0008 7B68     	 ldr r3,[r7,#4]
+  55 000a 1B68     	 ldr r3,[r3]
+  56 000c 0F4A     	 ldr r2,.L3
+  57 000e 1360     	 str r3,[r2]
+ 112:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	stacked_r1 = ((unsigned long) hardfault_args[1]);
+  58              	 .loc 1 112 0
+  59 0010 7B68     	 ldr r3,[r7,#4]
+  60 0012 5B68     	 ldr r3,[r3,#4]
+  61 0014 0E4A     	 ldr r2,.L3+4
+  62 0016 1360     	 str r3,[r2]
+ 113:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	stacked_r2 = ((unsigned long) hardfault_args[2]);
+  63              	 .loc 1 113 0
+  64 0018 7B68     	 ldr r3,[r7,#4]
+  65 001a 9B68     	 ldr r3,[r3,#8]
+  66 001c 0D4A     	 ldr r2,.L3+8
+  67 001e 1360     	 str r3,[r2]
+ 114:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	stacked_r3 = ((unsigned long) hardfault_args[3]);
+  68              	 .loc 1 114 0
+  69 0020 7B68     	 ldr r3,[r7,#4]
+  70 0022 DB68     	 ldr r3,[r3,#12]
+  71 0024 0C4A     	 ldr r2,.L3+12
+  72 0026 1360     	 str r3,[r2]
+ 115:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	
+ 116:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	stacked_r12 = ((unsigned long) hardfault_args[4]);
+  73              	 .loc 1 116 0
+  74 0028 7B68     	 ldr r3,[r7,#4]
+  75 002a 1B69     	 ldr r3,[r3,#16]
+  76 002c 0B4A     	 ldr r2,.L3+16
+  77 002e 1360     	 str r3,[r2]
+ 117:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	stacked_lr = ((unsigned long) hardfault_args[5]);
+  78              	 .loc 1 117 0
+  79 0030 7B68     	 ldr r3,[r7,#4]
+  80 0032 5B69     	 ldr r3,[r3,#20]
+  81 0034 0A4A     	 ldr r2,.L3+20
+  82 0036 1360     	 str r3,[r2]
+ 118:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	stacked_pc = ((unsigned long) hardfault_args[6]);
+  83              	 .loc 1 118 0
+  84 0038 7B68     	 ldr r3,[r7,#4]
+  85 003a 9B69     	 ldr r3,[r3,#24]
+  86 003c 094A     	 ldr r2,.L3+24
+  87 003e 1360     	 str r3,[r2]
+ 119:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	stacked_psr = ((unsigned long) hardfault_args[7]);
+  88              	 .loc 1 119 0
+  89 0040 7B68     	 ldr r3,[r7,#4]
+  90 0042 DB69     	 ldr r3,[r3,#28]
+  91 0044 084A     	 ldr r2,.L3+28
+  92 0046 1360     	 str r3,[r2]
+  93              	.L2:
+ 120:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	
+ 121:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("\n\n[Hard fault handler - all numbers in hex]\n");
+ 122:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("R0 = %x\n", stacked_r0);
+ 123:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("R1 = %x\n", stacked_r1);
+ 124:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("R2 = %x\n", stacked_r2);
+ 125:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("R3 = %x\n", stacked_r3);
+ 126:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("R12 = %x\n", stacked_r12);
+ 127:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("LR [R14] = %x  subroutine call return address\n", stacked_lr);
+ 128:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("PC [R15] = %x  program counter\n", stacked_pc);
+ 129:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("PSR = %x\n", stacked_psr);
+ 130:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("BFAR = %x\n", (*((volatile unsigned long *)(0xE000ED38))));
+ 131:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("CFSR = %x\n", (*((volatile unsigned long *)(0xE000ED28))));
+ 132:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("HFSR = %x\n", (*((volatile unsigned long *)(0xE000ED2C))));
+ 133:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("DFSR = %x\n", (*((volatile unsigned long *)(0xE000ED30))));
+ 134:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("AFSR = %x\n", (*((volatile unsigned long *)(0xE000ED3C))));
+ 135:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//printf ("SCB_SHCSR = %x\n", SCB->SHCSR);
+ 136:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	//
+ 137:../../../platform/sam/utils/syscalls/gcc/hardfault_handler_c.c **** 	while(1);
+  94              	 .loc 1 137 0 discriminator 1
+  95 0048 FEE7     	 b .L2
+  96              	.L4:
+  97 004a 00BF     	 .align 2
+  98              	.L3:
+  99 004c 00000000 	 .word stacked_r0.8184
+ 100 0050 00000000 	 .word stacked_r1.8185
+ 101 0054 00000000 	 .word stacked_r2.8186
+ 102 0058 00000000 	 .word stacked_r3.8187
+ 103 005c 00000000 	 .word stacked_r12.8188
+ 104 0060 00000000 	 .word stacked_lr.8189
+ 105 0064 00000000 	 .word stacked_pc.8190
+ 106 0068 00000000 	 .word stacked_psr.8191
+ 107              	 .cfi_endproc
+ 108              	.LFE126:
+ 110              	 .section .bss.stacked_r0.8184,"aw",%nobits
+ 111              	 .align 2
+ 114              	stacked_r0.8184:
+ 115 0000 00000000 	 .space 4
+ 116              	 .section .bss.stacked_r1.8185,"aw",%nobits
+ 117              	 .align 2
+ 120              	stacked_r1.8185:
+ 121 0000 00000000 	 .space 4
+ 122              	 .section .bss.stacked_r2.8186,"aw",%nobits
+ 123              	 .align 2
+ 126              	stacked_r2.8186:
+ 127 0000 00000000 	 .space 4
+ 128              	 .section .bss.stacked_r3.8187,"aw",%nobits
+ 129              	 .align 2
+ 132              	stacked_r3.8187:
+ 133 0000 00000000 	 .space 4
+ 134              	 .section .bss.stacked_r12.8188,"aw",%nobits
+ 135              	 .align 2
+ 138              	stacked_r12.8188:
+ 139 0000 00000000 	 .space 4
+ 140              	 .section .bss.stacked_lr.8189,"aw",%nobits
+ 141              	 .align 2
+ 144              	stacked_lr.8189:
+ 145 0000 00000000 	 .space 4
+ 146              	 .section .bss.stacked_pc.8190,"aw",%nobits
+ 147              	 .align 2
+ 150              	stacked_pc.8190:
+ 151 0000 00000000 	 .space 4
+ 152              	 .section .bss.stacked_psr.8191,"aw",%nobits
+ 153              	 .align 2
+ 156              	stacked_psr.8191:
+ 157 0000 00000000 	 .space 4
+ 158              	 .text
+ 159              	.Letext0:
+ 160              	 .file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 161              	 .file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 162              	 .file 4 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+ 163              	 .file 5 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 164              	 .file 6 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 165              	 .file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 166              	 .file 8 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 167              	 .file 9 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 168              	 .file 10 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+ 169              	 .file 11 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
+ 170              	 .file 12 "../../../platform/sam/utils/compiler.h"
+ 171              	 .file 13 "../../../platform/common/services/usb/usb_protocol.h"
+ 172              	 .file 14 "../../../platform/common/services/usb/udc/udi.h"
+ 173              	 .file 15 "../../../platform/common/services/usb/udc/udc_desc.h"
+ 174              	 .file 16 "../../../platform/common/services/usb/udc/udd.h"
+ 175              	 .file 17 "../../../platform/common/services/usb/class/cdc/device/udi_cdc.h"
+ 176              	 .file 18 "../../../platform/common/utils/stdio/stdio_usb/stdio_usb.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 hardfault_handler_c.c
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
+    {standard input}:27     .text:00000000 $t
+    {standard input}:34     .text:00000000 HardFault_Handler_C
+    {standard input}:99     .text:0000004c $d
+    {standard input}:114    .bss.stacked_r0.8184:00000000 stacked_r0.8184
+    {standard input}:120    .bss.stacked_r1.8185:00000000 stacked_r1.8185
+    {standard input}:126    .bss.stacked_r2.8186:00000000 stacked_r2.8186
+    {standard input}:132    .bss.stacked_r3.8187:00000000 stacked_r3.8187
+    {standard input}:138    .bss.stacked_r12.8188:00000000 stacked_r12.8188
+    {standard input}:144    .bss.stacked_lr.8189:00000000 stacked_lr.8189
+    {standard input}:150    .bss.stacked_pc.8190:00000000 stacked_pc.8190
+    {standard input}:156    .bss.stacked_psr.8191:00000000 stacked_psr.8191
+    {standard input}:111    .bss.stacked_r0.8184:00000000 $d
+    {standard input}:117    .bss.stacked_r1.8185:00000000 $d
+    {standard input}:123    .bss.stacked_r2.8186:00000000 $d
+    {standard input}:129    .bss.stacked_r3.8187:00000000 $d
+    {standard input}:135    .bss.stacked_r12.8188:00000000 $d
+    {standard input}:141    .bss.stacked_lr.8189:00000000 $d
+    {standard input}:147    .bss.stacked_pc.8190:00000000 $d
+    {standard input}:153    .bss.stacked_psr.8191:00000000 $d
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

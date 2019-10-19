@@ -1,0 +1,225 @@
+   1               		.file	"write.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               		.comm	stdio_base,2,1
+  12               		.comm	ptr_put,2,1
+  13               	.global	_write
+  15               	_write:
+  16               	.LFB8:
+  17               		.file 1 "../../../platform/common/utils/stdio/write.c"
+   1:../../../platform/common/utils/stdio/write.c **** /**
+   2:../../../platform/common/utils/stdio/write.c ****  * \file
+   3:../../../platform/common/utils/stdio/write.c ****  *
+   4:../../../platform/common/utils/stdio/write.c ****  * \brief System-specific implementation of the \ref _write function used by
+   5:../../../platform/common/utils/stdio/write.c ****  *         the standard library.
+   6:../../../platform/common/utils/stdio/write.c ****  *
+   7:../../../platform/common/utils/stdio/write.c ****  * Copyright (c) 2009-2013 Atmel Corporation. All rights reserved.
+   8:../../../platform/common/utils/stdio/write.c ****  *
+   9:../../../platform/common/utils/stdio/write.c ****  * \asf_license_start
+  10:../../../platform/common/utils/stdio/write.c ****  *
+  11:../../../platform/common/utils/stdio/write.c ****  * \page License
+  12:../../../platform/common/utils/stdio/write.c ****  *
+  13:../../../platform/common/utils/stdio/write.c ****  * Redistribution and use in source and binary forms, with or without
+  14:../../../platform/common/utils/stdio/write.c ****  * modification, are permitted provided that the following conditions are met:
+  15:../../../platform/common/utils/stdio/write.c ****  *
+  16:../../../platform/common/utils/stdio/write.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  17:../../../platform/common/utils/stdio/write.c ****  *    this list of conditions and the following disclaimer.
+  18:../../../platform/common/utils/stdio/write.c ****  *
+  19:../../../platform/common/utils/stdio/write.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  20:../../../platform/common/utils/stdio/write.c ****  *    this list of conditions and the following disclaimer in the documentation
+  21:../../../platform/common/utils/stdio/write.c ****  *    and/or other materials provided with the distribution.
+  22:../../../platform/common/utils/stdio/write.c ****  *
+  23:../../../platform/common/utils/stdio/write.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  24:../../../platform/common/utils/stdio/write.c ****  *    from this software without specific prior written permission.
+  25:../../../platform/common/utils/stdio/write.c ****  *
+  26:../../../platform/common/utils/stdio/write.c ****  * 4. This software may only be redistributed and used in connection with an
+  27:../../../platform/common/utils/stdio/write.c ****  *    Atmel microcontroller product.
+  28:../../../platform/common/utils/stdio/write.c ****  *
+  29:../../../platform/common/utils/stdio/write.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  30:../../../platform/common/utils/stdio/write.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  31:../../../platform/common/utils/stdio/write.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  32:../../../platform/common/utils/stdio/write.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  33:../../../platform/common/utils/stdio/write.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  34:../../../platform/common/utils/stdio/write.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  35:../../../platform/common/utils/stdio/write.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  36:../../../platform/common/utils/stdio/write.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  37:../../../platform/common/utils/stdio/write.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  38:../../../platform/common/utils/stdio/write.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  39:../../../platform/common/utils/stdio/write.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  40:../../../platform/common/utils/stdio/write.c ****  *
+  41:../../../platform/common/utils/stdio/write.c ****  * \asf_license_stop
+  42:../../../platform/common/utils/stdio/write.c ****  *
+  43:../../../platform/common/utils/stdio/write.c ****  */
+  44:../../../platform/common/utils/stdio/write.c **** 
+  45:../../../platform/common/utils/stdio/write.c **** #include "compiler.h"
+  46:../../../platform/common/utils/stdio/write.c **** 
+  47:../../../platform/common/utils/stdio/write.c **** /**
+  48:../../../platform/common/utils/stdio/write.c ****  * \addtogroup group_common_utils_stdio
+  49:../../../platform/common/utils/stdio/write.c ****  *
+  50:../../../platform/common/utils/stdio/write.c ****  * \{
+  51:../../../platform/common/utils/stdio/write.c ****  */
+  52:../../../platform/common/utils/stdio/write.c **** 
+  53:../../../platform/common/utils/stdio/write.c **** volatile void *volatile stdio_base;
+  54:../../../platform/common/utils/stdio/write.c **** int (*ptr_put)(void volatile*, char);
+  55:../../../platform/common/utils/stdio/write.c **** 
+  56:../../../platform/common/utils/stdio/write.c **** 
+  57:../../../platform/common/utils/stdio/write.c **** #if ( defined(__ICCAVR32__) || defined(__ICCAVR__) || defined(__ICCARM__))
+  58:../../../platform/common/utils/stdio/write.c **** 
+  59:../../../platform/common/utils/stdio/write.c **** #include <yfuns.h>
+  60:../../../platform/common/utils/stdio/write.c **** 
+  61:../../../platform/common/utils/stdio/write.c **** _STD_BEGIN
+  62:../../../platform/common/utils/stdio/write.c **** 
+  63:../../../platform/common/utils/stdio/write.c **** #pragma module_name = "?__write"
+  64:../../../platform/common/utils/stdio/write.c **** 
+  65:../../../platform/common/utils/stdio/write.c **** /*! \brief Writes a number of bytes, at most \a size, from the memory area
+  66:../../../platform/common/utils/stdio/write.c ****  *         pointed to by \a buffer.
+  67:../../../platform/common/utils/stdio/write.c ****  *
+  68:../../../platform/common/utils/stdio/write.c ****  * If \a buffer is zero then \ref __write performs flushing of internal buffers,
+  69:../../../platform/common/utils/stdio/write.c ****  * if any. In this case, \a handle can be \c -1 to indicate that all handles
+  70:../../../platform/common/utils/stdio/write.c ****  * should be flushed.
+  71:../../../platform/common/utils/stdio/write.c ****  *
+  72:../../../platform/common/utils/stdio/write.c ****  * \param handle File handle to write to.
+  73:../../../platform/common/utils/stdio/write.c ****  * \param buffer Pointer to buffer to read bytes to write from.
+  74:../../../platform/common/utils/stdio/write.c ****  * \param size Number of bytes to write.
+  75:../../../platform/common/utils/stdio/write.c ****  *
+  76:../../../platform/common/utils/stdio/write.c ****  * \return The number of bytes written, or \c _LLIO_ERROR on failure.
+  77:../../../platform/common/utils/stdio/write.c ****  */
+  78:../../../platform/common/utils/stdio/write.c **** size_t __write(int handle, const unsigned char *buffer, size_t size)
+  79:../../../platform/common/utils/stdio/write.c **** {
+  80:../../../platform/common/utils/stdio/write.c **** 	size_t nChars = 0;
+  81:../../../platform/common/utils/stdio/write.c **** 
+  82:../../../platform/common/utils/stdio/write.c **** 	if (buffer == 0) {
+  83:../../../platform/common/utils/stdio/write.c **** 		// This means that we should flush internal buffers.
+  84:../../../platform/common/utils/stdio/write.c **** 		return 0;
+  85:../../../platform/common/utils/stdio/write.c **** 	}
+  86:../../../platform/common/utils/stdio/write.c **** 
+  87:../../../platform/common/utils/stdio/write.c **** 	// This implementation only writes to stdout and stderr.
+  88:../../../platform/common/utils/stdio/write.c **** 	// For all other file handles, it returns failure.
+  89:../../../platform/common/utils/stdio/write.c **** 	if (handle != _LLIO_STDOUT && handle != _LLIO_STDERR) {
+  90:../../../platform/common/utils/stdio/write.c **** 		return _LLIO_ERROR;
+  91:../../../platform/common/utils/stdio/write.c **** 	}
+  92:../../../platform/common/utils/stdio/write.c **** 
+  93:../../../platform/common/utils/stdio/write.c **** 	for (; size != 0; --size) {
+  94:../../../platform/common/utils/stdio/write.c **** 		if (ptr_put(stdio_base, *buffer++) < 0) {
+  95:../../../platform/common/utils/stdio/write.c **** 			return _LLIO_ERROR;
+  96:../../../platform/common/utils/stdio/write.c **** 		}
+  97:../../../platform/common/utils/stdio/write.c **** 		++nChars;
+  98:../../../platform/common/utils/stdio/write.c **** 	}
+  99:../../../platform/common/utils/stdio/write.c **** 	return nChars;
+ 100:../../../platform/common/utils/stdio/write.c **** }
+ 101:../../../platform/common/utils/stdio/write.c **** 
+ 102:../../../platform/common/utils/stdio/write.c **** _STD_END
+ 103:../../../platform/common/utils/stdio/write.c **** 
+ 104:../../../platform/common/utils/stdio/write.c **** 
+ 105:../../../platform/common/utils/stdio/write.c **** #elif (defined(__GNUC__) && !XMEGA && !MEGA)
+ 106:../../../platform/common/utils/stdio/write.c **** 
+ 107:../../../platform/common/utils/stdio/write.c **** int __attribute__((weak))
+ 108:../../../platform/common/utils/stdio/write.c **** _write (int file, const char *ptr, int len);
+ 109:../../../platform/common/utils/stdio/write.c **** 
+ 110:../../../platform/common/utils/stdio/write.c **** int __attribute__((weak))
+ 111:../../../platform/common/utils/stdio/write.c **** _write (int file, const char *ptr, int len)
+ 112:../../../platform/common/utils/stdio/write.c **** {
+ 113:../../../platform/common/utils/stdio/write.c **** 	int nChars = 0;
+ 114:../../../platform/common/utils/stdio/write.c **** 
+ 115:../../../platform/common/utils/stdio/write.c **** 	if ((file != 1) && (file != 2) && (file!=3)) {
+ 116:../../../platform/common/utils/stdio/write.c **** 		return -1;
+ 117:../../../platform/common/utils/stdio/write.c **** 	}
+ 118:../../../platform/common/utils/stdio/write.c **** 
+ 119:../../../platform/common/utils/stdio/write.c **** 	for (; len != 0; --len) {
+ 120:../../../platform/common/utils/stdio/write.c **** 		if (ptr_put(stdio_base, *ptr++) < 0) {
+ 121:../../../platform/common/utils/stdio/write.c **** 			return -1;
+ 122:../../../platform/common/utils/stdio/write.c **** 		}
+ 123:../../../platform/common/utils/stdio/write.c **** 		++nChars;
+ 124:../../../platform/common/utils/stdio/write.c **** 	}
+ 125:../../../platform/common/utils/stdio/write.c **** 	return nChars;
+ 126:../../../platform/common/utils/stdio/write.c **** }
+ 127:../../../platform/common/utils/stdio/write.c **** 
+ 128:../../../platform/common/utils/stdio/write.c **** #elif (defined(__GNUC__) && (XMEGA || MEGA))
+ 129:../../../platform/common/utils/stdio/write.c **** 
+ 130:../../../platform/common/utils/stdio/write.c **** int _write (char c, int *f);
+ 131:../../../platform/common/utils/stdio/write.c **** 
+ 132:../../../platform/common/utils/stdio/write.c **** int _write (char c, int *f)
+ 133:../../../platform/common/utils/stdio/write.c **** {
+  18               		.loc 1 133 0
+  19               		.cfi_startproc
+  20 0000 CF93      		push r28
+  21               	.LCFI0:
+  22               		.cfi_def_cfa_offset 3
+  23               		.cfi_offset 28, -2
+  24 0002 DF93      		push r29
+  25               	.LCFI1:
+  26               		.cfi_def_cfa_offset 4
+  27               		.cfi_offset 29, -3
+  28 0004 00D0      		rcall .
+  29 0006 1F92      		push __zero_reg__
+  30               	.LCFI2:
+  31               		.cfi_def_cfa_offset 7
+  32 0008 CDB7      		in r28,__SP_L__
+  33 000a DEB7      		in r29,__SP_H__
+  34               	.LCFI3:
+  35               		.cfi_def_cfa_register 28
+  36               	/* prologue: function */
+  37               	/* frame size = 3 */
+  38               	/* stack size = 5 */
+  39               	.L__stack_usage = 5
+  40 000c 8983      		std Y+1,r24
+  41 000e 7B83      		std Y+3,r23
+  42 0010 6A83      		std Y+2,r22
+ 134:../../../platform/common/utils/stdio/write.c **** 	(void) f;
+ 135:../../../platform/common/utils/stdio/write.c **** 
+ 136:../../../platform/common/utils/stdio/write.c **** 	if (ptr_put(stdio_base, c) < 0) {
+  43               		.loc 1 136 0
+  44 0012 2091 0000 		lds r18,ptr_put
+  45 0016 3091 0000 		lds r19,ptr_put+1
+  46 001a 8091 0000 		lds r24,stdio_base
+  47 001e 9091 0000 		lds r25,stdio_base+1
+  48 0022 6981      		ldd r22,Y+1
+  49 0024 F901      		movw r30,r18
+  50 0026 0995      		icall
+  51 0028 9923      		tst r25
+  52 002a 04F4      		brge .L2
+ 137:../../../platform/common/utils/stdio/write.c **** 		return -1;
+  53               		.loc 1 137 0
+  54 002c 8FEF      		ldi r24,lo8(-1)
+  55 002e 9FEF      		ldi r25,lo8(-1)
+  56 0030 00C0      		rjmp .L3
+  57               	.L2:
+ 138:../../../platform/common/utils/stdio/write.c **** 	}
+ 139:../../../platform/common/utils/stdio/write.c **** 	return 1;
+  58               		.loc 1 139 0
+  59 0032 81E0      		ldi r24,lo8(1)
+  60 0034 90E0      		ldi r25,0
+  61               	.L3:
+  62               	/* epilogue start */
+ 140:../../../platform/common/utils/stdio/write.c **** }
+  63               		.loc 1 140 0
+  64 0036 0F90      		pop __tmp_reg__
+  65 0038 0F90      		pop __tmp_reg__
+  66 003a 0F90      		pop __tmp_reg__
+  67 003c DF91      		pop r29
+  68 003e CF91      		pop r28
+  69 0040 0895      		ret
+  70               		.cfi_endproc
+  71               	.LFE8:
+  73               	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 write.c
+C:\Users\guilh\AppData\Local\Temp\cceDvYC5.s:2      *ABS*:0000003e __SP_H__
+C:\Users\guilh\AppData\Local\Temp\cceDvYC5.s:3      *ABS*:0000003d __SP_L__
+C:\Users\guilh\AppData\Local\Temp\cceDvYC5.s:4      *ABS*:0000003f __SREG__
+C:\Users\guilh\AppData\Local\Temp\cceDvYC5.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\guilh\AppData\Local\Temp\cceDvYC5.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\guilh\AppData\Local\Temp\cceDvYC5.s:7      *ABS*:00000001 __zero_reg__
+                            *COM*:00000002 stdio_base
+                            *COM*:00000002 ptr_put
+C:\Users\guilh\AppData\Local\Temp\cceDvYC5.s:15     .text:00000000 _write
+
+UNDEFINED SYMBOLS
+__do_clear_bss

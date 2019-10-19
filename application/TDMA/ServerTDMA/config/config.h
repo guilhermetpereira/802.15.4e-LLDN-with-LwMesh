@@ -76,6 +76,21 @@
 #define TDMA_FIRST_SLOT										(3125)							// Symbols
 #define TDMA_BATTERY_EXTENSION								1
 
+
+// Values of table 3e 802.15.4e-2012
+#define p_var	6.0	// octets
+#define m	3		// octets
+#define n	(124)	// octets, Max Message size(127) - GeneralHeader size (3) 
+#define sp  2		// symbols per octet
+#define sm  2		// symbols per octet
+#define v_var (62500)	// symbols per second
+#define macMinSIFSPeriod	 (12) // symbols
+#define macMinLIFSPeriod	 (40) // 40 symbols
+#define aMaxSIFSFrameSize	 (18) // 18 symbols
+
+#define numMgmtTs_Disc_Conf  2  // discovery and configuration states has 2 TimeSlots in Managment (one uplink, one downlink)
+
+
 #define HAL_ENABLE_USB										0
 #define HAL_ENABLE_UART										1
 #define HAL_UART_CHANNEL									0

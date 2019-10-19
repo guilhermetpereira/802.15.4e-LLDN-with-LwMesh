@@ -1,0 +1,798 @@
+   1               		.file	"nwk.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               		.comm	nwkIb,40,1
+  12               	.global	NWK_Init
+  14               	NWK_Init:
+  15               	.LFB66:
+  16               		.file 1 "../../../stack/LwMesh/TDMA/nwk/src/nwk.c"
+   1:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /**
+   2:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * \file nwk.c
+   3:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
+   4:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * \brief Network layer management functions implementation
+   5:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
+   6:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * Copyright (C) 2014 Atmel Corporation. All rights reserved.
+   7:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
+   8:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * \asf_license_start
+   9:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
+  10:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * Redistribution and use in source and binary forms, with or without
+  11:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * modification, are permitted provided that the following conditions are met:
+  12:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
+  13:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  14:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *    this list of conditions and the following disclaimer.
+  15:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
+  16:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  17:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *    this list of conditions and the following disclaimer in the documentation
+  18:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *    and/or other materials provided with the distribution.
+  19:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
+  20:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  21:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *    from this software without specific prior written permission.
+  22:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
+  23:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * 4. This software may only be redistributed and used in connection with an
+  24:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *    Atmel microcontroller product.
+  25:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
+  26:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  27:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  28:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  29:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  30:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  31:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  32:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  33:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  34:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  35:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  36:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  37:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
+  38:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * \asf_license_stop
+  39:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
+  40:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
+  41:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  */
+  42:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+  43:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*
+  44:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * Copyright (c) 2014, Atmel Corporation All rights reserved.
+  45:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
+  46:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * Licensed under Atmel's Limited License Agreement --> EULA.txt
+  47:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  */
+  48:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+  49:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*- Includes ---------------------------------------------------------------*/
+  50:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #include <stdlib.h>
+  51:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #include <stdint.h>
+  52:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #include <stdbool.h>
+  53:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #include <string.h>
+  54:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #include "phy.h"
+  55:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #include "sysConfig.h"
+  56:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #include "nwkRx.h"
+  57:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #include "nwkTx.h"
+  58:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #include "nwkGroup.h"
+  59:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #include "nwkFrame.h"
+  60:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #include "nwkRoute.h"
+  61:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #include "nwkSecurity.h"
+  62:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #include "nwkRouteDiscovery.h"
+  63:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+  64:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*- Variables --------------------------------------------------------------*/
+  65:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** NwkIb_t nwkIb;
+  66:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+  67:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*- Implementations --------------------------------------------------------*/
+  68:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+  69:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
+  70:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Initializes all network layer modules
+  71:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
+  72:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_Init(void)
+  73:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
+  17               		.loc 1 73 0
+  18               		.cfi_startproc
+  19 0000 CF93      		push r28
+  20               	.LCFI0:
+  21               		.cfi_def_cfa_offset 3
+  22               		.cfi_offset 28, -2
+  23 0002 DF93      		push r29
+  24               	.LCFI1:
+  25               		.cfi_def_cfa_offset 4
+  26               		.cfi_offset 29, -3
+  27 0004 1F92      		push __zero_reg__
+  28               	.LCFI2:
+  29               		.cfi_def_cfa_offset 5
+  30 0006 CDB7      		in r28,__SP_L__
+  31 0008 DEB7      		in r29,__SP_H__
+  32               	.LCFI3:
+  33               		.cfi_def_cfa_register 28
+  34               	/* prologue: function */
+  35               	/* frame size = 1 */
+  36               	/* stack size = 3 */
+  37               	.L__stack_usage = 3
+  74:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.nwkSeqNum = 0;
+  38               		.loc 1 74 0
+  39 000a 1092 0000 		sts nwkIb+4,__zero_reg__
+  75:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.macSeqNum = 0;
+  40               		.loc 1 75 0
+  41 000e 1092 0000 		sts nwkIb+5,__zero_reg__
+  76:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.addr = 0;
+  42               		.loc 1 76 0
+  43 0012 1092 0000 		sts nwkIb+1,__zero_reg__
+  44 0016 1092 0000 		sts nwkIb,__zero_reg__
+  77:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.lock = 0;
+  45               		.loc 1 77 0
+  46 001a 1092 0000 		sts nwkIb+38+1,__zero_reg__
+  47 001e 1092 0000 		sts nwkIb+38,__zero_reg__
+  48               	.LBB2:
+  78:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+  79:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	for (uint8_t i = 0; i < NWK_ENDPOINTS_AMOUNT; i++) {
+  49               		.loc 1 79 0
+  50 0022 1982      		std Y+1,__zero_reg__
+  51 0024 00C0      		rjmp .L2
+  52               	.L3:
+  80:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		nwkIb.endpoint[i] = NULL;
+  53               		.loc 1 80 0 discriminator 3
+  54 0026 8981      		ldd r24,Y+1
+  55 0028 882F      		mov r24,r24
+  56 002a 90E0      		ldi r25,0
+  57 002c 0396      		adiw r24,3
+  58 002e 880F      		lsl r24
+  59 0030 991F      		rol r25
+  60 0032 8050      		subi r24,lo8(-(nwkIb))
+  61 0034 9040      		sbci r25,hi8(-(nwkIb))
+  62 0036 FC01      		movw r30,r24
+  63 0038 1182      		std Z+1,__zero_reg__
+  64 003a 1082      		st Z,__zero_reg__
+  79:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		nwkIb.endpoint[i] = NULL;
+  65               		.loc 1 79 0 discriminator 3
+  66 003c 8981      		ldd r24,Y+1
+  67 003e 8F5F      		subi r24,lo8(-(1))
+  68 0040 8983      		std Y+1,r24
+  69               	.L2:
+  79:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		nwkIb.endpoint[i] = NULL;
+  70               		.loc 1 79 0 is_stmt 0 discriminator 1
+  71 0042 8981      		ldd r24,Y+1
+  72 0044 8031      		cpi r24,lo8(16)
+  73 0046 00F0      		brlo .L3
+  74               	.LBE2:
+  81:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	}
+  82:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+  83:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkTxInit();
+  75               		.loc 1 83 0 is_stmt 1
+  76 0048 0E94 0000 		call nwkTxInit
+  84:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkRxInit();
+  77               		.loc 1 84 0
+  78 004c 0E94 0000 		call nwkRxInit
+  85:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkFrameInit();
+  79               		.loc 1 85 0
+  80 0050 0E94 0000 		call nwkFrameInit
+  86:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkDataReqInit();
+  81               		.loc 1 86 0
+  82 0054 0E94 0000 		call nwkDataReqInit
+  87:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+  88:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #ifdef NWK_ENABLE_ROUTING
+  89:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkRouteInit();
+  90:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #endif
+  91:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+  92:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #ifdef NWK_ENABLE_SECURITY
+  93:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkSecurityInit();
+  94:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #endif
+  95:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+  96:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #ifdef NWK_ENABLE_MULTICAST
+  97:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkGroupInit();
+  98:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #endif
+  99:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 100:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #ifdef NWK_ENABLE_ROUTE_DISCOVERY
+ 101:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkRouteDiscoveryInit();
+ 102:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #endif
+ 103:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
+  83               		.loc 1 103 0
+  84 0058 0000      		nop
+  85               	/* epilogue start */
+  86 005a 0F90      		pop __tmp_reg__
+  87 005c DF91      		pop r29
+  88 005e CF91      		pop r28
+  89 0060 0895      		ret
+  90               		.cfi_endproc
+  91               	.LFE66:
+  93               	.global	NWK_SetAddr
+  95               	NWK_SetAddr:
+  96               	.LFB67:
+ 104:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 105:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
+ 106:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Sets network address of the node
+ 107:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @param[in] addr Adddress to set
+ 108:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
+ 109:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_SetAddr(uint16_t addr)
+ 110:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
+  97               		.loc 1 110 0
+  98               		.cfi_startproc
+  99 0062 CF93      		push r28
+ 100               	.LCFI4:
+ 101               		.cfi_def_cfa_offset 3
+ 102               		.cfi_offset 28, -2
+ 103 0064 DF93      		push r29
+ 104               	.LCFI5:
+ 105               		.cfi_def_cfa_offset 4
+ 106               		.cfi_offset 29, -3
+ 107 0066 00D0      		rcall .
+ 108               	.LCFI6:
+ 109               		.cfi_def_cfa_offset 6
+ 110 0068 CDB7      		in r28,__SP_L__
+ 111 006a DEB7      		in r29,__SP_H__
+ 112               	.LCFI7:
+ 113               		.cfi_def_cfa_register 28
+ 114               	/* prologue: function */
+ 115               	/* frame size = 2 */
+ 116               	/* stack size = 4 */
+ 117               	.L__stack_usage = 4
+ 118 006c 9A83      		std Y+2,r25
+ 119 006e 8983      		std Y+1,r24
+ 111:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.addr = addr;
+ 120               		.loc 1 111 0
+ 121 0070 8981      		ldd r24,Y+1
+ 122 0072 9A81      		ldd r25,Y+2
+ 123 0074 9093 0000 		sts nwkIb+1,r25
+ 124 0078 8093 0000 		sts nwkIb,r24
+ 112:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	PHY_SetShortAddr(addr);
+ 125               		.loc 1 112 0
+ 126 007c 8981      		ldd r24,Y+1
+ 127 007e 9A81      		ldd r25,Y+2
+ 128 0080 0E94 0000 		call PHY_SetShortAddr
+ 113:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
+ 129               		.loc 1 113 0
+ 130 0084 0000      		nop
+ 131               	/* epilogue start */
+ 132 0086 0F90      		pop __tmp_reg__
+ 133 0088 0F90      		pop __tmp_reg__
+ 134 008a DF91      		pop r29
+ 135 008c CF91      		pop r28
+ 136 008e 0895      		ret
+ 137               		.cfi_endproc
+ 138               	.LFE67:
+ 140               	.global	NWK_SetPanId
+ 142               	NWK_SetPanId:
+ 143               	.LFB68:
+ 114:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 115:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
+ 116:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Sets network identifier (PAN) of the node
+ 117:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @param[in] panId PAN ID to set
+ 118:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
+ 119:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_SetPanId(uint16_t panId)
+ 120:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
+ 144               		.loc 1 120 0
+ 145               		.cfi_startproc
+ 146 0090 CF93      		push r28
+ 147               	.LCFI8:
+ 148               		.cfi_def_cfa_offset 3
+ 149               		.cfi_offset 28, -2
+ 150 0092 DF93      		push r29
+ 151               	.LCFI9:
+ 152               		.cfi_def_cfa_offset 4
+ 153               		.cfi_offset 29, -3
+ 154 0094 00D0      		rcall .
+ 155               	.LCFI10:
+ 156               		.cfi_def_cfa_offset 6
+ 157 0096 CDB7      		in r28,__SP_L__
+ 158 0098 DEB7      		in r29,__SP_H__
+ 159               	.LCFI11:
+ 160               		.cfi_def_cfa_register 28
+ 161               	/* prologue: function */
+ 162               	/* frame size = 2 */
+ 163               	/* stack size = 4 */
+ 164               	.L__stack_usage = 4
+ 165 009a 9A83      		std Y+2,r25
+ 166 009c 8983      		std Y+1,r24
+ 121:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.panId = panId;
+ 167               		.loc 1 121 0
+ 168 009e 8981      		ldd r24,Y+1
+ 169 00a0 9A81      		ldd r25,Y+2
+ 170 00a2 9093 0000 		sts nwkIb+2+1,r25
+ 171 00a6 8093 0000 		sts nwkIb+2,r24
+ 122:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	PHY_SetPanId(panId);
+ 172               		.loc 1 122 0
+ 173 00aa 8981      		ldd r24,Y+1
+ 174 00ac 9A81      		ldd r25,Y+2
+ 175 00ae 0E94 0000 		call PHY_SetPanId
+ 123:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
+ 176               		.loc 1 123 0
+ 177 00b2 0000      		nop
+ 178               	/* epilogue start */
+ 179 00b4 0F90      		pop __tmp_reg__
+ 180 00b6 0F90      		pop __tmp_reg__
+ 181 00b8 DF91      		pop r29
+ 182 00ba CF91      		pop r28
+ 183 00bc 0895      		ret
+ 184               		.cfi_endproc
+ 185               	.LFE68:
+ 187               	.global	NWK_OpenEndpoint
+ 189               	NWK_OpenEndpoint:
+ 190               	.LFB69:
+ 124:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 125:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
+ 126:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Registers callback @a ind for the endpoint @a endpoint
+ 127:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @param[in] id Endpoint index (1-15)
+ 128:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @param[in] handler Pointer to the callback function
+ 129:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
+ 130:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_OpenEndpoint(uint8_t id, bool (*handler)(NWK_DataInd_t *ind))
+ 131:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
+ 191               		.loc 1 131 0
+ 192               		.cfi_startproc
+ 193 00be CF93      		push r28
+ 194               	.LCFI12:
+ 195               		.cfi_def_cfa_offset 3
+ 196               		.cfi_offset 28, -2
+ 197 00c0 DF93      		push r29
+ 198               	.LCFI13:
+ 199               		.cfi_def_cfa_offset 4
+ 200               		.cfi_offset 29, -3
+ 201 00c2 00D0      		rcall .
+ 202 00c4 1F92      		push __zero_reg__
+ 203               	.LCFI14:
+ 204               		.cfi_def_cfa_offset 7
+ 205 00c6 CDB7      		in r28,__SP_L__
+ 206 00c8 DEB7      		in r29,__SP_H__
+ 207               	.LCFI15:
+ 208               		.cfi_def_cfa_register 28
+ 209               	/* prologue: function */
+ 210               	/* frame size = 3 */
+ 211               	/* stack size = 5 */
+ 212               	.L__stack_usage = 5
+ 213 00ca 8983      		std Y+1,r24
+ 214 00cc 7B83      		std Y+3,r23
+ 215 00ce 6A83      		std Y+2,r22
+ 132:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.endpoint[id] = handler;
+ 216               		.loc 1 132 0
+ 217 00d0 8981      		ldd r24,Y+1
+ 218 00d2 882F      		mov r24,r24
+ 219 00d4 90E0      		ldi r25,0
+ 220 00d6 0396      		adiw r24,3
+ 221 00d8 880F      		lsl r24
+ 222 00da 991F      		rol r25
+ 223 00dc 8050      		subi r24,lo8(-(nwkIb))
+ 224 00de 9040      		sbci r25,hi8(-(nwkIb))
+ 225 00e0 2A81      		ldd r18,Y+2
+ 226 00e2 3B81      		ldd r19,Y+3
+ 227 00e4 FC01      		movw r30,r24
+ 228 00e6 3183      		std Z+1,r19
+ 229 00e8 2083      		st Z,r18
+ 133:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
+ 230               		.loc 1 133 0
+ 231 00ea 0000      		nop
+ 232               	/* epilogue start */
+ 233 00ec 0F90      		pop __tmp_reg__
+ 234 00ee 0F90      		pop __tmp_reg__
+ 235 00f0 0F90      		pop __tmp_reg__
+ 236 00f2 DF91      		pop r29
+ 237 00f4 CF91      		pop r28
+ 238 00f6 0895      		ret
+ 239               		.cfi_endproc
+ 240               	.LFE69:
+ 242               	.global	NWK_Busy
+ 244               	NWK_Busy:
+ 245               	.LFB70:
+ 134:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 135:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
+ 136:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Checks if network layer is ready for sleep
+ 137:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @return @c true if network layer is ready for sleep or @c false otherwise
+ 138:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
+ 139:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** bool NWK_Busy(void)
+ 140:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
+ 246               		.loc 1 140 0
+ 247               		.cfi_startproc
+ 248 00f8 CF93      		push r28
+ 249               	.LCFI16:
+ 250               		.cfi_def_cfa_offset 3
+ 251               		.cfi_offset 28, -2
+ 252 00fa DF93      		push r29
+ 253               	.LCFI17:
+ 254               		.cfi_def_cfa_offset 4
+ 255               		.cfi_offset 29, -3
+ 256 00fc CDB7      		in r28,__SP_L__
+ 257 00fe DEB7      		in r29,__SP_H__
+ 258               	.LCFI18:
+ 259               		.cfi_def_cfa_register 28
+ 260               	/* prologue: function */
+ 261               	/* frame size = 0 */
+ 262               	/* stack size = 2 */
+ 263               	.L__stack_usage = 2
+ 141:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	return nwkIb.lock > 0;
+ 264               		.loc 1 141 0
+ 265 0100 8091 0000 		lds r24,nwkIb+38
+ 266 0104 9091 0000 		lds r25,nwkIb+38+1
+ 267 0108 21E0      		ldi r18,lo8(1)
+ 268 010a 892B      		or r24,r25
+ 269 010c 01F4      		brne .L9
+ 270 010e 20E0      		ldi r18,0
+ 271               	.L9:
+ 272               		.loc 1 141 0 is_stmt 0 discriminator 1
+ 273 0110 822F      		mov r24,r18
+ 274               	/* epilogue start */
+ 142:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
+ 275               		.loc 1 142 0 is_stmt 1 discriminator 1
+ 276 0112 DF91      		pop r29
+ 277 0114 CF91      		pop r28
+ 278 0116 0895      		ret
+ 279               		.cfi_endproc
+ 280               	.LFE70:
+ 282               	.global	NWK_Lock
+ 284               	NWK_Lock:
+ 285               	.LFB71:
+ 143:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 144:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
+ 145:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Increases the lock counter and sets a busy state
+ 146:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
+ 147:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_Lock(void)
+ 148:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
+ 286               		.loc 1 148 0
+ 287               		.cfi_startproc
+ 288 0118 CF93      		push r28
+ 289               	.LCFI19:
+ 290               		.cfi_def_cfa_offset 3
+ 291               		.cfi_offset 28, -2
+ 292 011a DF93      		push r29
+ 293               	.LCFI20:
+ 294               		.cfi_def_cfa_offset 4
+ 295               		.cfi_offset 29, -3
+ 296 011c CDB7      		in r28,__SP_L__
+ 297 011e DEB7      		in r29,__SP_H__
+ 298               	.LCFI21:
+ 299               		.cfi_def_cfa_register 28
+ 300               	/* prologue: function */
+ 301               	/* frame size = 0 */
+ 302               	/* stack size = 2 */
+ 303               	.L__stack_usage = 2
+ 149:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.lock++;
+ 304               		.loc 1 149 0
+ 305 0120 8091 0000 		lds r24,nwkIb+38
+ 306 0124 9091 0000 		lds r25,nwkIb+38+1
+ 307 0128 0196      		adiw r24,1
+ 308 012a 9093 0000 		sts nwkIb+38+1,r25
+ 309 012e 8093 0000 		sts nwkIb+38,r24
+ 150:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
+ 310               		.loc 1 150 0
+ 311 0132 0000      		nop
+ 312               	/* epilogue start */
+ 313 0134 DF91      		pop r29
+ 314 0136 CF91      		pop r28
+ 315 0138 0895      		ret
+ 316               		.cfi_endproc
+ 317               	.LFE71:
+ 319               	.global	NWK_Unlock
+ 321               	NWK_Unlock:
+ 322               	.LFB72:
+ 151:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 152:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
+ 153:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Decreases the lock counter and sets a free state if counter reaches 0
+ 154:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
+ 155:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_Unlock(void)
+ 156:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
+ 323               		.loc 1 156 0
+ 324               		.cfi_startproc
+ 325 013a CF93      		push r28
+ 326               	.LCFI22:
+ 327               		.cfi_def_cfa_offset 3
+ 328               		.cfi_offset 28, -2
+ 329 013c DF93      		push r29
+ 330               	.LCFI23:
+ 331               		.cfi_def_cfa_offset 4
+ 332               		.cfi_offset 29, -3
+ 333 013e CDB7      		in r28,__SP_L__
+ 334 0140 DEB7      		in r29,__SP_H__
+ 335               	.LCFI24:
+ 336               		.cfi_def_cfa_register 28
+ 337               	/* prologue: function */
+ 338               	/* frame size = 0 */
+ 339               	/* stack size = 2 */
+ 340               	.L__stack_usage = 2
+ 157:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.lock--;
+ 341               		.loc 1 157 0
+ 342 0142 8091 0000 		lds r24,nwkIb+38
+ 343 0146 9091 0000 		lds r25,nwkIb+38+1
+ 344 014a 0197      		sbiw r24,1
+ 345 014c 9093 0000 		sts nwkIb+38+1,r25
+ 346 0150 8093 0000 		sts nwkIb+38,r24
+ 158:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
+ 347               		.loc 1 158 0
+ 348 0154 0000      		nop
+ 349               	/* epilogue start */
+ 350 0156 DF91      		pop r29
+ 351 0158 CF91      		pop r28
+ 352 015a 0895      		ret
+ 353               		.cfi_endproc
+ 354               	.LFE72:
+ 356               	.global	NWK_SleepReq
+ 358               	NWK_SleepReq:
+ 359               	.LFB73:
+ 159:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 160:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
+ 161:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Puts network layer to a sleeping state
+ 162:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
+ 163:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_SleepReq(void)
+ 164:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
+ 360               		.loc 1 164 0
+ 361               		.cfi_startproc
+ 362 015c CF93      		push r28
+ 363               	.LCFI25:
+ 364               		.cfi_def_cfa_offset 3
+ 365               		.cfi_offset 28, -2
+ 366 015e DF93      		push r29
+ 367               	.LCFI26:
+ 368               		.cfi_def_cfa_offset 4
+ 369               		.cfi_offset 29, -3
+ 370 0160 CDB7      		in r28,__SP_L__
+ 371 0162 DEB7      		in r29,__SP_H__
+ 372               	.LCFI27:
+ 373               		.cfi_def_cfa_register 28
+ 374               	/* prologue: function */
+ 375               	/* frame size = 0 */
+ 376               	/* stack size = 2 */
+ 377               	.L__stack_usage = 2
+ 165:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	PHY_Sleep();
+ 378               		.loc 1 165 0
+ 379 0164 0E94 0000 		call PHY_Sleep
+ 166:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
+ 380               		.loc 1 166 0
+ 381 0168 0000      		nop
+ 382               	/* epilogue start */
+ 383 016a DF91      		pop r29
+ 384 016c CF91      		pop r28
+ 385 016e 0895      		ret
+ 386               		.cfi_endproc
+ 387               	.LFE73:
+ 389               	.global	NWK_WakeupReq
+ 391               	NWK_WakeupReq:
+ 392               	.LFB74:
+ 167:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 168:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
+ 169:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Puts network layer to an active state
+ 170:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
+ 171:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_WakeupReq(void)
+ 172:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
+ 393               		.loc 1 172 0
+ 394               		.cfi_startproc
+ 395 0170 CF93      		push r28
+ 396               	.LCFI28:
+ 397               		.cfi_def_cfa_offset 3
+ 398               		.cfi_offset 28, -2
+ 399 0172 DF93      		push r29
+ 400               	.LCFI29:
+ 401               		.cfi_def_cfa_offset 4
+ 402               		.cfi_offset 29, -3
+ 403 0174 CDB7      		in r28,__SP_L__
+ 404 0176 DEB7      		in r29,__SP_H__
+ 405               	.LCFI30:
+ 406               		.cfi_def_cfa_register 28
+ 407               	/* prologue: function */
+ 408               	/* frame size = 0 */
+ 409               	/* stack size = 2 */
+ 410               	.L__stack_usage = 2
+ 173:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	PHY_Wakeup();
+ 411               		.loc 1 173 0
+ 412 0178 0E94 0000 		call PHY_Wakeup
+ 174:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
+ 413               		.loc 1 174 0
+ 414 017c 0000      		nop
+ 415               	/* epilogue start */
+ 416 017e DF91      		pop r29
+ 417 0180 CF91      		pop r28
+ 418 0182 0895      		ret
+ 419               		.cfi_endproc
+ 420               	.LFE74:
+ 422               		.section	.rodata
+ 423               	.LC0:
+ 424 0000 03        		.byte	3
+ 425 0001 08        		.byte	8
+ 426 0002 1A        		.byte	26
+ 427 0003 40        		.byte	64
+ 428 0004 80        		.byte	-128
+ 429 0005 BE        		.byte	-66
+ 430 0006 E6        		.byte	-26
+ 431 0007 F7        		.byte	-9
+ 432 0008 FC        		.byte	-4
+ 433               		.text
+ 434               	.global	NWK_LinearizeLqi
+ 436               	NWK_LinearizeLqi:
+ 437               	.LFB75:
+ 175:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 176:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
+ 177:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Calculates linearized value for the given value of the LQI
+ 178:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @param[in] lqi LQI value as provided by the transceiver
+ 179:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @return linearized value directly proportional to the probability of delivery
+ 180:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
+ 181:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** uint8_t NWK_LinearizeLqi(uint8_t lqi)
+ 182:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
+ 438               		.loc 1 182 0
+ 439               		.cfi_startproc
+ 440 0184 CF93      		push r28
+ 441               	.LCFI31:
+ 442               		.cfi_def_cfa_offset 3
+ 443               		.cfi_offset 28, -2
+ 444 0186 DF93      		push r29
+ 445               	.LCFI32:
+ 446               		.cfi_def_cfa_offset 4
+ 447               		.cfi_offset 29, -3
+ 448 0188 CDB7      		in r28,__SP_L__
+ 449 018a DEB7      		in r29,__SP_H__
+ 450               	.LCFI33:
+ 451               		.cfi_def_cfa_register 28
+ 452 018c 2C97      		sbiw r28,12
+ 453               	.LCFI34:
+ 454               		.cfi_def_cfa_offset 16
+ 455 018e 0FB6      		in __tmp_reg__,__SREG__
+ 456 0190 F894      		cli
+ 457 0192 DEBF      		out __SP_H__,r29
+ 458 0194 0FBE      		out __SREG__,__tmp_reg__
+ 459 0196 CDBF      		out __SP_L__,r28
+ 460               	/* prologue: function */
+ 461               	/* frame size = 12 */
+ 462               	/* stack size = 14 */
+ 463               	.L__stack_usage = 14
+ 464 0198 8C87      		std Y+12,r24
+ 183:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	const uint8_t val[] = { 3, 8, 26, 64, 128, 190, 230, 247, 252 };
+ 465               		.loc 1 183 0
+ 466 019a 89E0      		ldi r24,lo8(9)
+ 467 019c E0E0      		ldi r30,lo8(.LC0)
+ 468 019e F0E0      		ldi r31,hi8(.LC0)
+ 469 01a0 DE01      		movw r26,r28
+ 470 01a2 1396      		adiw r26,3
+ 471               		0:
+ 472 01a4 0190      		ld r0,Z+
+ 473 01a6 0D92      		st X+,r0
+ 474 01a8 8A95      		dec r24
+ 475 01aa 01F4      		brne 0b
+ 184:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	uint8_t cl = 25;
+ 476               		.loc 1 184 0
+ 477 01ac 89E1      		ldi r24,lo8(25)
+ 478 01ae 8983      		std Y+1,r24
+ 479               	.LBB3:
+ 185:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 186:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	for (uint8_t i = 0; i < sizeof(val); i++) {
+ 480               		.loc 1 186 0
+ 481 01b0 1A82      		std Y+2,__zero_reg__
+ 482 01b2 00C0      		rjmp .L15
+ 483               	.L18:
+ 187:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		if (lqi < cl) {
+ 484               		.loc 1 187 0
+ 485 01b4 9C85      		ldd r25,Y+12
+ 486 01b6 8981      		ldd r24,Y+1
+ 487 01b8 9817      		cp r25,r24
+ 488 01ba 00F4      		brsh .L16
+ 188:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 			return val[i];
+ 489               		.loc 1 188 0
+ 490 01bc 8A81      		ldd r24,Y+2
+ 491 01be 882F      		mov r24,r24
+ 492 01c0 90E0      		ldi r25,0
+ 493 01c2 9E01      		movw r18,r28
+ 494 01c4 2D5F      		subi r18,-3
+ 495 01c6 3F4F      		sbci r19,-1
+ 496 01c8 820F      		add r24,r18
+ 497 01ca 931F      		adc r25,r19
+ 498 01cc FC01      		movw r30,r24
+ 499 01ce 8081      		ld r24,Z
+ 500 01d0 00C0      		rjmp .L19
+ 501               	.L16:
+ 189:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		}
+ 190:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 191:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		cl += 25;
+ 502               		.loc 1 191 0 discriminator 2
+ 503 01d2 8981      		ldd r24,Y+1
+ 504 01d4 875E      		subi r24,lo8(-(25))
+ 505 01d6 8983      		std Y+1,r24
+ 186:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		if (lqi < cl) {
+ 506               		.loc 1 186 0 discriminator 2
+ 507 01d8 8A81      		ldd r24,Y+2
+ 508 01da 8F5F      		subi r24,lo8(-(1))
+ 509 01dc 8A83      		std Y+2,r24
+ 510               	.L15:
+ 186:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		if (lqi < cl) {
+ 511               		.loc 1 186 0 is_stmt 0 discriminator 1
+ 512 01de 8A81      		ldd r24,Y+2
+ 513 01e0 8930      		cpi r24,lo8(9)
+ 514 01e2 00F0      		brlo .L18
+ 515               	.LBE3:
+ 192:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	}
+ 193:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 194:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	return 255;
+ 516               		.loc 1 194 0 is_stmt 1
+ 517 01e4 8FEF      		ldi r24,lo8(-1)
+ 518               	.L19:
+ 519               	/* epilogue start */
+ 195:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
+ 520               		.loc 1 195 0 discriminator 1
+ 521 01e6 2C96      		adiw r28,12
+ 522 01e8 0FB6      		in __tmp_reg__,__SREG__
+ 523 01ea F894      		cli
+ 524 01ec DEBF      		out __SP_H__,r29
+ 525 01ee 0FBE      		out __SREG__,__tmp_reg__
+ 526 01f0 CDBF      		out __SP_L__,r28
+ 527 01f2 DF91      		pop r29
+ 528 01f4 CF91      		pop r28
+ 529 01f6 0895      		ret
+ 530               		.cfi_endproc
+ 531               	.LFE75:
+ 533               	.global	NWK_TaskHandler
+ 535               	NWK_TaskHandler:
+ 536               	.LFB76:
+ 196:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
+ 197:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
+ 198:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Network layer task handler
+ 199:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
+ 200:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_TaskHandler(void)
+ 201:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
+ 537               		.loc 1 201 0
+ 538               		.cfi_startproc
+ 539 01f8 CF93      		push r28
+ 540               	.LCFI35:
+ 541               		.cfi_def_cfa_offset 3
+ 542               		.cfi_offset 28, -2
+ 543 01fa DF93      		push r29
+ 544               	.LCFI36:
+ 545               		.cfi_def_cfa_offset 4
+ 546               		.cfi_offset 29, -3
+ 547 01fc CDB7      		in r28,__SP_L__
+ 548 01fe DEB7      		in r29,__SP_H__
+ 549               	.LCFI37:
+ 550               		.cfi_def_cfa_register 28
+ 551               	/* prologue: function */
+ 552               	/* frame size = 0 */
+ 553               	/* stack size = 2 */
+ 554               	.L__stack_usage = 2
+ 202:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkRxTaskHandler();
+ 555               		.loc 1 202 0
+ 556 0200 0E94 0000 		call nwkRxTaskHandler
+ 203:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkTxTaskHandler();
+ 557               		.loc 1 203 0
+ 558 0204 0E94 0000 		call nwkTxTaskHandler
+ 204:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkDataReqTaskHandler();
+ 559               		.loc 1 204 0
+ 560 0208 0E94 0000 		call nwkDataReqTaskHandler
+ 205:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #ifdef NWK_ENABLE_SECURITY
+ 206:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkSecurityTaskHandler();
+ 207:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #endif
+ 208:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
+ 561               		.loc 1 208 0
+ 562 020c 0000      		nop
+ 563               	/* epilogue start */
+ 564 020e DF91      		pop r29
+ 565 0210 CF91      		pop r28
+ 566 0212 0895      		ret
+ 567               		.cfi_endproc
+ 568               	.LFE76:
+ 570               	.Letext0:
+ 571               		.file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 572               		.file 3 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
+ 573               		.file 4 "../../../stack/LwMesh/TDMA/nwk/inc/nwk.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 nwk.c
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:2      *ABS*:0000003e __SP_H__
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:3      *ABS*:0000003d __SP_L__
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:4      *ABS*:0000003f __SREG__
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:7      *ABS*:00000001 __zero_reg__
+                            *COM*:00000028 nwkIb
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:14     .text:00000000 NWK_Init
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:95     .text:00000062 NWK_SetAddr
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:142    .text:00000090 NWK_SetPanId
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:189    .text:000000be NWK_OpenEndpoint
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:244    .text:000000f8 NWK_Busy
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:284    .text:00000118 NWK_Lock
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:321    .text:0000013a NWK_Unlock
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:358    .text:0000015c NWK_SleepReq
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:391    .text:00000170 NWK_WakeupReq
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:436    .text:00000184 NWK_LinearizeLqi
+C:\Users\guilh\AppData\Local\Temp\ccv5W3At.s:535    .text:000001f8 NWK_TaskHandler
+
+UNDEFINED SYMBOLS
+nwkTxInit
+nwkRxInit
+nwkFrameInit
+nwkDataReqInit
+PHY_SetShortAddr
+PHY_SetPanId
+PHY_Sleep
+PHY_Wakeup
+nwkRxTaskHandler
+nwkTxTaskHandler
+nwkDataReqTaskHandler
+__do_copy_data
+__do_clear_bss

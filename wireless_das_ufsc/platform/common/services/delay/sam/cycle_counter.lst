@@ -1,0 +1,125 @@
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "cycle_counter.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .section .ramfunc,"ax",%progbits
+  27              	 .align 1
+  28              	 .global portable_delay_cycles
+  29              	 .syntax unified
+  30              	 .thumb
+  31              	 .thumb_func
+  32              	 .fpu softvfp
+  34              	portable_delay_cycles:
+  35              	.LFB122:
+  36              	 .file 1 "../../../platform/common/services/delay/sam/cycle_counter.c"
+   1:../../../platform/common/services/delay/sam/cycle_counter.c **** /**
+   2:../../../platform/common/services/delay/sam/cycle_counter.c ****  * \file
+   3:../../../platform/common/services/delay/sam/cycle_counter.c ****  *
+   4:../../../platform/common/services/delay/sam/cycle_counter.c ****  * \brief ARM functions for busy-wait delay loops
+   5:../../../platform/common/services/delay/sam/cycle_counter.c ****  *
+   6:../../../platform/common/services/delay/sam/cycle_counter.c ****  * Copyright (c) 2012-2013 Atmel Corporation. All rights reserved.
+   7:../../../platform/common/services/delay/sam/cycle_counter.c ****  *
+   8:../../../platform/common/services/delay/sam/cycle_counter.c ****  * \asf_license_start
+   9:../../../platform/common/services/delay/sam/cycle_counter.c ****  *
+  10:../../../platform/common/services/delay/sam/cycle_counter.c ****  * \page License
+  11:../../../platform/common/services/delay/sam/cycle_counter.c ****  *
+  12:../../../platform/common/services/delay/sam/cycle_counter.c ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/common/services/delay/sam/cycle_counter.c ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/common/services/delay/sam/cycle_counter.c ****  *
+  15:../../../platform/common/services/delay/sam/cycle_counter.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/common/services/delay/sam/cycle_counter.c ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/common/services/delay/sam/cycle_counter.c ****  *
+  18:../../../platform/common/services/delay/sam/cycle_counter.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/common/services/delay/sam/cycle_counter.c ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/common/services/delay/sam/cycle_counter.c ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/common/services/delay/sam/cycle_counter.c ****  *
+  22:../../../platform/common/services/delay/sam/cycle_counter.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/common/services/delay/sam/cycle_counter.c ****  *    from this software without specific prior written permission.
+  24:../../../platform/common/services/delay/sam/cycle_counter.c ****  *
+  25:../../../platform/common/services/delay/sam/cycle_counter.c ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/common/services/delay/sam/cycle_counter.c ****  *    Atmel microcontroller product.
+  27:../../../platform/common/services/delay/sam/cycle_counter.c ****  *
+  28:../../../platform/common/services/delay/sam/cycle_counter.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/common/services/delay/sam/cycle_counter.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/common/services/delay/sam/cycle_counter.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/common/services/delay/sam/cycle_counter.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/common/services/delay/sam/cycle_counter.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/common/services/delay/sam/cycle_counter.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/common/services/delay/sam/cycle_counter.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/common/services/delay/sam/cycle_counter.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/common/services/delay/sam/cycle_counter.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/common/services/delay/sam/cycle_counter.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/common/services/delay/sam/cycle_counter.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/common/services/delay/sam/cycle_counter.c ****  *
+  40:../../../platform/common/services/delay/sam/cycle_counter.c ****  * \asf_license_stop
+  41:../../../platform/common/services/delay/sam/cycle_counter.c ****  *
+  42:../../../platform/common/services/delay/sam/cycle_counter.c ****  */
+  43:../../../platform/common/services/delay/sam/cycle_counter.c **** 
+  44:../../../platform/common/services/delay/sam/cycle_counter.c **** #include "cycle_counter.h"
+  45:../../../platform/common/services/delay/sam/cycle_counter.c **** 
+  46:../../../platform/common/services/delay/sam/cycle_counter.c **** // Delay loop is put to SRAM so that FWS will not affect delay time
+  47:../../../platform/common/services/delay/sam/cycle_counter.c **** OPTIMIZE_HIGH
+  48:../../../platform/common/services/delay/sam/cycle_counter.c **** RAMFUNC
+  49:../../../platform/common/services/delay/sam/cycle_counter.c **** void portable_delay_cycles(unsigned long n)
+  50:../../../platform/common/services/delay/sam/cycle_counter.c **** {
+  37              	 .loc 1 50 0
+  38              	 .cfi_startproc
+  39              	 
+  40              	 
+  41              	 
+  51:../../../platform/common/services/delay/sam/cycle_counter.c **** 	UNUSED(n);
+  52:../../../platform/common/services/delay/sam/cycle_counter.c **** 
+  53:../../../platform/common/services/delay/sam/cycle_counter.c **** 	__asm (
+  42              	 .loc 1 53 0
+  43              	 .syntax unified
+  44              	
+  45 0000 BFF35F8F 	 loop:DMB 
+  46 0004 0138     	SUBS R0,R0,#1
+  47 0006 FBD1     	BNE.N loop
+  48              	
+  49              	 .thumb
+  50              	 .syntax unified
+  51 0008 7047     	 bx lr
+  52              	 .cfi_endproc
+  53              	.LFE122:
+  55              	 .text
+  56              	.Letext0:
+  57              	 .file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+  58              	 .file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+  59              	 .file 4 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+  60              	 .file 5 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+  61              	 .file 6 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+  62              	 .file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+  63              	 .file 8 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+  64              	 .file 9 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+  65              	 .file 10 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+  66              	 .file 11 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 cycle_counter.c
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
+    {standard input}:27     .ramfunc:00000000 $t
+    {standard input}:34     .ramfunc:00000000 portable_delay_cycles
+    {standard input}:45     .ramfunc:00000000 loop
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS
