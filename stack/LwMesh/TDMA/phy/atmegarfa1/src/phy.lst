@@ -1,0 +1,2671 @@
+   1               		.file	"phy.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  12               	sysclk_enable_peripheral_clock:
+  13               	.LFB69:
+  14               		.file 1 "../../../platform/common/services/clock/mega/sysclk.h"
+   1:../../../platform/common/services/clock/mega/sysclk.h **** /**
+   2:../../../platform/common/services/clock/mega/sysclk.h ****  * \file
+   3:../../../platform/common/services/clock/mega/sysclk.h ****  *
+   4:../../../platform/common/services/clock/mega/sysclk.h ****  * \brief Chip-specific system clock management functions
+   5:../../../platform/common/services/clock/mega/sysclk.h ****  *
+   6:../../../platform/common/services/clock/mega/sysclk.h ****  * Copyright (c) 2012 Atmel Corporation. All rights reserved.
+   7:../../../platform/common/services/clock/mega/sysclk.h ****  *
+   8:../../../platform/common/services/clock/mega/sysclk.h ****  * \asf_license_start
+   9:../../../platform/common/services/clock/mega/sysclk.h ****  *
+  10:../../../platform/common/services/clock/mega/sysclk.h ****  * \page License
+  11:../../../platform/common/services/clock/mega/sysclk.h ****  *
+  12:../../../platform/common/services/clock/mega/sysclk.h ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/common/services/clock/mega/sysclk.h ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/common/services/clock/mega/sysclk.h ****  *
+  15:../../../platform/common/services/clock/mega/sysclk.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/common/services/clock/mega/sysclk.h ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/common/services/clock/mega/sysclk.h ****  *
+  18:../../../platform/common/services/clock/mega/sysclk.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/common/services/clock/mega/sysclk.h ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/common/services/clock/mega/sysclk.h ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/common/services/clock/mega/sysclk.h ****  *
+  22:../../../platform/common/services/clock/mega/sysclk.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/common/services/clock/mega/sysclk.h ****  *    from this software without specific prior written permission.
+  24:../../../platform/common/services/clock/mega/sysclk.h ****  *
+  25:../../../platform/common/services/clock/mega/sysclk.h ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/common/services/clock/mega/sysclk.h ****  *    Atmel microcontroller product.
+  27:../../../platform/common/services/clock/mega/sysclk.h ****  *
+  28:../../../platform/common/services/clock/mega/sysclk.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/common/services/clock/mega/sysclk.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/common/services/clock/mega/sysclk.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/common/services/clock/mega/sysclk.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/common/services/clock/mega/sysclk.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/common/services/clock/mega/sysclk.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/common/services/clock/mega/sysclk.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/common/services/clock/mega/sysclk.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/common/services/clock/mega/sysclk.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/common/services/clock/mega/sysclk.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/common/services/clock/mega/sysclk.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/common/services/clock/mega/sysclk.h ****  *
+  40:../../../platform/common/services/clock/mega/sysclk.h ****  * \asf_license_stop
+  41:../../../platform/common/services/clock/mega/sysclk.h ****  *
+  42:../../../platform/common/services/clock/mega/sysclk.h ****  */
+  43:../../../platform/common/services/clock/mega/sysclk.h **** #ifndef MEGA_SYSCLK_H_INCLUDED
+  44:../../../platform/common/services/clock/mega/sysclk.h **** #define MEGA_SYSCLK_H_INCLUDED
+  45:../../../platform/common/services/clock/mega/sysclk.h **** 
+  46:../../../platform/common/services/clock/mega/sysclk.h **** #include <board.h>
+  47:../../../platform/common/services/clock/mega/sysclk.h **** #include <compiler.h>
+  48:../../../platform/common/services/clock/mega/sysclk.h **** #include <parts.h>
+  49:../../../platform/common/services/clock/mega/sysclk.h **** 
+  50:../../../platform/common/services/clock/mega/sysclk.h **** /* Include clock configuration for the project. */
+  51:../../../platform/common/services/clock/mega/sysclk.h **** #include <conf_clock.h>
+  52:../../../platform/common/services/clock/mega/sysclk.h **** 
+  53:../../../platform/common/services/clock/mega/sysclk.h **** #ifdef __cplusplus
+  54:../../../platform/common/services/clock/mega/sysclk.h **** extern "C" {
+  55:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+  56:../../../platform/common/services/clock/mega/sysclk.h **** #define ASM __asm__
+  57:../../../platform/common/services/clock/mega/sysclk.h **** 
+  58:../../../platform/common/services/clock/mega/sysclk.h **** /* CONFIG_SYSCLK_PSDIV  to use default if not defined*/
+  59:../../../platform/common/services/clock/mega/sysclk.h **** #ifndef CONFIG_SYSCLK_PSDIV
+  60:../../../platform/common/services/clock/mega/sysclk.h **** # define CONFIG_SYSCLK_PSDIV    SYSCLK_PSDIV_8
+  61:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+  62:../../../platform/common/services/clock/mega/sysclk.h **** 
+  63:../../../platform/common/services/clock/mega/sysclk.h **** /* ! \name Prescaler Setting (relative to CLKsys) */
+  64:../../../platform/common/services/clock/mega/sysclk.h **** /* @{ */
+  65:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_1      0   /* !< Do not prescale */
+  66:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_2      1   /* !< Prescale CLKper4 by 2 */
+  67:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_4      2   /* !< Prescale CLKper4 by 4 */
+  68:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_8      3   /* !< Prescale CLKper4 by 8 */
+  69:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_16     4   /* !< Prescale CLKper4 by 16 */
+  70:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_32     5   /* !< Prescale CLKper4 by 32 */
+  71:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_64     6   /* !< Prescale CLKper4 by 64 */
+  72:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_128    7   /* !< Prescale CLKper4 by 128 */
+  73:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_256    8   /* !< Prescale CLKper4 by 256 */
+  74:../../../platform/common/services/clock/mega/sysclk.h **** 
+  75:../../../platform/common/services/clock/mega/sysclk.h **** /* @} */
+  76:../../../platform/common/services/clock/mega/sysclk.h **** 
+  77:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF || MEGA_XX0_1 || MEGA_XX4 || MEGA_XX4_A
+  78:../../../platform/common/services/clock/mega/sysclk.h **** 
+  79:../../../platform/common/services/clock/mega/sysclk.h **** #define NUMBER_OF_POWER_REG       2
+  80:../../../platform/common/services/clock/mega/sysclk.h **** /*Starting Address for power reduction*/
+  81:../../../platform/common/services/clock/mega/sysclk.h **** #define POWER_REG_ADD             PRR0
+  82:../../../platform/common/services/clock/mega/sysclk.h **** 
+  83:../../../platform/common/services/clock/mega/sysclk.h **** /* ! \name Power Reduction  Clock Port Numbers */
+  84:../../../platform/common/services/clock/mega/sysclk.h **** enum power_red_id {
+  85:../../../platform/common/services/clock/mega/sysclk.h **** 	POWER_RED_REG0,     /* !< Devices on PRR0 */
+  86:../../../platform/common/services/clock/mega/sysclk.h **** #if !MEGA_XX4 || !MEGA_XX4_A || MEGA_XX0_1
+  87:../../../platform/common/services/clock/mega/sysclk.h **** 	POWER_RED_REG1,     /* !< Devices on PRR1 */
+  88:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+  89:../../../platform/common/services/clock/mega/sysclk.h **** };
+  90:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+  91:../../../platform/common/services/clock/mega/sysclk.h **** 
+  92:../../../platform/common/services/clock/mega/sysclk.h **** /****************************************************
+  93:../../../platform/common/services/clock/mega/sysclk.h ****  * Given a dummy type but not used for these groups
+  94:../../../platform/common/services/clock/mega/sysclk.h ****  * to support for otherthen megaRF device.
+  95:../../../platform/common/services/clock/mega/sysclk.h ****  **************************************************/
+  96:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_XX8 || MEGA_XX8_A || MEGA_UNSPECIFIED
+  97:../../../platform/common/services/clock/mega/sysclk.h **** #define NUMBER_OF_POWER_REG       1
+  98:../../../platform/common/services/clock/mega/sysclk.h **** /*Starting Address for power reduction*/
+  99:../../../platform/common/services/clock/mega/sysclk.h **** #define POWER_REG_ADD             PRR
+ 100:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 101:../../../platform/common/services/clock/mega/sysclk.h **** /* ! \name Power Reduction  Clock Port Numbers */
+ 102:../../../platform/common/services/clock/mega/sysclk.h **** enum power_red_id {
+ 103:../../../platform/common/services/clock/mega/sysclk.h **** 	POWER_RED_REG0,     /* !< Devices on PRR */
+ 104:../../../platform/common/services/clock/mega/sysclk.h **** };
+ 105:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 106:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 107:../../../platform/common/services/clock/mega/sysclk.h **** /* Bit mask for the power reduction register based on */
+ 108:../../../platform/common/services/clock/mega/sysclk.h **** /*   MCU ARCH.                                        */
+ 109:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF
+ 110:../../../platform/common/services/clock/mega/sysclk.h **** /*Bit mask for PRR2 */
+ 111:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 112:../../../platform/common/services/clock/mega/sysclk.h **** #define PRRAM0_bm                       1 << PRRAM0
+ 113:../../../platform/common/services/clock/mega/sysclk.h **** #define PRRAM1_bm                       1 << PRRAM1
+ 114:../../../platform/common/services/clock/mega/sysclk.h **** #define PRRAM2_bm                       1 << PRRAM2
+ 115:../../../platform/common/services/clock/mega/sysclk.h **** #define PRRAM3_bm                       1 << PRRAM3
+ 116:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 117:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 118:../../../platform/common/services/clock/mega/sysclk.h **** /*Bit mask for the power reduction 0 or PRR*/
+ 119:../../../platform/common/services/clock/mega/sysclk.h **** #if !MEGA_XX_UN0 && !MEGA_XX_UN0
+ 120:../../../platform/common/services/clock/mega/sysclk.h **** #define PRADC_bm                        1 << PRADC
+ 121:../../../platform/common/services/clock/mega/sysclk.h **** #define PRUSART0_bm                     1 << PRUSART0
+ 122:../../../platform/common/services/clock/mega/sysclk.h **** #define PRSPI_bm                        1 << PRSPI
+ 123:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM1_bm                       1 << PRTIM1
+ 124:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 125:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 126:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF
+ 127:../../../platform/common/services/clock/mega/sysclk.h **** #define PRPGA_bm                        1 << PRPGA
+ 128:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 129:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 130:../../../platform/common/services/clock/mega/sysclk.h **** #if !MEGA_UNSPECIFIED
+ 131:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM0_bm                       1 << PRTIM0
+ 132:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM2_bm                       1 << PRTIM2
+ 133:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTWI_bm                        1 << PRTWI
+ 134:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 135:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 136:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_XX_UN2
+ 137:../../../platform/common/services/clock/mega/sysclk.h **** #define PRLCD_bm                        1 << PRLCD
+ 138:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 139:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 140:../../../platform/common/services/clock/mega/sysclk.h **** /*Bit mask for  PRR1  */
+ 141:../../../platform/common/services/clock/mega/sysclk.h **** #ifdef PRR1
+ 142:../../../platform/common/services/clock/mega/sysclk.h **** #if (MEGA_XX4 || MEGA_XX4_A)
+ 143:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM3_bm                       1 << PRTIM3
+ 144:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 145:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 146:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 147:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF || MEGA_XX4 || MEGA_XX4_A
+ 148:../../../platform/common/services/clock/mega/sysclk.h **** #define PRUSART1_bm                     1 << PRUSART1
+ 149:../../../platform/common/services/clock/mega/sysclk.h **** #define PRUSART2_bm                     1 << PRUSART2
+ 150:../../../platform/common/services/clock/mega/sysclk.h **** #define PRUSART3_bm                     1 << PRUSART3
+ 151:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM3_bm                       1 << PRTIM3
+ 152:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM4_bm                       1 << PRTIM4
+ 153:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM5_bm                       1 << PRTIM5
+ 154:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 155:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 156:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF
+ 157:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTRX24_bm                      1 << PRTRX24
+ 158:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 159:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 160:../../../platform/common/services/clock/mega/sysclk.h **** /**
+ 161:../../../platform/common/services/clock/mega/sysclk.h ****  * \name Querying the system clock and its derived clocks
+ 162:../../../platform/common/services/clock/mega/sysclk.h ****  */
+ 163:../../../platform/common/services/clock/mega/sysclk.h **** /* @{ */
+ 164:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 165:../../../platform/common/services/clock/mega/sysclk.h **** /**
+ 166:../../../platform/common/services/clock/mega/sysclk.h ****  * \brief Return the current rate in Hz of the main system clock
+ 167:../../../platform/common/services/clock/mega/sysclk.h ****  * To know the clock value at what frequency the main clock is running
+ 168:../../../platform/common/services/clock/mega/sysclk.h ****  * \return Frequency of the main system clock, in Hz.
+ 169:../../../platform/common/services/clock/mega/sysclk.h ****  * \todo : please initialize the SYSCLK_SOURCE in conf_clock.h file for
+ 170:../../../platform/common/services/clock/mega/sysclk.h ****  * configured source clock using fuses.
+ 171:../../../platform/common/services/clock/mega/sysclk.h ****  * \eg. #define SYSCLK_SOURCE SYSCLK_SRC_RC16MHZ to use internal RC
+ 172:../../../platform/common/services/clock/mega/sysclk.h ****  * oscillator for clock source.
+ 173:../../../platform/common/services/clock/mega/sysclk.h ****  */
+ 174:../../../platform/common/services/clock/mega/sysclk.h **** static inline uint32_t sysclk_get_main_hz(void)
+ 175:../../../platform/common/services/clock/mega/sysclk.h **** {
+ 176:../../../platform/common/services/clock/mega/sysclk.h **** 	switch (SYSCLK_SOURCE) {
+ 177:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_SRC_RC16MHZ:
+ 178:../../../platform/common/services/clock/mega/sysclk.h **** 		return 16000000UL;
+ 179:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 180:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_SRC_RC128KHZ:
+ 181:../../../platform/common/services/clock/mega/sysclk.h **** 		return 128000UL;
+ 182:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 183:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF
+ 184:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_SRC_TRS16MHZ:
+ 185:../../../platform/common/services/clock/mega/sysclk.h **** 		return 16000000UL;
+ 186:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 187:../../../platform/common/services/clock/mega/sysclk.h **** #ifdef BOARD_EXTERNAL_CLK
+ 188:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_SRC_EXTERNAL:
+ 189:../../../platform/common/services/clock/mega/sysclk.h **** 		return BOARD_EXTERNAL_CLK;
+ 190:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 191:../../../platform/common/services/clock/mega/sysclk.h **** 	default:
+ 192:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 193:../../../platform/common/services/clock/mega/sysclk.h **** 		return 1000000UL;
+ 194:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+ 195:../../../platform/common/services/clock/mega/sysclk.h **** }
+ 196:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 197:../../../platform/common/services/clock/mega/sysclk.h **** /**
+ 198:../../../platform/common/services/clock/mega/sysclk.h ****  * \brief Return the current rate in Hz of source clock in Hz.
+ 199:../../../platform/common/services/clock/mega/sysclk.h ****  *
+ 200:../../../platform/common/services/clock/mega/sysclk.h ****  * This clock always runs at the same rate as the CPU clock unless the divider
+ 201:../../../platform/common/services/clock/mega/sysclk.h ****  * is set.
+ 202:../../../platform/common/services/clock/mega/sysclk.h ****  *
+ 203:../../../platform/common/services/clock/mega/sysclk.h ****  * \return Frequency of the system clock, in Hz.
+ 204:../../../platform/common/services/clock/mega/sysclk.h ****  */
+ 205:../../../platform/common/services/clock/mega/sysclk.h **** static inline uint32_t sysclk_get_source_clock_hz(void)
+ 206:../../../platform/common/services/clock/mega/sysclk.h **** {
+ 207:../../../platform/common/services/clock/mega/sysclk.h **** 	switch (CONFIG_SYSCLK_PSDIV) {
+ 208:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_1: /* Fall through */
+ 209:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 210:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 211:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 2;
+ 212:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
+ 213:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz();
+ 214:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 215:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 216:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_2:
+ 217:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 218:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 219:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 4;
+ 220:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
+ 221:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 2;
+ 222:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 223:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 224:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_4:
+ 225:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 226:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 227:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 8;
+ 228:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
+ 229:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 4;
+ 230:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 231:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 232:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_8:
+ 233:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 234:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 235:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 16;
+ 236:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
+ 237:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 8;
+ 238:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 239:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 240:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_16:
+ 241:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 242:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 243:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 32;
+ 244:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
+ 245:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 16;
+ 246:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 247:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 248:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_32:
+ 249:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 250:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 251:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 64;
+ 252:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
+ 253:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 32;
+ 254:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 255:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 256:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_64:
+ 257:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 258:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 259:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 128;
+ 260:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
+ 261:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 64;
+ 262:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 263:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 264:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_128:
+ 265:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 266:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 267:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 256;
+ 268:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
+ 269:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 128;
+ 270:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 271:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 272:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_256:
+ 273:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 274:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 275:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 512;
+ 276:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
+ 277:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 256;
+ 278:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 279:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 280:../../../platform/common/services/clock/mega/sysclk.h **** 	default:
+ 281:../../../platform/common/services/clock/mega/sysclk.h **** 		/*Invalide case*/
+ 282:../../../platform/common/services/clock/mega/sysclk.h **** 		return 0;
+ 283:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+ 284:../../../platform/common/services/clock/mega/sysclk.h **** }
+ 285:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 286:../../../platform/common/services/clock/mega/sysclk.h **** /**
+ 287:../../../platform/common/services/clock/mega/sysclk.h ****  * \brief Return the current rate in Hz of the CPU clock.
+ 288:../../../platform/common/services/clock/mega/sysclk.h ****  *
+ 289:../../../platform/common/services/clock/mega/sysclk.h ****  * \return Frequency of the CPU clock, in Hz.
+ 290:../../../platform/common/services/clock/mega/sysclk.h ****  */
+ 291:../../../platform/common/services/clock/mega/sysclk.h **** static inline uint32_t sysclk_get_cpu_hz(void)
+ 292:../../../platform/common/services/clock/mega/sysclk.h **** {
+ 293:../../../platform/common/services/clock/mega/sysclk.h **** 	return sysclk_get_source_clock_hz();
+ 294:../../../platform/common/services/clock/mega/sysclk.h **** }
+ 295:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 296:../../../platform/common/services/clock/mega/sysclk.h **** /**
+ 297:../../../platform/common/services/clock/mega/sysclk.h ****  * \brief Return the current rate in Hz of the clock from internal oscillator
+ 298:../../../platform/common/services/clock/mega/sysclk.h ****  * \return Frequency of the CPU clock, in Hz.
+ 299:../../../platform/common/services/clock/mega/sysclk.h ****  */
+ 300:../../../platform/common/services/clock/mega/sysclk.h **** static inline uint32_t sysclk_get_rc_osc_hz(void)
+ 301:../../../platform/common/services/clock/mega/sysclk.h **** {
+ 302:../../../platform/common/services/clock/mega/sysclk.h **** 	switch (CONFIG_SYSCLK_PSDIV) {
+ 303:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_1:
+ 304:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 305:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 306:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 2;
+ 307:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 308:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 309:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_2:
+ 310:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 311:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 312:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 4;
+ 313:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 314:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 315:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_4:
+ 316:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 317:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 318:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 8;
+ 319:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 320:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 321:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_8:
+ 322:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 323:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 324:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 16;
+ 325:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 326:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 327:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_16:
+ 328:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 329:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 330:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 32;
+ 331:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 332:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 333:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_32:
+ 334:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 335:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 336:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 64;
+ 337:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 338:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 339:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_64:
+ 340:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 341:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 342:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 128;
+ 343:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 344:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 345:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_128:
+ 346:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 347:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 348:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 256;
+ 349:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 350:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 351:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_256:
+ 352:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
+ 353:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
+ 354:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 512;
+ 355:../../../platform/common/services/clock/mega/sysclk.h **** 		}
+ 356:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 357:../../../platform/common/services/clock/mega/sysclk.h **** 	default:
+ 358:../../../platform/common/services/clock/mega/sysclk.h **** 		return 0;
+ 359:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+ 360:../../../platform/common/services/clock/mega/sysclk.h **** }
+ 361:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 362:../../../platform/common/services/clock/mega/sysclk.h **** /* ! \name Enabling and disabling synchronous clocks */
+ 363:../../../platform/common/services/clock/mega/sysclk.h **** /* @{ */
+ 364:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 365:../../../platform/common/services/clock/mega/sysclk.h **** /**
+ 366:../../../platform/common/services/clock/mega/sysclk.h ****  * \brief Enable the clock to peripheral \a id on port \a port
+ 367:../../../platform/common/services/clock/mega/sysclk.h ****  *
+ 368:../../../platform/common/services/clock/mega/sysclk.h ****  * \param port ID of the port to which the module is connected (one of
+ 369:../../../platform/common/services/clock/mega/sysclk.h ****  * the \c power_red_id *definitions).
+ 370:../../../platform/common/services/clock/mega/sysclk.h ****  * \param id The ID (bitmask) of the peripheral module to be disabled.*
+ 371:../../../platform/common/services/clock/mega/sysclk.h ****  */
+ 372:../../../platform/common/services/clock/mega/sysclk.h **** extern void sysclk_enable_module(enum power_red_id port, uint8_t id);
+ 373:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 374:../../../platform/common/services/clock/mega/sysclk.h **** /**
+ 375:../../../platform/common/services/clock/mega/sysclk.h ****  * \brief Disable the clock to peripheral \a id on port \a port
+ 376:../../../platform/common/services/clock/mega/sysclk.h ****  *
+ 377:../../../platform/common/services/clock/mega/sysclk.h ****  * \param port ID of the port to which the module is connected (one of
+ 378:../../../platform/common/services/clock/mega/sysclk.h ****  * the \c power_red_id *definitions).
+ 379:../../../platform/common/services/clock/mega/sysclk.h ****  * \param id The ID (bit mask) of the peripheral module to be disabled.
+ 380:../../../platform/common/services/clock/mega/sysclk.h ****  */
+ 381:../../../platform/common/services/clock/mega/sysclk.h **** extern void sysclk_disable_module(enum power_red_id port, uint8_t id);
+ 382:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 383:../../../platform/common/services/clock/mega/sysclk.h **** /**
+ 384:../../../platform/common/services/clock/mega/sysclk.h ****  * \brief Enable a peripherals clock from its base address.
+ 385:../../../platform/common/services/clock/mega/sysclk.h ****  *
+ 386:../../../platform/common/services/clock/mega/sysclk.h ****  *  Enables the clock to a peripheral, given its base address. If the peripheral
+ 387:../../../platform/common/services/clock/mega/sysclk.h ****  *  has an associated clock on the HSB bus, this will be enabled also.
+ 388:../../../platform/common/services/clock/mega/sysclk.h ****  *
+ 389:../../../platform/common/services/clock/mega/sysclk.h ****  * \param module Pointer to the module's base address.
+ 390:../../../platform/common/services/clock/mega/sysclk.h ****  */
+ 391:../../../platform/common/services/clock/mega/sysclk.h **** static inline void sysclk_enable_peripheral_clock(const volatile void *module)
+ 392:../../../platform/common/services/clock/mega/sysclk.h **** {
+  15               		.loc 1 392 0
+  16               		.cfi_startproc
+  17 0000 CF93      		push r28
+  18               	.LCFI0:
+  19               		.cfi_def_cfa_offset 3
+  20               		.cfi_offset 28, -2
+  21 0002 DF93      		push r29
+  22               	.LCFI1:
+  23               		.cfi_def_cfa_offset 4
+  24               		.cfi_offset 29, -3
+  25 0004 00D0      		rcall .
+  26               	.LCFI2:
+  27               		.cfi_def_cfa_offset 6
+  28 0006 CDB7      		in r28,__SP_L__
+  29 0008 DEB7      		in r29,__SP_H__
+  30               	.LCFI3:
+  31               		.cfi_def_cfa_register 28
+  32               	/* prologue: function */
+  33               	/* frame size = 2 */
+  34               	/* stack size = 4 */
+  35               	.L__stack_usage = 4
+  36 000a 9A83      		std Y+2,r25
+  37 000c 8983      		std Y+1,r24
+ 393:../../../platform/common/services/clock/mega/sysclk.h **** 	if (module == NULL) {
+  38               		.loc 1 393 0
+  39 000e 8981      		ldd r24,Y+1
+  40 0010 9A81      		ldd r25,Y+2
+  41 0012 892B      		or r24,r25
+  42 0014 01F4      		brne .+2
+  43 0016 00C0      		rjmp .L14
+ 394:../../../platform/common/services/clock/mega/sysclk.h **** 		Assert(false);
+ 395:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+ 396:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 397:../../../platform/common/services/clock/mega/sysclk.h **** #if !MEGA_XX_UN0 && !MEGA_XX_UN1
+ 398:../../../platform/common/services/clock/mega/sysclk.h **** 	else if (module == &ADC) {
+  44               		.loc 1 398 0
+  45 0018 8981      		ldd r24,Y+1
+  46 001a 9A81      		ldd r25,Y+2
+  47 001c 8837      		cpi r24,120
+  48 001e 9105      		cpc r25,__zero_reg__
+  49 0020 01F4      		brne .L3
+ 399:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRADC_bm);
+  50               		.loc 1 399 0
+  51 0022 61E0      		ldi r22,lo8(1)
+  52 0024 80E0      		ldi r24,0
+  53 0026 0E94 0000 		call sysclk_enable_module
+ 400:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF
+ 401:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRPGA_bm);
+  54               		.loc 1 401 0
+  55 002a 60E1      		ldi r22,lo8(16)
+  56 002c 80E0      		ldi r24,0
+  57 002e 0E94 0000 		call sysclk_enable_module
+ 402:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 403:../../../platform/common/services/clock/mega/sysclk.h **** 	} else if (module == &UCSR0A) {
+ 404:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRUSART0_bm);
+ 405:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+ 406:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF
+ 407:../../../platform/common/services/clock/mega/sysclk.h **** 	else if (module == &SPCR) {
+ 408:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRSPI_bm);
+ 409:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+ 410:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 411:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 412:../../../platform/common/services/clock/mega/sysclk.h **** 	else if (module == &TCCR1A) {
+ 413:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRTIM1_bm);
+ 414:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+ 415:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 416:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_XX_UN2
+ 417:../../../platform/common/services/clock/mega/sysclk.h **** 	else if (module == &LCDCRA) {
+ 418:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRLCD_bm);
+ 419:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+ 420:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 421:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 422:../../../platform/common/services/clock/mega/sysclk.h **** #if !MEGA_XX_UN2
+ 423:../../../platform/common/services/clock/mega/sysclk.h **** 	else if (module == &TCCR0A) {
+ 424:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRTIM0_bm);
+ 425:../../../platform/common/services/clock/mega/sysclk.h **** 	} else if (module == &TCCR2A) {
+ 426:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRTIM2_bm);
+ 427:../../../platform/common/services/clock/mega/sysclk.h **** 	} else if (module == &TWBR) {
+ 428:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRTWI_bm);
+ 429:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+ 430:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 431:../../../platform/common/services/clock/mega/sysclk.h **** 
+ 432:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF
+ 433:../../../platform/common/services/clock/mega/sysclk.h **** 	else if (module == &UCSR1A) {
+ 434:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG1, PRUSART1_bm);
+ 435:../../../platform/common/services/clock/mega/sysclk.h **** 	} else if (module == &TCCR3A) {
+ 436:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG1, PRTIM3_bm);
+ 437:../../../platform/common/services/clock/mega/sysclk.h **** 	} else if (module == &TCCR4A) {
+ 438:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG1, PRTIM4_bm);
+ 439:../../../platform/common/services/clock/mega/sysclk.h **** 	} else if (module == &TCCR5A) {
+ 440:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG1, PRTIM5_bm);
+ 441:../../../platform/common/services/clock/mega/sysclk.h **** 	} else if (module == &TRX_CTRL_0) {
+ 442:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG1, PRTRX24_bm);
+ 443:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+ 444:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 445:../../../platform/common/services/clock/mega/sysclk.h **** #endif
+ 446:../../../platform/common/services/clock/mega/sysclk.h **** 	else {
+ 447:../../../platform/common/services/clock/mega/sysclk.h **** 		Assert(false);
+ 448:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+ 449:../../../platform/common/services/clock/mega/sysclk.h **** }
+  58               		.loc 1 449 0
+  59 0032 00C0      		rjmp .L14
+  60               	.L3:
+ 403:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRUSART0_bm);
+  61               		.loc 1 403 0
+  62 0034 8981      		ldd r24,Y+1
+  63 0036 9A81      		ldd r25,Y+2
+  64 0038 803C      		cpi r24,-64
+  65 003a 9105      		cpc r25,__zero_reg__
+  66 003c 01F4      		brne .L4
+ 404:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+  67               		.loc 1 404 0
+  68 003e 62E0      		ldi r22,lo8(2)
+  69 0040 80E0      		ldi r24,0
+  70 0042 0E94 0000 		call sysclk_enable_module
+  71               		.loc 1 449 0
+  72 0046 00C0      		rjmp .L14
+  73               	.L4:
+ 407:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRSPI_bm);
+  74               		.loc 1 407 0
+  75 0048 8981      		ldd r24,Y+1
+  76 004a 9A81      		ldd r25,Y+2
+  77 004c 8C34      		cpi r24,76
+  78 004e 9105      		cpc r25,__zero_reg__
+  79 0050 01F4      		brne .L5
+ 408:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+  80               		.loc 1 408 0
+  81 0052 64E0      		ldi r22,lo8(4)
+  82 0054 80E0      		ldi r24,0
+  83 0056 0E94 0000 		call sysclk_enable_module
+  84               		.loc 1 449 0
+  85 005a 00C0      		rjmp .L14
+  86               	.L5:
+ 412:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRTIM1_bm);
+  87               		.loc 1 412 0
+  88 005c 8981      		ldd r24,Y+1
+  89 005e 9A81      		ldd r25,Y+2
+  90 0060 8038      		cpi r24,-128
+  91 0062 9105      		cpc r25,__zero_reg__
+  92 0064 01F4      		brne .L6
+ 413:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+  93               		.loc 1 413 0
+  94 0066 68E0      		ldi r22,lo8(8)
+  95 0068 80E0      		ldi r24,0
+  96 006a 0E94 0000 		call sysclk_enable_module
+  97               		.loc 1 449 0
+  98 006e 00C0      		rjmp .L14
+  99               	.L6:
+ 423:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRTIM0_bm);
+ 100               		.loc 1 423 0
+ 101 0070 8981      		ldd r24,Y+1
+ 102 0072 9A81      		ldd r25,Y+2
+ 103 0074 8434      		cpi r24,68
+ 104 0076 9105      		cpc r25,__zero_reg__
+ 105 0078 01F4      		brne .L7
+ 424:../../../platform/common/services/clock/mega/sysclk.h **** 	} else if (module == &TCCR2A) {
+ 106               		.loc 1 424 0
+ 107 007a 60E2      		ldi r22,lo8(32)
+ 108 007c 80E0      		ldi r24,0
+ 109 007e 0E94 0000 		call sysclk_enable_module
+ 110               		.loc 1 449 0
+ 111 0082 00C0      		rjmp .L14
+ 112               	.L7:
+ 425:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRTIM2_bm);
+ 113               		.loc 1 425 0
+ 114 0084 8981      		ldd r24,Y+1
+ 115 0086 9A81      		ldd r25,Y+2
+ 116 0088 803B      		cpi r24,-80
+ 117 008a 9105      		cpc r25,__zero_reg__
+ 118 008c 01F4      		brne .L8
+ 426:../../../platform/common/services/clock/mega/sysclk.h **** 	} else if (module == &TWBR) {
+ 119               		.loc 1 426 0
+ 120 008e 60E4      		ldi r22,lo8(64)
+ 121 0090 80E0      		ldi r24,0
+ 122 0092 0E94 0000 		call sysclk_enable_module
+ 123               		.loc 1 449 0
+ 124 0096 00C0      		rjmp .L14
+ 125               	.L8:
+ 427:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG0, PRTWI_bm);
+ 126               		.loc 1 427 0
+ 127 0098 8981      		ldd r24,Y+1
+ 128 009a 9A81      		ldd r25,Y+2
+ 129 009c 883B      		cpi r24,-72
+ 130 009e 9105      		cpc r25,__zero_reg__
+ 131 00a0 01F4      		brne .L9
+ 428:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+ 132               		.loc 1 428 0
+ 133 00a2 60E8      		ldi r22,lo8(-128)
+ 134 00a4 80E0      		ldi r24,0
+ 135 00a6 0E94 0000 		call sysclk_enable_module
+ 136               		.loc 1 449 0
+ 137 00aa 00C0      		rjmp .L14
+ 138               	.L9:
+ 433:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG1, PRUSART1_bm);
+ 139               		.loc 1 433 0
+ 140 00ac 8981      		ldd r24,Y+1
+ 141 00ae 9A81      		ldd r25,Y+2
+ 142 00b0 883C      		cpi r24,-56
+ 143 00b2 9105      		cpc r25,__zero_reg__
+ 144 00b4 01F4      		brne .L10
+ 434:../../../platform/common/services/clock/mega/sysclk.h **** 	} else if (module == &TCCR3A) {
+ 145               		.loc 1 434 0
+ 146 00b6 61E0      		ldi r22,lo8(1)
+ 147 00b8 81E0      		ldi r24,lo8(1)
+ 148 00ba 0E94 0000 		call sysclk_enable_module
+ 149               		.loc 1 449 0
+ 150 00be 00C0      		rjmp .L14
+ 151               	.L10:
+ 435:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG1, PRTIM3_bm);
+ 152               		.loc 1 435 0
+ 153 00c0 8981      		ldd r24,Y+1
+ 154 00c2 9A81      		ldd r25,Y+2
+ 155 00c4 8039      		cpi r24,-112
+ 156 00c6 9105      		cpc r25,__zero_reg__
+ 157 00c8 01F4      		brne .L11
+ 436:../../../platform/common/services/clock/mega/sysclk.h **** 	} else if (module == &TCCR4A) {
+ 158               		.loc 1 436 0
+ 159 00ca 68E0      		ldi r22,lo8(8)
+ 160 00cc 81E0      		ldi r24,lo8(1)
+ 161 00ce 0E94 0000 		call sysclk_enable_module
+ 162               		.loc 1 449 0
+ 163 00d2 00C0      		rjmp .L14
+ 164               	.L11:
+ 437:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG1, PRTIM4_bm);
+ 165               		.loc 1 437 0
+ 166 00d4 8981      		ldd r24,Y+1
+ 167 00d6 9A81      		ldd r25,Y+2
+ 168 00d8 803A      		cpi r24,-96
+ 169 00da 9105      		cpc r25,__zero_reg__
+ 170 00dc 01F4      		brne .L12
+ 438:../../../platform/common/services/clock/mega/sysclk.h **** 	} else if (module == &TCCR5A) {
+ 171               		.loc 1 438 0
+ 172 00de 60E1      		ldi r22,lo8(16)
+ 173 00e0 81E0      		ldi r24,lo8(1)
+ 174 00e2 0E94 0000 		call sysclk_enable_module
+ 175               		.loc 1 449 0
+ 176 00e6 00C0      		rjmp .L14
+ 177               	.L12:
+ 439:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG1, PRTIM5_bm);
+ 178               		.loc 1 439 0
+ 179 00e8 8981      		ldd r24,Y+1
+ 180 00ea 9A81      		ldd r25,Y+2
+ 181 00ec 8032      		cpi r24,32
+ 182 00ee 9140      		sbci r25,1
+ 183 00f0 01F4      		brne .L13
+ 440:../../../platform/common/services/clock/mega/sysclk.h **** 	} else if (module == &TRX_CTRL_0) {
+ 184               		.loc 1 440 0
+ 185 00f2 60E2      		ldi r22,lo8(32)
+ 186 00f4 81E0      		ldi r24,lo8(1)
+ 187 00f6 0E94 0000 		call sysclk_enable_module
+ 188               		.loc 1 449 0
+ 189 00fa 00C0      		rjmp .L14
+ 190               	.L13:
+ 441:../../../platform/common/services/clock/mega/sysclk.h **** 		sysclk_enable_module(POWER_RED_REG1, PRTRX24_bm);
+ 191               		.loc 1 441 0
+ 192 00fc 8981      		ldd r24,Y+1
+ 193 00fe 9A81      		ldd r25,Y+2
+ 194 0100 8334      		cpi r24,67
+ 195 0102 9140      		sbci r25,1
+ 196 0104 01F4      		brne .L14
+ 442:../../../platform/common/services/clock/mega/sysclk.h **** 	}
+ 197               		.loc 1 442 0
+ 198 0106 60E4      		ldi r22,lo8(64)
+ 199 0108 81E0      		ldi r24,lo8(1)
+ 200 010a 0E94 0000 		call sysclk_enable_module
+ 201               	.L14:
+ 202               		.loc 1 449 0
+ 203 010e 0000      		nop
+ 204               	/* epilogue start */
+ 205 0110 0F90      		pop __tmp_reg__
+ 206 0112 0F90      		pop __tmp_reg__
+ 207 0114 DF91      		pop r29
+ 208 0116 CF91      		pop r28
+ 209 0118 0895      		ret
+ 210               		.cfi_endproc
+ 211               	.LFE69:
+ 214               	__portable_avr_delay_cycles:
+ 215               	.LFB74:
+ 216               		.file 2 "../../../platform/common/services/delay/mega_rf/cycle_counter.h"
+   1:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** /**
+   2:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * \file
+   3:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+   4:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * \brief AVR functions for busy-wait delay loops
+   5:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+   6:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * Copyright (c) 2011 - 2012 Atmel Corporation. All rights reserved.
+   7:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+   8:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * \asf_license_start
+   9:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  10:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * \page License
+  11:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  12:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  15:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  18:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  22:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *    from this software without specific prior written permission.
+  24:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  25:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *    Atmel microcontroller product.
+  27:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  28:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  40:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * \asf_license_stop
+  41:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  42:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  */
+  43:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** #ifndef _cycle_counter_h_
+  44:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** #define _cycle_counter_h_
+  45:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** 
+  46:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** #ifdef __cplusplus
+  47:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** extern "C" {
+  48:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** #endif
+  49:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** 
+  50:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** #include <compiler.h>
+  51:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** 
+  52:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** /**
+  53:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @name Convenience functions for busy-wait delay loops
+  54:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  55:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @def delay_cycles
+  56:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @brief Delay program execution for a specified number of CPU cycles.
+  57:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @param n number of CPU cycles to wait
+  58:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  59:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @def cpu_delay_ms
+  60:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @brief Delay program execution for a specified number of milliseconds.
+  61:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @param delay number of milliseconds to wait
+  62:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @param f_cpu CPU frequency in Hertz
+  63:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  64:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @def cpu_delay_us
+  65:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @brief Delay program execution for a specified number of microseconds.
+  66:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @param delay number of microseconds to wait
+  67:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @param f_cpu CPU frequency in Hertz
+  68:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  69:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @def cpu_ms_2_cy
+  70:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @brief Convert milli-seconds into CPU cycles.
+  71:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @param ms number of milliseconds
+  72:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @param f_cpu CPU frequency in Hertz
+  73:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @return the converted number of CPU cycles
+  74:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  75:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @def cpu_us_2_cy
+  76:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @brief Convert micro-seconds into CPU cycles.
+  77:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @param ms number of microseconds
+  78:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @param f_cpu CPU frequency in Hertz
+  79:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @return the converted number of CPU cycles
+  80:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  *
+  81:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  * @{
+  82:../../../platform/common/services/delay/mega_rf/cycle_counter.h ****  */
+  83:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** __always_optimize
+  84:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** static inline void __portable_avr_delay_cycles(unsigned long n)
+  85:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** {
+ 217               		.loc 2 85 0
+ 218               		.cfi_startproc
+ 219               	/* prologue: function */
+ 220               	/* frame size = 0 */
+ 221               	/* stack size = 0 */
+ 222               	.L__stack_usage = 0
+ 223               	.L16:
+  86:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** 	do { barrier(); } while (--n);
+ 224               		.loc 2 86 0 discriminator 1
+ 225 011a 6150      		subi r22,1
+ 226 011c 7109      		sbc r23,__zero_reg__
+ 227 011e 8109      		sbc r24,__zero_reg__
+ 228 0120 9109      		sbc r25,__zero_reg__
+ 229 0122 01F4      		brne .L16
+ 230               	/* epilogue start */
+  87:../../../platform/common/services/delay/mega_rf/cycle_counter.h **** }
+ 231               		.loc 2 87 0
+ 232 0124 0895      		ret
+ 233               		.cfi_endproc
+ 234               	.LFE74:
+ 236               		.section	.bss.phyState,"aw",@nobits
+ 239               	phyState:
+ 240 0000 00        		.zero	1
+ 241               		.section	.bss.phyRxBuffer,"aw",@nobits
+ 244               	phyRxBuffer:
+ 245 0000 0000 0000 		.zero	128
+ 245      0000 0000 
+ 245      0000 0000 
+ 245      0000 0000 
+ 245      0000 0000 
+ 246               		.section	.bss.phyRxState,"aw",@nobits
+ 249               	phyRxState:
+ 250 0000 00        		.zero	1
+ 251               		.text
+ 252               	.global	PHY_Init
+ 254               	PHY_Init:
+ 255               	.LFB75:
+ 256               		.file 3 "../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c"
+   1:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /**
+   2:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * \file phy.c
+   3:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *
+   4:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * \brief ATMEGAxxxRFA1 PHY implementation
+   5:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *
+   6:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * Copyright (C) 2014, Atmel Corporation. All rights reserved.
+   7:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *
+   8:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * \asf_license_start
+   9:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *
+  10:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * Redistribution and use in source and binary forms, with or without
+  11:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * modification, are permitted provided that the following conditions are met:
+  12:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *
+  13:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  14:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *    this list of conditions and the following disclaimer.
+  15:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *
+  16:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  17:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *    this list of conditions and the following disclaimer in the documentation
+  18:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *    and/or other materials provided with the distribution.
+  19:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *
+  20:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  21:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *    from this software without specific prior written permission.
+  22:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *
+  23:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * 4. This software may only be redistributed and used in connection with an
+  24:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *    Atmel microcontroller product.
+  25:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *
+  26:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  27:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  28:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  29:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  30:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  31:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  32:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  33:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  34:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  35:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  36:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  37:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *
+  38:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  * \asf_license_stop
+  39:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *
+  40:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  *
+  41:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c ****  */
+  42:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+  43:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #ifdef PHY_ATMEGARFA1
+  44:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+  45:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*- Includes ---------------------------------------------------------------*/
+  46:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #include "phy.h"
+  47:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #include "delay.h"
+  48:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #include "sal.h"
+  49:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #include "atmegarfa1.h"
+  50:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+  51:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*- Definitions ------------------------------------------------------------*/
+  52:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #define PHY_CRC_SIZE          2
+  53:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #define IRQ_CLEAR_VALUE       0xff
+  54:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*- Types ------------------------------------------------------------------*/
+  55:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** typedef enum {
+  56:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	PHY_STATE_INITIAL,
+  57:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	PHY_STATE_IDLE,
+  58:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	PHY_STATE_SLEEP,
+  59:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	PHY_STATE_TX_WAIT_END,
+  60:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** } PhyState_t;
+  61:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+  62:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*- Prototypes -------------------------------------------------------------*/
+  63:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** static void phyTrxSetState(uint8_t state);
+  64:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** static void phySetRxState(void);
+  65:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+  66:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*- Variables --------------------------------------------------------------*/
+  67:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** static PhyState_t phyState = PHY_STATE_INITIAL;
+  68:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** static uint8_t phyRxBuffer[128];
+  69:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** static bool phyRxState;
+  70:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+  71:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*- Implementations --------------------------------------------------------*/
+  72:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+  73:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+  74:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+  75:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** void PHY_Init(void)
+  76:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 257               		.loc 3 76 0
+ 258               		.cfi_startproc
+ 259 0126 0F93      		push r16
+ 260               	.LCFI4:
+ 261               		.cfi_def_cfa_offset 3
+ 262               		.cfi_offset 16, -2
+ 263 0128 1F93      		push r17
+ 264               	.LCFI5:
+ 265               		.cfi_def_cfa_offset 4
+ 266               		.cfi_offset 17, -3
+ 267 012a CF93      		push r28
+ 268               	.LCFI6:
+ 269               		.cfi_def_cfa_offset 5
+ 270               		.cfi_offset 28, -4
+ 271 012c DF93      		push r29
+ 272               	.LCFI7:
+ 273               		.cfi_def_cfa_offset 6
+ 274               		.cfi_offset 29, -5
+ 275 012e CDB7      		in r28,__SP_L__
+ 276 0130 DEB7      		in r29,__SP_H__
+ 277               	.LCFI8:
+ 278               		.cfi_def_cfa_register 28
+ 279               	/* prologue: function */
+ 280               	/* frame size = 0 */
+ 281               	/* stack size = 4 */
+ 282               	.L__stack_usage = 4
+  77:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	sysclk_enable_peripheral_clock(&TRX_CTRL_0);
+ 283               		.loc 3 77 0
+ 284 0132 83E4      		ldi r24,lo8(67)
+ 285 0134 91E0      		ldi r25,lo8(1)
+ 286 0136 0E94 0000 		call sysclk_enable_peripheral_clock
+  78:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+  79:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	TRXPR_REG_s.trxrst = 1;
+ 287               		.loc 3 79 0
+ 288 013a 89E3      		ldi r24,lo8(57)
+ 289 013c 91E0      		ldi r25,lo8(1)
+ 290 013e FC01      		movw r30,r24
+ 291 0140 2081      		ld r18,Z
+ 292 0142 2160      		ori r18,lo8(1)
+ 293 0144 FC01      		movw r30,r24
+ 294 0146 2083      		st Z,r18
+  80:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+  81:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phyRxState = false;
+ 295               		.loc 3 81 0
+ 296 0148 1092 0000 		sts phyRxState,__zero_reg__
+  82:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phyState = PHY_STATE_IDLE;
+ 297               		.loc 3 82 0
+ 298 014c 81E0      		ldi r24,lo8(1)
+ 299 014e 8093 0000 		sts phyState,r24
+  83:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+  84:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phyTrxSetState(TRX_CMD_TRX_OFF);
+ 300               		.loc 3 84 0
+ 301 0152 88E0      		ldi r24,lo8(8)
+ 302 0154 0E94 0000 		call phyTrxSetState
+  85:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+  86:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	TRX_CTRL_2_REG_s.rxSafeMode = 1;
+ 303               		.loc 3 86 0
+ 304 0158 8CE4      		ldi r24,lo8(76)
+ 305 015a 91E0      		ldi r25,lo8(1)
+ 306 015c FC01      		movw r30,r24
+ 307 015e 2081      		ld r18,Z
+ 308 0160 2068      		ori r18,lo8(-128)
+ 309 0162 FC01      		movw r30,r24
+ 310 0164 2083      		st Z,r18
+  87:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+  88:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #ifdef PHY_ENABLE_RANDOM_NUMBER_GENERATOR
+  89:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	CSMA_SEED_0_REG = (uint8_t)PHY_RandomReq();
+ 311               		.loc 3 89 0
+ 312 0166 0DE6      		ldi r16,lo8(109)
+ 313 0168 11E0      		ldi r17,lo8(1)
+ 314 016a 0E94 0000 		call PHY_RandomReq
+ 315 016e F801      		movw r30,r16
+ 316 0170 8083      		st Z,r24
+  90:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #endif
+  91:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+  92:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #if (ANTENNA_DIVERSITY == 1)
+  93:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	ANT_DIV_REG_s.antCtrl = 2;
+ 317               		.loc 3 93 0
+ 318 0172 8DE4      		ldi r24,lo8(77)
+ 319 0174 91E0      		ldi r25,lo8(1)
+ 320 0176 FC01      		movw r30,r24
+ 321 0178 2081      		ld r18,Z
+ 322 017a 2C7F      		andi r18,lo8(-4)
+ 323 017c 2260      		ori r18,lo8(2)
+ 324 017e FC01      		movw r30,r24
+ 325 0180 2083      		st Z,r18
+  94:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	RX_CTRL_REG_s.pdtThres = 0x03;
+ 326               		.loc 3 94 0
+ 327 0182 8AE4      		ldi r24,lo8(74)
+ 328 0184 91E0      		ldi r25,lo8(1)
+ 329 0186 FC01      		movw r30,r24
+ 330 0188 2081      		ld r18,Z
+ 331 018a 207F      		andi r18,lo8(-16)
+ 332 018c 2360      		ori r18,lo8(3)
+ 333 018e FC01      		movw r30,r24
+ 334 0190 2083      		st Z,r18
+  95:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	ANT_DIV_REG_s.antDivEn = 1;
+ 335               		.loc 3 95 0
+ 336 0192 8DE4      		ldi r24,lo8(77)
+ 337 0194 91E0      		ldi r25,lo8(1)
+ 338 0196 FC01      		movw r30,r24
+ 339 0198 2081      		ld r18,Z
+ 340 019a 2860      		ori r18,lo8(8)
+ 341 019c FC01      		movw r30,r24
+ 342 019e 2083      		st Z,r18
+  96:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	ANT_DIV_REG_s.antExtSwEn = 1;
+ 343               		.loc 3 96 0
+ 344 01a0 8DE4      		ldi r24,lo8(77)
+ 345 01a2 91E0      		ldi r25,lo8(1)
+ 346 01a4 FC01      		movw r30,r24
+ 347 01a6 2081      		ld r18,Z
+ 348 01a8 2460      		ori r18,lo8(4)
+ 349 01aa FC01      		movw r30,r24
+ 350 01ac 2083      		st Z,r18
+  97:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #else
+  98:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	#if (ANTENNA_DEFAULT != 0)
+  99:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		ANT_DIV_REG_s.antExtSwEn = 1;
+ 100:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		ANT_DIV_REG_s.antCtrl = ANTENNA_DEFAULT;
+ 101:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	#endif // ANTENNA_DEFAULT
+ 102:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #endif // ANTENNA_DIVERSITY
+ 103:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #ifdef EXT_RF_FRONT_END_CTRL
+ 104:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	TRX_CTRL_1_REG_s.paExtEn = 1;
+ 351               		.loc 3 104 0
+ 352 01ae 84E4      		ldi r24,lo8(68)
+ 353 01b0 91E0      		ldi r25,lo8(1)
+ 354 01b2 FC01      		movw r30,r24
+ 355 01b4 2081      		ld r18,Z
+ 356 01b6 2068      		ori r18,lo8(-128)
+ 357 01b8 FC01      		movw r30,r24
+ 358 01ba 2083      		st Z,r18
+ 105:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #endif // EXT_RF_FRONT_END_CTRL
+ 106:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 359               		.loc 3 106 0
+ 360 01bc 0000      		nop
+ 361               	/* epilogue start */
+ 362 01be DF91      		pop r29
+ 363 01c0 CF91      		pop r28
+ 364 01c2 1F91      		pop r17
+ 365 01c4 0F91      		pop r16
+ 366 01c6 0895      		ret
+ 367               		.cfi_endproc
+ 368               	.LFE75:
+ 370               	.global	PHY_SetTdmaMode
+ 372               	PHY_SetTdmaMode:
+ 373               	.LFB76:
+ 107:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 108:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** void PHY_SetTdmaMode(bool mode)
+ 109:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 374               		.loc 3 109 0
+ 375               		.cfi_startproc
+ 376 01c8 CF93      		push r28
+ 377               	.LCFI9:
+ 378               		.cfi_def_cfa_offset 3
+ 379               		.cfi_offset 28, -2
+ 380 01ca DF93      		push r29
+ 381               	.LCFI10:
+ 382               		.cfi_def_cfa_offset 4
+ 383               		.cfi_offset 29, -3
+ 384 01cc 1F92      		push __zero_reg__
+ 385               	.LCFI11:
+ 386               		.cfi_def_cfa_offset 5
+ 387 01ce CDB7      		in r28,__SP_L__
+ 388 01d0 DEB7      		in r29,__SP_H__
+ 389               	.LCFI12:
+ 390               		.cfi_def_cfa_register 28
+ 391               	/* prologue: function */
+ 392               	/* frame size = 1 */
+ 393               	/* stack size = 3 */
+ 394               	.L__stack_usage = 3
+ 395 01d2 8983      		std Y+1,r24
+ 110:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	if(mode)
+ 396               		.loc 3 110 0
+ 397 01d4 8981      		ldd r24,Y+1
+ 398 01d6 8823      		tst r24
+ 399 01d8 01F0      		breq .L21
+ 111:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	{
+ 112:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		XAH_CTRL_0_REG_s.maxFrameRetries = 0;
+ 400               		.loc 3 112 0
+ 401 01da 8CE6      		ldi r24,lo8(108)
+ 402 01dc 91E0      		ldi r25,lo8(1)
+ 403 01de FC01      		movw r30,r24
+ 404 01e0 2081      		ld r18,Z
+ 405 01e2 2F70      		andi r18,lo8(15)
+ 406 01e4 FC01      		movw r30,r24
+ 407 01e6 2083      		st Z,r18
+ 113:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		XAH_CTRL_0_REG_s.maxCsmaRetries = 7;
+ 408               		.loc 3 113 0
+ 409 01e8 8CE6      		ldi r24,lo8(108)
+ 410 01ea 91E0      		ldi r25,lo8(1)
+ 411 01ec FC01      		movw r30,r24
+ 412 01ee 2081      		ld r18,Z
+ 413 01f0 2E60      		ori r18,lo8(14)
+ 414 01f2 FC01      		movw r30,r24
+ 415 01f4 2083      		st Z,r18
+ 114:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	
+ 115:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		CSMA_SEED_1_REG_s.aackDisAck = 1;	// Disable ACK even if requested		
+ 416               		.loc 3 115 0
+ 417 01f6 8EE6      		ldi r24,lo8(110)
+ 418 01f8 91E0      		ldi r25,lo8(1)
+ 419 01fa FC01      		movw r30,r24
+ 420 01fc 2081      		ld r18,Z
+ 421 01fe 2061      		ori r18,lo8(16)
+ 422 0200 FC01      		movw r30,r24
+ 423 0202 2083      		st Z,r18
+ 116:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	}
+ 117:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	else
+ 118:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	{
+ 119:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		XAH_CTRL_0_REG_s.maxFrameRetries = 3;
+ 120:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		XAH_CTRL_0_REG_s.maxCsmaRetries = 4;
+ 121:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		
+ 122:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		CSMA_SEED_1_REG_s.aackDisAck = 0;
+ 123:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	}
+ 124:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 424               		.loc 3 124 0
+ 425 0204 00C0      		rjmp .L23
+ 426               	.L21:
+ 119:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		XAH_CTRL_0_REG_s.maxCsmaRetries = 4;
+ 427               		.loc 3 119 0
+ 428 0206 8CE6      		ldi r24,lo8(108)
+ 429 0208 91E0      		ldi r25,lo8(1)
+ 430 020a FC01      		movw r30,r24
+ 431 020c 2081      		ld r18,Z
+ 432 020e 2F70      		andi r18,lo8(15)
+ 433 0210 2063      		ori r18,lo8(48)
+ 434 0212 FC01      		movw r30,r24
+ 435 0214 2083      		st Z,r18
+ 120:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		
+ 436               		.loc 3 120 0
+ 437 0216 8CE6      		ldi r24,lo8(108)
+ 438 0218 91E0      		ldi r25,lo8(1)
+ 439 021a FC01      		movw r30,r24
+ 440 021c 2081      		ld r18,Z
+ 441 021e 217F      		andi r18,lo8(-15)
+ 442 0220 2860      		ori r18,lo8(8)
+ 443 0222 FC01      		movw r30,r24
+ 444 0224 2083      		st Z,r18
+ 122:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	}
+ 445               		.loc 3 122 0
+ 446 0226 8EE6      		ldi r24,lo8(110)
+ 447 0228 91E0      		ldi r25,lo8(1)
+ 448 022a FC01      		movw r30,r24
+ 449 022c 2081      		ld r18,Z
+ 450 022e 2F7E      		andi r18,lo8(-17)
+ 451 0230 FC01      		movw r30,r24
+ 452 0232 2083      		st Z,r18
+ 453               	.L23:
+ 454               		.loc 3 124 0
+ 455 0234 0000      		nop
+ 456               	/* epilogue start */
+ 457 0236 0F90      		pop __tmp_reg__
+ 458 0238 DF91      		pop r29
+ 459 023a CF91      		pop r28
+ 460 023c 0895      		ret
+ 461               		.cfi_endproc
+ 462               	.LFE76:
+ 464               	.global	PHY_SetRxState
+ 466               	PHY_SetRxState:
+ 467               	.LFB77:
+ 125:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 126:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 127:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 128:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** void PHY_SetRxState(bool rx)
+ 129:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 468               		.loc 3 129 0
+ 469               		.cfi_startproc
+ 470 023e CF93      		push r28
+ 471               	.LCFI13:
+ 472               		.cfi_def_cfa_offset 3
+ 473               		.cfi_offset 28, -2
+ 474 0240 DF93      		push r29
+ 475               	.LCFI14:
+ 476               		.cfi_def_cfa_offset 4
+ 477               		.cfi_offset 29, -3
+ 478 0242 1F92      		push __zero_reg__
+ 479               	.LCFI15:
+ 480               		.cfi_def_cfa_offset 5
+ 481 0244 CDB7      		in r28,__SP_L__
+ 482 0246 DEB7      		in r29,__SP_H__
+ 483               	.LCFI16:
+ 484               		.cfi_def_cfa_register 28
+ 485               	/* prologue: function */
+ 486               	/* frame size = 1 */
+ 487               	/* stack size = 3 */
+ 488               	.L__stack_usage = 3
+ 489 0248 8983      		std Y+1,r24
+ 130:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phyRxState = rx;
+ 490               		.loc 3 130 0
+ 491 024a 8981      		ldd r24,Y+1
+ 492 024c 8093 0000 		sts phyRxState,r24
+ 131:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phySetRxState();
+ 493               		.loc 3 131 0
+ 494 0250 0E94 0000 		call phySetRxState
+ 132:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 495               		.loc 3 132 0
+ 496 0254 0000      		nop
+ 497               	/* epilogue start */
+ 498 0256 0F90      		pop __tmp_reg__
+ 499 0258 DF91      		pop r29
+ 500 025a CF91      		pop r28
+ 501 025c 0895      		ret
+ 502               		.cfi_endproc
+ 503               	.LFE77:
+ 505               	.global	PHY_SetChannel
+ 507               	PHY_SetChannel:
+ 508               	.LFB78:
+ 133:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 134:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 135:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 136:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** void PHY_SetChannel(uint8_t channel)
+ 137:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 509               		.loc 3 137 0
+ 510               		.cfi_startproc
+ 511 025e CF93      		push r28
+ 512               	.LCFI17:
+ 513               		.cfi_def_cfa_offset 3
+ 514               		.cfi_offset 28, -2
+ 515 0260 DF93      		push r29
+ 516               	.LCFI18:
+ 517               		.cfi_def_cfa_offset 4
+ 518               		.cfi_offset 29, -3
+ 519 0262 1F92      		push __zero_reg__
+ 520               	.LCFI19:
+ 521               		.cfi_def_cfa_offset 5
+ 522 0264 CDB7      		in r28,__SP_L__
+ 523 0266 DEB7      		in r29,__SP_H__
+ 524               	.LCFI20:
+ 525               		.cfi_def_cfa_register 28
+ 526               	/* prologue: function */
+ 527               	/* frame size = 1 */
+ 528               	/* stack size = 3 */
+ 529               	.L__stack_usage = 3
+ 530 0268 8983      		std Y+1,r24
+ 138:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	PHY_CC_CCA_REG_s.channel = channel;
+ 531               		.loc 3 138 0
+ 532 026a 88E4      		ldi r24,lo8(72)
+ 533 026c 91E0      		ldi r25,lo8(1)
+ 534 026e 2981      		ldd r18,Y+1
+ 535 0270 2F71      		andi r18,lo8(31)
+ 536 0272 2F71      		andi r18,lo8(31)
+ 537 0274 FC01      		movw r30,r24
+ 538 0276 3081      		ld r19,Z
+ 539 0278 307E      		andi r19,lo8(-32)
+ 540 027a 232B      		or r18,r19
+ 541 027c FC01      		movw r30,r24
+ 542 027e 2083      		st Z,r18
+ 139:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 543               		.loc 3 139 0
+ 544 0280 0000      		nop
+ 545               	/* epilogue start */
+ 546 0282 0F90      		pop __tmp_reg__
+ 547 0284 DF91      		pop r29
+ 548 0286 CF91      		pop r28
+ 549 0288 0895      		ret
+ 550               		.cfi_endproc
+ 551               	.LFE78:
+ 553               	.global	PHY_SetPanId
+ 555               	PHY_SetPanId:
+ 556               	.LFB79:
+ 140:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 141:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 142:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 143:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** void PHY_SetPanId(uint16_t panId)
+ 144:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 557               		.loc 3 144 0
+ 558               		.cfi_startproc
+ 559 028a CF93      		push r28
+ 560               	.LCFI21:
+ 561               		.cfi_def_cfa_offset 3
+ 562               		.cfi_offset 28, -2
+ 563 028c DF93      		push r29
+ 564               	.LCFI22:
+ 565               		.cfi_def_cfa_offset 4
+ 566               		.cfi_offset 29, -3
+ 567 028e 00D0      		rcall .
+ 568 0290 00D0      		rcall .
+ 569               	.LCFI23:
+ 570               		.cfi_def_cfa_offset 8
+ 571 0292 CDB7      		in r28,__SP_L__
+ 572 0294 DEB7      		in r29,__SP_H__
+ 573               	.LCFI24:
+ 574               		.cfi_def_cfa_register 28
+ 575               	/* prologue: function */
+ 576               	/* frame size = 4 */
+ 577               	/* stack size = 6 */
+ 578               	.L__stack_usage = 6
+ 579 0296 9C83      		std Y+4,r25
+ 580 0298 8B83      		std Y+3,r24
+ 145:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	uint8_t *d = (uint8_t *)&panId;
+ 581               		.loc 3 145 0
+ 582 029a CE01      		movw r24,r28
+ 583 029c 0396      		adiw r24,3
+ 584 029e 9A83      		std Y+2,r25
+ 585 02a0 8983      		std Y+1,r24
+ 146:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 147:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	PAN_ID_0_REG = d[0];
+ 586               		.loc 3 147 0
+ 587 02a2 82E6      		ldi r24,lo8(98)
+ 588 02a4 91E0      		ldi r25,lo8(1)
+ 589 02a6 2981      		ldd r18,Y+1
+ 590 02a8 3A81      		ldd r19,Y+2
+ 591 02aa F901      		movw r30,r18
+ 592 02ac 2081      		ld r18,Z
+ 593 02ae FC01      		movw r30,r24
+ 594 02b0 2083      		st Z,r18
+ 148:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	PAN_ID_1_REG = d[1];
+ 595               		.loc 3 148 0
+ 596 02b2 83E6      		ldi r24,lo8(99)
+ 597 02b4 91E0      		ldi r25,lo8(1)
+ 598 02b6 2981      		ldd r18,Y+1
+ 599 02b8 3A81      		ldd r19,Y+2
+ 600 02ba F901      		movw r30,r18
+ 601 02bc 2181      		ldd r18,Z+1
+ 602 02be FC01      		movw r30,r24
+ 603 02c0 2083      		st Z,r18
+ 149:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 604               		.loc 3 149 0
+ 605 02c2 0000      		nop
+ 606               	/* epilogue start */
+ 607 02c4 0F90      		pop __tmp_reg__
+ 608 02c6 0F90      		pop __tmp_reg__
+ 609 02c8 0F90      		pop __tmp_reg__
+ 610 02ca 0F90      		pop __tmp_reg__
+ 611 02cc DF91      		pop r29
+ 612 02ce CF91      		pop r28
+ 613 02d0 0895      		ret
+ 614               		.cfi_endproc
+ 615               	.LFE79:
+ 617               	.global	PHY_SetShortAddr
+ 619               	PHY_SetShortAddr:
+ 620               	.LFB80:
+ 150:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 151:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 152:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 153:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** void PHY_SetShortAddr(uint16_t addr)
+ 154:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 621               		.loc 3 154 0
+ 622               		.cfi_startproc
+ 623 02d2 CF93      		push r28
+ 624               	.LCFI25:
+ 625               		.cfi_def_cfa_offset 3
+ 626               		.cfi_offset 28, -2
+ 627 02d4 DF93      		push r29
+ 628               	.LCFI26:
+ 629               		.cfi_def_cfa_offset 4
+ 630               		.cfi_offset 29, -3
+ 631 02d6 00D0      		rcall .
+ 632 02d8 00D0      		rcall .
+ 633               	.LCFI27:
+ 634               		.cfi_def_cfa_offset 8
+ 635 02da CDB7      		in r28,__SP_L__
+ 636 02dc DEB7      		in r29,__SP_H__
+ 637               	.LCFI28:
+ 638               		.cfi_def_cfa_register 28
+ 639               	/* prologue: function */
+ 640               	/* frame size = 4 */
+ 641               	/* stack size = 6 */
+ 642               	.L__stack_usage = 6
+ 643 02de 9C83      		std Y+4,r25
+ 644 02e0 8B83      		std Y+3,r24
+ 155:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	uint8_t *d = (uint8_t *)&addr;
+ 645               		.loc 3 155 0
+ 646 02e2 CE01      		movw r24,r28
+ 647 02e4 0396      		adiw r24,3
+ 648 02e6 9A83      		std Y+2,r25
+ 649 02e8 8983      		std Y+1,r24
+ 156:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 157:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	SHORT_ADDR_0_REG = d[0];
+ 650               		.loc 3 157 0
+ 651 02ea 80E6      		ldi r24,lo8(96)
+ 652 02ec 91E0      		ldi r25,lo8(1)
+ 653 02ee 2981      		ldd r18,Y+1
+ 654 02f0 3A81      		ldd r19,Y+2
+ 655 02f2 F901      		movw r30,r18
+ 656 02f4 2081      		ld r18,Z
+ 657 02f6 FC01      		movw r30,r24
+ 658 02f8 2083      		st Z,r18
+ 158:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	SHORT_ADDR_1_REG = d[1];
+ 659               		.loc 3 158 0
+ 660 02fa 81E6      		ldi r24,lo8(97)
+ 661 02fc 91E0      		ldi r25,lo8(1)
+ 662 02fe 2981      		ldd r18,Y+1
+ 663 0300 3A81      		ldd r19,Y+2
+ 664 0302 F901      		movw r30,r18
+ 665 0304 2181      		ldd r18,Z+1
+ 666 0306 FC01      		movw r30,r24
+ 667 0308 2083      		st Z,r18
+ 159:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 160:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #ifndef PHY_ENABLE_RANDOM_NUMBER_GENERATOR
+ 161:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	CSMA_SEED_0_REG = d[0] + d[1];
+ 162:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #endif
+ 163:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 668               		.loc 3 163 0
+ 669 030a 0000      		nop
+ 670               	/* epilogue start */
+ 671 030c 0F90      		pop __tmp_reg__
+ 672 030e 0F90      		pop __tmp_reg__
+ 673 0310 0F90      		pop __tmp_reg__
+ 674 0312 0F90      		pop __tmp_reg__
+ 675 0314 DF91      		pop r29
+ 676 0316 CF91      		pop r28
+ 677 0318 0895      		ret
+ 678               		.cfi_endproc
+ 679               	.LFE80:
+ 681               	.global	PHY_SetTxPower
+ 683               	PHY_SetTxPower:
+ 684               	.LFB81:
+ 164:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 165:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 166:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 167:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** void PHY_SetTxPower(uint8_t txPower)
+ 168:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 685               		.loc 3 168 0
+ 686               		.cfi_startproc
+ 687 031a CF93      		push r28
+ 688               	.LCFI29:
+ 689               		.cfi_def_cfa_offset 3
+ 690               		.cfi_offset 28, -2
+ 691 031c DF93      		push r29
+ 692               	.LCFI30:
+ 693               		.cfi_def_cfa_offset 4
+ 694               		.cfi_offset 29, -3
+ 695 031e 1F92      		push __zero_reg__
+ 696               	.LCFI31:
+ 697               		.cfi_def_cfa_offset 5
+ 698 0320 CDB7      		in r28,__SP_L__
+ 699 0322 DEB7      		in r29,__SP_H__
+ 700               	.LCFI32:
+ 701               		.cfi_def_cfa_register 28
+ 702               	/* prologue: function */
+ 703               	/* frame size = 1 */
+ 704               	/* stack size = 3 */
+ 705               	.L__stack_usage = 3
+ 706 0324 8983      		std Y+1,r24
+ 169:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	PHY_TX_PWR_REG_s.txPwr = txPower;
+ 707               		.loc 3 169 0
+ 708 0326 85E4      		ldi r24,lo8(69)
+ 709 0328 91E0      		ldi r25,lo8(1)
+ 710 032a 2981      		ldd r18,Y+1
+ 711 032c 2F70      		andi r18,lo8(15)
+ 712 032e 2F70      		andi r18,lo8(15)
+ 713 0330 FC01      		movw r30,r24
+ 714 0332 3081      		ld r19,Z
+ 715 0334 307F      		andi r19,lo8(-16)
+ 716 0336 232B      		or r18,r19
+ 717 0338 FC01      		movw r30,r24
+ 718 033a 2083      		st Z,r18
+ 170:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 719               		.loc 3 170 0
+ 720 033c 0000      		nop
+ 721               	/* epilogue start */
+ 722 033e 0F90      		pop __tmp_reg__
+ 723 0340 DF91      		pop r29
+ 724 0342 CF91      		pop r28
+ 725 0344 0895      		ret
+ 726               		.cfi_endproc
+ 727               	.LFE81:
+ 729               	.global	PHY_Sleep
+ 731               	PHY_Sleep:
+ 732               	.LFB82:
+ 171:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 172:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 173:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 174:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** void PHY_Sleep(void)
+ 175:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 733               		.loc 3 175 0
+ 734               		.cfi_startproc
+ 735 0346 CF93      		push r28
+ 736               	.LCFI33:
+ 737               		.cfi_def_cfa_offset 3
+ 738               		.cfi_offset 28, -2
+ 739 0348 DF93      		push r29
+ 740               	.LCFI34:
+ 741               		.cfi_def_cfa_offset 4
+ 742               		.cfi_offset 29, -3
+ 743 034a CDB7      		in r28,__SP_L__
+ 744 034c DEB7      		in r29,__SP_H__
+ 745               	.LCFI35:
+ 746               		.cfi_def_cfa_register 28
+ 747               	/* prologue: function */
+ 748               	/* frame size = 0 */
+ 749               	/* stack size = 2 */
+ 750               	.L__stack_usage = 2
+ 176:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	if(phyState != PHY_STATE_SLEEP)
+ 751               		.loc 3 176 0
+ 752 034e 8091 0000 		lds r24,phyState
+ 753 0352 8230      		cpi r24,lo8(2)
+ 754 0354 01F0      		breq .L30
+ 177:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	{
+ 178:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		phyTrxSetState(TRX_CMD_TRX_OFF);
+ 755               		.loc 3 178 0
+ 756 0356 88E0      		ldi r24,lo8(8)
+ 757 0358 0E94 0000 		call phyTrxSetState
+ 179:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		TRXPR_REG_s.slptr = 1;
+ 758               		.loc 3 179 0
+ 759 035c 89E3      		ldi r24,lo8(57)
+ 760 035e 91E0      		ldi r25,lo8(1)
+ 761 0360 FC01      		movw r30,r24
+ 762 0362 2081      		ld r18,Z
+ 763 0364 2260      		ori r18,lo8(2)
+ 764 0366 FC01      		movw r30,r24
+ 765 0368 2083      		st Z,r18
+ 180:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		phyState = PHY_STATE_SLEEP;		
+ 766               		.loc 3 180 0
+ 767 036a 82E0      		ldi r24,lo8(2)
+ 768 036c 8093 0000 		sts phyState,r24
+ 769               	.L30:
+ 181:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	}
+ 182:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	
+ 183:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #if (ANTENNA_DIVERSITY == 1)
+ 184:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	ANT_DIV_REG_s.antExtSwEn = 0;
+ 770               		.loc 3 184 0
+ 771 0370 8DE4      		ldi r24,lo8(77)
+ 772 0372 91E0      		ldi r25,lo8(1)
+ 773 0374 FC01      		movw r30,r24
+ 774 0376 2081      		ld r18,Z
+ 775 0378 2B7F      		andi r18,lo8(-5)
+ 776 037a FC01      		movw r30,r24
+ 777 037c 2083      		st Z,r18
+ 185:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	ANT_DIV_REG_s.antDivEn = 0;
+ 778               		.loc 3 185 0
+ 779 037e 8DE4      		ldi r24,lo8(77)
+ 780 0380 91E0      		ldi r25,lo8(1)
+ 781 0382 FC01      		movw r30,r24
+ 782 0384 2081      		ld r18,Z
+ 783 0386 277F      		andi r18,lo8(-9)
+ 784 0388 FC01      		movw r30,r24
+ 785 038a 2083      		st Z,r18
+ 186:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #else
+ 187:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	#if (ANTENNA_DEFAULT != 0)
+ 188:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		ANT_DIV_REG_s.antExtSwEn = 0;
+ 189:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		ANT_DIV_REG_s.antCtrl = 0;
+ 190:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	#endif // ANTENNA_DEFAULT
+ 191:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #endif // ANTENNA_DIVERSITY
+ 192:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #ifdef EXT_RF_FRONT_END_CTRL
+ 193:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	TRX_CTRL_1_REG_s.paExtEn = 0;
+ 786               		.loc 3 193 0
+ 787 038c 84E4      		ldi r24,lo8(68)
+ 788 038e 91E0      		ldi r25,lo8(1)
+ 789 0390 FC01      		movw r30,r24
+ 790 0392 2081      		ld r18,Z
+ 791 0394 2F77      		andi r18,lo8(127)
+ 792 0396 FC01      		movw r30,r24
+ 793 0398 2083      		st Z,r18
+ 194:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #endif // EXT_RF_FRONT_END_CTRL
+ 195:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 794               		.loc 3 195 0
+ 795 039a 0000      		nop
+ 796               	/* epilogue start */
+ 797 039c DF91      		pop r29
+ 798 039e CF91      		pop r28
+ 799 03a0 0895      		ret
+ 800               		.cfi_endproc
+ 801               	.LFE82:
+ 803               	.global	PHY_Wakeup
+ 805               	PHY_Wakeup:
+ 806               	.LFB83:
+ 196:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 197:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 198:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 199:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** void PHY_Wakeup(void)
+ 200:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 807               		.loc 3 200 0
+ 808               		.cfi_startproc
+ 809 03a2 CF93      		push r28
+ 810               	.LCFI36:
+ 811               		.cfi_def_cfa_offset 3
+ 812               		.cfi_offset 28, -2
+ 813 03a4 DF93      		push r29
+ 814               	.LCFI37:
+ 815               		.cfi_def_cfa_offset 4
+ 816               		.cfi_offset 29, -3
+ 817 03a6 CDB7      		in r28,__SP_L__
+ 818 03a8 DEB7      		in r29,__SP_H__
+ 819               	.LCFI38:
+ 820               		.cfi_def_cfa_register 28
+ 821               	/* prologue: function */
+ 822               	/* frame size = 0 */
+ 823               	/* stack size = 2 */
+ 824               	.L__stack_usage = 2
+ 201:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	TRXPR_REG_s.slptr = 0;
+ 825               		.loc 3 201 0
+ 826 03aa 89E3      		ldi r24,lo8(57)
+ 827 03ac 91E0      		ldi r25,lo8(1)
+ 828 03ae FC01      		movw r30,r24
+ 829 03b0 2081      		ld r18,Z
+ 830 03b2 2D7F      		andi r18,lo8(-3)
+ 831 03b4 FC01      		movw r30,r24
+ 832 03b6 2083      		st Z,r18
+ 202:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phySetRxState();
+ 833               		.loc 3 202 0
+ 834 03b8 0E94 0000 		call phySetRxState
+ 203:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phyState = PHY_STATE_IDLE;
+ 835               		.loc 3 203 0
+ 836 03bc 81E0      		ldi r24,lo8(1)
+ 837 03be 8093 0000 		sts phyState,r24
+ 204:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 838               		.loc 3 204 0
+ 839 03c2 0000      		nop
+ 840               	/* epilogue start */
+ 841 03c4 DF91      		pop r29
+ 842 03c6 CF91      		pop r28
+ 843 03c8 0895      		ret
+ 844               		.cfi_endproc
+ 845               	.LFE83:
+ 847               	.global	PHY_DataReq
+ 849               	PHY_DataReq:
+ 850               	.LFB84:
+ 205:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 206:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 207:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 208:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** void PHY_DataReq(uint8_t *data)
+ 209:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 851               		.loc 3 209 0
+ 852               		.cfi_startproc
+ 853 03ca CF93      		push r28
+ 854               	.LCFI39:
+ 855               		.cfi_def_cfa_offset 3
+ 856               		.cfi_offset 28, -2
+ 857 03cc DF93      		push r29
+ 858               	.LCFI40:
+ 859               		.cfi_def_cfa_offset 4
+ 860               		.cfi_offset 29, -3
+ 861 03ce 00D0      		rcall .
+ 862 03d0 1F92      		push __zero_reg__
+ 863               	.LCFI41:
+ 864               		.cfi_def_cfa_offset 7
+ 865 03d2 CDB7      		in r28,__SP_L__
+ 866 03d4 DEB7      		in r29,__SP_H__
+ 867               	.LCFI42:
+ 868               		.cfi_def_cfa_register 28
+ 869               	/* prologue: function */
+ 870               	/* frame size = 3 */
+ 871               	/* stack size = 5 */
+ 872               	.L__stack_usage = 5
+ 873 03d6 9B83      		std Y+3,r25
+ 874 03d8 8A83      		std Y+2,r24
+ 210:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phyTrxSetState(TRX_CMD_TX_ARET_ON);
+ 875               		.loc 3 210 0
+ 876 03da 89E1      		ldi r24,lo8(25)
+ 877 03dc 0E94 0000 		call phyTrxSetState
+ 211:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 212:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	TRX_FRAME_BUFFER(0) = data[0] + PHY_CRC_SIZE;
+ 878               		.loc 3 212 0
+ 879 03e0 80E8      		ldi r24,lo8(-128)
+ 880 03e2 91E0      		ldi r25,lo8(1)
+ 881 03e4 2A81      		ldd r18,Y+2
+ 882 03e6 3B81      		ldd r19,Y+3
+ 883 03e8 F901      		movw r30,r18
+ 884 03ea 2081      		ld r18,Z
+ 885 03ec 2E5F      		subi r18,lo8(-(2))
+ 886 03ee FC01      		movw r30,r24
+ 887 03f0 2083      		st Z,r18
+ 888               	.LBB2:
+ 213:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	for (uint8_t i = 0; i < data[0]; i++) {
+ 889               		.loc 3 213 0
+ 890 03f2 1982      		std Y+1,__zero_reg__
+ 891 03f4 00C0      		rjmp .L33
+ 892               	.L34:
+ 214:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		TRX_FRAME_BUFFER(i + 1) = data[i + 1];
+ 893               		.loc 3 214 0 discriminator 3
+ 894 03f6 8981      		ldd r24,Y+1
+ 895 03f8 882F      		mov r24,r24
+ 896 03fa 90E0      		ldi r25,0
+ 897 03fc 8F57      		subi r24,127
+ 898 03fe 9E4F      		sbci r25,-2
+ 899 0400 AC01      		movw r20,r24
+ 900 0402 8981      		ldd r24,Y+1
+ 901 0404 882F      		mov r24,r24
+ 902 0406 90E0      		ldi r25,0
+ 903 0408 0196      		adiw r24,1
+ 904 040a 2A81      		ldd r18,Y+2
+ 905 040c 3B81      		ldd r19,Y+3
+ 906 040e 820F      		add r24,r18
+ 907 0410 931F      		adc r25,r19
+ 908 0412 FC01      		movw r30,r24
+ 909 0414 8081      		ld r24,Z
+ 910 0416 FA01      		movw r30,r20
+ 911 0418 8083      		st Z,r24
+ 213:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	for (uint8_t i = 0; i < data[0]; i++) {
+ 912               		.loc 3 213 0 discriminator 3
+ 913 041a 8981      		ldd r24,Y+1
+ 914 041c 8F5F      		subi r24,lo8(-(1))
+ 915 041e 8983      		std Y+1,r24
+ 916               	.L33:
+ 213:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	for (uint8_t i = 0; i < data[0]; i++) {
+ 917               		.loc 3 213 0 is_stmt 0 discriminator 1
+ 918 0420 8A81      		ldd r24,Y+2
+ 919 0422 9B81      		ldd r25,Y+3
+ 920 0424 FC01      		movw r30,r24
+ 921 0426 9081      		ld r25,Z
+ 922 0428 8981      		ldd r24,Y+1
+ 923 042a 8917      		cp r24,r25
+ 924 042c 00F0      		brlo .L34
+ 925               	.LBE2:
+ 215:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	}
+ 216:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 217:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phyState = PHY_STATE_TX_WAIT_END;
+ 926               		.loc 3 217 0 is_stmt 1
+ 927 042e 83E0      		ldi r24,lo8(3)
+ 928 0430 8093 0000 		sts phyState,r24
+ 218:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	TRX_STATE_REG = TRX_CMD_TX_START;
+ 929               		.loc 3 218 0
+ 930 0434 82E4      		ldi r24,lo8(66)
+ 931 0436 91E0      		ldi r25,lo8(1)
+ 932 0438 22E0      		ldi r18,lo8(2)
+ 933 043a FC01      		movw r30,r24
+ 934 043c 2083      		st Z,r18
+ 219:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 935               		.loc 3 219 0
+ 936 043e 0000      		nop
+ 937               	/* epilogue start */
+ 938 0440 0F90      		pop __tmp_reg__
+ 939 0442 0F90      		pop __tmp_reg__
+ 940 0444 0F90      		pop __tmp_reg__
+ 941 0446 DF91      		pop r29
+ 942 0448 CF91      		pop r28
+ 943 044a 0895      		ret
+ 944               		.cfi_endproc
+ 945               	.LFE84:
+ 947               	.global	PHY_RandomReq
+ 949               	PHY_RandomReq:
+ 950               	.LFB85:
+ 220:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 221:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 222:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 223:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** uint16_t PHY_RandomReq(void)
+ 224:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 951               		.loc 3 224 0
+ 952               		.cfi_startproc
+ 953 044c CF93      		push r28
+ 954               	.LCFI43:
+ 955               		.cfi_def_cfa_offset 3
+ 956               		.cfi_offset 28, -2
+ 957 044e DF93      		push r29
+ 958               	.LCFI44:
+ 959               		.cfi_def_cfa_offset 4
+ 960               		.cfi_offset 29, -3
+ 961 0450 00D0      		rcall .
+ 962 0452 1F92      		push __zero_reg__
+ 963               	.LCFI45:
+ 964               		.cfi_def_cfa_offset 7
+ 965 0454 CDB7      		in r28,__SP_L__
+ 966 0456 DEB7      		in r29,__SP_H__
+ 967               	.LCFI46:
+ 968               		.cfi_def_cfa_register 28
+ 969               	/* prologue: function */
+ 970               	/* frame size = 3 */
+ 971               	/* stack size = 5 */
+ 972               	.L__stack_usage = 5
+ 225:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	uint16_t rnd = 0;
+ 973               		.loc 3 225 0
+ 974 0458 1A82      		std Y+2,__zero_reg__
+ 975 045a 1982      		std Y+1,__zero_reg__
+ 226:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 227:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phyTrxSetState(TRX_CMD_RX_ON);
+ 976               		.loc 3 227 0
+ 977 045c 86E0      		ldi r24,lo8(6)
+ 978 045e 0E94 0000 		call phyTrxSetState
+ 979               	.LBB3:
+ 228:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 229:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	for (uint8_t i = 0; i < 16; i += 2) {
+ 980               		.loc 3 229 0
+ 981 0462 1B82      		std Y+3,__zero_reg__
+ 982 0464 00C0      		rjmp .L36
+ 983               	.L37:
+ 230:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		delay_us(RANDOM_NUMBER_UPDATE_INTERVAL);
+ 984               		.loc 3 230 0 discriminator 3
+ 985 0466 62E0      		ldi r22,lo8(2)
+ 986 0468 70E0      		ldi r23,0
+ 987 046a 80E0      		ldi r24,0
+ 988 046c 90E0      		ldi r25,0
+ 989 046e 0E94 0000 		call __portable_avr_delay_cycles
+ 231:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		rnd |= PHY_RSSI_REG_s.rndValue << i;
+ 990               		.loc 3 231 0 discriminator 3
+ 991 0472 86E4      		ldi r24,lo8(70)
+ 992 0474 91E0      		ldi r25,lo8(1)
+ 993 0476 FC01      		movw r30,r24
+ 994 0478 8081      		ld r24,Z
+ 995 047a 8295      		swap r24
+ 996 047c 8695      		lsr r24
+ 997 047e 8770      		andi r24,lo8(7)
+ 998 0480 8370      		andi r24,lo8(3)
+ 999 0482 882F      		mov r24,r24
+ 1000 0484 90E0      		ldi r25,0
+ 1001 0486 2B81      		ldd r18,Y+3
+ 1002 0488 222F      		mov r18,r18
+ 1003 048a 30E0      		ldi r19,0
+ 1004 048c 00C0      		rjmp 2f
+ 1005               		1:
+ 1006 048e 880F      		lsl r24
+ 1007 0490 991F      		rol r25
+ 1008               		2:
+ 1009 0492 2A95      		dec r18
+ 1010 0494 02F4      		brpl 1b
+ 1011 0496 9C01      		movw r18,r24
+ 1012 0498 8981      		ldd r24,Y+1
+ 1013 049a 9A81      		ldd r25,Y+2
+ 1014 049c 822B      		or r24,r18
+ 1015 049e 932B      		or r25,r19
+ 1016 04a0 9A83      		std Y+2,r25
+ 1017 04a2 8983      		std Y+1,r24
+ 229:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		delay_us(RANDOM_NUMBER_UPDATE_INTERVAL);
+ 1018               		.loc 3 229 0 discriminator 3
+ 1019 04a4 8B81      		ldd r24,Y+3
+ 1020 04a6 8E5F      		subi r24,lo8(-(2))
+ 1021 04a8 8B83      		std Y+3,r24
+ 1022               	.L36:
+ 229:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		delay_us(RANDOM_NUMBER_UPDATE_INTERVAL);
+ 1023               		.loc 3 229 0 is_stmt 0 discriminator 1
+ 1024 04aa 8B81      		ldd r24,Y+3
+ 1025 04ac 8031      		cpi r24,lo8(16)
+ 1026 04ae 00F0      		brlo .L37
+ 1027               	.LBE3:
+ 232:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	}
+ 233:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 234:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phySetRxState();
+ 1028               		.loc 3 234 0 is_stmt 1
+ 1029 04b0 0E94 0000 		call phySetRxState
+ 235:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 236:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	return rnd;
+ 1030               		.loc 3 236 0
+ 1031 04b4 8981      		ldd r24,Y+1
+ 1032 04b6 9A81      		ldd r25,Y+2
+ 1033               	/* epilogue start */
+ 237:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 1034               		.loc 3 237 0
+ 1035 04b8 0F90      		pop __tmp_reg__
+ 1036 04ba 0F90      		pop __tmp_reg__
+ 1037 04bc 0F90      		pop __tmp_reg__
+ 1038 04be DF91      		pop r29
+ 1039 04c0 CF91      		pop r28
+ 1040 04c2 0895      		ret
+ 1041               		.cfi_endproc
+ 1042               	.LFE85:
+ 1044               	.global	PHY_EncryptReq
+ 1046               	PHY_EncryptReq:
+ 1047               	.LFB86:
+ 238:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 239:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 240:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 241:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** void PHY_EncryptReq(uint8_t *text, uint8_t *key)
+ 242:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 1048               		.loc 3 242 0
+ 1049               		.cfi_startproc
+ 1050 04c4 CF93      		push r28
+ 1051               	.LCFI47:
+ 1052               		.cfi_def_cfa_offset 3
+ 1053               		.cfi_offset 28, -2
+ 1054 04c6 DF93      		push r29
+ 1055               	.LCFI48:
+ 1056               		.cfi_def_cfa_offset 4
+ 1057               		.cfi_offset 29, -3
+ 1058 04c8 00D0      		rcall .
+ 1059 04ca 00D0      		rcall .
+ 1060               	.LCFI49:
+ 1061               		.cfi_def_cfa_offset 8
+ 1062 04cc CDB7      		in r28,__SP_L__
+ 1063 04ce DEB7      		in r29,__SP_H__
+ 1064               	.LCFI50:
+ 1065               		.cfi_def_cfa_register 28
+ 1066               	/* prologue: function */
+ 1067               	/* frame size = 4 */
+ 1068               	/* stack size = 6 */
+ 1069               	.L__stack_usage = 6
+ 1070 04d0 9A83      		std Y+2,r25
+ 1071 04d2 8983      		std Y+1,r24
+ 1072 04d4 7C83      		std Y+4,r23
+ 1073 04d6 6B83      		std Y+3,r22
+ 243:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	sal_aes_setup(key, AES_MODE_ECB, AES_DIR_ENCRYPT);
+ 1074               		.loc 3 243 0
+ 1075 04d8 8B81      		ldd r24,Y+3
+ 1076 04da 9C81      		ldd r25,Y+4
+ 1077 04dc 40E0      		ldi r20,0
+ 1078 04de 60E0      		ldi r22,0
+ 1079 04e0 0E94 0000 		call sal_aes_setup
+ 244:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	sal_aes_exec(text);
+ 1080               		.loc 3 244 0
+ 1081 04e4 8981      		ldd r24,Y+1
+ 1082 04e6 9A81      		ldd r25,Y+2
+ 1083 04e8 0E94 0000 		call sal_aes_exec
+ 245:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	sal_aes_read(text);
+ 1084               		.loc 3 245 0
+ 1085 04ec 8981      		ldd r24,Y+1
+ 1086 04ee 9A81      		ldd r25,Y+2
+ 1087 04f0 0E94 0000 		call sal_aes_read
+ 246:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 1088               		.loc 3 246 0
+ 1089 04f4 0000      		nop
+ 1090               	/* epilogue start */
+ 1091 04f6 0F90      		pop __tmp_reg__
+ 1092 04f8 0F90      		pop __tmp_reg__
+ 1093 04fa 0F90      		pop __tmp_reg__
+ 1094 04fc 0F90      		pop __tmp_reg__
+ 1095 04fe DF91      		pop r29
+ 1096 0500 CF91      		pop r28
+ 1097 0502 0895      		ret
+ 1098               		.cfi_endproc
+ 1099               	.LFE86:
+ 1101               	.global	PHY_EdReq
+ 1103               	PHY_EdReq:
+ 1104               	.LFB87:
+ 247:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 248:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 249:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 250:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** int8_t PHY_EdReq(void)
+ 251:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 1105               		.loc 3 251 0
+ 1106               		.cfi_startproc
+ 1107 0504 CF93      		push r28
+ 1108               	.LCFI51:
+ 1109               		.cfi_def_cfa_offset 3
+ 1110               		.cfi_offset 28, -2
+ 1111 0506 DF93      		push r29
+ 1112               	.LCFI52:
+ 1113               		.cfi_def_cfa_offset 4
+ 1114               		.cfi_offset 29, -3
+ 1115 0508 1F92      		push __zero_reg__
+ 1116               	.LCFI53:
+ 1117               		.cfi_def_cfa_offset 5
+ 1118 050a CDB7      		in r28,__SP_L__
+ 1119 050c DEB7      		in r29,__SP_H__
+ 1120               	.LCFI54:
+ 1121               		.cfi_def_cfa_register 28
+ 1122               	/* prologue: function */
+ 1123               	/* frame size = 1 */
+ 1124               	/* stack size = 3 */
+ 1125               	.L__stack_usage = 3
+ 252:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	int8_t ed;
+ 253:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 254:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phyTrxSetState(TRX_CMD_RX_ON);
+ 1126               		.loc 3 254 0
+ 1127 050e 86E0      		ldi r24,lo8(6)
+ 1128 0510 0E94 0000 		call phyTrxSetState
+ 255:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 256:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	IRQ_STATUS_REG_s.ccaEdDone = 1;
+ 1129               		.loc 3 256 0
+ 1130 0514 8FE4      		ldi r24,lo8(79)
+ 1131 0516 91E0      		ldi r25,lo8(1)
+ 1132 0518 FC01      		movw r30,r24
+ 1133 051a 2081      		ld r18,Z
+ 1134 051c 2061      		ori r18,lo8(16)
+ 1135 051e FC01      		movw r30,r24
+ 1136 0520 2083      		st Z,r18
+ 257:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	PHY_ED_LEVEL_REG = 0;
+ 1137               		.loc 3 257 0
+ 1138 0522 87E4      		ldi r24,lo8(71)
+ 1139 0524 91E0      		ldi r25,lo8(1)
+ 1140 0526 FC01      		movw r30,r24
+ 1141 0528 1082      		st Z,__zero_reg__
+ 258:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	while (0 == IRQ_STATUS_REG_s.ccaEdDone) {
+ 1142               		.loc 3 258 0
+ 1143 052a 0000      		nop
+ 1144               	.L41:
+ 1145               		.loc 3 258 0 is_stmt 0 discriminator 1
+ 1146 052c 8FE4      		ldi r24,lo8(79)
+ 1147 052e 91E0      		ldi r25,lo8(1)
+ 1148 0530 FC01      		movw r30,r24
+ 1149 0532 8081      		ld r24,Z
+ 1150 0534 8295      		swap r24
+ 1151 0536 8170      		andi r24,1
+ 1152 0538 8823      		tst r24
+ 1153 053a 01F0      		breq .L41
+ 259:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	}
+ 260:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 261:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	ed = (int8_t)PHY_ED_LEVEL_REG + PHY_RSSI_BASE_VAL;
+ 1154               		.loc 3 261 0 is_stmt 1
+ 1155 053c 87E4      		ldi r24,lo8(71)
+ 1156 053e 91E0      		ldi r25,lo8(1)
+ 1157 0540 FC01      		movw r30,r24
+ 1158 0542 8081      		ld r24,Z
+ 1159 0544 8A55      		subi r24,lo8(-(-90))
+ 1160 0546 8983      		std Y+1,r24
+ 262:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 263:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phySetRxState();
+ 1161               		.loc 3 263 0
+ 1162 0548 0E94 0000 		call phySetRxState
+ 264:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 265:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	return ed;
+ 1163               		.loc 3 265 0
+ 1164 054c 8981      		ldd r24,Y+1
+ 1165               	/* epilogue start */
+ 266:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 1166               		.loc 3 266 0
+ 1167 054e 0F90      		pop __tmp_reg__
+ 1168 0550 DF91      		pop r29
+ 1169 0552 CF91      		pop r28
+ 1170 0554 0895      		ret
+ 1171               		.cfi_endproc
+ 1172               	.LFE87:
+ 1175               	phySetRxState:
+ 1176               	.LFB88:
+ 267:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 268:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 269:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 270:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** static void phySetRxState(void)
+ 271:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 1177               		.loc 3 271 0
+ 1178               		.cfi_startproc
+ 1179 0556 CF93      		push r28
+ 1180               	.LCFI55:
+ 1181               		.cfi_def_cfa_offset 3
+ 1182               		.cfi_offset 28, -2
+ 1183 0558 DF93      		push r29
+ 1184               	.LCFI56:
+ 1185               		.cfi_def_cfa_offset 4
+ 1186               		.cfi_offset 29, -3
+ 1187 055a CDB7      		in r28,__SP_L__
+ 1188 055c DEB7      		in r29,__SP_H__
+ 1189               	.LCFI57:
+ 1190               		.cfi_def_cfa_register 28
+ 1191               	/* prologue: function */
+ 1192               	/* frame size = 0 */
+ 1193               	/* stack size = 2 */
+ 1194               	.L__stack_usage = 2
+ 272:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	phyTrxSetState(TRX_CMD_TRX_OFF);
+ 1195               		.loc 3 272 0
+ 1196 055e 88E0      		ldi r24,lo8(8)
+ 1197 0560 0E94 0000 		call phyTrxSetState
+ 273:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 274:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	IRQ_STATUS_REG = IRQ_CLEAR_VALUE;
+ 1198               		.loc 3 274 0
+ 1199 0564 8FE4      		ldi r24,lo8(79)
+ 1200 0566 91E0      		ldi r25,lo8(1)
+ 1201 0568 2FEF      		ldi r18,lo8(-1)
+ 1202 056a FC01      		movw r30,r24
+ 1203 056c 2083      		st Z,r18
+ 275:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 276:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	if (phyRxState) {
+ 1204               		.loc 3 276 0
+ 1205 056e 8091 0000 		lds r24,phyRxState
+ 1206 0572 8823      		tst r24
+ 1207 0574 01F0      		breq .L45
+ 277:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		phyTrxSetState(TRX_CMD_RX_AACK_ON);
+ 1208               		.loc 3 277 0
+ 1209 0576 86E1      		ldi r24,lo8(22)
+ 1210 0578 0E94 0000 		call phyTrxSetState
+ 1211               	.L45:
+ 278:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	}
+ 279:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 1212               		.loc 3 279 0
+ 1213 057c 0000      		nop
+ 1214               	/* epilogue start */
+ 1215 057e DF91      		pop r29
+ 1216 0580 CF91      		pop r28
+ 1217 0582 0895      		ret
+ 1218               		.cfi_endproc
+ 1219               	.LFE88:
+ 1222               	phyTrxSetState:
+ 1223               	.LFB89:
+ 280:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 281:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 282:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 283:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** static void phyTrxSetState(uint8_t state)
+ 284:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 1224               		.loc 3 284 0
+ 1225               		.cfi_startproc
+ 1226 0584 CF93      		push r28
+ 1227               	.LCFI58:
+ 1228               		.cfi_def_cfa_offset 3
+ 1229               		.cfi_offset 28, -2
+ 1230 0586 DF93      		push r29
+ 1231               	.LCFI59:
+ 1232               		.cfi_def_cfa_offset 4
+ 1233               		.cfi_offset 29, -3
+ 1234 0588 1F92      		push __zero_reg__
+ 1235               	.LCFI60:
+ 1236               		.cfi_def_cfa_offset 5
+ 1237 058a CDB7      		in r28,__SP_L__
+ 1238 058c DEB7      		in r29,__SP_H__
+ 1239               	.LCFI61:
+ 1240               		.cfi_def_cfa_register 28
+ 1241               	/* prologue: function */
+ 1242               	/* frame size = 1 */
+ 1243               	/* stack size = 3 */
+ 1244               	.L__stack_usage = 3
+ 1245 058e 8983      		std Y+1,r24
+ 285:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #if (ANTENNA_DIVERSITY == 1) || defined(EXT_RF_FRONT_END_CTRL)
+ 286:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	if(phyState == PHY_STATE_SLEEP)
+ 1246               		.loc 3 286 0
+ 1247 0590 8091 0000 		lds r24,phyState
+ 1248 0594 8230      		cpi r24,lo8(2)
+ 1249 0596 01F4      		brne .L47
+ 287:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	{
+ 288:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	#if (ANTENNA_DIVERSITY == 1)
+ 289:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		ANT_DIV_REG_s.antDivEn = 1;
+ 1250               		.loc 3 289 0
+ 1251 0598 8DE4      		ldi r24,lo8(77)
+ 1252 059a 91E0      		ldi r25,lo8(1)
+ 1253 059c FC01      		movw r30,r24
+ 1254 059e 2081      		ld r18,Z
+ 1255 05a0 2860      		ori r18,lo8(8)
+ 1256 05a2 FC01      		movw r30,r24
+ 1257 05a4 2083      		st Z,r18
+ 290:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		ANT_DIV_REG_s.antExtSwEn = 1;
+ 1258               		.loc 3 290 0
+ 1259 05a6 8DE4      		ldi r24,lo8(77)
+ 1260 05a8 91E0      		ldi r25,lo8(1)
+ 1261 05aa FC01      		movw r30,r24
+ 1262 05ac 2081      		ld r18,Z
+ 1263 05ae 2460      		ori r18,lo8(4)
+ 1264 05b0 FC01      		movw r30,r24
+ 1265 05b2 2083      		st Z,r18
+ 291:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	#else
+ 292:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		#if (ANTENNA_DEFAULT != 0)
+ 293:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			ANT_DIV_REG_s.antExtSwEn = 1;
+ 294:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			ANT_DIV_REG_s.antCtrl = ANTENNA_DEFAULT;
+ 295:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		#endif // ANTENNA_DEFAULT
+ 296:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	#endif // ANTENNA_DIVERSITY
+ 297:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	#ifdef EXT_RF_FRONT_END_CTRL
+ 298:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		TRX_CTRL_1_REG_s.paExtEn = 1;
+ 1266               		.loc 3 298 0
+ 1267 05b4 84E4      		ldi r24,lo8(68)
+ 1268 05b6 91E0      		ldi r25,lo8(1)
+ 1269 05b8 FC01      		movw r30,r24
+ 1270 05ba 2081      		ld r18,Z
+ 1271 05bc 2068      		ori r18,lo8(-128)
+ 1272 05be FC01      		movw r30,r24
+ 1273 05c0 2083      		st Z,r18
+ 1274               	.L47:
+ 299:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	#endif // EXT_RF_FRONT_END_CTRL
+ 300:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	}
+ 301:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** #endif // PLATFORM_WM100
+ 302:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 303:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	do {TRX_STATE_REG = TRX_CMD_FORCE_TRX_OFF;
+ 1275               		.loc 3 303 0 discriminator 1
+ 1276 05c2 82E4      		ldi r24,lo8(66)
+ 1277 05c4 91E0      		ldi r25,lo8(1)
+ 1278 05c6 23E0      		ldi r18,lo8(3)
+ 1279 05c8 FC01      		movw r30,r24
+ 1280 05ca 2083      		st Z,r18
+ 304:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	} while (TRX_STATUS_TRX_OFF !=
+ 305:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			TRX_STATUS_REG_s.trxStatus);
+ 1281               		.loc 3 305 0 discriminator 1
+ 1282 05cc 81E4      		ldi r24,lo8(65)
+ 1283 05ce 91E0      		ldi r25,lo8(1)
+ 1284 05d0 FC01      		movw r30,r24
+ 1285 05d2 8081      		ld r24,Z
+ 1286 05d4 8F71      		andi r24,lo8(31)
+ 1287 05d6 8830      		cpi r24,lo8(8)
+ 1288 05d8 01F4      		brne .L47
+ 1289               	.L48:
+ 306:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 307:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	do {TRX_STATE_REG = state; } while (state !=
+ 1290               		.loc 3 307 0 discriminator 1
+ 1291 05da 82E4      		ldi r24,lo8(66)
+ 1292 05dc 91E0      		ldi r25,lo8(1)
+ 1293 05de 2981      		ldd r18,Y+1
+ 1294 05e0 FC01      		movw r30,r24
+ 1295 05e2 2083      		st Z,r18
+ 308:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			TRX_STATUS_REG_s.trxStatus);
+ 1296               		.loc 3 308 0 discriminator 1
+ 1297 05e4 81E4      		ldi r24,lo8(65)
+ 1298 05e6 91E0      		ldi r25,lo8(1)
+ 1299 05e8 FC01      		movw r30,r24
+ 1300 05ea 8081      		ld r24,Z
+ 1301 05ec 8F71      		andi r24,lo8(31)
+ 307:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			TRX_STATUS_REG_s.trxStatus);
+ 1302               		.loc 3 307 0 discriminator 1
+ 1303 05ee 982F      		mov r25,r24
+ 1304               		.loc 3 308 0 discriminator 1
+ 1305 05f0 8981      		ldd r24,Y+1
+ 1306 05f2 9817      		cp r25,r24
+ 1307 05f4 01F4      		brne .L48
+ 309:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 1308               		.loc 3 309 0
+ 1309 05f6 0000      		nop
+ 1310               	/* epilogue start */
+ 1311 05f8 0F90      		pop __tmp_reg__
+ 1312 05fa DF91      		pop r29
+ 1313 05fc CF91      		pop r28
+ 1314 05fe 0895      		ret
+ 1315               		.cfi_endproc
+ 1316               	.LFE89:
+ 1318               	.global	PHY_SetIEEEAddr
+ 1320               	PHY_SetIEEEAddr:
+ 1321               	.LFB90:
+ 310:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 311:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 312:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 313:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** void PHY_SetIEEEAddr(uint8_t *ieee_addr)
+ 314:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 1322               		.loc 3 314 0
+ 1323               		.cfi_startproc
+ 1324 0600 CF93      		push r28
+ 1325               	.LCFI62:
+ 1326               		.cfi_def_cfa_offset 3
+ 1327               		.cfi_offset 28, -2
+ 1328 0602 DF93      		push r29
+ 1329               	.LCFI63:
+ 1330               		.cfi_def_cfa_offset 4
+ 1331               		.cfi_offset 29, -3
+ 1332 0604 00D0      		rcall .
+ 1333 0606 00D0      		rcall .
+ 1334               	.LCFI64:
+ 1335               		.cfi_def_cfa_offset 8
+ 1336 0608 CDB7      		in r28,__SP_L__
+ 1337 060a DEB7      		in r29,__SP_H__
+ 1338               	.LCFI65:
+ 1339               		.cfi_def_cfa_register 28
+ 1340               	/* prologue: function */
+ 1341               	/* frame size = 4 */
+ 1342               	/* stack size = 6 */
+ 1343               	.L__stack_usage = 6
+ 1344 060c 9C83      		std Y+4,r25
+ 1345 060e 8B83      		std Y+3,r24
+ 315:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	uint8_t *ptr_to_reg = ieee_addr;
+ 1346               		.loc 3 315 0
+ 1347 0610 8B81      		ldd r24,Y+3
+ 1348 0612 9C81      		ldd r25,Y+4
+ 1349 0614 9A83      		std Y+2,r25
+ 1350 0616 8983      		std Y+1,r24
+ 316:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	IEEE_ADDR_0_REG = *ptr_to_reg++;
+ 1351               		.loc 3 316 0
+ 1352 0618 24E6      		ldi r18,lo8(100)
+ 1353 061a 31E0      		ldi r19,lo8(1)
+ 1354 061c 8981      		ldd r24,Y+1
+ 1355 061e 9A81      		ldd r25,Y+2
+ 1356 0620 AC01      		movw r20,r24
+ 1357 0622 4F5F      		subi r20,-1
+ 1358 0624 5F4F      		sbci r21,-1
+ 1359 0626 5A83      		std Y+2,r21
+ 1360 0628 4983      		std Y+1,r20
+ 1361 062a FC01      		movw r30,r24
+ 1362 062c 8081      		ld r24,Z
+ 1363 062e F901      		movw r30,r18
+ 1364 0630 8083      		st Z,r24
+ 317:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	IEEE_ADDR_1_REG = *ptr_to_reg++;
+ 1365               		.loc 3 317 0
+ 1366 0632 25E6      		ldi r18,lo8(101)
+ 1367 0634 31E0      		ldi r19,lo8(1)
+ 1368 0636 8981      		ldd r24,Y+1
+ 1369 0638 9A81      		ldd r25,Y+2
+ 1370 063a AC01      		movw r20,r24
+ 1371 063c 4F5F      		subi r20,-1
+ 1372 063e 5F4F      		sbci r21,-1
+ 1373 0640 5A83      		std Y+2,r21
+ 1374 0642 4983      		std Y+1,r20
+ 1375 0644 FC01      		movw r30,r24
+ 1376 0646 8081      		ld r24,Z
+ 1377 0648 F901      		movw r30,r18
+ 1378 064a 8083      		st Z,r24
+ 318:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	IEEE_ADDR_2_REG = *ptr_to_reg++;
+ 1379               		.loc 3 318 0
+ 1380 064c 26E6      		ldi r18,lo8(102)
+ 1381 064e 31E0      		ldi r19,lo8(1)
+ 1382 0650 8981      		ldd r24,Y+1
+ 1383 0652 9A81      		ldd r25,Y+2
+ 1384 0654 AC01      		movw r20,r24
+ 1385 0656 4F5F      		subi r20,-1
+ 1386 0658 5F4F      		sbci r21,-1
+ 1387 065a 5A83      		std Y+2,r21
+ 1388 065c 4983      		std Y+1,r20
+ 1389 065e FC01      		movw r30,r24
+ 1390 0660 8081      		ld r24,Z
+ 1391 0662 F901      		movw r30,r18
+ 1392 0664 8083      		st Z,r24
+ 319:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	IEEE_ADDR_3_REG = *ptr_to_reg++;
+ 1393               		.loc 3 319 0
+ 1394 0666 27E6      		ldi r18,lo8(103)
+ 1395 0668 31E0      		ldi r19,lo8(1)
+ 1396 066a 8981      		ldd r24,Y+1
+ 1397 066c 9A81      		ldd r25,Y+2
+ 1398 066e AC01      		movw r20,r24
+ 1399 0670 4F5F      		subi r20,-1
+ 1400 0672 5F4F      		sbci r21,-1
+ 1401 0674 5A83      		std Y+2,r21
+ 1402 0676 4983      		std Y+1,r20
+ 1403 0678 FC01      		movw r30,r24
+ 1404 067a 8081      		ld r24,Z
+ 1405 067c F901      		movw r30,r18
+ 1406 067e 8083      		st Z,r24
+ 320:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	IEEE_ADDR_4_REG = *ptr_to_reg++;
+ 1407               		.loc 3 320 0
+ 1408 0680 28E6      		ldi r18,lo8(104)
+ 1409 0682 31E0      		ldi r19,lo8(1)
+ 1410 0684 8981      		ldd r24,Y+1
+ 1411 0686 9A81      		ldd r25,Y+2
+ 1412 0688 AC01      		movw r20,r24
+ 1413 068a 4F5F      		subi r20,-1
+ 1414 068c 5F4F      		sbci r21,-1
+ 1415 068e 5A83      		std Y+2,r21
+ 1416 0690 4983      		std Y+1,r20
+ 1417 0692 FC01      		movw r30,r24
+ 1418 0694 8081      		ld r24,Z
+ 1419 0696 F901      		movw r30,r18
+ 1420 0698 8083      		st Z,r24
+ 321:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	IEEE_ADDR_5_REG = *ptr_to_reg++;
+ 1421               		.loc 3 321 0
+ 1422 069a 29E6      		ldi r18,lo8(105)
+ 1423 069c 31E0      		ldi r19,lo8(1)
+ 1424 069e 8981      		ldd r24,Y+1
+ 1425 06a0 9A81      		ldd r25,Y+2
+ 1426 06a2 AC01      		movw r20,r24
+ 1427 06a4 4F5F      		subi r20,-1
+ 1428 06a6 5F4F      		sbci r21,-1
+ 1429 06a8 5A83      		std Y+2,r21
+ 1430 06aa 4983      		std Y+1,r20
+ 1431 06ac FC01      		movw r30,r24
+ 1432 06ae 8081      		ld r24,Z
+ 1433 06b0 F901      		movw r30,r18
+ 1434 06b2 8083      		st Z,r24
+ 322:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	IEEE_ADDR_6_REG = *ptr_to_reg++;
+ 1435               		.loc 3 322 0
+ 1436 06b4 2AE6      		ldi r18,lo8(106)
+ 1437 06b6 31E0      		ldi r19,lo8(1)
+ 1438 06b8 8981      		ldd r24,Y+1
+ 1439 06ba 9A81      		ldd r25,Y+2
+ 1440 06bc AC01      		movw r20,r24
+ 1441 06be 4F5F      		subi r20,-1
+ 1442 06c0 5F4F      		sbci r21,-1
+ 1443 06c2 5A83      		std Y+2,r21
+ 1444 06c4 4983      		std Y+1,r20
+ 1445 06c6 FC01      		movw r30,r24
+ 1446 06c8 8081      		ld r24,Z
+ 1447 06ca F901      		movw r30,r18
+ 1448 06cc 8083      		st Z,r24
+ 323:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	IEEE_ADDR_7_REG = *ptr_to_reg;
+ 1449               		.loc 3 323 0
+ 1450 06ce 8BE6      		ldi r24,lo8(107)
+ 1451 06d0 91E0      		ldi r25,lo8(1)
+ 1452 06d2 2981      		ldd r18,Y+1
+ 1453 06d4 3A81      		ldd r19,Y+2
+ 1454 06d6 F901      		movw r30,r18
+ 1455 06d8 2081      		ld r18,Z
+ 1456 06da FC01      		movw r30,r24
+ 1457 06dc 2083      		st Z,r18
+ 324:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 1458               		.loc 3 324 0
+ 1459 06de 0000      		nop
+ 1460               	/* epilogue start */
+ 1461 06e0 0F90      		pop __tmp_reg__
+ 1462 06e2 0F90      		pop __tmp_reg__
+ 1463 06e4 0F90      		pop __tmp_reg__
+ 1464 06e6 0F90      		pop __tmp_reg__
+ 1465 06e8 DF91      		pop r29
+ 1466 06ea CF91      		pop r28
+ 1467 06ec 0895      		ret
+ 1468               		.cfi_endproc
+ 1469               	.LFE90:
+ 1471               	.global	PHY_TaskHandler
+ 1473               	PHY_TaskHandler:
+ 1474               	.LFB91:
+ 325:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 326:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** /*************************************************************************//**
+ 327:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** *****************************************************************************/
+ 328:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** void PHY_TaskHandler(void)
+ 329:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** {
+ 1475               		.loc 3 329 0
+ 1476               		.cfi_startproc
+ 1477 06ee CF93      		push r28
+ 1478               	.LCFI66:
+ 1479               		.cfi_def_cfa_offset 3
+ 1480               		.cfi_offset 28, -2
+ 1481 06f0 DF93      		push r29
+ 1482               	.LCFI67:
+ 1483               		.cfi_def_cfa_offset 4
+ 1484               		.cfi_offset 29, -3
+ 1485 06f2 CDB7      		in r28,__SP_L__
+ 1486 06f4 DEB7      		in r29,__SP_H__
+ 1487               	.LCFI68:
+ 1488               		.cfi_def_cfa_register 28
+ 1489 06f6 2897      		sbiw r28,8
+ 1490               	.LCFI69:
+ 1491               		.cfi_def_cfa_offset 12
+ 1492 06f8 0FB6      		in __tmp_reg__,__SREG__
+ 1493 06fa F894      		cli
+ 1494 06fc DEBF      		out __SP_H__,r29
+ 1495 06fe 0FBE      		out __SREG__,__tmp_reg__
+ 1496 0700 CDBF      		out __SP_L__,r28
+ 1497               	/* prologue: function */
+ 1498               	/* frame size = 8 */
+ 1499               	/* stack size = 10 */
+ 1500               	.L__stack_usage = 10
+ 330:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	if (PHY_STATE_SLEEP == phyState) {
+ 1501               		.loc 3 330 0
+ 1502 0702 8091 0000 		lds r24,phyState
+ 1503 0706 8230      		cpi r24,lo8(2)
+ 1504 0708 01F4      		brne .+2
+ 1505 070a 00C0      		rjmp .L62
+ 331:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		return;
+ 332:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	}
+ 333:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 334:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	if (IRQ_STATUS_REG_s.rxEnd) {
+ 1506               		.loc 3 334 0
+ 1507 070c 8FE4      		ldi r24,lo8(79)
+ 1508 070e 91E0      		ldi r25,lo8(1)
+ 1509 0710 FC01      		movw r30,r24
+ 1510 0712 8081      		ld r24,Z
+ 1511 0714 83FB      		bst r24,3
+ 1512 0716 8827      		clr r24
+ 1513 0718 80F9      		bld r24,0
+ 1514 071a 8823      		tst r24
+ 1515 071c 01F4      		brne .+2
+ 1516 071e 00C0      		rjmp .L53
+ 1517               	.LBB4:
+ 335:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		PHY_DataInd_t ind;
+ 336:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		uint8_t size = TST_RX_LENGTH_REG;
+ 1518               		.loc 3 336 0
+ 1519 0720 8BE7      		ldi r24,lo8(123)
+ 1520 0722 91E0      		ldi r25,lo8(1)
+ 1521 0724 FC01      		movw r30,r24
+ 1522 0726 8081      		ld r24,Z
+ 1523 0728 8B83      		std Y+3,r24
+ 1524               	.LBB5:
+ 337:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 338:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		for (uint8_t i = 0; i < size + 1 /*lqi*/; i++) {
+ 1525               		.loc 3 338 0
+ 1526 072a 1982      		std Y+1,__zero_reg__
+ 1527 072c 00C0      		rjmp .L54
+ 1528               	.L55:
+ 339:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			phyRxBuffer[i] = TRX_FRAME_BUFFER(i);
+ 1529               		.loc 3 339 0 discriminator 3
+ 1530 072e 8981      		ldd r24,Y+1
+ 1531 0730 882F      		mov r24,r24
+ 1532 0732 90E0      		ldi r25,0
+ 1533 0734 2981      		ldd r18,Y+1
+ 1534 0736 222F      		mov r18,r18
+ 1535 0738 30E0      		ldi r19,0
+ 1536 073a 2058      		subi r18,-128
+ 1537 073c 3E4F      		sbci r19,-2
+ 1538 073e F901      		movw r30,r18
+ 1539 0740 2081      		ld r18,Z
+ 1540 0742 8050      		subi r24,lo8(-(phyRxBuffer))
+ 1541 0744 9040      		sbci r25,hi8(-(phyRxBuffer))
+ 1542 0746 FC01      		movw r30,r24
+ 1543 0748 2083      		st Z,r18
+ 338:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			phyRxBuffer[i] = TRX_FRAME_BUFFER(i);
+ 1544               		.loc 3 338 0 discriminator 3
+ 1545 074a 8981      		ldd r24,Y+1
+ 1546 074c 8F5F      		subi r24,lo8(-(1))
+ 1547 074e 8983      		std Y+1,r24
+ 1548               	.L54:
+ 338:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			phyRxBuffer[i] = TRX_FRAME_BUFFER(i);
+ 1549               		.loc 3 338 0 is_stmt 0 discriminator 1
+ 1550 0750 8981      		ldd r24,Y+1
+ 1551 0752 282F      		mov r18,r24
+ 1552 0754 30E0      		ldi r19,0
+ 1553 0756 8B81      		ldd r24,Y+3
+ 1554 0758 882F      		mov r24,r24
+ 1555 075a 90E0      		ldi r25,0
+ 1556 075c 0196      		adiw r24,1
+ 1557 075e 2817      		cp r18,r24
+ 1558 0760 3907      		cpc r19,r25
+ 1559 0762 04F0      		brlt .L55
+ 1560               	.LBE5:
+ 340:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		}
+ 341:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 342:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		ind.data = phyRxBuffer;
+ 1561               		.loc 3 342 0 is_stmt 1
+ 1562 0764 80E0      		ldi r24,lo8(phyRxBuffer)
+ 1563 0766 90E0      		ldi r25,hi8(phyRxBuffer)
+ 1564 0768 9D83      		std Y+5,r25
+ 1565 076a 8C83      		std Y+4,r24
+ 343:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		ind.size = size - PHY_CRC_SIZE;
+ 1566               		.loc 3 343 0
+ 1567 076c 8B81      		ldd r24,Y+3
+ 1568 076e 8250      		subi r24,lo8(-(-2))
+ 1569 0770 8E83      		std Y+6,r24
+ 344:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		ind.lqi  = phyRxBuffer[size];
+ 1570               		.loc 3 344 0
+ 1571 0772 8B81      		ldd r24,Y+3
+ 1572 0774 882F      		mov r24,r24
+ 1573 0776 90E0      		ldi r25,0
+ 1574 0778 8050      		subi r24,lo8(-(phyRxBuffer))
+ 1575 077a 9040      		sbci r25,hi8(-(phyRxBuffer))
+ 1576 077c FC01      		movw r30,r24
+ 1577 077e 8081      		ld r24,Z
+ 1578 0780 8F83      		std Y+7,r24
+ 345:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		ind.rssi = (int8_t)PHY_ED_LEVEL_REG + PHY_RSSI_BASE_VAL;
+ 1579               		.loc 3 345 0
+ 1580 0782 87E4      		ldi r24,lo8(71)
+ 1581 0784 91E0      		ldi r25,lo8(1)
+ 1582 0786 FC01      		movw r30,r24
+ 1583 0788 8081      		ld r24,Z
+ 1584 078a 8A55      		subi r24,lo8(-(-90))
+ 1585 078c 8887      		std Y+8,r24
+ 346:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		PHY_DataInd(&ind);
+ 1586               		.loc 3 346 0
+ 1587 078e CE01      		movw r24,r28
+ 1588 0790 0496      		adiw r24,4
+ 1589 0792 0E94 0000 		call PHY_DataInd
+ 347:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 348:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		while (TRX_STATUS_RX_AACK_ON != TRX_STATUS_REG_s.trxStatus) {
+ 1590               		.loc 3 348 0
+ 1591 0796 0000      		nop
+ 1592               	.L56:
+ 1593               		.loc 3 348 0 is_stmt 0 discriminator 1
+ 1594 0798 81E4      		ldi r24,lo8(65)
+ 1595 079a 91E0      		ldi r25,lo8(1)
+ 1596 079c FC01      		movw r30,r24
+ 1597 079e 8081      		ld r24,Z
+ 1598 07a0 8F71      		andi r24,lo8(31)
+ 1599 07a2 8631      		cpi r24,lo8(22)
+ 1600 07a4 01F4      		brne .L56
+ 349:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		}
+ 350:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 351:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		IRQ_STATUS_REG_s.rxEnd = 1;
+ 1601               		.loc 3 351 0 is_stmt 1 discriminator 2
+ 1602 07a6 8FE4      		ldi r24,lo8(79)
+ 1603 07a8 91E0      		ldi r25,lo8(1)
+ 1604 07aa FC01      		movw r30,r24
+ 1605 07ac 2081      		ld r18,Z
+ 1606 07ae 2860      		ori r18,lo8(8)
+ 1607 07b0 FC01      		movw r30,r24
+ 1608 07b2 2083      		st Z,r18
+ 352:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		TRX_CTRL_2_REG_s.rxSafeMode = 0;
+ 1609               		.loc 3 352 0 discriminator 2
+ 1610 07b4 8CE4      		ldi r24,lo8(76)
+ 1611 07b6 91E0      		ldi r25,lo8(1)
+ 1612 07b8 FC01      		movw r30,r24
+ 1613 07ba 2081      		ld r18,Z
+ 1614 07bc 2F77      		andi r18,lo8(127)
+ 1615 07be FC01      		movw r30,r24
+ 1616 07c0 2083      		st Z,r18
+ 353:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		TRX_CTRL_2_REG_s.rxSafeMode = 1;
+ 1617               		.loc 3 353 0 discriminator 2
+ 1618 07c2 8CE4      		ldi r24,lo8(76)
+ 1619 07c4 91E0      		ldi r25,lo8(1)
+ 1620 07c6 FC01      		movw r30,r24
+ 1621 07c8 2081      		ld r18,Z
+ 1622 07ca 2068      		ori r18,lo8(-128)
+ 1623 07cc FC01      		movw r30,r24
+ 1624 07ce 2083      		st Z,r18
+ 1625               	.LBE4:
+ 1626 07d0 00C0      		rjmp .L50
+ 1627               	.L53:
+ 354:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	} else if (IRQ_STATUS_REG_s.txEnd) {
+ 1628               		.loc 3 354 0
+ 1629 07d2 8FE4      		ldi r24,lo8(79)
+ 1630 07d4 91E0      		ldi r25,lo8(1)
+ 1631 07d6 FC01      		movw r30,r24
+ 1632 07d8 8081      		ld r24,Z
+ 1633 07da 86FB      		bst r24,6
+ 1634 07dc 8827      		clr r24
+ 1635 07de 80F9      		bld r24,0
+ 1636 07e0 8823      		tst r24
+ 1637 07e2 01F0      		breq .L50
+ 355:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		if (TRX_STATUS_TX_ARET_ON == TRX_STATUS_REG_s.trxStatus) {
+ 1638               		.loc 3 355 0
+ 1639 07e4 81E4      		ldi r24,lo8(65)
+ 1640 07e6 91E0      		ldi r25,lo8(1)
+ 1641 07e8 FC01      		movw r30,r24
+ 1642 07ea 8081      		ld r24,Z
+ 1643 07ec 8F71      		andi r24,lo8(31)
+ 1644 07ee 8931      		cpi r24,lo8(25)
+ 1645 07f0 01F4      		brne .L57
+ 1646               	.LBB6:
+ 356:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			uint8_t status = TRX_STATE_REG_s.tracStatus;
+ 1647               		.loc 3 356 0
+ 1648 07f2 82E4      		ldi r24,lo8(66)
+ 1649 07f4 91E0      		ldi r25,lo8(1)
+ 1650 07f6 FC01      		movw r30,r24
+ 1651 07f8 8081      		ld r24,Z
+ 1652 07fa 8295      		swap r24
+ 1653 07fc 8695      		lsr r24
+ 1654 07fe 8770      		andi r24,lo8(7)
+ 1655 0800 8A83      		std Y+2,r24
+ 357:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 358:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			if (TRAC_STATUS_SUCCESS == status) {
+ 1656               		.loc 3 358 0
+ 1657 0802 8A81      		ldd r24,Y+2
+ 1658 0804 8823      		tst r24
+ 1659 0806 01F4      		brne .L58
+ 359:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 				status = PHY_STATUS_SUCCESS;
+ 1660               		.loc 3 359 0
+ 1661 0808 1A82      		std Y+2,__zero_reg__
+ 1662 080a 00C0      		rjmp .L59
+ 1663               	.L58:
+ 360:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			} else if (TRAC_STATUS_CHANNEL_ACCESS_FAILURE ==
+ 1664               		.loc 3 360 0
+ 1665 080c 8A81      		ldd r24,Y+2
+ 1666 080e 8330      		cpi r24,lo8(3)
+ 1667 0810 01F4      		brne .L60
+ 361:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 					status) {
+ 362:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 				status = PHY_STATUS_CHANNEL_ACCESS_FAILURE;
+ 1668               		.loc 3 362 0
+ 1669 0812 81E0      		ldi r24,lo8(1)
+ 1670 0814 8A83      		std Y+2,r24
+ 1671 0816 00C0      		rjmp .L59
+ 1672               	.L60:
+ 363:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			} else if (TRAC_STATUS_NO_ACK == status) {
+ 1673               		.loc 3 363 0
+ 1674 0818 8A81      		ldd r24,Y+2
+ 1675 081a 8530      		cpi r24,lo8(5)
+ 1676 081c 01F4      		brne .L61
+ 364:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 				status = PHY_STATUS_NO_ACK;
+ 1677               		.loc 3 364 0
+ 1678 081e 82E0      		ldi r24,lo8(2)
+ 1679 0820 8A83      		std Y+2,r24
+ 1680 0822 00C0      		rjmp .L59
+ 1681               	.L61:
+ 365:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			} else {
+ 366:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 				status = PHY_STATUS_ERROR;
+ 1682               		.loc 3 366 0
+ 1683 0824 83E0      		ldi r24,lo8(3)
+ 1684 0826 8A83      		std Y+2,r24
+ 1685               	.L59:
+ 367:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			}
+ 368:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 369:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			phySetRxState();
+ 1686               		.loc 3 369 0
+ 1687 0828 0E94 0000 		call phySetRxState
+ 370:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			phyState = PHY_STATE_IDLE;
+ 1688               		.loc 3 370 0
+ 1689 082c 81E0      		ldi r24,lo8(1)
+ 1690 082e 8093 0000 		sts phyState,r24
+ 371:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 372:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 			PHY_DataConf(status);
+ 1691               		.loc 3 372 0
+ 1692 0832 8A81      		ldd r24,Y+2
+ 1693 0834 0E94 0000 		call PHY_DataConf
+ 1694               	.L57:
+ 1695               	.LBE6:
+ 373:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		}
+ 374:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 
+ 375:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 		IRQ_STATUS_REG_s.txEnd = 1;
+ 1696               		.loc 3 375 0
+ 1697 0838 8FE4      		ldi r24,lo8(79)
+ 1698 083a 91E0      		ldi r25,lo8(1)
+ 1699 083c FC01      		movw r30,r24
+ 1700 083e 2081      		ld r18,Z
+ 1701 0840 2064      		ori r18,lo8(64)
+ 1702 0842 FC01      		movw r30,r24
+ 1703 0844 2083      		st Z,r18
+ 1704 0846 00C0      		rjmp .L50
+ 1705               	.L62:
+ 331:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	}
+ 1706               		.loc 3 331 0
+ 1707 0848 0000      		nop
+ 1708               	.L50:
+ 1709               	/* epilogue start */
+ 376:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** 	}
+ 377:../../../stack/LwMesh/TDMA/phy/atmegarfa1/src/phy.c **** }
+ 1710               		.loc 3 377 0
+ 1711 084a 2896      		adiw r28,8
+ 1712 084c 0FB6      		in __tmp_reg__,__SREG__
+ 1713 084e F894      		cli
+ 1714 0850 DEBF      		out __SP_H__,r29
+ 1715 0852 0FBE      		out __SREG__,__tmp_reg__
+ 1716 0854 CDBF      		out __SP_L__,r28
+ 1717 0856 DF91      		pop r29
+ 1718 0858 CF91      		pop r28
+ 1719 085a 0895      		ret
+ 1720               		.cfi_endproc
+ 1721               	.LFE91:
+ 1723               	.Letext0:
+ 1724               		.file 4 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 1725               		.file 5 "../../../stack/LwMesh/TDMA/phy/atmegarfa1/inc/phy.h"
+ 1726               		.file 6 "../../../stack/LwMesh/TDMA/phy/atmegarfa1/inc/atmegarfa1.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 phy.c
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:2      *ABS*:0000003e __SP_H__
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:3      *ABS*:0000003d __SP_L__
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:4      *ABS*:0000003f __SREG__
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:12     .text:00000000 sysclk_enable_peripheral_clock
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:214    .text:0000011a __portable_avr_delay_cycles
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:239    .bss.phyState:00000000 phyState
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:244    .bss.phyRxBuffer:00000000 phyRxBuffer
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:249    .bss.phyRxState:00000000 phyRxState
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:254    .text:00000126 PHY_Init
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:1222   .text:00000584 phyTrxSetState
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:949    .text:0000044c PHY_RandomReq
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:372    .text:000001c8 PHY_SetTdmaMode
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:466    .text:0000023e PHY_SetRxState
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:1175   .text:00000556 phySetRxState
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:507    .text:0000025e PHY_SetChannel
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:555    .text:0000028a PHY_SetPanId
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:619    .text:000002d2 PHY_SetShortAddr
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:683    .text:0000031a PHY_SetTxPower
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:731    .text:00000346 PHY_Sleep
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:805    .text:000003a2 PHY_Wakeup
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:849    .text:000003ca PHY_DataReq
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:1046   .text:000004c4 PHY_EncryptReq
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:1103   .text:00000504 PHY_EdReq
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:1320   .text:00000600 PHY_SetIEEEAddr
+C:\Users\guilh\AppData\Local\Temp\ccslTSEM.s:1473   .text:000006ee PHY_TaskHandler
+
+UNDEFINED SYMBOLS
+sysclk_enable_module
+sal_aes_setup
+sal_aes_exec
+sal_aes_read
+PHY_DataInd
+PHY_DataConf
+__do_clear_bss
