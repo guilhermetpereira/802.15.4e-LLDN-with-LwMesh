@@ -78,20 +78,26 @@
 #define TDMA_FIRST_SLOT										(3125)							// Symbols
 #define TDMA_BATTERY_EXTENSION								1
 
-
 // Values of table 3e 802.15.4e-2012
 #define p_var	6.0	// octets
 #define m	3		// octets
-#define n	(124)	// octets, Max Message size(127) - GeneralHeader size (3) 
+#define n	(98)	// maximum size limited by 802.15.4e lldn ;octets, Max Message size(127) - GeneralHeader size (3) 
 #define sp  2		// symbols per octet
 #define sm  2		// symbols per octet
 #define v_var (62500)	// symbols per second
 #define macMinSIFSPeriod	 (12) // symbols
 #define macMinLIFSPeriod	 (40) // 40 symbols
 #define aMaxSIFSFrameSize	 (18) // 18 symbols
-
+static float tTS;
 #define numMgmtTs_Disc_Conf  2  // discovery and configuration states has 2 TimeSlots in Managment (one uplink, one downlink)
-
+ 
+ /* MAC Command frames identifier defined by Table 5 : 802.15.4e - 2012 */
+#define LL_DISCOVER_RESPONSE		0x0d
+#define LL_CONFIGURATION_STATUS		0x0e
+#define LL_CONFIGURATION_REQUEST	0x0f
+// #define	LL_CTS_SHARED_GROUP			0x10
+// #define	LL_RTS						0x11
+// #define	LL_CTS						0x12
 
 #define HAL_ENABLE_USB										0
 #define HAL_ENABLE_UART										1

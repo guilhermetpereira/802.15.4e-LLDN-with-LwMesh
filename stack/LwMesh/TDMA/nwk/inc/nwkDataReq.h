@@ -56,49 +56,49 @@
 
 /*- Types ------------------------------------------------------------------*/
 enum {
-	NWK_OPT_ACK_REQUEST          = 1 << 0,
-	NWK_OPT_ENABLE_SECURITY      = 1 << 1,
-	NWK_OPT_BROADCAST_PAN_ID     = 1 << 2,
-	NWK_OPT_LINK_LOCAL           = 1 << 3,
-	NWK_OPT_MULTICAST            = 1 << 4,
-	NWK_OPT_BEACON               = 1 << 5,
-	NWK_OPT_LLDN_BEACON				= 1 << 6,
-	NWK_OPT_LLDN_BEACON_ONLINE		= 1 << 7,
-	NWK_OPT_LLDN_BEACON_DISCOVERY	= 1 << 8,
-	NWK_OPT_LLDN_BEACON_CONFIG		= 1 << 9,
-	NWK_OPT_LLDN_BEACON_RESET		= 1 << 10,
-	NWK_OPT_LLDN_BEACON_SECOND		= 1 << 11,
-	NWK_OPT_LLDN_BEACON_THIRD		= 1 << 12,
-	NWK_OPT_LLDN_DATA 	= 1 << 13,
-	NWK_OPT_LLDN_ACK 	= 1 << 14,
-	NWK_OPT_MAC_COMMAND = 1 << 15,
+	NWK_OPT_ACK_REQUEST         = 1 << 0,
+	NWK_OPT_ENABLE_SECURITY     = 1 << 1,
+	NWK_OPT_BROADCAST_PAN_ID	= 1 << 2,
+	NWK_OPT_LINK_LOCAL          = 1 << 3,
+	NWK_OPT_MULTICAST           = 1 << 4,
+	NWK_OPT_BEACON              = 1 << 5,
+	NWK_OPT_LLDN_BEACON			= 1 << 6,
+	NWK_OPT_ONLINE_STATE		= 1 << 7,
+	NWK_OPT_DISCOVERY_STATE		= 1 << 8,
+	NWK_OPT_CONFIG_STATE		= 1 << 9,
+	NWK_OPT_RESTART_STATE		= 1 << 10,
+	NWK_OPT_SECOND_BEACON		= 1 << 11,
+	NWK_OPT_THIRD_BEACON		= 1 << 12,
+	NWK_OPT_LLDN_DATA 			= 1 << 13,
+	NWK_OPT_LLDN_ACK 			= 1 << 14,
+	NWK_OPT_MAC_COMMAND			= 1 << 15,
 };
 
 // payload structure for Discovery Response Frame
-typedef struct NWK_DiscoveryResponse_t {
-	uint8_t identifier;
+typedef struct NWK_DiscoverResponse_t {
+	uint8_t id;
 	uint16_t macAddr;
 	struct{
 		uint8_t tsDuration	 : 7;
 		uint8_t dirIndicator : 1;
 	}ts_dir;
-} NWK_DiscoveryResponse_t;
+} NWK_DiscoverResponse_t;
 
 // payload structure for Configuration Status Frame
-typedef struct NWK_ConfigStatus_t {
-	uint8_t identifier;
-	uint8_t s_macAddr;
-	uint8_t assTimeSlot;
-	uint16_t macAddr;
-	struct{
-		uint8_t tsDuration 		: 7;
-		uint8_t dirIndicator 	: 1;
-	}ts_dir;
-} NWK_ConfigStatus_t;
+	typedef struct NWK_ConfigStatus_t {
+		uint8_t id;
+		uint8_t s_macAddr;
+		uint8_t assTimeSlot;
+		uint16_t macAddr;
+		struct{
+			uint8_t tsDuration 		: 7;
+			uint8_t dirIndicator 	: 1;
+		}ts_dir;
+	} NWK_ConfigStatus_t;
 
 // payload structure for Configuration Request Frame
 typedef struct NWK_ConfigRequest_t {
-	uint8_t identifier;
+	uint8_t id;
 	uint8_t s_macAddr;
 	uint8_t tx_channel;
 	uint8_t assTimeSlot;

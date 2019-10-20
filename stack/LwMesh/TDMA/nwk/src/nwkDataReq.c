@@ -133,29 +133,28 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 	{
 		frame->tx.control = 0;
 		// Set Flag depending on current state of coordinator
-		if (req->options & NWK_OPT_LLDN_BEACON_ONLINE)
+		if (req->options & NWK_OPT_ONLINE_STATE)
 			frame->LLbeacon.Flags.txState = 0b000; // online mode
-		else if (req->options & NWK_OPT_LLDN_BEACON_DISCOVERY)
+		else if (req->options & NWK_OPT_DISCOVERY_STATE)
 			frame->LLbeacon.Flags.txState = 0b100; // discovery mode
-		else if (req->options & NWK_OPT_LLDN_BEACON_CONFIG)
+		else if (req->options & NWK_OPT_CONFIG_STATE)
 			frame->LLbeacon.Flags.txState = 0b110; // configuration mode
-		else if (req->options & NWK_OPT_LLDN_BEACON_RESET)
+		else if (req->options & NWK_OPT_RESTART_STATE)
 			frame->LLbeacon.Flags.txState = 0b111; // full reset mode
 
 		// set biderectional time slots: 0 - downlink 1 - uplink
-		frame->LLbeacon.Flags.txDir 		= 0b0;
+		frame->LLbeacon.Flags.txDir 	= 0b0;
 		frame->LLbeacon.Flags.reserved 	= 0b0;
 		// set number of managment timeslots
 		frame->LLbeacon.Flags.numMgmtTimeslots = numMgmtTs_Disc_Conf;
 
-		if (req->options & 	NWK_OPT_LLDN_BEACON_SECOND)
+		if (req->options & 	NWK_OPT_SECOND_BEACON)
 		 frame->LLbeacon.confSeqNumber = 0x01;
-		else if (req->options & 	NWK_OPT_LLDN_BEACON_THIRD)
+		else if (req->options & 	NWK_OPT_THIRD_BEACON)
 			frame->LLbeacon.confSeqNumber = 0x02;
 		else frame->LLbeacon.confSeqNumber = 0x00;
 
-		frame->LLbeacon.TimeSlotSize 	= 0xff; // calculation needs to be implemented, see timers first
-
+		frame->LLbeacon.TimeSlotSize 	= (int)tTS; // calculation needs to be implemented, see timers first
 		uint8_t* shortAddr = (uint8_t* )nwkIb.addr;
 		frame->LLbeacon.PanId = shortAddr[0];
 		// set Frame Control, Security Header and Sequence Nuber fields
