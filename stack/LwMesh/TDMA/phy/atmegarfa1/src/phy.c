@@ -123,6 +123,35 @@ void PHY_SetTdmaMode(bool mode)
 	}
 }
 
+void PHY_SetPromiscuousMode(bool mode)
+{
+	uint8_t ieee_address[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+	if(mode)
+	{
+		PHY_SetShortAddr(0);
+		PHY_SetPanId(0);
+		PHY_SetIEEEAddr(ieee_address);
+
+// AACK_UPLD_RES_FT = 1, AACK_FLT_RES_FT = 0:
+//	Any non-corrupted frame with a reserved frame type is indicated by a
+//	TRX24_RX_END interrupt. No further address filtering is applied on those frames.
+//	A TRX24_AMI interrupt is never generated and the acknowledgment subfield is
+//	ignored.
+
+		XAH_CTRL_1_REG_s.aackPromMode = 1;	// Enable promiscuous mode
+		XAH_CTRL_1_REG_s.aackUpldResFt = 1;	// Enable reserved frame type reception ; this was changed to one
+                                        // so that the addres isn't checked by filter
+		XAH_CTRL_1_REG_s.aackFltrResFt = 0;	// Disable filter of reserved frame types
+		CSMA_SEED_1_REG_s.aackDisAck = 1;		// Disable generation of acknowledgment
+	}
+	else
+	{
+		XAH_CTRL_1_REG = 0;
+		CSMA_SEED_1_REG_s.aackDisAck = 0;
+	}
+}
+
 /*************************************************************************//**
 *****************************************************************************/
 void PHY_SetRxState(bool rx)
@@ -205,6 +234,7 @@ void PHY_Wakeup(void)
 
 /*************************************************************************//**
 *****************************************************************************/
+/*
 void PHY_DataReq(uint8_t *data)
 {
 	phyTrxSetState(TRX_CMD_TX_ARET_ON);
@@ -217,6 +247,21 @@ void PHY_DataReq(uint8_t *data)
 	phyState = PHY_STATE_TX_WAIT_END;
 	TRX_STATE_REG = TRX_CMD_TX_START;
 }
+*/
+void PHY_DataReq(uint8_t *data, uint8_t size)
+{
+  phyTrxSetState(TRX_CMD_TX_ARET_ON);
+
+  IRQ_STATUS_REG = IRQ_CLEAR_VALUE;
+
+  TRX_FRAME_BUFFER(0) = size + PHY_CRC_SIZE;
+  for (uint8_t i = 0; i < size; i++)
+    TRX_FRAME_BUFFER(i+1) = data[i];
+
+  phyState = PHY_STATE_TX_WAIT_END;
+  TRX_STATE_REG = TRX_CMD_TX_START;
+}
+
 
 /*************************************************************************//**
 *****************************************************************************/

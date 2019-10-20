@@ -93,6 +93,35 @@ NwkFrame_t *nwkFrameAlloc(void)
 	return NULL;
 }
 
+/* Optimized allocation for lldn */
+NwkFrame_t *nwkFrameAlloc_LLDN(bool beacon_frame)
+{
+	for (uint8_t i = 0; i < NWK_BUFFERS_AMOUNT; i++) {
+		if (NWK_FRAME_STATE_FREE == nwkFrameFrames[i].state) {
+			// clear memory of previous frame
+			memset(&nwkFrameFrames[i], 0, sizeof(NwkFrame_t));
+			// store in size initial size of frame, only it's MHR structure
+			if(beacon_frame)
+			{
+				nwkFrameFrames[i].size = sizeof(NwkFrameBeaconHeaderLLDN_t);
+			}
+			else
+			{
+				// data, mac command and group ack share the same MHR structure
+				nwkFrameFrames[i].size = sizeof(NwkFrameGeneralHeaderLLDN_t);
+			}
+			// offset payload to end of MHR structure
+			nwkFrameFrames[i].payload = nwkFrameFrames[i].data
+							+ nwkFrameFrames[i].size;
+
+			nwkIb.lock++;
+			return &nwkFrameFrames[i];
+		}
+	}
+	return NULL;
+}
+
+
 /*************************************************************************//**
 *  @brief Frees a @a frame and returns it to the buffer pool
 *  @param[in] frame Pointer to the frame to be freed

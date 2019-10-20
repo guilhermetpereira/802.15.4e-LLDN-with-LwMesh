@@ -53,6 +53,8 @@
 #define APP_BEACON_ENDPOINT									0
 #define APP_DATA_ENDPOINT									1
 #define APP_OTA_ENDPOINT									2
+#define APP_COMMAND_ENDPOINT								3
+#define APP_ACK_ENDPOINT									4	
 #define APP_SECURITY_KEY									"TestSecurityKey0"
 
 #ifdef PHY_AT86RF212

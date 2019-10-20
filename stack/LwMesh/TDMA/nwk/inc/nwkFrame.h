@@ -101,6 +101,58 @@ typedef struct  NwkFrameBeaconHeader_t {
 	uint8_t macPending;
 } NwkFrameBeaconHeader_t;
 
+
+typedef struct  NwkFrameBeaconHeaderLLDN_t {
+	/******* MHR *****/
+	// struct
+	// {
+	// 	uint8_t FrameType 				: 3;
+	// 	uint8_t SecurityEnabled 	: 1;
+	// 	uint8_t FrameVersion			: 1;
+	// 	uint8_t ackRequest				: 1;
+	// 	uint8_t SubFrameType			: 2;
+	// } macFcf;
+	uint8_t macFcf;
+	uint8_t macSeqNumber;
+	struct
+	{
+		uint8_t secLevel 	: 3;
+		uint8_t KeyId			: 2;
+		uint8_t countSup 	: 1;
+		uint8_t countSize	: 1;
+		uint8_t reserved 	: 1;
+	} macSecHeader;
+	/****** MAC Payload *******/
+	struct
+	{
+		uint8_t txState 				: 3;
+		uint8_t txDir 					: 1;
+		uint8_t reserved				: 1;
+		uint8_t numMgmtTimeslots: 3; // number of managment time slots
+		// uplink and downlink must be equal
+ } Flags;
+
+	uint8_t PanId;
+	uint8_t confSeqNumber;
+	uint8_t TimeSlotSize;
+
+
+} NwkFrameBeaconHeaderLLDN_t;
+
+typedef struct  NwkFrameGeneralHeaderLLDN_t {
+	uint8_t macFcf;
+	uint8_t macSeqNumber;
+	struct
+	{
+		uint8_t secLevel 	: 3;
+		uint8_t KeyId			: 2;
+		uint8_t countSup 	: 1;
+		uint8_t countSize	: 1;
+		uint8_t reserved 	: 1;
+	} macSecHeader;
+} NwkFrameGeneralHeaderLLDN_t;
+
+
 typedef struct  NwkFrameMulticastHeader_t {
 	uint16_t nonMemberRadius    : 4;
 	uint16_t maxNonMemberRadius : 4;
@@ -115,6 +167,8 @@ typedef struct NwkFrame_t {
 	union {
 		NwkFrameHeader_t header;
 		NwkFrameBeaconHeader_t beacon;
+		NwkFrameBeaconHeaderLLDN_t LLbeacon;
+		NwkFrameGeneralHeaderLLDN_t LLgeneral;
 		uint8_t data[NWK_FRAME_MAX_PAYLOAD_SIZE];
 	};
 
@@ -142,6 +196,7 @@ void nwkFrameFree(NwkFrame_t *frame);
 NwkFrame_t *nwkFrameNext(NwkFrame_t *frame);
 void nwkFrameCommandInit(NwkFrame_t *frame);
 
+NwkFrame_t *nwkFrameAlloc_LLDN(bool beacon_frame);
 /*- Implementations --------------------------------------------------------*/
 
 /*************************************************************************//**

@@ -91,6 +91,7 @@ typedef enum AppState_t {
 
 	static void appInit(void)
 	{
+		printf("Iniciando...");
 		tmrSendData.interval = 3000;
 		tmrSendData.mode = SYS_TIMER_PERIODIC_MODE;
 		tmrSendData.handler = tmrSendDataHandler;
