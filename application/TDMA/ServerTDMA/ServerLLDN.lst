@@ -8,1446 +8,16 @@
    8               		.text
    9               	.Ltext0:
   10               		.cfi_sections	.debug_frame
-  11               		.section	.bss.tTS,"aw",@nobits
-  14               	tTS:
-  15 0000 0000 0000 		.zero	4
-  16               		.text
-  18               	sysclk_get_main_hz:
-  19               	.LFB67:
-  20               		.file 1 "../../../platform/common/services/clock/mega/sysclk.h"
-   1:../../../platform/common/services/clock/mega/sysclk.h **** /**
-   2:../../../platform/common/services/clock/mega/sysclk.h ****  * \file
-   3:../../../platform/common/services/clock/mega/sysclk.h ****  *
-   4:../../../platform/common/services/clock/mega/sysclk.h ****  * \brief Chip-specific system clock management functions
-   5:../../../platform/common/services/clock/mega/sysclk.h ****  *
-   6:../../../platform/common/services/clock/mega/sysclk.h ****  * Copyright (c) 2012 Atmel Corporation. All rights reserved.
-   7:../../../platform/common/services/clock/mega/sysclk.h ****  *
-   8:../../../platform/common/services/clock/mega/sysclk.h ****  * \asf_license_start
-   9:../../../platform/common/services/clock/mega/sysclk.h ****  *
-  10:../../../platform/common/services/clock/mega/sysclk.h ****  * \page License
-  11:../../../platform/common/services/clock/mega/sysclk.h ****  *
-  12:../../../platform/common/services/clock/mega/sysclk.h ****  * Redistribution and use in source and binary forms, with or without
-  13:../../../platform/common/services/clock/mega/sysclk.h ****  * modification, are permitted provided that the following conditions are met:
-  14:../../../platform/common/services/clock/mega/sysclk.h ****  *
-  15:../../../platform/common/services/clock/mega/sysclk.h ****  * 1. Redistributions of source code must retain the above copyright notice,
-  16:../../../platform/common/services/clock/mega/sysclk.h ****  *    this list of conditions and the following disclaimer.
-  17:../../../platform/common/services/clock/mega/sysclk.h ****  *
-  18:../../../platform/common/services/clock/mega/sysclk.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
-  19:../../../platform/common/services/clock/mega/sysclk.h ****  *    this list of conditions and the following disclaimer in the documentation
-  20:../../../platform/common/services/clock/mega/sysclk.h ****  *    and/or other materials provided with the distribution.
-  21:../../../platform/common/services/clock/mega/sysclk.h ****  *
-  22:../../../platform/common/services/clock/mega/sysclk.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
-  23:../../../platform/common/services/clock/mega/sysclk.h ****  *    from this software without specific prior written permission.
-  24:../../../platform/common/services/clock/mega/sysclk.h ****  *
-  25:../../../platform/common/services/clock/mega/sysclk.h ****  * 4. This software may only be redistributed and used in connection with an
-  26:../../../platform/common/services/clock/mega/sysclk.h ****  *    Atmel microcontroller product.
-  27:../../../platform/common/services/clock/mega/sysclk.h ****  *
-  28:../../../platform/common/services/clock/mega/sysclk.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
-  29:../../../platform/common/services/clock/mega/sysclk.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-  30:../../../platform/common/services/clock/mega/sysclk.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
-  31:../../../platform/common/services/clock/mega/sysclk.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
-  32:../../../platform/common/services/clock/mega/sysclk.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  33:../../../platform/common/services/clock/mega/sysclk.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-  34:../../../platform/common/services/clock/mega/sysclk.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-  35:../../../platform/common/services/clock/mega/sysclk.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-  36:../../../platform/common/services/clock/mega/sysclk.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-  37:../../../platform/common/services/clock/mega/sysclk.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  38:../../../platform/common/services/clock/mega/sysclk.h ****  * POSSIBILITY OF SUCH DAMAGE.
-  39:../../../platform/common/services/clock/mega/sysclk.h ****  *
-  40:../../../platform/common/services/clock/mega/sysclk.h ****  * \asf_license_stop
-  41:../../../platform/common/services/clock/mega/sysclk.h ****  *
-  42:../../../platform/common/services/clock/mega/sysclk.h ****  */
-  43:../../../platform/common/services/clock/mega/sysclk.h **** #ifndef MEGA_SYSCLK_H_INCLUDED
-  44:../../../platform/common/services/clock/mega/sysclk.h **** #define MEGA_SYSCLK_H_INCLUDED
-  45:../../../platform/common/services/clock/mega/sysclk.h **** 
-  46:../../../platform/common/services/clock/mega/sysclk.h **** #include <board.h>
-  47:../../../platform/common/services/clock/mega/sysclk.h **** #include <compiler.h>
-  48:../../../platform/common/services/clock/mega/sysclk.h **** #include <parts.h>
-  49:../../../platform/common/services/clock/mega/sysclk.h **** 
-  50:../../../platform/common/services/clock/mega/sysclk.h **** /* Include clock configuration for the project. */
-  51:../../../platform/common/services/clock/mega/sysclk.h **** #include <conf_clock.h>
-  52:../../../platform/common/services/clock/mega/sysclk.h **** 
-  53:../../../platform/common/services/clock/mega/sysclk.h **** #ifdef __cplusplus
-  54:../../../platform/common/services/clock/mega/sysclk.h **** extern "C" {
-  55:../../../platform/common/services/clock/mega/sysclk.h **** #endif
-  56:../../../platform/common/services/clock/mega/sysclk.h **** #define ASM __asm__
-  57:../../../platform/common/services/clock/mega/sysclk.h **** 
-  58:../../../platform/common/services/clock/mega/sysclk.h **** /* CONFIG_SYSCLK_PSDIV  to use default if not defined*/
-  59:../../../platform/common/services/clock/mega/sysclk.h **** #ifndef CONFIG_SYSCLK_PSDIV
-  60:../../../platform/common/services/clock/mega/sysclk.h **** # define CONFIG_SYSCLK_PSDIV    SYSCLK_PSDIV_8
-  61:../../../platform/common/services/clock/mega/sysclk.h **** #endif
-  62:../../../platform/common/services/clock/mega/sysclk.h **** 
-  63:../../../platform/common/services/clock/mega/sysclk.h **** /* ! \name Prescaler Setting (relative to CLKsys) */
-  64:../../../platform/common/services/clock/mega/sysclk.h **** /* @{ */
-  65:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_1      0   /* !< Do not prescale */
-  66:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_2      1   /* !< Prescale CLKper4 by 2 */
-  67:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_4      2   /* !< Prescale CLKper4 by 4 */
-  68:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_8      3   /* !< Prescale CLKper4 by 8 */
-  69:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_16     4   /* !< Prescale CLKper4 by 16 */
-  70:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_32     5   /* !< Prescale CLKper4 by 32 */
-  71:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_64     6   /* !< Prescale CLKper4 by 64 */
-  72:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_128    7   /* !< Prescale CLKper4 by 128 */
-  73:../../../platform/common/services/clock/mega/sysclk.h **** #define SYSCLK_PSDIV_256    8   /* !< Prescale CLKper4 by 256 */
-  74:../../../platform/common/services/clock/mega/sysclk.h **** 
-  75:../../../platform/common/services/clock/mega/sysclk.h **** /* @} */
-  76:../../../platform/common/services/clock/mega/sysclk.h **** 
-  77:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF || MEGA_XX0_1 || MEGA_XX4 || MEGA_XX4_A
-  78:../../../platform/common/services/clock/mega/sysclk.h **** 
-  79:../../../platform/common/services/clock/mega/sysclk.h **** #define NUMBER_OF_POWER_REG       2
-  80:../../../platform/common/services/clock/mega/sysclk.h **** /*Starting Address for power reduction*/
-  81:../../../platform/common/services/clock/mega/sysclk.h **** #define POWER_REG_ADD             PRR0
-  82:../../../platform/common/services/clock/mega/sysclk.h **** 
-  83:../../../platform/common/services/clock/mega/sysclk.h **** /* ! \name Power Reduction  Clock Port Numbers */
-  84:../../../platform/common/services/clock/mega/sysclk.h **** enum power_red_id {
-  85:../../../platform/common/services/clock/mega/sysclk.h **** 	POWER_RED_REG0,     /* !< Devices on PRR0 */
-  86:../../../platform/common/services/clock/mega/sysclk.h **** #if !MEGA_XX4 || !MEGA_XX4_A || MEGA_XX0_1
-  87:../../../platform/common/services/clock/mega/sysclk.h **** 	POWER_RED_REG1,     /* !< Devices on PRR1 */
-  88:../../../platform/common/services/clock/mega/sysclk.h **** #endif
-  89:../../../platform/common/services/clock/mega/sysclk.h **** };
-  90:../../../platform/common/services/clock/mega/sysclk.h **** #endif
-  91:../../../platform/common/services/clock/mega/sysclk.h **** 
-  92:../../../platform/common/services/clock/mega/sysclk.h **** /****************************************************
-  93:../../../platform/common/services/clock/mega/sysclk.h ****  * Given a dummy type but not used for these groups
-  94:../../../platform/common/services/clock/mega/sysclk.h ****  * to support for otherthen megaRF device.
-  95:../../../platform/common/services/clock/mega/sysclk.h ****  **************************************************/
-  96:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_XX8 || MEGA_XX8_A || MEGA_UNSPECIFIED
-  97:../../../platform/common/services/clock/mega/sysclk.h **** #define NUMBER_OF_POWER_REG       1
-  98:../../../platform/common/services/clock/mega/sysclk.h **** /*Starting Address for power reduction*/
-  99:../../../platform/common/services/clock/mega/sysclk.h **** #define POWER_REG_ADD             PRR
- 100:../../../platform/common/services/clock/mega/sysclk.h **** 
- 101:../../../platform/common/services/clock/mega/sysclk.h **** /* ! \name Power Reduction  Clock Port Numbers */
- 102:../../../platform/common/services/clock/mega/sysclk.h **** enum power_red_id {
- 103:../../../platform/common/services/clock/mega/sysclk.h **** 	POWER_RED_REG0,     /* !< Devices on PRR */
- 104:../../../platform/common/services/clock/mega/sysclk.h **** };
- 105:../../../platform/common/services/clock/mega/sysclk.h **** #endif
- 106:../../../platform/common/services/clock/mega/sysclk.h **** 
- 107:../../../platform/common/services/clock/mega/sysclk.h **** /* Bit mask for the power reduction register based on */
- 108:../../../platform/common/services/clock/mega/sysclk.h **** /*   MCU ARCH.                                        */
- 109:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF
- 110:../../../platform/common/services/clock/mega/sysclk.h **** /*Bit mask for PRR2 */
- 111:../../../platform/common/services/clock/mega/sysclk.h **** 
- 112:../../../platform/common/services/clock/mega/sysclk.h **** #define PRRAM0_bm                       1 << PRRAM0
- 113:../../../platform/common/services/clock/mega/sysclk.h **** #define PRRAM1_bm                       1 << PRRAM1
- 114:../../../platform/common/services/clock/mega/sysclk.h **** #define PRRAM2_bm                       1 << PRRAM2
- 115:../../../platform/common/services/clock/mega/sysclk.h **** #define PRRAM3_bm                       1 << PRRAM3
- 116:../../../platform/common/services/clock/mega/sysclk.h **** #endif
- 117:../../../platform/common/services/clock/mega/sysclk.h **** 
- 118:../../../platform/common/services/clock/mega/sysclk.h **** /*Bit mask for the power reduction 0 or PRR*/
- 119:../../../platform/common/services/clock/mega/sysclk.h **** #if !MEGA_XX_UN0 && !MEGA_XX_UN0
- 120:../../../platform/common/services/clock/mega/sysclk.h **** #define PRADC_bm                        1 << PRADC
- 121:../../../platform/common/services/clock/mega/sysclk.h **** #define PRUSART0_bm                     1 << PRUSART0
- 122:../../../platform/common/services/clock/mega/sysclk.h **** #define PRSPI_bm                        1 << PRSPI
- 123:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM1_bm                       1 << PRTIM1
- 124:../../../platform/common/services/clock/mega/sysclk.h **** #endif
- 125:../../../platform/common/services/clock/mega/sysclk.h **** 
- 126:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF
- 127:../../../platform/common/services/clock/mega/sysclk.h **** #define PRPGA_bm                        1 << PRPGA
- 128:../../../platform/common/services/clock/mega/sysclk.h **** #endif
- 129:../../../platform/common/services/clock/mega/sysclk.h **** 
- 130:../../../platform/common/services/clock/mega/sysclk.h **** #if !MEGA_UNSPECIFIED
- 131:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM0_bm                       1 << PRTIM0
- 132:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM2_bm                       1 << PRTIM2
- 133:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTWI_bm                        1 << PRTWI
- 134:../../../platform/common/services/clock/mega/sysclk.h **** #endif
- 135:../../../platform/common/services/clock/mega/sysclk.h **** 
- 136:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_XX_UN2
- 137:../../../platform/common/services/clock/mega/sysclk.h **** #define PRLCD_bm                        1 << PRLCD
- 138:../../../platform/common/services/clock/mega/sysclk.h **** #endif
- 139:../../../platform/common/services/clock/mega/sysclk.h **** 
- 140:../../../platform/common/services/clock/mega/sysclk.h **** /*Bit mask for  PRR1  */
- 141:../../../platform/common/services/clock/mega/sysclk.h **** #ifdef PRR1
- 142:../../../platform/common/services/clock/mega/sysclk.h **** #if (MEGA_XX4 || MEGA_XX4_A)
- 143:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM3_bm                       1 << PRTIM3
- 144:../../../platform/common/services/clock/mega/sysclk.h **** #endif
- 145:../../../platform/common/services/clock/mega/sysclk.h **** #endif
- 146:../../../platform/common/services/clock/mega/sysclk.h **** 
- 147:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF || MEGA_XX4 || MEGA_XX4_A
- 148:../../../platform/common/services/clock/mega/sysclk.h **** #define PRUSART1_bm                     1 << PRUSART1
- 149:../../../platform/common/services/clock/mega/sysclk.h **** #define PRUSART2_bm                     1 << PRUSART2
- 150:../../../platform/common/services/clock/mega/sysclk.h **** #define PRUSART3_bm                     1 << PRUSART3
- 151:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM3_bm                       1 << PRTIM3
- 152:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM4_bm                       1 << PRTIM4
- 153:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTIM5_bm                       1 << PRTIM5
- 154:../../../platform/common/services/clock/mega/sysclk.h **** #endif
- 155:../../../platform/common/services/clock/mega/sysclk.h **** 
- 156:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF
- 157:../../../platform/common/services/clock/mega/sysclk.h **** #define PRTRX24_bm                      1 << PRTRX24
- 158:../../../platform/common/services/clock/mega/sysclk.h **** #endif
- 159:../../../platform/common/services/clock/mega/sysclk.h **** 
- 160:../../../platform/common/services/clock/mega/sysclk.h **** /**
- 161:../../../platform/common/services/clock/mega/sysclk.h ****  * \name Querying the system clock and its derived clocks
- 162:../../../platform/common/services/clock/mega/sysclk.h ****  */
- 163:../../../platform/common/services/clock/mega/sysclk.h **** /* @{ */
- 164:../../../platform/common/services/clock/mega/sysclk.h **** 
- 165:../../../platform/common/services/clock/mega/sysclk.h **** /**
- 166:../../../platform/common/services/clock/mega/sysclk.h ****  * \brief Return the current rate in Hz of the main system clock
- 167:../../../platform/common/services/clock/mega/sysclk.h ****  * To know the clock value at what frequency the main clock is running
- 168:../../../platform/common/services/clock/mega/sysclk.h ****  * \return Frequency of the main system clock, in Hz.
- 169:../../../platform/common/services/clock/mega/sysclk.h ****  * \todo : please initialize the SYSCLK_SOURCE in conf_clock.h file for
- 170:../../../platform/common/services/clock/mega/sysclk.h ****  * configured source clock using fuses.
- 171:../../../platform/common/services/clock/mega/sysclk.h ****  * \eg. #define SYSCLK_SOURCE SYSCLK_SRC_RC16MHZ to use internal RC
- 172:../../../platform/common/services/clock/mega/sysclk.h ****  * oscillator for clock source.
- 173:../../../platform/common/services/clock/mega/sysclk.h ****  */
- 174:../../../platform/common/services/clock/mega/sysclk.h **** static inline uint32_t sysclk_get_main_hz(void)
- 175:../../../platform/common/services/clock/mega/sysclk.h **** {
-  21               		.loc 1 175 0
-  22               		.cfi_startproc
-  23 0000 CF93      		push r28
-  24               	.LCFI0:
-  25               		.cfi_def_cfa_offset 3
-  26               		.cfi_offset 28, -2
-  27 0002 DF93      		push r29
-  28               	.LCFI1:
-  29               		.cfi_def_cfa_offset 4
-  30               		.cfi_offset 29, -3
-  31 0004 CDB7      		in r28,__SP_L__
-  32 0006 DEB7      		in r29,__SP_H__
-  33               	.LCFI2:
-  34               		.cfi_def_cfa_register 28
-  35               	/* prologue: function */
-  36               	/* frame size = 0 */
-  37               	/* stack size = 2 */
-  38               	.L__stack_usage = 2
- 176:../../../platform/common/services/clock/mega/sysclk.h **** 	switch (SYSCLK_SOURCE) {
- 177:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_SRC_RC16MHZ:
- 178:../../../platform/common/services/clock/mega/sysclk.h **** 		return 16000000UL;
- 179:../../../platform/common/services/clock/mega/sysclk.h **** 
- 180:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_SRC_RC128KHZ:
- 181:../../../platform/common/services/clock/mega/sysclk.h **** 		return 128000UL;
- 182:../../../platform/common/services/clock/mega/sysclk.h **** 
- 183:../../../platform/common/services/clock/mega/sysclk.h **** #if MEGA_RF
- 184:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_SRC_TRS16MHZ:
- 185:../../../platform/common/services/clock/mega/sysclk.h **** 		return 16000000UL;
-  39               		.loc 1 185 0
-  40 0008 80E0      		ldi r24,0
-  41 000a 94E2      		ldi r25,lo8(36)
-  42 000c A4EF      		ldi r26,lo8(-12)
-  43 000e B0E0      		ldi r27,0
- 186:../../../platform/common/services/clock/mega/sysclk.h **** #endif
- 187:../../../platform/common/services/clock/mega/sysclk.h **** #ifdef BOARD_EXTERNAL_CLK
- 188:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_SRC_EXTERNAL:
- 189:../../../platform/common/services/clock/mega/sysclk.h **** 		return BOARD_EXTERNAL_CLK;
- 190:../../../platform/common/services/clock/mega/sysclk.h **** #endif
- 191:../../../platform/common/services/clock/mega/sysclk.h **** 	default:
- 192:../../../platform/common/services/clock/mega/sysclk.h **** 
- 193:../../../platform/common/services/clock/mega/sysclk.h **** 		return 1000000UL;
- 194:../../../platform/common/services/clock/mega/sysclk.h **** 	}
- 195:../../../platform/common/services/clock/mega/sysclk.h **** }
-  44               		.loc 1 195 0
-  45 0010 BC01      		movw r22,r24
-  46 0012 CD01      		movw r24,r26
-  47               	/* epilogue start */
-  48 0014 DF91      		pop r29
-  49 0016 CF91      		pop r28
-  50 0018 0895      		ret
-  51               		.cfi_endproc
-  52               	.LFE67:
-  55               	sysclk_get_source_clock_hz:
-  56               	.LFB68:
- 196:../../../platform/common/services/clock/mega/sysclk.h **** 
- 197:../../../platform/common/services/clock/mega/sysclk.h **** /**
- 198:../../../platform/common/services/clock/mega/sysclk.h ****  * \brief Return the current rate in Hz of source clock in Hz.
- 199:../../../platform/common/services/clock/mega/sysclk.h ****  *
- 200:../../../platform/common/services/clock/mega/sysclk.h ****  * This clock always runs at the same rate as the CPU clock unless the divider
- 201:../../../platform/common/services/clock/mega/sysclk.h ****  * is set.
- 202:../../../platform/common/services/clock/mega/sysclk.h ****  *
- 203:../../../platform/common/services/clock/mega/sysclk.h ****  * \return Frequency of the system clock, in Hz.
- 204:../../../platform/common/services/clock/mega/sysclk.h ****  */
- 205:../../../platform/common/services/clock/mega/sysclk.h **** static inline uint32_t sysclk_get_source_clock_hz(void)
- 206:../../../platform/common/services/clock/mega/sysclk.h **** {
-  57               		.loc 1 206 0
-  58               		.cfi_startproc
-  59 001a CF93      		push r28
-  60               	.LCFI3:
-  61               		.cfi_def_cfa_offset 3
-  62               		.cfi_offset 28, -2
-  63 001c DF93      		push r29
-  64               	.LCFI4:
-  65               		.cfi_def_cfa_offset 4
-  66               		.cfi_offset 29, -3
-  67 001e CDB7      		in r28,__SP_L__
-  68 0020 DEB7      		in r29,__SP_H__
-  69               	.LCFI5:
-  70               		.cfi_def_cfa_register 28
-  71               	/* prologue: function */
-  72               	/* frame size = 0 */
-  73               	/* stack size = 2 */
-  74               	.L__stack_usage = 2
- 207:../../../platform/common/services/clock/mega/sysclk.h **** 	switch (CONFIG_SYSCLK_PSDIV) {
- 208:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_1: /* Fall through */
- 209:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
- 210:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
- 211:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 2;
- 212:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
- 213:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz();
-  75               		.loc 1 213 0
-  76 0022 0E94 0000 		call sysclk_get_main_hz
-  77 0026 DC01      		movw r26,r24
-  78 0028 CB01      		movw r24,r22
- 214:../../../platform/common/services/clock/mega/sysclk.h **** 		}
- 215:../../../platform/common/services/clock/mega/sysclk.h **** 
- 216:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_2:
- 217:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
- 218:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
- 219:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 4;
- 220:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
- 221:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 2;
- 222:../../../platform/common/services/clock/mega/sysclk.h **** 		}
- 223:../../../platform/common/services/clock/mega/sysclk.h **** 
- 224:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_4:
- 225:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
- 226:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
- 227:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 8;
- 228:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
- 229:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 4;
- 230:../../../platform/common/services/clock/mega/sysclk.h **** 		}
- 231:../../../platform/common/services/clock/mega/sysclk.h **** 
- 232:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_8:
- 233:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
- 234:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
- 235:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 16;
- 236:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
- 237:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 8;
- 238:../../../platform/common/services/clock/mega/sysclk.h **** 		}
- 239:../../../platform/common/services/clock/mega/sysclk.h **** 
- 240:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_16:
- 241:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
- 242:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
- 243:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 32;
- 244:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
- 245:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 16;
- 246:../../../platform/common/services/clock/mega/sysclk.h **** 		}
- 247:../../../platform/common/services/clock/mega/sysclk.h **** 
- 248:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_32:
- 249:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
- 250:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
- 251:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 64;
- 252:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
- 253:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 32;
- 254:../../../platform/common/services/clock/mega/sysclk.h **** 		}
- 255:../../../platform/common/services/clock/mega/sysclk.h **** 
- 256:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_64:
- 257:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
- 258:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
- 259:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 128;
- 260:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
- 261:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 64;
- 262:../../../platform/common/services/clock/mega/sysclk.h **** 		}
- 263:../../../platform/common/services/clock/mega/sysclk.h **** 
- 264:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_128:
- 265:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
- 266:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
- 267:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 256;
- 268:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
- 269:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 128;
- 270:../../../platform/common/services/clock/mega/sysclk.h **** 		}
- 271:../../../platform/common/services/clock/mega/sysclk.h **** 
- 272:../../../platform/common/services/clock/mega/sysclk.h **** 	case SYSCLK_PSDIV_256:
- 273:../../../platform/common/services/clock/mega/sysclk.h **** 		if (SYSCLK_SOURCE == SYSCLK_SRC_RC16MHZ ||
- 274:../../../platform/common/services/clock/mega/sysclk.h **** 				SYSCLK_SOURCE == SYSCLK_SRC_RC128KHZ) {
- 275:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 512;
- 276:../../../platform/common/services/clock/mega/sysclk.h **** 		} else {
- 277:../../../platform/common/services/clock/mega/sysclk.h **** 			return sysclk_get_main_hz() / 256;
- 278:../../../platform/common/services/clock/mega/sysclk.h **** 		}
- 279:../../../platform/common/services/clock/mega/sysclk.h **** 
- 280:../../../platform/common/services/clock/mega/sysclk.h **** 	default:
- 281:../../../platform/common/services/clock/mega/sysclk.h **** 		/*Invalide case*/
- 282:../../../platform/common/services/clock/mega/sysclk.h **** 		return 0;
- 283:../../../platform/common/services/clock/mega/sysclk.h **** 	}
- 284:../../../platform/common/services/clock/mega/sysclk.h **** }
-  79               		.loc 1 284 0
-  80 002a BC01      		movw r22,r24
-  81 002c CD01      		movw r24,r26
-  82               	/* epilogue start */
-  83 002e DF91      		pop r29
-  84 0030 CF91      		pop r28
-  85 0032 0895      		ret
-  86               		.cfi_endproc
-  87               	.LFE68:
-  89               		.section	.progmem.data.baudctrl_1mhz,"a",@progbits
-  92               	baudctrl_1mhz:
-  93 0000 3300      		.word	51
-  94 0002 1900      		.word	25
-  95 0004 0C00      		.word	12
-  96 0006 0600      		.word	6
-  97 0008 0300      		.word	3
-  98 000a 0200      		.word	2
-  99 000c 0100      		.word	1
- 100 000e FF00      		.word	255
- 101               		.section	.progmem.data.baudctrl_8mhz,"a",@progbits
- 104               	baudctrl_8mhz:
- 105 0000 A001      		.word	416
- 106 0002 CF00      		.word	207
- 107 0004 6700      		.word	103
- 108 0006 3300      		.word	51
- 109 0008 1900      		.word	25
- 110 000a 0C00      		.word	12
- 111 000c 0700      		.word	7
- 112 000e 0800      		.word	8
- 113               		.section	.progmem.data.baudctrl_16mhz,"a",@progbits
- 116               	baudctrl_16mhz:
- 117 0000 4003      		.word	832
- 118 0002 A001      		.word	416
- 119 0004 CF00      		.word	207
- 120 0006 6700      		.word	103
- 121 0008 3300      		.word	51
- 122 000a 1900      		.word	25
- 123 000c 1000      		.word	16
- 124 000e 1000      		.word	16
- 125               		.text
- 127               	usart_double_baud_enable:
- 128               	.LFB101:
- 129               		.file 2 "../../../platform/mega_rf/drivers/usart/usart_megarf.h"
-   1:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
-   2:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \file
-   3:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-   4:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief USART driver for AVR MEGARF.
-   5:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-   6:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * This file contains basic functions for the AVR MEGA USART, with support for
-   7:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * all modes, settings and clock speeds.
-   8:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-   9:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * Copyright (c) 2013-2015 Atmel Corporation. All rights reserved.
-  10:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  11:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \asf_license_start
-  12:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  13:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \page License
-  14:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  15:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * Redistribution and use in source and binary forms, with or without
-  16:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * modification, are permitted provided that the following conditions are met:
-  17:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  18:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * 1. Redistributions of source code must retain the above copyright notice,
-  19:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *    this list of conditions and the following disclaimer.
-  20:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  21:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
-  22:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *    this list of conditions and the following disclaimer in the documentation
-  23:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *    and/or other materials provided with the distribution.
-  24:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  25:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
-  26:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *    from this software without specific prior written permission.
-  27:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  28:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * 4. This software may only be redistributed and used in connection with an
-  29:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *    Atmel microcontroller product.
-  30:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  31:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
-  32:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-  33:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
-  34:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
-  35:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  36:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-  37:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-  38:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-  39:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-  40:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  41:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * POSSIBILITY OF SUCH DAMAGE.
-  42:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  43:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \asf_license_stop
-  44:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  45:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
-  46:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #ifndef _USART_MEGARF_H_
-  47:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define _USART_MEGARF_H_
-  48:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
-  49:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #ifdef __cplusplus
-  50:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** extern "C" {
-  51:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #endif
-  52:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
-  53:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #include "compiler.h"
-  54:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #include "status_codes.h"
-  55:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
-  56:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
-  57:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \defgroup megarf_usart_group USART module (USART)
-  58:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  59:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * See \ref megarf_usart_quickstart.
-  60:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  61:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * This is a driver for configuring, enabling, disabling and use of the on-chip
-  62:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * USART.
-  63:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  64:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \section dependencies Dependencies
-  65:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  66:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * The USART module depends on the following modules:
-  67:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *  - \ref sysclk_group for peripheral clock control.
-  68:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *  - \ref port_driver_group for peripheral io port control.
-  69:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
-  70:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * @{
-  71:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
-  72:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
-  73:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Offset in lookup table for baudrate 1200 */
-  74:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_BAUD_1200      0x00
-  75:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Offset in lookup table for baudrate 2400 */
-  76:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_BAUD_2400      0x01
-  77:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Offset in lookup table for baudrate 4800 */
-  78:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_BAUD_4800      0x02
-  79:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Offset in lookup table for baudrate 9600 */
-  80:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_BAUD_9600      0x03
-  81:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Offset in lookup table for baudrate 19200 */
-  82:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_BAUD_19200     0x04
-  83:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Offset in lookup table for baudrate 38400 */
-  84:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_BAUD_38400     0x05
-  85:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Offset in lookup table for baudrate 57600 */
-  86:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_BAUD_57600     0x06
-  87:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Offset in lookup table for baudrate 115200 */
-  88:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_BAUD_115200    0x07
-  89:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Baudrate not in lookup table */
-  90:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_BAUD_UNDEFINED 0xFF
-  91:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
-  92:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** typedef volatile uint8_t register8_t;
-  93:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** typedef volatile uint16_t register16_t;
-  94:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* Universal Synchronous/Asynchronous Receiver/Transmitter */
-  95:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** typedef struct USART_struct {
-  96:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	register8_t UCSRnA;  /* Control Register A */
-  97:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	register8_t UCSRnB;  /* Control Register B */
-  98:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	register8_t UCSRnC;  /* Control Register C */
-  99:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	register8_t reserved;
- 100:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	register16_t UBRR;  /* Baud Rate Register Value */
- 101:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	register8_t UDR;  /* I/O Data Register */
- 102:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** } USART_t;
- 103:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 104:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USARTA0    (*(USART_t *)0xC0)   /* Universal Asynchronous
- 105:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	                                 * Receiver-Transmitter A0 */
- 106:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USARTA1    (*(USART_t *)0XC8)   /* Universal Asynchronous
- 107:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	                                 * Receiver-Transmitter A1 */
- 108:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 109:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* USART.UCSRxA  bit masks and bit positions */
- 110:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_RXC_bm  0x80 /* RX complete bit mask.*/
- 111:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_RXC_bp  7 /* RX complete bit position.*/
- 112:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 113:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_TXC_bm  0x40 /* TX complete bit mask.*/
- 114:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_TXC_bp  6 /* TX complete bit position.*/
- 115:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 116:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_DRE_bm  0x20 /* DATA Register Empty Bit mask.*/
- 117:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_DRE_bp  5 /*  DATA Register Empty bit position.*/
- 118:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 119:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_FE_bm   0x10 /* Frame Error bit mask.*/
- 120:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_FE_bp   4 /*Frame error bit position.*/
- 121:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 122:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_DOR_bm  0x08 /* Data Over Run bit mask.*/
- 123:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_DOR_bp  3 /* Data Over Run bit position.*/
- 124:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 125:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_UPE_bm  0x04 /* Parity error bit mask.*/
- 126:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_UPE_bp  2 /* Parity error bit position.*/
- 127:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 128:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_U2X_bm  0x02 /* Double TX speed bit mask.*/
- 129:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_U2X_bp  1 /* Double TX speed bit position.*/
- 130:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 131:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_MPCM_bm  0x01 /* Multi Processor bit mask.*/
- 132:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_MPMC_bp  0 /* Multi processor bit position.*/
- 133:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 134:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* USART.UCSRxB  bit masks and bit positions */
- 135:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_RXCIE_bm  0x80 /* RX complete interrupt Enable bit mask.*/
- 136:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_RXCIE_bp  7 /* RX complete interrupt Enable bit position.*/
- 137:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 138:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_TXCIE_bm  0x40 /* TX complete interrupt Enable bit mask.*/
- 139:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_TXCIE_bp  6 /* TX complete interrupt Enable bit position.*/
- 140:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 141:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_DRIE_bm  0x20 /* Data register empty interrupt Enable bit mask.*/
- 142:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_DRIE_bp  5 /* Data register empty interrupt Enable bit position.*/
- 143:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 144:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_RXEN_bm  0x10  /* Receiver Enable bit mask. */
- 145:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_RXEN_bp  4  /* Receiver Enable bit position. */
- 146:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 147:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_TXEN_bm  0x08  /* Transmitter Enable bit mask. */
- 148:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_TXEN_bp  3  /* Transmitter Enable bit position. */
- 149:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 150:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_CHSIZE2_bm  0x04  /* Character Size bit mask. */
- 151:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_CHSIZE2_bp  2 /* Character Size bit position. */
- 152:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 153:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_RXB8_bm  0x02  /* Transmit bit 8 bit mask. */
- 154:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_RXB8_bp  1  /* Transmit bit 8 bit position. */
- 155:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 156:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_TXB8_bm  0x01  /* Transmit bit 8 bit mask. */
- 157:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_TXB8_bp  0  /* Transmit bit 8 bit position. */
- 158:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 159:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* USART.UCSRxC  bit masks and bit positions */
- 160:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_UMSEL01_gm  0xC0 /* USART Mode Select 01 grp mask.*/
- 161:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_UMSEL01_gp  6 /* USART Mode Select 01 grp position.*/
- 162:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 163:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_UMSEL01_bm  0x80 /* USART Mode Select 01 bit mask.*/
- 164:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_UMSEL01_bp  7 /* USART Mode Select 01 bit position.*/
- 165:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 166:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_UMSEL00_bm  0x40 /* USART Mode Select 00 bit mask.*/
- 167:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_UMSEL00_bp  6 /* USART Mode Select 00 bit position.*/
- 168:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 169:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_PMODE_gm  0x30 /* USART Parity Mode Select grp mask.*/
- 170:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_PMODE_gp  4 /* USART Parity Mode Select grp position.*/
- 171:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 172:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_PMODE01_bm  0x20 /* USART Parity Mode Select 01 bit mask.*/
- 173:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_PMODE01_bp  5 /* USART Parity Mode Select 01 bit position.*/
- 174:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 175:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_PMODE00_bm  0x10 /* USART Parity Mode Select 00 bit mask.*/
- 176:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_PMODE00_bp  4 /* USART Parity Mode Select 00 bit position.*/
- 177:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 178:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_STOPB_bm  0x08 /* USART stop bit mask.*/
- 179:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_STOPB_bp  3 /* USART stop bit Position.*/
- 180:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 181:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_CHSIZE01C_gm  0x06  /* Character Size 10 bit 1 mask. */
- 182:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_CHSIZE01C_gp  1 /* Character Size 10 bit position. */
- 183:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 184:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_CHSIZE01_bm  0x04  /* Character Size 10 bit 1 mask. */
- 185:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_CHSIZE01_bp  2 /* Character Size 10 bit position. */
- 186:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 187:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_CHSIZE00_bm  0x02  /* Character Size 00 bit 1 mask. */
- 188:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_CHSIZE00_bp  1 /* Character Size bit 00 position. */
- 189:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 190:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_UCPOL_bm  0x01  /* Sync mode Pol bit 1 mask. */
- 191:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_UCPOL_bp  0 /*Sync mode Pol bit 0 position */
- 192:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 193:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_UCPHA_bm 0x02 /* Clock Phase bit mask. */
- 194:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_UCPHA_bp 1 /* Clock Phase bit position. */
- 195:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 196:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_DORD_bm 0x04 /* Data order bit mask. */
- 197:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** #define USART_DORD_bp 2 /* Data order bit position. */
- 198:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 199:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* Character Size */
- 200:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** typedef enum USART_CHSIZE_enum {
- 201:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_CHSIZE_5BIT_gc = (0x00),  /* Character size: 5 bit */
- 202:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_CHSIZE_6BIT_gc = (0x01),  /* Character size: 6 bit */
- 203:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_CHSIZE_7BIT_gc = (0x02),  /* Character size: 7 bit */
- 204:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_CHSIZE_8BIT_gc = (0x03),  /* Character size: 8 bit */
- 205:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_CHSIZE_9BIT_gc = (0x07),  /* Character size: 9 bit */
- 206:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** } USART_CHSIZE_t;
- 207:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 208:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* Communication Mode */
- 209:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** typedef enum USART_CMODE_enum {
- 210:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_CMODE_ASYNCHRONOUS_gc = (0x00 << USART_UMSEL01_gp),  /*
- 211:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	                                                            *
- 212:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	                                                            *
- 213:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	                                                            *Asynchronous
- 214:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	                                                            * Mode */
- 215:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_CMODE_SYNCHRONOUS_gc = (0x01 << USART_UMSEL01_gp),  /* Synchronous
- 216:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	                                                           * Mode */
- 217:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_CMODE_IRDA_gc = (0x02 << USART_UMSEL01_gp),  /* IrDA Mode */
- 218:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_CMODE_MSPI_gc = (0x03 << USART_UMSEL01_gp),  /* Master SPI Mode */
- 219:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** } USART_CMODE_t;
- 220:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 221:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* Parity Mode */
- 222:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** typedef enum USART_PMODE_enum {
- 223:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_PMODE_DISABLED_gc = (0x00 << USART_PMODE_gp),  /* No Parity */
- 224:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_PMODE_EVEN_gc = (0x02 << USART_PMODE_gp),  /* Even Parity */
- 225:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_PMODE_ODD_gc = (0x03 << USART_PMODE_gp),  /* Odd Parity */
- 226:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** } USART_PMODE_t;
- 227:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 228:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Lookup table containing baudctrl values for CPU frequency 1 Mhz */
- 229:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static PROGMEM_DECLARE(uint16_t, baudctrl_1mhz[]) = {
- 230:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0033, /* Baud: 1200 */
- 231:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0019, /* Baud: 2400 */
- 232:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x000C, /* Baud: 4800 */
- 233:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0006, /* Baud: 9600 */
- 234:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0003, /* Baud: 19200 */
- 235:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0002, /* Baud: 38400 */
- 236:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0001, /* Baud: 57600 */
- 237:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_BAUD_UNDEFINED, /* Baud: 115200 */
- 238:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** };
- 239:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 240:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Lookup table containing baudctrl values for CPU frequency 8 Mhz */
- 241:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static PROGMEM_DECLARE(uint16_t, baudctrl_8mhz[]) = {
- 242:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x01A0, /* Baud: 1200 */
- 243:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x00CF, /* Baud: 2400 */
- 244:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0067, /* Baud: 4800 */
- 245:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0033, /* Baud: 9600 */
- 246:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0019, /* Baud: 19200 */
- 247:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x000C, /* Baud: 38400 */
- 248:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0007, /* Baud: 57600 */
- 249:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0008, /* Baud: 115200 */
- 250:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** };
- 251:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 252:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Lookup table containing baudctrl values for CPU frequency 16 Mhz */
- 253:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static PROGMEM_DECLARE(uint16_t, baudctrl_16mhz[]) = {
- 254:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0340, /* Baud: 1200 */
- 255:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x01A0, /* Baud: 2400 */
- 256:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x00CF, /* Baud: 4800 */
- 257:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0067, /* Baud: 9600 */
- 258:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0033, /* Baud: 19200 */
- 259:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0019, /* Baud: 38400 */
- 260:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0010, /* Baud: 57600 */
- 261:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	0x0010, /* Baud: 115200 */
- 262:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** };
- 263:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 264:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 265:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Input parameters when initializing RS232 and similar modes. */
- 266:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** typedef struct usart_rs232_options {
- 267:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	/* ! Set baud rate of the USART (unused in slave modes). */
- 268:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	uint32_t baudrate;
- 269:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 270:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	/* ! Number of bits to transmit as a character (5 to 9). */
- 271:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_CHSIZE_t charlength;
- 272:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 273:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	/* ! Parity type: USART_PMODE_DISABLED_gc, USART_PMODE_EVEN_gc, */
- 274:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	/* ! USART_PMODE_ODD_gc. */
- 275:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	USART_PMODE_t paritytype;
- 276:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 277:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	/* ! Number of stop bits between two characters: */
- 278:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	/* ! true: 2 stop bits */
- 279:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	/* ! false: 1 stop bit */
- 280:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	bool stopbits;
- 281:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** } usart_rs232_options_t;
- 282:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 283:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /* ! Input parameters when initializing SPI master mode. */
- 284:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** typedef struct usart_spi_options {
- 285:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	/* ! Set baud rate of the USART in SPI mode. */
- 286:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	uint32_t baudrate;
- 287:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 288:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	/* ! SPI transmission mode. */
- 289:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	uint8_t spimode;
- 290:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 291:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	uint8_t data_order;
- 292:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** } usart_spi_options_t;
- 293:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 294:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 295:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 296:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Enable USART receiver.
- 297:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 298:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart Pointer to the USART module
- 299:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 300:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_rx_enable(USART_t *usart)
- 301:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 302:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnB |= USART_RXEN_bm;
- 303:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 304:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 305:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 306:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Disable USART receiver.
- 307:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 308:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart Pointer to the USART module.
- 309:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 310:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_rx_disable(USART_t *usart)
- 311:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 312:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnB &= ~USART_RXEN_bm;
- 313:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 314:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 315:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 316:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief  Configure the USART frame format.
- 317:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 318:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *  Sets the frame format, Frame Size, parity mode and number of stop bits.
- 319:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 320:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *  \param usart Pointer to the USART module
- 321:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *  \param charSize The character size. Use USART_CHSIZE_t type.
- 322:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *  \param parityMode The parity Mode. Use USART_PMODE_t type.
- 323:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *  \param twoStopBits Enable two stop bit mode. Use bool type.
- 324:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 325:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_format_set(USART_t *usart, USART_CHSIZE_t charSize,
- 326:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 		USART_PMODE_t parityMode, bool twoStopBits)
- 327:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 328:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnC
- 329:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 		= ((usart)->UCSRnC &
- 330:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 			(~USART_CHSIZE01C_gm)) | ((charSize & 0x03)
- 331:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 			<< USART_CHSIZE01C_gp);
- 332:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnB
- 333:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 		= ((usart)->UCSRnB &
- 334:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 			(~USART_CHSIZE2_bm)) | ((charSize & 0x04)
- 335:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 			<< USART_CHSIZE2_bp);
- 336:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 337:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnC = ((usart)->UCSRnC & (~USART_PMODE_gm)) | parityMode;
- 338:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 339:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnC = ((usart)->UCSRnC & (~USART_STOPB_bm)) | (twoStopBits
- 340:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 			<< USART_STOPB_bp);
- 341:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 342:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 343:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 344:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Enable USART transmitter.
- 345:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 346:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart Pointer to the USART module.
- 347:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 348:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_tx_enable(USART_t *usart)
- 349:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 350:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnB |= USART_TXEN_bm;
- 351:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 352:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 353:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 354:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Disable USART transmitter.
- 355:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 356:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart Pointer to the USART module.
- 357:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 358:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_tx_disable(USART_t *usart)
- 359:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 360:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnB &= ~USART_TXEN_bm;
- 361:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 362:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 363:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 364:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Enable USART transmit complete interrupt.
- 365:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 366:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart Pointer to the USART module.
- 367:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 368:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_tx_complete_interrupt_enable(USART_t *usart)
- 369:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 370:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnB |= USART_TXC_bm;
- 371:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 372:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 373:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 374:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Enable USART receive complete interrupt.
- 375:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 376:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart Pointer to the USART module.
- 377:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 378:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_rx_complete_interrupt_enable(USART_t *usart)
- 379:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 380:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnB |= USART_RXC_bm;
- 381:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 382:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 383:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 384:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Enable USART data register empty interrupt.
- 385:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 386:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart Pointer to the USART module.
- 387:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 388:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_data_empty_interrupt_enable(USART_t *usart)
- 389:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 390:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnB |= USART_DRIE_bm;
- 391:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 392:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 393:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 394:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Disable USART transmit complete interrupt.
- 395:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 396:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart Pointer to the USART module.
- 397:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 398:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_tx_complete_interrupt_disable(USART_t *usart)
- 399:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 400:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnB &= ~USART_TXC_bm;
- 401:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 402:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 403:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 404:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Disable USART receive complete interrupt.
- 405:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 406:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart Pointer to the USART module.
- 407:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 408:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_rx_complete_interrupt_disable(USART_t *usart)
- 409:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 410:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnB &= ~USART_RXC_bm;
- 411:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 412:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 413:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 414:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Disable USART data register empty interrupt.
- 415:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 416:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart Pointer to the USART module.
- 417:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 418:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_data_empty_interrupt_disable(USART_t *usart)
- 419:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 420:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnB &= ~USART_DRIE_bm;
- 421:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 422:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 423:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 424:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Set the mode the USART run in.
- 425:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 426:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * Set the mode the USART run in. The default mode is asynchronous mode.
- 427:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 428:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart Pointer to the USART module register section.
- 429:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usartmode Selects the USART mode. Use USART_CMODE_t type.
- 430:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 431:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * USART modes:
- 432:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * - 0x0        : Asynchronous mode.
- 433:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * - 0x1        : Synchronous mode.
- 434:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * - 0x2        : IrDA mode.
- 435:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * - 0x3        : Master SPI mode.
- 436:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 437:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_set_mode(USART_t *usart, USART_CMODE_t usartmode)
- 438:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 439:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UCSRnC = ((usart)->UCSRnC & (~USART_UMSEL01_gm)) | usartmode;
- 440:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 441:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 442:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 443:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Check if data register empty flag is set.
- 444:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 445:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart The USART module.
- 446:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 447:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline bool usart_data_register_is_empty(USART_t *usart)
- 448:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 449:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	return (usart)->UCSRnA & USART_DRE_bm;
- 450:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 451:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 452:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 453:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Checks if the RX complete interrupt flag is set.
- 454:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 455:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * Checks if the RX complete interrupt flag is set.
- 456:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 457:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart The USART module.
- 458:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 459:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline bool usart_rx_is_complete(USART_t *usart)
- 460:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 461:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	return (usart)->UCSRnA & USART_RXC_bm;
- 462:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 463:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 464:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 465:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Checks if the TX complete interrupt flag is set.
- 466:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 467:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * Checks if the TX complete interrupt flag is set.
- 468:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 469:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart The USART module.
- 470:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 471:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline bool usart_tx_is_complete(USART_t *usart)
- 472:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 473:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	return (usart)->UCSRnA & USART_TXC_bm;
- 474:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 475:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 476:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 477:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Clear TX complete interrupt flag.
- 478:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * TX flag is clear after complete transmission, automatically.
- 479:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart The USART module.
- 480:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 481:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_clear_tx_complete(USART_t *usart)
- 482:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 483:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****          usart->UCSRnA |=  USART_TXC_bm;
- 484:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 485:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 486:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 487:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Write a data to the USART data register.
- 488:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 489:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart The USART module.
- 490:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param txdata The data to be transmitted.
- 491:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 492:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_put(USART_t *usart, uint8_t txdata)
- 493:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 494:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	(usart)->UDR = txdata;
- 495:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 496:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 497:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 498:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief  Read a data to the USART data register.
- 499:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 500:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart The USART module.
- 501:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 502:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \return The received data
- 503:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 504:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline uint8_t usart_get(USART_t *usart)
- 505:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 506:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	return (usart)->UDR;
- 507:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 508:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 
- 509:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** /**
- 510:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \brief Double the USART transmission speed.
- 511:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  *
- 512:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  * \param usart The USART module.
- 513:../../../platform/mega_rf/drivers/usart/usart_megarf.h ****  */
- 514:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** static inline void usart_double_baud_enable(USART_t *usart)
- 515:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** {
- 130               		.loc 2 515 0
- 131               		.cfi_startproc
- 132 0034 CF93      		push r28
- 133               	.LCFI6:
- 134               		.cfi_def_cfa_offset 3
- 135               		.cfi_offset 28, -2
- 136 0036 DF93      		push r29
- 137               	.LCFI7:
- 138               		.cfi_def_cfa_offset 4
- 139               		.cfi_offset 29, -3
- 140 0038 00D0      		rcall .
- 141               	.LCFI8:
- 142               		.cfi_def_cfa_offset 6
- 143 003a CDB7      		in r28,__SP_L__
- 144 003c DEB7      		in r29,__SP_H__
- 145               	.LCFI9:
- 146               		.cfi_def_cfa_register 28
- 147               	/* prologue: function */
- 148               	/* frame size = 2 */
- 149               	/* stack size = 4 */
- 150               	.L__stack_usage = 4
- 151 003e 9A83      		std Y+2,r25
- 152 0040 8983      		std Y+1,r24
- 516:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** 	usart->UCSRnA |=  USART_U2X_bm;
- 153               		.loc 2 516 0
- 154 0042 8981      		ldd r24,Y+1
- 155 0044 9A81      		ldd r25,Y+2
- 156 0046 FC01      		movw r30,r24
- 157 0048 8081      		ld r24,Z
- 158 004a 282F      		mov r18,r24
- 159 004c 2260      		ori r18,lo8(2)
- 160 004e 8981      		ldd r24,Y+1
- 161 0050 9A81      		ldd r25,Y+2
- 162 0052 FC01      		movw r30,r24
- 163 0054 2083      		st Z,r18
- 517:../../../platform/mega_rf/drivers/usart/usart_megarf.h **** }
- 164               		.loc 2 517 0
- 165 0056 0000      		nop
- 166               	/* epilogue start */
- 167 0058 0F90      		pop __tmp_reg__
- 168 005a 0F90      		pop __tmp_reg__
- 169 005c DF91      		pop r29
- 170 005e CF91      		pop r28
- 171 0060 0895      		ret
- 172               		.cfi_endproc
- 173               	.LFE101:
- 176               	usart_serial_init:
- 177               	.LFB104:
- 178               		.file 3 "../../../platform/common/services/serial/megarf_usart/usart_serial.h"
-   1:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /**
-   2:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \file
-   3:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-   4:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \brief This file defines a useful set of functions for the Serial interface on 
-   5:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * AVR MEGARF devices.
-   6:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-   7:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * Copyright (c) 2013 Atmel Corporation. All rights reserved.
-   8:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-   9:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \asf_license_start
-  10:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  11:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \page License
-  12:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  13:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * Redistribution and use in source and binary forms, with or without
-  14:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * modification, are permitted provided that the following conditions are met:
-  15:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  16:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * 1. Redistributions of source code must retain the above copyright notice,
-  17:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    this list of conditions and the following disclaimer.
-  18:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  19:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
-  20:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    this list of conditions and the following disclaimer in the documentation
-  21:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    and/or other materials provided with the distribution.
-  22:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  23:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
-  24:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    from this software without specific prior written permission.
-  25:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  26:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * 4. This software may only be redistributed and used in connection with an
-  27:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    Atmel microcontroller product.
-  28:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  29:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
-  30:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-  31:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
-  32:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
-  33:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  34:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-  35:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-  36:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-  37:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-  38:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  39:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * POSSIBILITY OF SUCH DAMAGE.
-  40:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  41:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \asf_license_stop
-  42:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  43:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
-  44:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #ifndef _USART_SERIAL_H_
-  45:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #define _USART_SERIAL_H_
-  46:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  47:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #ifdef __cplusplus
-  48:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** extern "C" {
-  49:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #endif
-  50:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  51:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "compiler.h"
-  52:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "sysclk.h"
-  53:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "status_codes.h"
-  54:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "usart_megarf.h"
-  55:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  56:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /*! \name Serial Management Configuration
-  57:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
-  58:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /* ! @{ */
-  59:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "conf_usart_serial.h"
-  60:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /* ! @} */
-  61:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  62:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** typedef usart_rs232_options_t usart_serial_options_t;
-  63:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  64:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** typedef USART_t *usart_if;
-  65:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  66:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /*! \brief Initializes the Usart in master mode.
-  67:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  68:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param usart       Base address of the USART instance.
-  69:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param options     Options needed to set up RS232 communication (see \ref
-  70:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * usart_serial_options_t).
-  71:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  72:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \retval true if the initialization was successful
-  73:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \retval false if initialization failed (error in baud rate calculation)
-  74:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
-  75:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** static inline bool usart_serial_init(usart_if usart, const
-  76:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 		usart_serial_options_t *options)
-  77:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** {
- 179               		.loc 3 77 0
- 180               		.cfi_startproc
- 181 0062 CF93      		push r28
- 182               	.LCFI10:
- 183               		.cfi_def_cfa_offset 3
- 184               		.cfi_offset 28, -2
- 185 0064 DF93      		push r29
- 186               	.LCFI11:
- 187               		.cfi_def_cfa_offset 4
- 188               		.cfi_offset 29, -3
- 189 0066 CDB7      		in r28,__SP_L__
- 190 0068 DEB7      		in r29,__SP_H__
- 191               	.LCFI12:
- 192               		.cfi_def_cfa_register 28
- 193 006a 2B97      		sbiw r28,11
- 194               	.LCFI13:
- 195               		.cfi_def_cfa_offset 15
- 196 006c 0FB6      		in __tmp_reg__,__SREG__
- 197 006e F894      		cli
- 198 0070 DEBF      		out __SP_H__,r29
- 199 0072 0FBE      		out __SREG__,__tmp_reg__
- 200 0074 CDBF      		out __SP_L__,r28
- 201               	/* prologue: function */
- 202               	/* frame size = 11 */
- 203               	/* stack size = 13 */
- 204               	.L__stack_usage = 13
- 205 0076 9987      		std Y+9,r25
- 206 0078 8887      		std Y+8,r24
- 207 007a 7B87      		std Y+11,r23
- 208 007c 6A87      		std Y+10,r22
-  78:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	/* USART options. */
-  79:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options_t usart_rs232_options;
-  80:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options.charlength   = options->charlength;
- 209               		.loc 3 80 0
- 210 007e 8A85      		ldd r24,Y+10
- 211 0080 9B85      		ldd r25,Y+11
- 212 0082 FC01      		movw r30,r24
- 213 0084 8481      		ldd r24,Z+4
- 214 0086 8D83      		std Y+5,r24
-  81:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options.paritytype   = options->paritytype;
- 215               		.loc 3 81 0
- 216 0088 8A85      		ldd r24,Y+10
- 217 008a 9B85      		ldd r25,Y+11
- 218 008c FC01      		movw r30,r24
- 219 008e 8581      		ldd r24,Z+5
- 220 0090 8E83      		std Y+6,r24
-  82:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options.stopbits     = options->stopbits;
- 221               		.loc 3 82 0
- 222 0092 8A85      		ldd r24,Y+10
- 223 0094 9B85      		ldd r25,Y+11
- 224 0096 FC01      		movw r30,r24
- 225 0098 8681      		ldd r24,Z+6
- 226 009a 8F83      		std Y+7,r24
-  83:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options.baudrate     = options->baudrate;
- 227               		.loc 3 83 0
- 228 009c 8A85      		ldd r24,Y+10
- 229 009e 9B85      		ldd r25,Y+11
- 230 00a0 FC01      		movw r30,r24
- 231 00a2 8081      		ld r24,Z
- 232 00a4 9181      		ldd r25,Z+1
- 233 00a6 A281      		ldd r26,Z+2
- 234 00a8 B381      		ldd r27,Z+3
- 235 00aa 8983      		std Y+1,r24
- 236 00ac 9A83      		std Y+2,r25
- 237 00ae AB83      		std Y+3,r26
- 238 00b0 BC83      		std Y+4,r27
-  84:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  85:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	if (usart_init_rs232(usart, &usart_rs232_options)) {
- 239               		.loc 3 85 0
- 240 00b2 8885      		ldd r24,Y+8
- 241 00b4 9985      		ldd r25,Y+9
- 242 00b6 9E01      		movw r18,r28
- 243 00b8 2F5F      		subi r18,-1
- 244 00ba 3F4F      		sbci r19,-1
- 245 00bc B901      		movw r22,r18
- 246 00be 0E94 0000 		call usart_init_rs232
- 247 00c2 8823      		tst r24
- 248 00c4 01F0      		breq .L7
-  86:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 		return true;
- 249               		.loc 3 86 0
- 250 00c6 81E0      		ldi r24,lo8(1)
- 251 00c8 00C0      		rjmp .L9
- 252               	.L7:
-  87:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	} else {
-  88:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 		return false;
- 253               		.loc 3 88 0
- 254 00ca 80E0      		ldi r24,0
- 255               	.L9:
- 256               	/* epilogue start */
-  89:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	}
-  90:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** }
- 257               		.loc 3 90 0 discriminator 1
- 258 00cc 2B96      		adiw r28,11
- 259 00ce 0FB6      		in __tmp_reg__,__SREG__
- 260 00d0 F894      		cli
- 261 00d2 DEBF      		out __SP_H__,r29
- 262 00d4 0FBE      		out __SREG__,__tmp_reg__
- 263 00d6 CDBF      		out __SP_L__,r28
- 264 00d8 DF91      		pop r29
- 265 00da CF91      		pop r28
- 266 00dc 0895      		ret
- 267               		.cfi_endproc
- 268               	.LFE104:
- 271               	usart_serial_putchar:
- 272               	.LFB105:
-  91:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  92:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /*! \brief Sends a character with the USART.
-  93:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  94:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param usart   Base address of the USART instance.
-  95:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param c       Character to write.
-  96:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  97:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \return Status code
-  98:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
-  99:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** static inline status_code_t usart_serial_putchar(usart_if usart, uint8_t c)
- 100:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** {
- 273               		.loc 3 100 0
- 274               		.cfi_startproc
- 275 00de CF93      		push r28
- 276               	.LCFI14:
- 277               		.cfi_def_cfa_offset 3
- 278               		.cfi_offset 28, -2
- 279 00e0 DF93      		push r29
- 280               	.LCFI15:
- 281               		.cfi_def_cfa_offset 4
- 282               		.cfi_offset 29, -3
- 283 00e2 00D0      		rcall .
- 284 00e4 1F92      		push __zero_reg__
- 285               	.LCFI16:
- 286               		.cfi_def_cfa_offset 7
- 287 00e6 CDB7      		in r28,__SP_L__
- 288 00e8 DEB7      		in r29,__SP_H__
- 289               	.LCFI17:
- 290               		.cfi_def_cfa_register 28
- 291               	/* prologue: function */
- 292               	/* frame size = 3 */
- 293               	/* stack size = 5 */
- 294               	.L__stack_usage = 5
- 295 00ea 9A83      		std Y+2,r25
- 296 00ec 8983      		std Y+1,r24
- 297 00ee 6B83      		std Y+3,r22
- 101:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	return usart_putchar(usart, c);
- 298               		.loc 3 101 0
- 299 00f0 8981      		ldd r24,Y+1
- 300 00f2 9A81      		ldd r25,Y+2
- 301 00f4 6B81      		ldd r22,Y+3
- 302 00f6 0E94 0000 		call usart_putchar
- 303               	/* epilogue start */
- 102:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** }
- 304               		.loc 3 102 0
- 305 00fa 0F90      		pop __tmp_reg__
- 306 00fc 0F90      		pop __tmp_reg__
- 307 00fe 0F90      		pop __tmp_reg__
- 308 0100 DF91      		pop r29
- 309 0102 CF91      		pop r28
- 310 0104 0895      		ret
- 311               		.cfi_endproc
- 312               	.LFE105:
- 315               	usart_serial_getchar:
- 316               	.LFB106:
- 103:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
- 104:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /*! \brief Waits until a character is received, and returns it.
- 105:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
- 106:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param usart   Base address of the USART instance.
- 107:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param data   Data to read
- 108:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
- 109:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
- 110:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** static inline void usart_serial_getchar(usart_if usart, uint8_t *data)
- 111:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** {
- 317               		.loc 3 111 0
- 318               		.cfi_startproc
- 319 0106 CF93      		push r28
- 320               	.LCFI18:
- 321               		.cfi_def_cfa_offset 3
- 322               		.cfi_offset 28, -2
- 323 0108 DF93      		push r29
- 324               	.LCFI19:
- 325               		.cfi_def_cfa_offset 4
- 326               		.cfi_offset 29, -3
- 327 010a 00D0      		rcall .
- 328 010c 00D0      		rcall .
- 329               	.LCFI20:
- 330               		.cfi_def_cfa_offset 8
- 331 010e CDB7      		in r28,__SP_L__
- 332 0110 DEB7      		in r29,__SP_H__
- 333               	.LCFI21:
- 334               		.cfi_def_cfa_register 28
- 335               	/* prologue: function */
- 336               	/* frame size = 4 */
- 337               	/* stack size = 6 */
- 338               	.L__stack_usage = 6
- 339 0112 9A83      		std Y+2,r25
- 340 0114 8983      		std Y+1,r24
- 341 0116 7C83      		std Y+4,r23
- 342 0118 6B83      		std Y+3,r22
- 112:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	*data = usart_getchar(usart);
- 343               		.loc 3 112 0
- 344 011a 8981      		ldd r24,Y+1
- 345 011c 9A81      		ldd r25,Y+2
- 346 011e 0E94 0000 		call usart_getchar
- 347 0122 282F      		mov r18,r24
- 348 0124 8B81      		ldd r24,Y+3
- 349 0126 9C81      		ldd r25,Y+4
- 350 0128 FC01      		movw r30,r24
- 351 012a 2083      		st Z,r18
- 113:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** }
- 352               		.loc 3 113 0
- 353 012c 0000      		nop
- 354               	/* epilogue start */
- 355 012e 0F90      		pop __tmp_reg__
- 356 0130 0F90      		pop __tmp_reg__
- 357 0132 0F90      		pop __tmp_reg__
- 358 0134 0F90      		pop __tmp_reg__
- 359 0136 DF91      		pop r29
- 360 0138 CF91      		pop r28
- 361 013a 0895      		ret
- 362               		.cfi_endproc
- 363               	.LFE106:
- 366               	stdio_serial_init:
- 367               	.LFB107:
- 368               		.file 4 "../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h"
-   1:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** /**
-   2:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-   3:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * \file
-   4:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-   5:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * \brief Common Standard I/O Serial Management.
-   6:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-   7:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * This file defines a useful set of functions for the Stdio Serial interface on AVR
-   8:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * and SAM devices.
-   9:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  10:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * Copyright (c) 2009-2013 Atmel Corporation. All rights reserved.
-  11:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  12:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * \asf_license_start
-  13:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  14:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * \page License
-  15:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  16:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * Redistribution and use in source and binary forms, with or without
-  17:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * modification, are permitted provided that the following conditions are met:
-  18:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  19:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * 1. Redistributions of source code must retain the above copyright notice,
-  20:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *    this list of conditions and the following disclaimer.
-  21:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  22:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
-  23:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *    this list of conditions and the following disclaimer in the documentation
-  24:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *    and/or other materials provided with the distribution.
-  25:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  26:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
-  27:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *    from this software without specific prior written permission.
-  28:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  29:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * 4. This software may only be redistributed and used in connection with an
-  30:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *    Atmel microcontroller product.
-  31:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  32:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
-  33:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-  34:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
-  35:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
-  36:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  37:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-  38:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-  39:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-  40:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-  41:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  42:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * POSSIBILITY OF SUCH DAMAGE.
-  43:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  44:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * \asf_license_stop
-  45:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  46:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  ******************************************************************************/
-  47:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 
-  48:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 
-  49:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #ifndef _STDIO_SERIAL_H_
-  50:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #define _STDIO_SERIAL_H_
-  51:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 
-  52:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** /**
-  53:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * \defgroup group_common_utils_stdio_stdio_serial Standard serial I/O (stdio)
-  54:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * \ingroup group_common_utils_stdio
-  55:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  56:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * Common standard serial I/O management driver that
-  57:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * implements a stdio serial interface on AVR and SAM devices.
-  58:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  59:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * \{
-  60:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  */
-  61:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 
-  62:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #include <stdio.h>
-  63:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #include "compiler.h"
-  64:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #ifndef SAMD20
-  65:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** # include "sysclk.h"
-  66:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #endif
-  67:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #include "serial.h"
-  68:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 
-  69:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #if (XMEGA || MEGA_RF) && defined(__GNUC__)
-  70:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	extern int _write (char c, int *f);
-  71:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	extern int _read (int *f);
-  72:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #endif
-  73:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 
-  74:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 
-  75:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** //! Pointer to the base of the USART module instance to use for stdio.
-  76:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** extern volatile void *volatile stdio_base;
-  77:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** //! Pointer to the external low level write function.
-  78:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** extern int (*ptr_put)(void volatile*, char);
-  79:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 
-  80:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** //! Pointer to the external low level read function.
-  81:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** extern void (*ptr_get)(void volatile*, char*);
-  82:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 
-  83:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** /*! \brief Initializes the stdio in Serial Mode.
-  84:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  85:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * \param usart       Base address of the USART instance.
-  86:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  * \param opt         Options needed to set up RS232 communication (see \ref usart_options_t).
-  87:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  *
-  88:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h ****  */
-  89:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** static inline void stdio_serial_init(volatile void *usart, const usart_serial_options_t *opt)
-  90:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** {
- 369               		.loc 4 90 0
- 370               		.cfi_startproc
- 371 013c CF93      		push r28
- 372               	.LCFI22:
- 373               		.cfi_def_cfa_offset 3
- 374               		.cfi_offset 28, -2
- 375 013e DF93      		push r29
- 376               	.LCFI23:
- 377               		.cfi_def_cfa_offset 4
- 378               		.cfi_offset 29, -3
- 379 0140 00D0      		rcall .
- 380 0142 00D0      		rcall .
- 381               	.LCFI24:
- 382               		.cfi_def_cfa_offset 8
- 383 0144 CDB7      		in r28,__SP_L__
- 384 0146 DEB7      		in r29,__SP_H__
- 385               	.LCFI25:
- 386               		.cfi_def_cfa_register 28
- 387               	/* prologue: function */
- 388               	/* frame size = 4 */
- 389               	/* stack size = 6 */
- 390               	.L__stack_usage = 6
- 391 0148 9A83      		std Y+2,r25
- 392 014a 8983      		std Y+1,r24
- 393 014c 7C83      		std Y+4,r23
- 394 014e 6B83      		std Y+3,r22
-  91:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	stdio_base = (void *)usart;
- 395               		.loc 4 91 0
- 396 0150 8981      		ldd r24,Y+1
- 397 0152 9A81      		ldd r25,Y+2
- 398 0154 9093 0000 		sts stdio_base+1,r25
- 399 0158 8093 0000 		sts stdio_base,r24
-  92:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	ptr_put = (int (*)(void volatile*,char))&usart_serial_putchar;
- 400               		.loc 4 92 0
- 401 015c 80E0      		ldi r24,lo8(gs(usart_serial_putchar))
- 402 015e 90E0      		ldi r25,hi8(gs(usart_serial_putchar))
- 403 0160 9093 0000 		sts ptr_put+1,r25
- 404 0164 8093 0000 		sts ptr_put,r24
-  93:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	ptr_get = (void (*)(void volatile*,char*))&usart_serial_getchar;
- 405               		.loc 4 93 0
- 406 0168 80E0      		ldi r24,lo8(gs(usart_serial_getchar))
- 407 016a 90E0      		ldi r25,hi8(gs(usart_serial_getchar))
- 408 016c 9093 0000 		sts ptr_get+1,r25
- 409 0170 8093 0000 		sts ptr_get,r24
-  94:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** # if (XMEGA || MEGA_RF)
-  95:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	usart_serial_init((USART_t *)usart,opt);
- 410               		.loc 4 95 0
- 411 0174 2B81      		ldd r18,Y+3
- 412 0176 3C81      		ldd r19,Y+4
- 413 0178 8981      		ldd r24,Y+1
- 414 017a 9A81      		ldd r25,Y+2
- 415 017c B901      		movw r22,r18
- 416 017e 0E94 0000 		call usart_serial_init
-  96:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** # elif UC3
-  97:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	usart_serial_init(usart,(usart_serial_options_t *)opt);
-  98:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** # elif SAM
-  99:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	usart_serial_init((Usart *)usart,(usart_serial_options_t *)opt);
- 100:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** # else
- 101:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #  error Unsupported chip type
- 102:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** # endif
- 103:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 
- 104:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** # if defined(__GNUC__)
- 105:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #  if (XMEGA || MEGA_RF)
- 106:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	// For AVR GCC libc print redirection uses fdevopen.
- 107:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	fdevopen((int (*)(char, FILE*))(_write),(int (*)(FILE*))(_read));
- 417               		.loc 4 107 0
- 418 0182 60E0      		ldi r22,lo8(gs(_read))
- 419 0184 70E0      		ldi r23,hi8(gs(_read))
- 420 0186 80E0      		ldi r24,lo8(gs(_write))
- 421 0188 90E0      		ldi r25,hi8(gs(_write))
- 422 018a 0E94 0000 		call fdevopen
- 108:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #  endif
- 109:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #  if UC3 || SAM
- 110:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	// For AVR32 and SAM GCC
- 111:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	// Specify that stdout and stdin should not be buffered.
- 112:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	setbuf(stdout, NULL);
- 113:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	setbuf(stdin, NULL);
- 114:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	// Note: Already the case in IAR's Normal DLIB default configuration
- 115:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	// and AVR GCC library:
- 116:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	// - printf() emits one character at a time.
- 117:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** 	// - getchar() requests only 1 byte to exit.
- 118:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** #  endif
- 119:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** # endif
- 120:../../../platform/common/utils/stdio/stdio_serial/stdio_serial.h **** }
- 423               		.loc 4 120 0
- 424 018e 0000      		nop
- 425               	/* epilogue start */
- 426 0190 0F90      		pop __tmp_reg__
- 427 0192 0F90      		pop __tmp_reg__
- 428 0194 0F90      		pop __tmp_reg__
- 429 0196 0F90      		pop __tmp_reg__
- 430 0198 DF91      		pop r29
- 431 019a CF91      		pop r28
- 432 019c 0895      		ret
- 433               		.cfi_endproc
- 434               	.LFE107:
- 437               	macsc_enable_manual_bts:
- 438               	.LFB121:
- 439               		.file 5 "../../../platform/mega_rf/drivers/macsc/macsc_megarf.h"
+  11               		.section	.bss.n,"aw",@nobits
+  14               	n:
+  15 0000 00        		.zero	1
+  16               		.section	.bss.tTS,"aw",@nobits
+  19               	tTS:
+  20 0000 0000 0000 		.zero	4
+  21               		.text
+  23               	macsc_enable_manual_bts:
+  24               	.LFB96:
+  25               		.file 1 "../../../platform/mega_rf/drivers/macsc/macsc_megarf.h"
    1:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
    2:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \file
    3:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
@@ -1892,72 +462,76 @@
  442:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
  443:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline void macsc_enable_manual_bts(void)
  444:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
- 440               		.loc 5 444 0
- 441               		.cfi_startproc
- 442 019e CF93      		push r28
- 443               	.LCFI26:
- 444               		.cfi_def_cfa_offset 3
- 445               		.cfi_offset 28, -2
- 446 01a0 DF93      		push r29
- 447               	.LCFI27:
- 448               		.cfi_def_cfa_offset 4
- 449               		.cfi_offset 29, -3
- 450 01a2 CDB7      		in r28,__SP_L__
- 451 01a4 DEB7      		in r29,__SP_H__
- 452               	.LCFI28:
- 453               		.cfi_def_cfa_register 28
- 454               	/* prologue: function */
- 455               	/* frame size = 0 */
- 456               	/* stack size = 2 */
- 457               	.L__stack_usage = 2
+  26               		.loc 1 444 0
+  27               		.cfi_startproc
+  28 0000 CF93      		push r28
+  29               	.LCFI0:
+  30               		.cfi_def_cfa_offset 3
+  31               		.cfi_offset 28, -2
+  32 0002 DF93      		push r29
+  33               	.LCFI1:
+  34               		.cfi_def_cfa_offset 4
+  35               		.cfi_offset 29, -3
+  36 0004 CDB7      		in r28,__SP_L__
+  37 0006 DEB7      		in r29,__SP_H__
+  38               	.LCFI2:
+  39               		.cfi_def_cfa_register 28
+  40               	/* prologue: function */
+  41               	/* frame size = 0 */
+  42               	/* stack size = 2 */
+  43               	.L__stack_usage = 2
  445:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	SCCR0 |= (1 << SCMBTS);
- 458               		.loc 5 445 0
- 459 01a6 8CED      		ldi r24,lo8(-36)
- 460 01a8 90E0      		ldi r25,0
- 461 01aa 2CED      		ldi r18,lo8(-36)
- 462 01ac 30E0      		ldi r19,0
- 463 01ae F901      		movw r30,r18
- 464 01b0 2081      		ld r18,Z
- 465 01b2 2064      		ori r18,lo8(64)
- 466 01b4 FC01      		movw r30,r24
- 467 01b6 2083      		st Z,r18
+  44               		.loc 1 445 0
+  45 0008 8CED      		ldi r24,lo8(-36)
+  46 000a 90E0      		ldi r25,0
+  47 000c 2CED      		ldi r18,lo8(-36)
+  48 000e 30E0      		ldi r19,0
+  49 0010 F901      		movw r30,r18
+  50 0012 2081      		ld r18,Z
+  51 0014 2064      		ori r18,lo8(64)
+  52 0016 FC01      		movw r30,r24
+  53 0018 2083      		st Z,r18
  446:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	SCCR0 &= ~(1 << SCTSE);
- 468               		.loc 5 446 0
- 469 01b8 8CED      		ldi r24,lo8(-36)
- 470 01ba 90E0      		ldi r25,0
- 471 01bc 2CED      		ldi r18,lo8(-36)
- 472 01be 30E0      		ldi r19,0
- 473 01c0 F901      		movw r30,r18
- 474 01c2 2081      		ld r18,Z
- 475 01c4 277F      		andi r18,lo8(-9)
- 476 01c6 FC01      		movw r30,r24
- 477 01c8 2083      		st Z,r18
+  54               		.loc 1 446 0
+  55 001a 8CED      		ldi r24,lo8(-36)
+  56 001c 90E0      		ldi r25,0
+  57 001e 2CED      		ldi r18,lo8(-36)
+  58 0020 30E0      		ldi r19,0
+  59 0022 F901      		movw r30,r18
+  60 0024 2081      		ld r18,Z
+  61 0026 277F      		andi r18,lo8(-9)
+  62 0028 FC01      		movw r30,r24
+  63 002a 2083      		st Z,r18
  447:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
- 478               		.loc 5 447 0
- 479 01ca 0000      		nop
- 480               	/* epilogue start */
- 481 01cc DF91      		pop r29
- 482 01ce CF91      		pop r28
- 483 01d0 0895      		ret
- 484               		.cfi_endproc
- 485               	.LFE121:
- 487               		.section	.bss.appState,"aw",@nobits
- 490               	appState:
- 491 0000 00        		.zero	1
- 492               		.section	.bss.msgReq,"aw",@nobits
- 495               	msgReq:
- 496 0000 0000 0000 		.zero	20
- 496      0000 0000 
- 496      0000 0000 
- 496      0000 0000 
- 496      0000 0000 
- 497               		.section	.bss.BeaconInterval,"aw",@nobits
- 500               	BeaconInterval:
- 501 0000 0000 0000 		.zero	4
- 502               		.text
- 504               	tdma_server_beacon:
- 505               	.LFB130:
- 506               		.file 6 "ServerLLDN.c"
+  64               		.loc 1 447 0
+  65 002c 0000      		nop
+  66               	/* epilogue start */
+  67 002e DF91      		pop r29
+  68 0030 CF91      		pop r28
+  69 0032 0895      		ret
+  70               		.cfi_endproc
+  71               	.LFE96:
+  73               		.section	.bss.appState,"aw",@nobits
+  76               	appState:
+  77 0000 00        		.zero	1
+  78               		.section	.bss.msgReq,"aw",@nobits
+  81               	msgReq:
+  82 0000 0000 0000 		.zero	20
+  82      0000 0000 
+  82      0000 0000 
+  82      0000 0000 
+  82      0000 0000 
+  83               		.section	.rodata
+  84               	.LC0:
+  85 0000 0A4D 6573 		.string	"\nMessage Request in Queue"
+  85      7361 6765 
+  85      2052 6571 
+  85      7565 7374 
+  85      2069 6E20 
+  86               		.text
+  88               	appSendData:
+  89               	.LFB105:
+  90               		.file 2 "ServerLLDN.c"
    1:ServerLLDN.c  **** 	/*
    2:ServerLLDN.c  **** 	 * ServerLLDN.c
    3:ServerLLDN.c  **** 	 *
@@ -1986,36 +560,36 @@
   26:ServerLLDN.c  **** 	// #include "Energy.h"
   27:ServerLLDN.c  **** 	#include "platform.h"
   28:ServerLLDN.c  **** 
-  29:ServerLLDN.c  **** typedef enum AppState_t {
-  30:ServerLLDN.c  **** 	APP_STATE_INITIAL,
-  31:ServerLLDN.c  **** 	APP_STATE_IDLE,
-  32:ServerLLDN.c  **** 	APP_STATE_SEND,
-  33:ServerLLDN.c  **** 	APP_STATE_DISC_INIT,
-  34:ServerLLDN.c  **** 	APP_STATE_CONFIG_INIT,
-  35:ServerLLDN.c  **** } AppState_t;
-  36:ServerLLDN.c  **** 
-  37:ServerLLDN.c  **** 
-  38:ServerLLDN.c  **** #if APP_COORDINATOR
-  39:ServerLLDN.c  **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
-  40:ServerLLDN.c  **** 		/* Only ARM */
-  41:ServerLLDN.c  **** 		#include "stdio_usb.h"
-  42:ServerLLDN.c  **** 		#define MASTER_MACSC	0
-  43:ServerLLDN.c  **** 	#else
-  44:ServerLLDN.c  **** 		/* Only megarf series */
-  45:ServerLLDN.c  **** 		#include "conf_sio2host.h"
-  46:ServerLLDN.c  **** 		#define MASTER_MACSC	1
-  47:ServerLLDN.c  **** 	#endif
-  48:ServerLLDN.c  **** #else
-  49:ServerLLDN.c  **** 	/* Only megarf series */
-  50:ServerLLDN.c  **** 	#define MASTER_MACSC		1
-  51:ServerLLDN.c  **** #endif
-  52:ServerLLDN.c  **** 
-  53:ServerLLDN.c  **** #define HUMAM_READABLE			1
-  54:ServerLLDN.c  **** 
-  55:ServerLLDN.c  **** #define seconds_3  3 / SYMBOL_TIME 
-  56:ServerLLDN.c  **** #define disc_mode	0b100
-  57:ServerLLDN.c  **** #define config_mode 0b110
-  58:ServerLLDN.c  **** 
+  29:ServerLLDN.c  **** #if APP_COORDINATOR
+  30:ServerLLDN.c  **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
+  31:ServerLLDN.c  **** 		/* Only ARM */
+  32:ServerLLDN.c  **** 		#include "stdio_usb.h"
+  33:ServerLLDN.c  **** 		#define MASTER_MACSC	0
+  34:ServerLLDN.c  **** 	#else
+  35:ServerLLDN.c  **** 		/* Only megarf series */
+  36:ServerLLDN.c  **** 		#include "conf_sio2host.h"
+  37:ServerLLDN.c  **** 		#define MASTER_MACSC	1
+  38:ServerLLDN.c  **** 	#endif
+  39:ServerLLDN.c  **** #else
+  40:ServerLLDN.c  **** 	/* Only megarf series */
+  41:ServerLLDN.c  **** 	#define MASTER_MACSC		1
+  42:ServerLLDN.c  **** #endif
+  43:ServerLLDN.c  **** 
+  44:ServerLLDN.c  **** #define HUMAM_READABLE			1
+  45:ServerLLDN.c  **** 
+  46:ServerLLDN.c  **** #define seconds_3  3 / SYMBOL_TIME 
+  47:ServerLLDN.c  **** #define disc_mode	0b100
+  48:ServerLLDN.c  **** #define config_mode 0b110
+  49:ServerLLDN.c  **** 
+  50:ServerLLDN.c  **** 
+  51:ServerLLDN.c  **** typedef enum AppState_t {
+  52:ServerLLDN.c  **** 	APP_STATE_INITIAL,
+  53:ServerLLDN.c  **** 	APP_STATE_IDLE,
+  54:ServerLLDN.c  **** 	APP_STATE_SEND,
+  55:ServerLLDN.c  **** 	APP_STATE_ATT_PAN_STATE,
+  56:ServerLLDN.c  **** 	APP_STATE_PREP_DISC_REPONSE,
+  57:ServerLLDN.c  **** 	APP_STATE_CONFIG_INIT
+  58:ServerLLDN.c  **** } AppState_t;
   59:ServerLLDN.c  **** 
   60:ServerLLDN.c  **** #if (MASTER_MACSC == 1)
   61:ServerLLDN.c  **** 	#include "macsc_megarf.h"
@@ -2027,626 +601,784 @@
   67:ServerLLDN.c  **** // equation for tTS gives time in seconds, the division by SYMBOL_TIME changes to symbols for count
   68:ServerLLDN.c  **** static volatile AppState_t		appState					= APP_STATE_INITIAL;
   69:ServerLLDN.c  **** static NWK_DataReq_t msgReq;
-  70:ServerLLDN.c  **** 	
-  71:ServerLLDN.c  **** #if APP_COORDINATOR
-  72:ServerLLDN.c  **** 	static float BeaconInterval;	
-  73:ServerLLDN.c  **** 	
-  74:ServerLLDN.c  **** 
-  75:ServerLLDN.c  **** 	static void tdma_server_beacon(void)
-  76:ServerLLDN.c  **** 	{
- 507               		.loc 6 76 0
- 508               		.cfi_startproc
- 509 01d2 CF93      		push r28
- 510               	.LCFI29:
- 511               		.cfi_def_cfa_offset 3
- 512               		.cfi_offset 28, -2
- 513 01d4 DF93      		push r29
- 514               	.LCFI30:
- 515               		.cfi_def_cfa_offset 4
- 516               		.cfi_offset 29, -3
- 517 01d6 CDB7      		in r28,__SP_L__
- 518 01d8 DEB7      		in r29,__SP_H__
- 519               	.LCFI31:
- 520               		.cfi_def_cfa_register 28
- 521               	/* prologue: function */
- 522               	/* frame size = 0 */
- 523               	/* stack size = 2 */
- 524               	.L__stack_usage = 2
-  77:ServerLLDN.c  **** 		macsc_enable_manual_bts();
- 525               		.loc 6 77 0
- 526 01da 0E94 0000 		call macsc_enable_manual_bts
-  78:ServerLLDN.c  **** 		appState = APP_STATE_SEND;
- 527               		.loc 6 78 0
- 528 01de 82E0      		ldi r24,lo8(2)
- 529 01e0 8093 0000 		sts appState,r24
-  79:ServerLLDN.c  **** 	}
- 530               		.loc 6 79 0
- 531 01e4 0000      		nop
- 532               	/* epilogue start */
- 533 01e6 DF91      		pop r29
- 534 01e8 CF91      		pop r28
- 535 01ea 0895      		ret
- 536               		.cfi_endproc
- 537               	.LFE130:
- 539               		.section	.rodata
- 540               	.LC1:
- 541 0000 0A20 4265 		.string	"\n Beacon Message Req"
- 541      6163 6F6E 
- 541      204D 6573 
- 541      7361 6765 
- 541      2052 6571 
- 542               		.text
- 544               	appSendData:
- 545               	.LFB131:
-  80:ServerLLDN.c  **** #else
-  81:ServerLLDN.c  **** 	static NwkFrameBeaconHeaderLLDN_t *rec_beacon;
-  82:ServerLLDN.c  **** 	static NWK_DiscoverResponse_t msgDiscResponse;
-  83:ServerLLDN.c  **** 	static int payloadSize;
-  84:ServerLLDN.c  **** 	
-  85:ServerLLDN.c  **** 	static void send_message_time(void)
-  86:ServerLLDN.c  **** 	{
-  87:ServerLLDN.c  **** 		appState = APP_STATE_SEND;
-  88:ServerLLDN.c  **** 	}
-  89:ServerLLDN.c  **** #endif // APP_COORDINATOR
-  90:ServerLLDN.c  **** 
-  91:ServerLLDN.c  **** static void appSendData(void)
-  92:ServerLLDN.c  **** {
- 546               		.loc 6 92 0
- 547               		.cfi_startproc
- 548 01ec CF93      		push r28
- 549               	.LCFI32:
- 550               		.cfi_def_cfa_offset 3
- 551               		.cfi_offset 28, -2
- 552 01ee DF93      		push r29
- 553               	.LCFI33:
- 554               		.cfi_def_cfa_offset 4
- 555               		.cfi_offset 29, -3
- 556 01f0 CDB7      		in r28,__SP_L__
- 557 01f2 DEB7      		in r29,__SP_H__
- 558               	.LCFI34:
- 559               		.cfi_def_cfa_register 28
- 560               	/* prologue: function */
- 561               	/* frame size = 0 */
- 562               	/* stack size = 2 */
- 563               	.L__stack_usage = 2
-  93:ServerLLDN.c  **** 	NWK_DataReq(&msgReq);
- 564               		.loc 6 93 0
- 565 01f4 80E0      		ldi r24,lo8(msgReq)
- 566 01f6 90E0      		ldi r25,hi8(msgReq)
- 567 01f8 0E94 0000 		call NWK_DataReq
-  94:ServerLLDN.c  **** 	#if APP_COORDINATOR
-  95:ServerLLDN.c  **** 		printf("\n Beacon Message Req");
- 568               		.loc 6 95 0
- 569 01fc 80E0      		ldi r24,lo8(.LC1)
- 570 01fe 90E0      		ldi r25,hi8(.LC1)
- 571 0200 892F      		mov r24,r25
- 572 0202 8F93      		push r24
- 573 0204 80E0      		ldi r24,lo8(.LC1)
- 574 0206 90E0      		ldi r25,hi8(.LC1)
- 575 0208 8F93      		push r24
- 576 020a 0E94 0000 		call printf
- 577 020e 0F90      		pop __tmp_reg__
- 578 0210 0F90      		pop __tmp_reg__
-  96:ServerLLDN.c  **** 	#endif
-  97:ServerLLDN.c  **** }
- 579               		.loc 6 97 0
- 580 0212 0000      		nop
- 581               	/* epilogue start */
- 582 0214 DF91      		pop r29
- 583 0216 CF91      		pop r28
- 584 0218 0895      		ret
- 585               		.cfi_endproc
- 586               	.LFE131:
- 588               		.section	.rodata
- 589               	.LC2:
- 590 0015 496E 6963 		.string	"Iniciando..."
- 590      6961 6E64 
- 590      6F2E 2E2E 
- 590      00
- 591               	.global	__divsf3
- 592               	.global	__fixunssfsi
- 593               		.text
- 595               	appInit:
- 596               	.LFB132:
-  98:ServerLLDN.c  **** 
-  99:ServerLLDN.c  **** #if (!APP_COORDINATOR)
- 100:ServerLLDN.c  **** 	static bool appBeaconInd(NWK_DataInd_t *ind)
- 101:ServerLLDN.c  **** 	{
- 102:ServerLLDN.c  **** 		macsc_enable_manual_bts();
- 103:ServerLLDN.c  **** 		rec_beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
- 104:ServerLLDN.c  **** 	
- 105:ServerLLDN.c  **** 		if(rec_beacon->Flags.txState == disc_mode ||
- 106:ServerLLDN.c  **** 			rec_beacon->Flags.txState == config_mode)
- 107:ServerLLDN.c  **** 			{
- 108:ServerLLDN.c  **** 				int msg_wait_time = rec_beacon->TimeSlotSize;
- 109:ServerLLDN.c  **** 				macsc_use_cmp(MACSC_RELATIVE_CMP, msg_wait_time , MACSC_CC1);
- 110:ServerLLDN.c  **** 				appState = (rec_beacon->Flags.txState == disc_mode) ? APP_STATE_DISC_INIT : APP_STATE_CONFIG_IN
- 111:ServerLLDN.c  **** 			}
- 112:ServerLLDN.c  **** 	}
- 113:ServerLLDN.c  **** 	
- 114:ServerLLDN.c  **** 	void appPrepareDiscoverResponse()
- 115:ServerLLDN.c  **** 	{
- 116:ServerLLDN.c  **** 		msgDiscResponse.id		= LL_DISCOVER_RESPONSE;
- 117:ServerLLDN.c  **** 		msgDiscResponse.macAddr = APP_ADDR;
- 118:ServerLLDN.c  **** 	}
- 119:ServerLLDN.c  **** #endif // !APP_COORDINATOR
- 120:ServerLLDN.c  **** 
- 121:ServerLLDN.c  **** static void appInit(void)
- 122:ServerLLDN.c  **** 	{
- 597               		.loc 6 122 0
- 598               		.cfi_startproc
- 599 021a CF93      		push r28
- 600               	.LCFI35:
- 601               		.cfi_def_cfa_offset 3
- 602               		.cfi_offset 28, -2
- 603 021c DF93      		push r29
- 604               	.LCFI36:
- 605               		.cfi_def_cfa_offset 4
- 606               		.cfi_offset 29, -3
- 607 021e CDB7      		in r28,__SP_L__
- 608 0220 DEB7      		in r29,__SP_H__
- 609               	.LCFI37:
- 610               		.cfi_def_cfa_register 28
- 611               	/* prologue: function */
- 612               	/* frame size = 0 */
- 613               	/* stack size = 2 */
- 614               	.L__stack_usage = 2
- 123:ServerLLDN.c  **** 		NWK_SetAddr(APP_ADDR);
- 615               		.loc 6 123 0
- 616 0222 80E0      		ldi r24,0
- 617 0224 90E0      		ldi r25,0
- 618 0226 0E94 0000 		call NWK_SetAddr
- 124:ServerLLDN.c  **** 		NWK_SetPanId(APP_PANID);
- 619               		.loc 6 124 0
- 620 022a 8EEF      		ldi r24,lo8(-2)
- 621 022c 9AEC      		ldi r25,lo8(-54)
- 622 022e 0E94 0000 		call NWK_SetPanId
- 125:ServerLLDN.c  **** 		PHY_SetChannel(APP_CHANNEL);
- 623               		.loc 6 125 0
- 624 0232 8FE0      		ldi r24,lo8(15)
- 625 0234 0E94 0000 		call PHY_SetChannel
- 126:ServerLLDN.c  **** 		PHY_SetRxState(true);
- 626               		.loc 6 126 0
- 627 0238 81E0      		ldi r24,lo8(1)
- 628 023a 0E94 0000 		call PHY_SetRxState
- 127:ServerLLDN.c  **** 		
- 128:ServerLLDN.c  **** 		#if APP_COORDINATOR
- 129:ServerLLDN.c  **** 			printf("Iniciando...");
- 629               		.loc 6 129 0
- 630 023e 80E0      		ldi r24,lo8(.LC2)
- 631 0240 90E0      		ldi r25,hi8(.LC2)
- 632 0242 892F      		mov r24,r25
- 633 0244 8F93      		push r24
- 634 0246 80E0      		ldi r24,lo8(.LC2)
- 635 0248 90E0      		ldi r25,hi8(.LC2)
- 636 024a 8F93      		push r24
- 637 024c 0E94 0000 		call printf
- 638 0250 0F90      		pop __tmp_reg__
- 639 0252 0F90      		pop __tmp_reg__
- 130:ServerLLDN.c  **** 			PHY_SetTdmaMode(true);
- 640               		.loc 6 130 0
- 641 0254 81E0      		ldi r24,lo8(1)
- 642 0256 0E94 0000 		call PHY_SetTdmaMode
- 131:ServerLLDN.c  **** 		
- 132:ServerLLDN.c  **** 			msgReq.dstAddr				= 0;
- 643               		.loc 6 132 0
- 644 025a 1092 0000 		sts msgReq+5+1,__zero_reg__
- 645 025e 1092 0000 		sts msgReq+5,__zero_reg__
- 133:ServerLLDN.c  **** 			msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
- 646               		.loc 6 133 0
- 647 0262 1092 0000 		sts msgReq+7,__zero_reg__
- 134:ServerLLDN.c  **** 			msgReq.srcEndpoint			= APP_BEACON_ENDPOINT;
- 648               		.loc 6 134 0
- 649 0266 1092 0000 		sts msgReq+8,__zero_reg__
- 135:ServerLLDN.c  **** 			msgReq.options				= NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE;
- 650               		.loc 6 135 0
- 651 026a 80E4      		ldi r24,lo8(64)
- 652 026c 91E0      		ldi r25,lo8(1)
- 653 026e 9093 0000 		sts msgReq+9+1,r25
- 654 0272 8093 0000 		sts msgReq+9,r24
- 136:ServerLLDN.c  **** 			msgReq.data					= NULL; // value for Expected Max Data Payload Size
- 655               		.loc 6 136 0
- 656 0276 1092 0000 		sts msgReq+13+1,__zero_reg__
- 657 027a 1092 0000 		sts msgReq+13,__zero_reg__
- 137:ServerLLDN.c  **** 			msgReq.size					= 0;
- 658               		.loc 6 137 0
- 659 027e 1092 0000 		sts msgReq+15,__zero_reg__
- 138:ServerLLDN.c  **** 			tTS =  /*((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var)*/ 3;
- 660               		.loc 6 138 0
- 661 0282 80E0      		ldi r24,0
- 662 0284 90E0      		ldi r25,0
- 663 0286 A0E4      		ldi r26,lo8(64)
- 664 0288 B0E4      		ldi r27,lo8(64)
- 665 028a 8093 0000 		sts tTS,r24
- 666 028e 9093 0000 		sts tTS+1,r25
- 667 0292 A093 0000 		sts tTS+2,r26
- 668 0296 B093 0000 		sts tTS+3,r27
- 139:ServerLLDN.c  **** 			#if (MASTER_MACSC == 1)
- 140:ServerLLDN.c  **** 				/*
- 141:ServerLLDN.c  **** 				 * Configure interrupts callback functions
- 142:ServerLLDN.c  **** 				 * overflow interrupt, compare 1,2,3 interrupts
- 143:ServerLLDN.c  **** 				 */
- 144:ServerLLDN.c  **** 				macsc_set_cmp1_int_cb(tdma_server_beacon);
- 669               		.loc 6 144 0
- 670 029a 80E0      		ldi r24,lo8(gs(tdma_server_beacon))
- 671 029c 90E0      		ldi r25,hi8(gs(tdma_server_beacon))
- 672 029e 0E94 0000 		call macsc_set_cmp1_int_cb
- 145:ServerLLDN.c  **** 				/*
- 146:ServerLLDN.c  **** 				 * Configure MACSC to generate compare interrupts from channels 1,2,3
- 147:ServerLLDN.c  **** 				 * Set compare mode to absolute, set compare value.
- 148:ServerLLDN.c  **** 				 */
- 149:ServerLLDN.c  **** 				macsc_enable_manual_bts();
- 673               		.loc 6 149 0
- 674 02a2 0E94 0000 		call macsc_enable_manual_bts
- 150:ServerLLDN.c  **** 				macsc_enable_cmp_int(MACSC_CC1);
- 675               		.loc 6 150 0
- 676 02a6 81E0      		ldi r24,lo8(1)
- 677 02a8 0E94 0000 		call macsc_enable_cmp_int
- 151:ServerLLDN.c  **** 				BeaconInterval = tTS / SYMBOL_TIME;
- 678               		.loc 6 151 0
- 679 02ac 8091 0000 		lds r24,tTS
- 680 02b0 9091 0000 		lds r25,tTS+1
- 681 02b4 A091 0000 		lds r26,tTS+2
- 682 02b8 B091 0000 		lds r27,tTS+3
- 683 02bc 2DEB      		ldi r18,lo8(-67)
- 684 02be 37E3      		ldi r19,lo8(55)
- 685 02c0 46E8      		ldi r20,lo8(-122)
- 686 02c2 57E3      		ldi r21,lo8(55)
- 687 02c4 BC01      		movw r22,r24
- 688 02c6 CD01      		movw r24,r26
- 689 02c8 0E94 0000 		call __divsf3
- 690 02cc DC01      		movw r26,r24
- 691 02ce CB01      		movw r24,r22
- 692 02d0 8093 0000 		sts BeaconInterval,r24
- 693 02d4 9093 0000 		sts BeaconInterval+1,r25
- 694 02d8 A093 0000 		sts BeaconInterval+2,r26
- 695 02dc B093 0000 		sts BeaconInterval+3,r27
- 152:ServerLLDN.c  **** 				macsc_use_cmp(MACSC_RELATIVE_CMP, BeaconInterval , MACSC_CC1);
- 696               		.loc 6 152 0
- 697 02e0 8091 0000 		lds r24,BeaconInterval
- 698 02e4 9091 0000 		lds r25,BeaconInterval+1
- 699 02e8 A091 0000 		lds r26,BeaconInterval+2
- 700 02ec B091 0000 		lds r27,BeaconInterval+3
- 701 02f0 BC01      		movw r22,r24
- 702 02f2 CD01      		movw r24,r26
- 703 02f4 0E94 0000 		call __fixunssfsi
- 704 02f8 DC01      		movw r26,r24
- 705 02fa CB01      		movw r24,r22
- 706 02fc 21E0      		ldi r18,lo8(1)
- 707 02fe AC01      		movw r20,r24
- 708 0300 BD01      		movw r22,r26
- 709 0302 81E0      		ldi r24,lo8(1)
- 710 0304 0E94 0000 		call macsc_use_cmp
- 153:ServerLLDN.c  **** 			#endif
- 154:ServerLLDN.c  **** 		#else
- 155:ServerLLDN.c  **** 			  PHY_SetTdmaMode(false);
- 156:ServerLLDN.c  **** 		
- 157:ServerLLDN.c  **** 			  NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);
- 158:ServerLLDN.c  **** 			  
- 159:ServerLLDN.c  **** 			  macsc_set_cmp1_int_cb(send_message_time);
- 160:ServerLLDN.c  **** 			  macsc_enable_cmp_int(MACSC_CC1);
- 161:ServerLLDN.c  **** 			  
- 162:ServerLLDN.c  **** 		#endif // APP_COORDENATOR
- 163:ServerLLDN.c  **** 
- 164:ServerLLDN.c  **** 	}
- 711               		.loc 6 164 0
- 712 0308 0000      		nop
- 713               	/* epilogue start */
- 714 030a DF91      		pop r29
- 715 030c CF91      		pop r28
- 716 030e 0895      		ret
- 717               		.cfi_endproc
- 718               	.LFE132:
- 721               	APP_TaskHandler:
- 722               	.LFB133:
- 165:ServerLLDN.c  **** 
- 166:ServerLLDN.c  **** 
- 167:ServerLLDN.c  **** 	static void APP_TaskHandler(void)
- 168:ServerLLDN.c  **** 	{
- 723               		.loc 6 168 0
- 724               		.cfi_startproc
- 725 0310 CF93      		push r28
- 726               	.LCFI38:
- 727               		.cfi_def_cfa_offset 3
- 728               		.cfi_offset 28, -2
- 729 0312 DF93      		push r29
- 730               	.LCFI39:
- 731               		.cfi_def_cfa_offset 4
- 732               		.cfi_offset 29, -3
- 733 0314 CDB7      		in r28,__SP_L__
- 734 0316 DEB7      		in r29,__SP_H__
- 735               	.LCFI40:
- 736               		.cfi_def_cfa_register 28
- 737               	/* prologue: function */
- 738               	/* frame size = 0 */
- 739               	/* stack size = 2 */
- 740               	.L__stack_usage = 2
- 169:ServerLLDN.c  **** 		switch (appState){
- 741               		.loc 6 169 0
- 742 0318 8091 0000 		lds r24,appState
- 743 031c 882F      		mov r24,r24
- 744 031e 90E0      		ldi r25,0
- 745 0320 0097      		sbiw r24,0
- 746 0322 01F0      		breq .L20
- 747 0324 0297      		sbiw r24,2
- 748 0326 01F0      		breq .L21
- 170:ServerLLDN.c  **** 			case APP_STATE_INITIAL:
- 171:ServerLLDN.c  **** 			{
- 172:ServerLLDN.c  **** 				appInit();
- 173:ServerLLDN.c  **** 				appState = APP_STATE_IDLE;
- 174:ServerLLDN.c  **** 				break;
- 175:ServerLLDN.c  **** 			}
- 176:ServerLLDN.c  **** 			case APP_STATE_SEND:
- 177:ServerLLDN.c  **** 			{
- 178:ServerLLDN.c  **** 				appSendData();
- 179:ServerLLDN.c  **** 				appState = APP_STATE_IDLE;
- 180:ServerLLDN.c  **** 			}
- 181:ServerLLDN.c  **** 			#if APP_COORDINATOR
- 182:ServerLLDN.c  **** 			/* IMPLEMENT COORDINATOR STATE MACHINE */
- 183:ServerLLDN.c  **** 			#else
- 184:ServerLLDN.c  **** 				case APP_STATE_DISC_INIT:
- 185:ServerLLDN.c  **** 				{
- 186:ServerLLDN.c  **** 					if(rec_beacon->confSeqNumber == 0)
- 187:ServerLLDN.c  **** 						appPrepareDiscoverResponse();
- 188:ServerLLDN.c  **** 					else
- 189:ServerLLDN.c  **** 					appState = APP_STATE_IDLE;
- 190:ServerLLDN.c  **** 				}
- 191:ServerLLDN.c  **** 			#endif
- 192:ServerLLDN.c  **** 			default:
- 193:ServerLLDN.c  **** 			break;
- 749               		.loc 6 193 0
- 750 0328 00C0      		rjmp .L23
- 751               	.L20:
- 172:ServerLLDN.c  **** 				appState = APP_STATE_IDLE;
- 752               		.loc 6 172 0
- 753 032a 0E94 0000 		call appInit
- 173:ServerLLDN.c  **** 				break;
- 754               		.loc 6 173 0
- 755 032e 81E0      		ldi r24,lo8(1)
- 756 0330 8093 0000 		sts appState,r24
- 174:ServerLLDN.c  **** 			}
- 757               		.loc 6 174 0
- 758 0334 00C0      		rjmp .L22
- 759               	.L21:
- 178:ServerLLDN.c  **** 				appState = APP_STATE_IDLE;
- 760               		.loc 6 178 0
- 761 0336 0E94 0000 		call appSendData
- 179:ServerLLDN.c  **** 			}
- 762               		.loc 6 179 0
- 763 033a 81E0      		ldi r24,lo8(1)
- 764 033c 8093 0000 		sts appState,r24
- 765               	.L23:
- 766               		.loc 6 193 0
- 767 0340 0000      		nop
- 768               	.L22:
- 194:ServerLLDN.c  **** 		}
- 195:ServerLLDN.c  **** 	}
- 769               		.loc 6 195 0
- 770 0342 0000      		nop
- 771               	/* epilogue start */
- 772 0344 DF91      		pop r29
- 773 0346 CF91      		pop r28
- 774 0348 0895      		ret
- 775               		.cfi_endproc
- 776               	.LFE133:
- 778               		.section	.rodata
- 779               	.LC0:
- 780 0022 00        		.byte	0
- 781 0023 C2        		.byte	-62
- 782 0024 01        		.byte	1
- 783 0025 00        		.byte	0
- 784 0026 03        		.byte	3
- 785 0027 00        		.byte	0
- 786 0028 00        		.byte	0
- 787               		.text
- 788               	.global	main
- 790               	main:
- 791               	.LFB134:
+  70:ServerLLDN.c  **** 
+  71:ServerLLDN.c  **** static void appSendData(void)
+  72:ServerLLDN.c  **** {
+  91               		.loc 2 72 0
+  92               		.cfi_startproc
+  93 0034 CF93      		push r28
+  94               	.LCFI3:
+  95               		.cfi_def_cfa_offset 3
+  96               		.cfi_offset 28, -2
+  97 0036 DF93      		push r29
+  98               	.LCFI4:
+  99               		.cfi_def_cfa_offset 4
+ 100               		.cfi_offset 29, -3
+ 101 0038 CDB7      		in r28,__SP_L__
+ 102 003a DEB7      		in r29,__SP_H__
+ 103               	.LCFI5:
+ 104               		.cfi_def_cfa_register 28
+ 105               	/* prologue: function */
+ 106               	/* frame size = 0 */
+ 107               	/* stack size = 2 */
+ 108               	.L__stack_usage = 2
+  73:ServerLLDN.c  **** 	if(msgReq.options)
+ 109               		.loc 2 73 0
+ 110 003c 8091 0000 		lds r24,msgReq+9
+ 111 0040 9091 0000 		lds r25,msgReq+9+1
+ 112 0044 892B      		or r24,r25
+ 113 0046 01F0      		breq .L4
+  74:ServerLLDN.c  **** 	{
+  75:ServerLLDN.c  **** 		printf("\nMessage Request in Queue");
+ 114               		.loc 2 75 0
+ 115 0048 80E0      		ldi r24,lo8(.LC0)
+ 116 004a 90E0      		ldi r25,hi8(.LC0)
+ 117 004c 892F      		mov r24,r25
+ 118 004e 8F93      		push r24
+ 119 0050 80E0      		ldi r24,lo8(.LC0)
+ 120 0052 90E0      		ldi r25,hi8(.LC0)
+ 121 0054 8F93      		push r24
+ 122 0056 0E94 0000 		call printf
+ 123 005a 0F90      		pop __tmp_reg__
+ 124 005c 0F90      		pop __tmp_reg__
+  76:ServerLLDN.c  **** 		NWK_DataReq(&msgReq);
+ 125               		.loc 2 76 0
+ 126 005e 80E0      		ldi r24,lo8(msgReq)
+ 127 0060 90E0      		ldi r25,hi8(msgReq)
+ 128 0062 0E94 0000 		call NWK_DataReq
+ 129               	.L4:
+  77:ServerLLDN.c  **** 	}
+  78:ServerLLDN.c  **** }
+ 130               		.loc 2 78 0
+ 131 0066 0000      		nop
+ 132               	/* epilogue start */
+ 133 0068 DF91      		pop r29
+ 134 006a CF91      		pop r28
+ 135 006c 0895      		ret
+ 136               		.cfi_endproc
+ 137               	.LFE105:
+ 139               		.section	.bss.rec_beacon,"aw",@nobits
+ 142               	rec_beacon:
+ 143 0000 0000      		.zero	2
+ 144               		.section	.bss.msgDiscResponse,"aw",@nobits
+ 147               	msgDiscResponse:
+ 148 0000 0000 0000 		.zero	4
+ 149               		.section	.bss.payloadSize,"aw",@nobits
+ 152               	payloadSize:
+ 153 0000 0000      		.zero	2
+ 154               		.text
+ 156               	send_message_timeHandler:
+ 157               	.LFB106:
+  79:ServerLLDN.c  **** 
+  80:ServerLLDN.c  **** #if APP_COORDINATOR
+  81:ServerLLDN.c  **** 
+  82:ServerLLDN.c  **** 	typedef enum AppPanState_t {
+  83:ServerLLDN.c  **** 		APP_PAN_STATE_IDLE,
+  84:ServerLLDN.c  **** 		APP_PAN_STATE_DISC_INITIAL,
+  85:ServerLLDN.c  **** 		APP_PAN_STATE_DISC_SECOND_BE,
+  86:ServerLLDN.c  **** 		APP_PAN_STATE_DISC_PREPARE_ACK,
+  87:ServerLLDN.c  **** 	} AppPanState_t;
+  88:ServerLLDN.c  **** 
+  89:ServerLLDN.c  **** 	static float	beaconInterval;	
+  90:ServerLLDN.c  **** 	static volatile AppPanState_t appPanState = APP_PAN_STATE_DISC_INITIAL;
+  91:ServerLLDN.c  **** 	
+  92:ServerLLDN.c  **** 	static void lldn_server_beacon(void)
+  93:ServerLLDN.c  **** 	{
+  94:ServerLLDN.c  **** 		macsc_enable_manual_bts();
+  95:ServerLLDN.c  **** 		appState = APP_STATE_SEND;
+  96:ServerLLDN.c  **** 	}
+  97:ServerLLDN.c  **** 
+  98:ServerLLDN.c  **** 	static void appPanDiscInit(void)
+  99:ServerLLDN.c  **** 	{
+ 100:ServerLLDN.c  **** 		/* 
+ 101:ServerLLDN.c  **** 		* Disable CSMA/CA
+ 102:ServerLLDN.c  **** 		* Disable auto ACK
+ 103:ServerLLDN.c  **** 		*/
+ 104:ServerLLDN.c  **** 		PHY_SetTdmaMode(true);
+ 105:ServerLLDN.c  **** 		/* Prepare Beacon Message as first beacon in discovery state */
+ 106:ServerLLDN.c  **** 		msgReq.dstAddr				= 0;
+ 107:ServerLLDN.c  **** 		msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
+ 108:ServerLLDN.c  **** 		msgReq.srcEndpoint			= APP_BEACON_ENDPOINT;
+ 109:ServerLLDN.c  **** 		msgReq.options				= NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE;
+ 110:ServerLLDN.c  **** 		msgReq.data					= NULL;
+ 111:ServerLLDN.c  **** 		msgReq.size					= 0;
+ 112:ServerLLDN.c  **** 		/* Calculates Beacon Intervals according to 802.15.4e - 2012 p. 70 */
+ 113:ServerLLDN.c  **** 		n = 255; // octets
+ 114:ServerLLDN.c  **** 		tTS =  1.5; //((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var); // 0.009088 seconds with n = 255 
+ 115:ServerLLDN.c  **** 		#if (MASTER_MACSC == 1)
+ 116:ServerLLDN.c  **** 			/* 
+ 117:ServerLLDN.c  **** 			* Beacon Interval values:
+ 118:ServerLLDN.c  **** 			* 2 x (0.009088 seconds) / (0.000016 seconds) = 1136 symbols
+ 119:ServerLLDN.c  **** 			* 1136 symbols = 0.0018176 seconds
+ 120:ServerLLDN.c  **** 			*/ 
+ 121:ServerLLDN.c  **** 			beaconInterval = numMgmtTs_Disc_Conf * (tTS) / (SYMBOL_TIME);
+ 122:ServerLLDN.c  **** 			/*
+ 123:ServerLLDN.c  **** 			* Configure interrupts callback functions
+ 124:ServerLLDN.c  **** 			* overflow interrupt, compare 1,2,3 interrupts
+ 125:ServerLLDN.c  **** 			*/
+ 126:ServerLLDN.c  **** 			macsc_set_cmp1_int_cb(lldn_server_beacon);
+ 127:ServerLLDN.c  **** 			/*
+ 128:ServerLLDN.c  **** 			* Configure MACSC to generate compare interrupts from channels 1,2,3
+ 129:ServerLLDN.c  **** 			* Set compare mode to absolute, set compare value.
+ 130:ServerLLDN.c  **** 			*/
+ 131:ServerLLDN.c  **** 			macsc_enable_manual_bts();
+ 132:ServerLLDN.c  **** 			macsc_enable_cmp_int(MACSC_CC1);
+ 133:ServerLLDN.c  **** 			macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval , MACSC_CC1);
+ 134:ServerLLDN.c  **** 		#endif
+ 135:ServerLLDN.c  **** 	}
+ 136:ServerLLDN.c  **** 
+ 137:ServerLLDN.c  **** #else 
+ 138:ServerLLDN.c  **** 
+ 139:ServerLLDN.c  **** 	static NwkFrameBeaconHeaderLLDN_t *rec_beacon;
+ 140:ServerLLDN.c  **** 	static NWK_DiscoverResponse_t msgDiscResponse;
+ 141:ServerLLDN.c  **** 	static int payloadSize;
+ 142:ServerLLDN.c  **** 	
+ 143:ServerLLDN.c  **** 	static void send_message_timeHandler(void)
+ 144:ServerLLDN.c  **** 	{
+ 158               		.loc 2 144 0
+ 159               		.cfi_startproc
+ 160 006e CF93      		push r28
+ 161               	.LCFI6:
+ 162               		.cfi_def_cfa_offset 3
+ 163               		.cfi_offset 28, -2
+ 164 0070 DF93      		push r29
+ 165               	.LCFI7:
+ 166               		.cfi_def_cfa_offset 4
+ 167               		.cfi_offset 29, -3
+ 168 0072 CDB7      		in r28,__SP_L__
+ 169 0074 DEB7      		in r29,__SP_H__
+ 170               	.LCFI8:
+ 171               		.cfi_def_cfa_register 28
+ 172               	/* prologue: function */
+ 173               	/* frame size = 0 */
+ 174               	/* stack size = 2 */
+ 175               	.L__stack_usage = 2
+ 145:ServerLLDN.c  **** 		appState = APP_STATE_SEND;
+ 176               		.loc 2 145 0
+ 177 0076 82E0      		ldi r24,lo8(2)
+ 178 0078 8093 0000 		sts appState,r24
+ 146:ServerLLDN.c  **** 	}
+ 179               		.loc 2 146 0
+ 180 007c 0000      		nop
+ 181               	/* epilogue start */
+ 182 007e DF91      		pop r29
+ 183 0080 CF91      		pop r28
+ 184 0082 0895      		ret
+ 185               		.cfi_endproc
+ 186               	.LFE106:
+ 189               	appBeaconInd:
+ 190               	.LFB107:
+ 147:ServerLLDN.c  **** 	static bool appBeaconInd(NWK_DataInd_t *ind)
+ 148:ServerLLDN.c  **** 	{
+ 191               		.loc 2 148 0
+ 192               		.cfi_startproc
+ 193 0084 CF93      		push r28
+ 194               	.LCFI9:
+ 195               		.cfi_def_cfa_offset 3
+ 196               		.cfi_offset 28, -2
+ 197 0086 DF93      		push r29
+ 198               	.LCFI10:
+ 199               		.cfi_def_cfa_offset 4
+ 200               		.cfi_offset 29, -3
+ 201 0088 00D0      		rcall .
+ 202 008a 00D0      		rcall .
+ 203               	.LCFI11:
+ 204               		.cfi_def_cfa_offset 8
+ 205 008c CDB7      		in r28,__SP_L__
+ 206 008e DEB7      		in r29,__SP_H__
+ 207               	.LCFI12:
+ 208               		.cfi_def_cfa_register 28
+ 209               	/* prologue: function */
+ 210               	/* frame size = 4 */
+ 211               	/* stack size = 6 */
+ 212               	.L__stack_usage = 6
+ 213 0090 9C83      		std Y+4,r25
+ 214 0092 8B83      		std Y+3,r24
+ 149:ServerLLDN.c  **** 		macsc_enable_manual_bts();
+ 215               		.loc 2 149 0
+ 216 0094 0E94 0000 		call macsc_enable_manual_bts
+ 150:ServerLLDN.c  **** 		rec_beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
+ 217               		.loc 2 150 0
+ 218 0098 8B81      		ldd r24,Y+3
+ 219 009a 9C81      		ldd r25,Y+4
+ 220 009c FC01      		movw r30,r24
+ 221 009e 8085      		ldd r24,Z+8
+ 222 00a0 9185      		ldd r25,Z+9
+ 223 00a2 9093 0000 		sts rec_beacon+1,r25
+ 224 00a6 8093 0000 		sts rec_beacon,r24
+ 151:ServerLLDN.c  **** 	
+ 152:ServerLLDN.c  **** 		if(rec_beacon->Flags.txState == disc_mode ||
+ 225               		.loc 2 152 0
+ 226 00aa 8091 0000 		lds r24,rec_beacon
+ 227 00ae 9091 0000 		lds r25,rec_beacon+1
+ 228 00b2 FC01      		movw r30,r24
+ 229 00b4 8381      		ldd r24,Z+3
+ 230 00b6 8770      		andi r24,lo8(7)
+ 231 00b8 8430      		cpi r24,lo8(4)
+ 232 00ba 01F0      		breq .L7
+ 153:ServerLLDN.c  **** 			rec_beacon->Flags.txState == config_mode)
+ 233               		.loc 2 153 0 discriminator 1
+ 234 00bc 8091 0000 		lds r24,rec_beacon
+ 235 00c0 9091 0000 		lds r25,rec_beacon+1
+ 236 00c4 FC01      		movw r30,r24
+ 237 00c6 8381      		ldd r24,Z+3
+ 238 00c8 8770      		andi r24,lo8(7)
+ 152:ServerLLDN.c  **** 			rec_beacon->Flags.txState == config_mode)
+ 239               		.loc 2 152 0 discriminator 1
+ 240 00ca 8630      		cpi r24,lo8(6)
+ 241 00cc 01F4      		brne .L8
+ 242               	.L7:
+ 243               	.LBB2:
+ 154:ServerLLDN.c  **** 		{
+ 155:ServerLLDN.c  **** 			int msg_wait_time = rec_beacon->TimeSlotSize;
+ 244               		.loc 2 155 0
+ 245 00ce 8091 0000 		lds r24,rec_beacon
+ 246 00d2 9091 0000 		lds r25,rec_beacon+1
+ 247 00d6 FC01      		movw r30,r24
+ 248 00d8 8681      		ldd r24,Z+6
+ 249 00da 882F      		mov r24,r24
+ 250 00dc 90E0      		ldi r25,0
+ 251 00de 9A83      		std Y+2,r25
+ 252 00e0 8983      		std Y+1,r24
+ 156:ServerLLDN.c  **** 			macsc_use_cmp(MACSC_RELATIVE_CMP, msg_wait_time , MACSC_CC1);
+ 253               		.loc 2 156 0
+ 254 00e2 8981      		ldd r24,Y+1
+ 255 00e4 9A81      		ldd r25,Y+2
+ 256 00e6 092E      		mov __tmp_reg__,r25
+ 257 00e8 000C      		lsl r0
+ 258 00ea AA0B      		sbc r26,r26
+ 259 00ec BB0B      		sbc r27,r27
+ 260 00ee 21E0      		ldi r18,lo8(1)
+ 261 00f0 AC01      		movw r20,r24
+ 262 00f2 BD01      		movw r22,r26
+ 263 00f4 81E0      		ldi r24,lo8(1)
+ 264 00f6 0E94 0000 		call macsc_use_cmp
+ 157:ServerLLDN.c  **** 			appState = (rec_beacon->Flags.txState == disc_mode) ? APP_STATE_PREP_DISC_REPONSE : APP_STATE_CO
+ 265               		.loc 2 157 0
+ 266 00fa 8091 0000 		lds r24,rec_beacon
+ 267 00fe 9091 0000 		lds r25,rec_beacon+1
+ 268 0102 FC01      		movw r30,r24
+ 269 0104 8381      		ldd r24,Z+3
+ 270 0106 8770      		andi r24,lo8(7)
+ 271 0108 8430      		cpi r24,lo8(4)
+ 272 010a 01F4      		brne .L9
+ 273               		.loc 2 157 0 is_stmt 0 discriminator 1
+ 274 010c 84E0      		ldi r24,lo8(4)
+ 275 010e 00C0      		rjmp .L10
+ 276               	.L9:
+ 277               		.loc 2 157 0 discriminator 2
+ 278 0110 85E0      		ldi r24,lo8(5)
+ 279               	.L10:
+ 280               		.loc 2 157 0 discriminator 4
+ 281 0112 8093 0000 		sts appState,r24
+ 282               	.L8:
+ 283               	.LBE2:
+ 158:ServerLLDN.c  **** 		}
+ 159:ServerLLDN.c  **** 	}
+ 284               		.loc 2 159 0 is_stmt 1
+ 285 0116 0000      		nop
+ 286               	/* epilogue start */
+ 287 0118 0F90      		pop __tmp_reg__
+ 288 011a 0F90      		pop __tmp_reg__
+ 289 011c 0F90      		pop __tmp_reg__
+ 290 011e 0F90      		pop __tmp_reg__
+ 291 0120 DF91      		pop r29
+ 292 0122 CF91      		pop r28
+ 293 0124 0895      		ret
+ 294               		.cfi_endproc
+ 295               	.LFE107:
+ 297               	.global	appPrepareDiscoverResponse
+ 299               	appPrepareDiscoverResponse:
+ 300               	.LFB108:
+ 160:ServerLLDN.c  **** 	void appPrepareDiscoverResponse()
+ 161:ServerLLDN.c  **** 	{
+ 301               		.loc 2 161 0
+ 302               		.cfi_startproc
+ 303 0126 CF93      		push r28
+ 304               	.LCFI13:
+ 305               		.cfi_def_cfa_offset 3
+ 306               		.cfi_offset 28, -2
+ 307 0128 DF93      		push r29
+ 308               	.LCFI14:
+ 309               		.cfi_def_cfa_offset 4
+ 310               		.cfi_offset 29, -3
+ 311 012a CDB7      		in r28,__SP_L__
+ 312 012c DEB7      		in r29,__SP_H__
+ 313               	.LCFI15:
+ 314               		.cfi_def_cfa_register 28
+ 315               	/* prologue: function */
+ 316               	/* frame size = 0 */
+ 317               	/* stack size = 2 */
+ 318               	.L__stack_usage = 2
+ 162:ServerLLDN.c  **** 		/* CONTINUAR IMPLEMENTAÇÃO */
+ 163:ServerLLDN.c  **** 		msgDiscResponse.id					= LL_DISCOVER_RESPONSE;
+ 319               		.loc 2 163 0
+ 320 012e 8DE0      		ldi r24,lo8(13)
+ 321 0130 8093 0000 		sts msgDiscResponse,r24
+ 164:ServerLLDN.c  **** 		msgDiscResponse.macAddr				= APP_ADDR;
+ 322               		.loc 2 164 0
+ 323 0134 81E0      		ldi r24,lo8(1)
+ 324 0136 90E0      		ldi r25,0
+ 325 0138 9093 0000 		sts msgDiscResponse+1+1,r25
+ 326 013c 8093 0000 		sts msgDiscResponse+1,r24
+ 165:ServerLLDN.c  **** 		msgDiscResponse.ts_dir.tsDuration	= payloadSize;
+ 327               		.loc 2 165 0
+ 328 0140 8091 0000 		lds r24,payloadSize
+ 329 0144 9091 0000 		lds r25,payloadSize+1
+ 330 0148 8F77      		andi r24,lo8(127)
+ 331 014a 8F77      		andi r24,lo8(127)
+ 332 014c 9091 0000 		lds r25,msgDiscResponse+3
+ 333 0150 9078      		andi r25,lo8(-128)
+ 334 0152 892B      		or r24,r25
+ 335 0154 8093 0000 		sts msgDiscResponse+3,r24
+ 166:ServerLLDN.c  **** 		msgDiscResponse.ts_dir.dirIndicator = 1;
+ 336               		.loc 2 166 0
+ 337 0158 8091 0000 		lds r24,msgDiscResponse+3
+ 338 015c 8068      		ori r24,lo8(-128)
+ 339 015e 8093 0000 		sts msgDiscResponse+3,r24
+ 167:ServerLLDN.c  **** 		
+ 168:ServerLLDN.c  **** 		msgReq.dstAddr				= 0;
+ 340               		.loc 2 168 0
+ 341 0162 1092 0000 		sts msgReq+5+1,__zero_reg__
+ 342 0166 1092 0000 		sts msgReq+5,__zero_reg__
+ 169:ServerLLDN.c  **** 		msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
+ 343               		.loc 2 169 0
+ 344 016a 83E0      		ldi r24,lo8(3)
+ 345 016c 8093 0000 		sts msgReq+7,r24
+ 170:ServerLLDN.c  **** 		msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
+ 346               		.loc 2 170 0
+ 347 0170 83E0      		ldi r24,lo8(3)
+ 348 0172 8093 0000 		sts msgReq+8,r24
+ 171:ServerLLDN.c  **** 		msgReq.options				= NWK_OPT_MAC_COMMAND;
+ 349               		.loc 2 171 0
+ 350 0176 80E0      		ldi r24,0
+ 351 0178 90E8      		ldi r25,lo8(-128)
+ 352 017a 9093 0000 		sts msgReq+9+1,r25
+ 353 017e 8093 0000 		sts msgReq+9,r24
+ 172:ServerLLDN.c  **** 		msgReq.data					= (uint8_t*)&msgDiscResponse;
+ 354               		.loc 2 172 0
+ 355 0182 80E0      		ldi r24,lo8(msgDiscResponse)
+ 356 0184 90E0      		ldi r25,hi8(msgDiscResponse)
+ 357 0186 9093 0000 		sts msgReq+13+1,r25
+ 358 018a 8093 0000 		sts msgReq+13,r24
+ 173:ServerLLDN.c  **** 		msgReq.size					= sizeof(msgDiscResponse);
+ 359               		.loc 2 173 0
+ 360 018e 84E0      		ldi r24,lo8(4)
+ 361 0190 8093 0000 		sts msgReq+15,r24
+ 174:ServerLLDN.c  **** 	}
+ 362               		.loc 2 174 0
+ 363 0194 0000      		nop
+ 364               	/* epilogue start */
+ 365 0196 DF91      		pop r29
+ 366 0198 CF91      		pop r28
+ 367 019a 0895      		ret
+ 368               		.cfi_endproc
+ 369               	.LFE108:
+ 371               		.section	.rodata
+ 372               	.LC1:
+ 373 001a 0A49 6E69 		.string	"\nIniciando...."
+ 373      6369 616E 
+ 373      646F 2E2E 
+ 373      2E2E 00
+ 374               		.text
+ 376               	appInit:
+ 377               	.LFB109:
+ 175:ServerLLDN.c  **** #endif // APP_COORDINATOR
+ 176:ServerLLDN.c  **** 
+ 177:ServerLLDN.c  **** static void appInit(void)
+ 178:ServerLLDN.c  **** {
+ 378               		.loc 2 178 0
+ 379               		.cfi_startproc
+ 380 019c CF93      		push r28
+ 381               	.LCFI16:
+ 382               		.cfi_def_cfa_offset 3
+ 383               		.cfi_offset 28, -2
+ 384 019e DF93      		push r29
+ 385               	.LCFI17:
+ 386               		.cfi_def_cfa_offset 4
+ 387               		.cfi_offset 29, -3
+ 388 01a0 CDB7      		in r28,__SP_L__
+ 389 01a2 DEB7      		in r29,__SP_H__
+ 390               	.LCFI18:
+ 391               		.cfi_def_cfa_register 28
+ 392               	/* prologue: function */
+ 393               	/* frame size = 0 */
+ 394               	/* stack size = 2 */
+ 395               	.L__stack_usage = 2
+ 179:ServerLLDN.c  **** 	printf("\nIniciando....");
+ 396               		.loc 2 179 0
+ 397 01a4 80E0      		ldi r24,lo8(.LC1)
+ 398 01a6 90E0      		ldi r25,hi8(.LC1)
+ 399 01a8 892F      		mov r24,r25
+ 400 01aa 8F93      		push r24
+ 401 01ac 80E0      		ldi r24,lo8(.LC1)
+ 402 01ae 90E0      		ldi r25,hi8(.LC1)
+ 403 01b0 8F93      		push r24
+ 404 01b2 0E94 0000 		call printf
+ 405 01b6 0F90      		pop __tmp_reg__
+ 406 01b8 0F90      		pop __tmp_reg__
+ 180:ServerLLDN.c  **** 	NWK_SetAddr(APP_ADDR);
+ 407               		.loc 2 180 0
+ 408 01ba 81E0      		ldi r24,lo8(1)
+ 409 01bc 90E0      		ldi r25,0
+ 410 01be 0E94 0000 		call NWK_SetAddr
+ 181:ServerLLDN.c  **** 	NWK_SetPanId(APP_PANID);
+ 411               		.loc 2 181 0
+ 412 01c2 8EEF      		ldi r24,lo8(-2)
+ 413 01c4 9AEC      		ldi r25,lo8(-54)
+ 414 01c6 0E94 0000 		call NWK_SetPanId
+ 182:ServerLLDN.c  **** 	PHY_SetChannel(APP_CHANNEL);
+ 415               		.loc 2 182 0
+ 416 01ca 8FE0      		ldi r24,lo8(15)
+ 417 01cc 0E94 0000 		call PHY_SetChannel
+ 183:ServerLLDN.c  **** 	PHY_SetRxState(true);
+ 418               		.loc 2 183 0
+ 419 01d0 81E0      		ldi r24,lo8(1)
+ 420 01d2 0E94 0000 		call PHY_SetRxState
+ 184:ServerLLDN.c  **** 		
+ 185:ServerLLDN.c  **** 	#if APP_COORDINATOR
+ 186:ServerLLDN.c  **** 	#else
+ 187:ServerLLDN.c  **** 			PHY_SetTdmaMode(false);
+ 421               		.loc 2 187 0
+ 422 01d6 80E0      		ldi r24,0
+ 423 01d8 0E94 0000 		call PHY_SetTdmaMode
+ 188:ServerLLDN.c  **** 			payloadSize = 1;
+ 424               		.loc 2 188 0
+ 425 01dc 81E0      		ldi r24,lo8(1)
+ 426 01de 90E0      		ldi r25,0
+ 427 01e0 9093 0000 		sts payloadSize+1,r25
+ 428 01e4 8093 0000 		sts payloadSize,r24
+ 189:ServerLLDN.c  **** 			NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);
+ 429               		.loc 2 189 0
+ 430 01e8 60E0      		ldi r22,lo8(gs(appBeaconInd))
+ 431 01ea 70E0      		ldi r23,hi8(gs(appBeaconInd))
+ 432 01ec 80E0      		ldi r24,0
+ 433 01ee 0E94 0000 		call NWK_OpenEndpoint
+ 190:ServerLLDN.c  **** 			/*
+ 191:ServerLLDN.c  **** 			* Configure interrupts callback functions
+ 192:ServerLLDN.c  **** 			*/
+ 193:ServerLLDN.c  **** 			macsc_set_cmp1_int_cb(send_message_timeHandler);
+ 434               		.loc 2 193 0
+ 435 01f2 80E0      		ldi r24,lo8(gs(send_message_timeHandler))
+ 436 01f4 90E0      		ldi r25,hi8(gs(send_message_timeHandler))
+ 437 01f6 0E94 0000 		call macsc_set_cmp1_int_cb
+ 194:ServerLLDN.c  **** 			macsc_enable_cmp_int(MACSC_CC1);	  
+ 438               		.loc 2 194 0
+ 439 01fa 81E0      		ldi r24,lo8(1)
+ 440 01fc 0E94 0000 		call macsc_enable_cmp_int
+ 195:ServerLLDN.c  **** 	#endif // APP_COORDENATOR
  196:ServerLLDN.c  **** 
- 197:ServerLLDN.c  **** 	/*****************************************************************************
- 198:ServerLLDN.c  **** 	*****************************************************************************/
- 199:ServerLLDN.c  **** 	int main(void)
+ 197:ServerLLDN.c  **** }
+ 441               		.loc 2 197 0
+ 442 0200 0000      		nop
+ 443               	/* epilogue start */
+ 444 0202 DF91      		pop r29
+ 445 0204 CF91      		pop r28
+ 446 0206 0895      		ret
+ 447               		.cfi_endproc
+ 448               	.LFE109:
+ 451               	APP_TaskHandler:
+ 452               	.LFB110:
+ 198:ServerLLDN.c  **** 
+ 199:ServerLLDN.c  **** 	static void APP_TaskHandler(void)
  200:ServerLLDN.c  **** 	{
- 792               		.loc 6 200 0
- 793               		.cfi_startproc
- 794 034a 0F93      		push r16
- 795               	.LCFI41:
- 796               		.cfi_def_cfa_offset 3
- 797               		.cfi_offset 16, -2
- 798 034c 1F93      		push r17
- 799               	.LCFI42:
- 800               		.cfi_def_cfa_offset 4
- 801               		.cfi_offset 17, -3
- 802 034e CF93      		push r28
- 803               	.LCFI43:
- 804               		.cfi_def_cfa_offset 5
- 805               		.cfi_offset 28, -4
- 806 0350 DF93      		push r29
- 807               	.LCFI44:
- 808               		.cfi_def_cfa_offset 6
- 809               		.cfi_offset 29, -5
- 810 0352 CDB7      		in r28,__SP_L__
- 811 0354 DEB7      		in r29,__SP_H__
- 812               	.LCFI45:
- 813               		.cfi_def_cfa_register 28
- 814 0356 2797      		sbiw r28,7
- 815               	.LCFI46:
- 816               		.cfi_def_cfa_offset 13
- 817 0358 0FB6      		in __tmp_reg__,__SREG__
- 818 035a F894      		cli
- 819 035c DEBF      		out __SP_H__,r29
- 820 035e 0FBE      		out __SREG__,__tmp_reg__
- 821 0360 CDBF      		out __SP_L__,r28
- 822               	/* prologue: function */
- 823               	/* frame size = 7 */
- 824               	/* stack size = 11 */
- 825               	.L__stack_usage = 11
- 201:ServerLLDN.c  **** 		sysclk_init();
- 826               		.loc 6 201 0
- 827 0362 0E94 0000 		call sysclk_init
- 202:ServerLLDN.c  **** 		board_init();
- 828               		.loc 6 202 0
- 829 0366 0E94 0000 		call board_init
- 203:ServerLLDN.c  **** 
- 204:ServerLLDN.c  **** 		SYS_Init();
- 830               		.loc 6 204 0
- 831 036a 0E94 0000 		call SYS_Init
- 205:ServerLLDN.c  **** 		/* Disable CSMA/CA
- 206:ServerLLDN.c  **** 		 * Disable auto ACK
- 207:ServerLLDN.c  **** 		 * Enable Rx of LLDN Frame Type as described in 802.15.4e - 2012 
- 208:ServerLLDN.c  **** 		 */
- 209:ServerLLDN.c  **** 		PHY_SetPromiscuousMode(true);
- 832               		.loc 6 209 0
- 833 036e 81E0      		ldi r24,lo8(1)
- 834 0370 0E94 0000 		call PHY_SetPromiscuousMode
- 210:ServerLLDN.c  **** 		sm_init();
- 835               		.loc 6 210 0
- 836 0374 0E94 0000 		call sm_init
- 211:ServerLLDN.c  **** 
- 212:ServerLLDN.c  **** 		// Initialize interrupt vector table support.
- 213:ServerLLDN.c  **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
- 214:ServerLLDN.c  **** 		irq_initialize_vectors();
- 215:ServerLLDN.c  **** 	#endif
- 216:ServerLLDN.c  **** 		cpu_irq_enable();
- 837               		.loc 6 216 0
- 838               	/* #APP */
- 839               	 ;  216 "ServerLLDN.c" 1
- 840 0378 7894      		sei
- 841               	 ;  0 "" 2
- 217:ServerLLDN.c  **** 
- 218:ServerLLDN.c  **** 	#if APP_COORDINATOR
- 219:ServerLLDN.c  **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
- 220:ServerLLDN.c  **** 		stdio_usb_init();
- 221:ServerLLDN.c  **** 	#else
- 222:ServerLLDN.c  **** 		const usart_serial_options_t usart_serial_options =
- 842               		.loc 6 222 0
- 843               	/* #NOAPP */
- 844 037a 27E0      		ldi r18,lo8(7)
- 845 037c E0E0      		ldi r30,lo8(.LC0)
- 846 037e F0E0      		ldi r31,hi8(.LC0)
- 847 0380 CE01      		movw r24,r28
- 848 0382 0196      		adiw r24,1
- 849 0384 DC01      		movw r26,r24
- 850               		0:
- 851 0386 0190      		ld r0,Z+
- 852 0388 0D92      		st X+,r0
- 853 038a 2A95      		dec r18
- 854 038c 01F4      		brne 0b
- 223:ServerLLDN.c  **** 		{
- 224:ServerLLDN.c  **** 			.baudrate     = USART_HOST_BAUDRATE,
- 225:ServerLLDN.c  **** 			.charlength   = USART_HOST_CHAR_LENGTH,
- 226:ServerLLDN.c  **** 			.paritytype   = USART_HOST_PARITY,
- 227:ServerLLDN.c  **** 			.stopbits     = USART_HOST_STOP_BITS
- 228:ServerLLDN.c  **** 		};
- 229:ServerLLDN.c  **** 
- 230:ServerLLDN.c  **** 		stdio_serial_init(USART_HOST, &usart_serial_options);
- 855               		.loc 6 230 0
- 856 038e CE01      		movw r24,r28
- 857 0390 0196      		adiw r24,1
- 858 0392 BC01      		movw r22,r24
- 859 0394 80EC      		ldi r24,lo8(-64)
- 860 0396 90E0      		ldi r25,0
- 861 0398 0E94 0000 		call stdio_serial_init
- 231:ServerLLDN.c  **** 		usart_double_baud_enable(USART_HOST);
- 862               		.loc 6 231 0
- 863 039c 80EC      		ldi r24,lo8(-64)
- 864 039e 90E0      		ldi r25,0
- 865 03a0 0E94 0000 		call usart_double_baud_enable
- 232:ServerLLDN.c  **** 		usart_set_baudrate_precalculated(USART_HOST, USART_HOST_BAUDRATE, sysclk_get_source_clock_hz());
- 866               		.loc 6 232 0
- 867 03a4 0E94 0000 		call sysclk_get_source_clock_hz
- 868 03a8 DC01      		movw r26,r24
- 869 03aa CB01      		movw r24,r22
- 870 03ac 8C01      		movw r16,r24
- 871 03ae 9D01      		movw r18,r26
- 872 03b0 40E0      		ldi r20,0
- 873 03b2 52EC      		ldi r21,lo8(-62)
- 874 03b4 61E0      		ldi r22,lo8(1)
- 875 03b6 70E0      		ldi r23,0
- 876 03b8 80EC      		ldi r24,lo8(-64)
- 877 03ba 90E0      		ldi r25,0
- 878 03bc 0E94 0000 		call usart_set_baudrate_precalculated
- 879               	.L25:
- 233:ServerLLDN.c  **** 
- 234:ServerLLDN.c  **** 	#endif
- 235:ServerLLDN.c  **** 	#endif
- 236:ServerLLDN.c  **** 		for(;;)
- 237:ServerLLDN.c  **** 		{
- 238:ServerLLDN.c  **** 			SYS_TaskHandler();
- 880               		.loc 6 238 0 discriminator 1
- 881 03c0 0E94 0000 		call SYS_TaskHandler
- 239:ServerLLDN.c  **** 			APP_TaskHandler();
- 882               		.loc 6 239 0 discriminator 1
- 883 03c4 0E94 0000 		call APP_TaskHandler
- 240:ServerLLDN.c  **** 		}
- 884               		.loc 6 240 0 discriminator 1
- 885 03c8 00C0      		rjmp .L25
- 886               		.cfi_endproc
- 887               	.LFE134:
- 889               	.Letext0:
- 890               		.file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
- 891               		.file 8 "../../../stack/LwMesh/TDMA/nwk/inc/nwkDataReq.h"
- 892               		.file 9 "../../../platform/mega_rf/drivers/sleep/sleep.h"
- 893               		.file 10 "../../../platform/mega_rf/utils/status_codes.h"
- 894               		.file 11 "../../../platform/common/services/sleepmgr/mega_rf/sleepmgr.h"
- 895               		.file 12 "config/config.h"
+ 453               		.loc 2 200 0
+ 454               		.cfi_startproc
+ 455 0208 CF93      		push r28
+ 456               	.LCFI19:
+ 457               		.cfi_def_cfa_offset 3
+ 458               		.cfi_offset 28, -2
+ 459 020a DF93      		push r29
+ 460               	.LCFI20:
+ 461               		.cfi_def_cfa_offset 4
+ 462               		.cfi_offset 29, -3
+ 463 020c CDB7      		in r28,__SP_L__
+ 464 020e DEB7      		in r29,__SP_H__
+ 465               	.LCFI21:
+ 466               		.cfi_def_cfa_register 28
+ 467               	/* prologue: function */
+ 468               	/* frame size = 0 */
+ 469               	/* stack size = 2 */
+ 470               	.L__stack_usage = 2
+ 201:ServerLLDN.c  **** 		switch (appState){
+ 471               		.loc 2 201 0
+ 472 0210 8091 0000 		lds r24,appState
+ 473 0214 882F      		mov r24,r24
+ 474 0216 90E0      		ldi r25,0
+ 475 0218 8230      		cpi r24,2
+ 476 021a 9105      		cpc r25,__zero_reg__
+ 477 021c 01F0      		breq .L15
+ 478 021e 8430      		cpi r24,4
+ 479 0220 9105      		cpc r25,__zero_reg__
+ 480 0222 01F0      		breq .L16
+ 481 0224 892B      		or r24,r25
+ 482 0226 01F0      		breq .L17
+ 202:ServerLLDN.c  **** 			case APP_STATE_INITIAL:
+ 203:ServerLLDN.c  **** 			{
+ 204:ServerLLDN.c  **** 				appInit();
+ 205:ServerLLDN.c  **** 				#if APP_COORDINATOR
+ 206:ServerLLDN.c  **** 					appState = APP_STATE_ATT_PAN_STATE;
+ 207:ServerLLDN.c  **** 				#else
+ 208:ServerLLDN.c  **** 					appState = APP_STATE_IDLE;
+ 209:ServerLLDN.c  **** 				#endif
+ 210:ServerLLDN.c  **** 				break;
+ 211:ServerLLDN.c  **** 			}
+ 212:ServerLLDN.c  **** 			case APP_STATE_SEND:
+ 213:ServerLLDN.c  **** 			{
+ 214:ServerLLDN.c  **** 				appSendData();
+ 215:ServerLLDN.c  **** 				#if APP_COORDINATOR
+ 216:ServerLLDN.c  **** 					appState = APP_STATE_ATT_PAN_STATE;
+ 217:ServerLLDN.c  **** 				#else
+ 218:ServerLLDN.c  **** 					appState = APP_STATE_IDLE;
+ 219:ServerLLDN.c  **** 				#endif
+ 220:ServerLLDN.c  **** 				break;
+ 221:ServerLLDN.c  **** 			}
+ 222:ServerLLDN.c  **** 			#if APP_COORDINATOR // COORDINATOR SPECIFIC STATE MACHINE
+ 223:ServerLLDN.c  **** 			case APP_STATE_ATT_PAN_STATE:
+ 224:ServerLLDN.c  **** 			{
+ 225:ServerLLDN.c  **** 				switch(appPanState){
+ 226:ServerLLDN.c  **** 					case APP_PAN_STATE_DISC_INITIAL:
+ 227:ServerLLDN.c  **** 					{
+ 228:ServerLLDN.c  **** 						appPanDiscInit();
+ 229:ServerLLDN.c  **** 						appState	= APP_STATE_IDLE;
+ 230:ServerLLDN.c  **** 						appPanState = APP_PAN_STATE_DISC_SECOND_BE;
+ 231:ServerLLDN.c  **** 						break;
+ 232:ServerLLDN.c  **** 					}
+ 233:ServerLLDN.c  **** 					case APP_PAN_STATE_DISC_SECOND_BE:
+ 234:ServerLLDN.c  **** 					{
+ 235:ServerLLDN.c  **** 						msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE | NWK_OPT_SECOND_BEACON ;
+ 236:ServerLLDN.c  **** 						appState	= APP_STATE_IDLE;
+ 237:ServerLLDN.c  **** 						appPanState = APP_PAN_STATE_DISC_PREPARE_ACK;
+ 238:ServerLLDN.c  **** 						break;
+ 239:ServerLLDN.c  **** 					}
+ 240:ServerLLDN.c  **** 					case APP_PAN_STATE_DISC_PREPARE_ACK:
+ 241:ServerLLDN.c  **** 					{
+ 242:ServerLLDN.c  **** 						/* CONTINUAR APÓS IMPLEMENTAR NODE DISCOVERY RESPONSE ANTES*/
+ 243:ServerLLDN.c  **** 						msgReq.options = 0;
+ 244:ServerLLDN.c  **** 						appState	= APP_STATE_IDLE;
+ 245:ServerLLDN.c  **** 						appPanState = APP_PAN_STATE_IDLE;
+ 246:ServerLLDN.c  **** 						break;
+ 247:ServerLLDN.c  **** 					}
+ 248:ServerLLDN.c  **** 					default:
+ 249:ServerLLDN.c  **** 					{
+ 250:ServerLLDN.c  **** 						appState = APP_STATE_IDLE;
+ 251:ServerLLDN.c  **** 					}
+ 252:ServerLLDN.c  **** 					break;
+ 253:ServerLLDN.c  **** 				}
+ 254:ServerLLDN.c  **** 				break;	
+ 255:ServerLLDN.c  **** 			}
+ 256:ServerLLDN.c  **** 			#else // NODES SPECIFIC STATE MACHINE
+ 257:ServerLLDN.c  **** 				case APP_STATE_PREP_DISC_REPONSE:
+ 258:ServerLLDN.c  **** 				{
+ 259:ServerLLDN.c  **** 					if(rec_beacon->confSeqNumber == 0)
+ 260:ServerLLDN.c  **** 						appPrepareDiscoverResponse();
+ 261:ServerLLDN.c  **** 					else
+ 262:ServerLLDN.c  **** 						appState = APP_STATE_IDLE;
+ 263:ServerLLDN.c  **** 					break;
+ 264:ServerLLDN.c  **** 				}
+ 265:ServerLLDN.c  **** 			#endif
+ 266:ServerLLDN.c  **** 			default:
+ 267:ServerLLDN.c  **** 			break;
+ 483               		.loc 2 267 0
+ 484 0228 00C0      		rjmp .L18
+ 485               	.L17:
+ 204:ServerLLDN.c  **** 				#if APP_COORDINATOR
+ 486               		.loc 2 204 0
+ 487 022a 0E94 0000 		call appInit
+ 208:ServerLLDN.c  **** 				#endif
+ 488               		.loc 2 208 0
+ 489 022e 81E0      		ldi r24,lo8(1)
+ 490 0230 8093 0000 		sts appState,r24
+ 210:ServerLLDN.c  **** 			}
+ 491               		.loc 2 210 0
+ 492 0234 00C0      		rjmp .L18
+ 493               	.L15:
+ 214:ServerLLDN.c  **** 				#if APP_COORDINATOR
+ 494               		.loc 2 214 0
+ 495 0236 0E94 0000 		call appSendData
+ 218:ServerLLDN.c  **** 				#endif
+ 496               		.loc 2 218 0
+ 497 023a 81E0      		ldi r24,lo8(1)
+ 498 023c 8093 0000 		sts appState,r24
+ 220:ServerLLDN.c  **** 			}
+ 499               		.loc 2 220 0
+ 500 0240 00C0      		rjmp .L18
+ 501               	.L16:
+ 259:ServerLLDN.c  **** 						appPrepareDiscoverResponse();
+ 502               		.loc 2 259 0
+ 503 0242 8091 0000 		lds r24,rec_beacon
+ 504 0246 9091 0000 		lds r25,rec_beacon+1
+ 505 024a FC01      		movw r30,r24
+ 506 024c 8581      		ldd r24,Z+5
+ 507 024e 8823      		tst r24
+ 508 0250 01F4      		brne .L19
+ 260:ServerLLDN.c  **** 					else
+ 509               		.loc 2 260 0
+ 510 0252 0E94 0000 		call appPrepareDiscoverResponse
+ 263:ServerLLDN.c  **** 				}
+ 511               		.loc 2 263 0
+ 512 0256 00C0      		rjmp .L21
+ 513               	.L19:
+ 262:ServerLLDN.c  **** 					break;
+ 514               		.loc 2 262 0
+ 515 0258 81E0      		ldi r24,lo8(1)
+ 516 025a 8093 0000 		sts appState,r24
+ 517               	.L21:
+ 263:ServerLLDN.c  **** 				}
+ 518               		.loc 2 263 0
+ 519 025e 0000      		nop
+ 520               	.L18:
+ 268:ServerLLDN.c  **** 		}
+ 269:ServerLLDN.c  **** 	}
+ 521               		.loc 2 269 0
+ 522 0260 0000      		nop
+ 523               	/* epilogue start */
+ 524 0262 DF91      		pop r29
+ 525 0264 CF91      		pop r28
+ 526 0266 0895      		ret
+ 527               		.cfi_endproc
+ 528               	.LFE110:
+ 530               	.global	main
+ 532               	main:
+ 533               	.LFB111:
+ 270:ServerLLDN.c  **** 
+ 271:ServerLLDN.c  **** 	/*****************************************************************************
+ 272:ServerLLDN.c  **** 	*****************************************************************************/
+ 273:ServerLLDN.c  **** 	int main(void)
+ 274:ServerLLDN.c  **** 	{
+ 534               		.loc 2 274 0
+ 535               		.cfi_startproc
+ 536 0268 CF93      		push r28
+ 537               	.LCFI22:
+ 538               		.cfi_def_cfa_offset 3
+ 539               		.cfi_offset 28, -2
+ 540 026a DF93      		push r29
+ 541               	.LCFI23:
+ 542               		.cfi_def_cfa_offset 4
+ 543               		.cfi_offset 29, -3
+ 544 026c CDB7      		in r28,__SP_L__
+ 545 026e DEB7      		in r29,__SP_H__
+ 546               	.LCFI24:
+ 547               		.cfi_def_cfa_register 28
+ 548               	/* prologue: function */
+ 549               	/* frame size = 0 */
+ 550               	/* stack size = 2 */
+ 551               	.L__stack_usage = 2
+ 275:ServerLLDN.c  **** 		sysclk_init();
+ 552               		.loc 2 275 0
+ 553 0270 0E94 0000 		call sysclk_init
+ 276:ServerLLDN.c  **** 		board_init();
+ 554               		.loc 2 276 0
+ 555 0274 0E94 0000 		call board_init
+ 277:ServerLLDN.c  **** 
+ 278:ServerLLDN.c  **** 		SYS_Init();
+ 556               		.loc 2 278 0
+ 557 0278 0E94 0000 		call SYS_Init
+ 279:ServerLLDN.c  **** 		/* Disable CSMA/CA
+ 280:ServerLLDN.c  **** 		 * Disable auto ACK
+ 281:ServerLLDN.c  **** 		 * Enable Rx of LLDN Frame Type as described in 802.15.4e - 2012 
+ 282:ServerLLDN.c  **** 		 */
+ 283:ServerLLDN.c  **** 		PHY_SetPromiscuousMode(true);
+ 558               		.loc 2 283 0
+ 559 027c 81E0      		ldi r24,lo8(1)
+ 560 027e 0E94 0000 		call PHY_SetPromiscuousMode
+ 284:ServerLLDN.c  **** 		sm_init();
+ 561               		.loc 2 284 0
+ 562 0282 0E94 0000 		call sm_init
+ 285:ServerLLDN.c  **** 
+ 286:ServerLLDN.c  **** 		// Initialize interrupt vector table support.
+ 287:ServerLLDN.c  **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
+ 288:ServerLLDN.c  **** 		irq_initialize_vectors();
+ 289:ServerLLDN.c  **** 	#endif
+ 290:ServerLLDN.c  **** 		cpu_irq_enable();
+ 563               		.loc 2 290 0
+ 564               	/* #APP */
+ 565               	 ;  290 "ServerLLDN.c" 1
+ 566 0286 7894      		sei
+ 567               	 ;  0 "" 2
+ 568               	/* #NOAPP */
+ 569               	.L23:
+ 291:ServerLLDN.c  **** 
+ 292:ServerLLDN.c  **** 	#if APP_COORDINATOR
+ 293:ServerLLDN.c  **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
+ 294:ServerLLDN.c  **** 		stdio_usb_init();
+ 295:ServerLLDN.c  **** 	#else
+ 296:ServerLLDN.c  **** 		const usart_serial_options_t usart_serial_options =
+ 297:ServerLLDN.c  **** 		{
+ 298:ServerLLDN.c  **** 			.baudrate     = USART_HOST_BAUDRATE,
+ 299:ServerLLDN.c  **** 			.charlength   = USART_HOST_CHAR_LENGTH,
+ 300:ServerLLDN.c  **** 			.paritytype   = USART_HOST_PARITY,
+ 301:ServerLLDN.c  **** 			.stopbits     = USART_HOST_STOP_BITS
+ 302:ServerLLDN.c  **** 		};
+ 303:ServerLLDN.c  **** 
+ 304:ServerLLDN.c  **** 		stdio_serial_init(USART_HOST, &usart_serial_options);
+ 305:ServerLLDN.c  **** 		usart_double_baud_enable(USART_HOST);
+ 306:ServerLLDN.c  **** 		usart_set_baudrate_precalculated(USART_HOST, USART_HOST_BAUDRATE, sysclk_get_source_clock_hz());
+ 307:ServerLLDN.c  **** 
+ 308:ServerLLDN.c  **** 	#endif
+ 309:ServerLLDN.c  **** 	#endif
+ 310:ServerLLDN.c  **** 		for(;;)
+ 311:ServerLLDN.c  **** 		{
+ 312:ServerLLDN.c  **** 			SYS_TaskHandler();
+ 570               		.loc 2 312 0 discriminator 1
+ 571 0288 0E94 0000 		call SYS_TaskHandler
+ 313:ServerLLDN.c  **** 			APP_TaskHandler();
+ 572               		.loc 2 313 0 discriminator 1
+ 573 028c 0E94 0000 		call APP_TaskHandler
+ 314:ServerLLDN.c  **** 		}
+ 574               		.loc 2 314 0 discriminator 1
+ 575 0290 00C0      		rjmp .L23
+ 576               		.cfi_endproc
+ 577               	.LFE111:
+ 579               	.Letext0:
+ 580               		.file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 581               		.file 4 "../../../stack/LwMesh/TDMA/nwk/inc/nwkFrame.h"
+ 582               		.file 5 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
+ 583               		.file 6 "../../../stack/LwMesh/TDMA/nwk/inc/nwkDataReq.h"
+ 584               		.file 7 "../../../platform/mega_rf/drivers/sleep/sleep.h"
+ 585               		.file 8 "config/config.h"
+ 586               		.file 9 "../../../platform/common/services/sleepmgr/mega_rf/sleepmgr.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 ServerLLDN.c
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:2      *ABS*:0000003e __SP_H__
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:3      *ABS*:0000003d __SP_L__
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:4      *ABS*:0000003f __SREG__
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:5      *ABS*:0000003b __RAMPZ__
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:6      *ABS*:00000000 __tmp_reg__
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:7      *ABS*:00000001 __zero_reg__
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:14     .bss.tTS:00000000 tTS
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:18     .text:00000000 sysclk_get_main_hz
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:55     .text:0000001a sysclk_get_source_clock_hz
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:92     .progmem.data.baudctrl_1mhz:00000000 baudctrl_1mhz
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:104    .progmem.data.baudctrl_8mhz:00000000 baudctrl_8mhz
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:116    .progmem.data.baudctrl_16mhz:00000000 baudctrl_16mhz
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:127    .text:00000034 usart_double_baud_enable
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:176    .text:00000062 usart_serial_init
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:271    .text:000000de usart_serial_putchar
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:315    .text:00000106 usart_serial_getchar
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:366    .text:0000013c stdio_serial_init
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:437    .text:0000019e macsc_enable_manual_bts
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:490    .bss.appState:00000000 appState
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:495    .bss.msgReq:00000000 msgReq
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:500    .bss.BeaconInterval:00000000 BeaconInterval
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:504    .text:000001d2 tdma_server_beacon
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:544    .text:000001ec appSendData
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:595    .text:0000021a appInit
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:721    .text:00000310 APP_TaskHandler
-C:\Users\guilh\AppData\Local\Temp\ccKM0r9b.s:790    .text:0000034a main
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:2      *ABS*:0000003e __SP_H__
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:3      *ABS*:0000003d __SP_L__
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:4      *ABS*:0000003f __SREG__
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:14     .bss.n:00000000 n
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:19     .bss.tTS:00000000 tTS
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:23     .text:00000000 macsc_enable_manual_bts
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:76     .bss.appState:00000000 appState
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:81     .bss.msgReq:00000000 msgReq
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:88     .text:00000034 appSendData
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:142    .bss.rec_beacon:00000000 rec_beacon
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:147    .bss.msgDiscResponse:00000000 msgDiscResponse
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:152    .bss.payloadSize:00000000 payloadSize
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:156    .text:0000006e send_message_timeHandler
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:189    .text:00000084 appBeaconInd
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:299    .text:00000126 appPrepareDiscoverResponse
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:376    .text:0000019c appInit
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:451    .text:00000208 APP_TaskHandler
+C:\Users\guilh\AppData\Local\Temp\ccm8k9ig.s:532    .text:00000268 main
 
 UNDEFINED SYMBOLS
-usart_init_rs232
-usart_putchar
-usart_getchar
-stdio_base
-ptr_put
-ptr_get
-_read
-_write
-fdevopen
-NWK_DataReq
 printf
-__divsf3
-__fixunssfsi
+NWK_DataReq
+macsc_use_cmp
 NWK_SetAddr
 NWK_SetPanId
 PHY_SetChannel
 PHY_SetRxState
 PHY_SetTdmaMode
+NWK_OpenEndpoint
 macsc_set_cmp1_int_cb
 macsc_enable_cmp_int
-macsc_use_cmp
 sysclk_init
 board_init
 SYS_Init
 PHY_SetPromiscuousMode
 sm_init
-usart_set_baudrate_precalculated
 SYS_TaskHandler
 __do_copy_data
 __do_clear_bss

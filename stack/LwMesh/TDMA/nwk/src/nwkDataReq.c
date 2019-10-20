@@ -154,7 +154,7 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 			frame->LLbeacon.confSeqNumber = 0x02;
 		else frame->LLbeacon.confSeqNumber = 0x00;
 
-		frame->LLbeacon.TimeSlotSize 	= (int)tTS; // calculation needs to be implemented, see timers first
+		frame->LLbeacon.TimeSlotSize 	= n;
 		uint8_t* shortAddr = (uint8_t* )nwkIb.addr;
 		frame->LLbeacon.PanId = shortAddr[0];
 		// set Frame Control, Security Header and Sequence Nuber fields
