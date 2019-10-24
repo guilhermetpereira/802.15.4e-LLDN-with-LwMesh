@@ -68,7 +68,7 @@
 #define BI_COEF												(8)
 #define SD_COEF												(6)
 #define FINAL_CAP_SLOT										(1)
-#define SYMBOL_TIME											0.000016						// s
+#define SYMBOL_TIME											0.000016						// (seconds per symbol)
 #define ABASEFRAMEDURATION									(960ul)							// Symbols
 #define BI_EXPO												(256)
 #define SD_EXPO												(50)
@@ -88,7 +88,7 @@
 #define macMinLIFSPeriod	 (40) // 40 symbols
 #define aMaxSIFSFrameSize	 (18) // 18 symbols
 
-static uint8_t n; // Expected maximum number of octets of data payload
+uint8_t n; // Expected maximum number of octets of data payload
 static float tTS;
 
 #define numMgmtTs_Disc_Conf  2  // discovery and configuration states has 2 TimeSlots in Managment (one uplink, one downlink)

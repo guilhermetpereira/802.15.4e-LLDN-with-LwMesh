@@ -80,6 +80,7 @@ enum {
 	NWK_RX_STATE_BEACON   = 0x25,
 	NWK_RX_STATE_LLBEACON 	= 0x26,
 	NWK_RX_STATE_LLCOMMAND 	= 0x27,
+	NWK_RX_STATE_LLACKFRAME = 0x28,
 };
 
 typedef struct NwkDuplicateRejectionEntry_t {
@@ -134,7 +135,7 @@ void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 		}
 	}
 	// check frame control for a LL-MAC Command frame
-	else if(0xcc == ind->data[0])
+	else if(0xcc == ind->data[0] || 0x8c == ind->data[0])
 	{
 		if(ind->size < sizeof(NwkFrameGeneralHeaderLLDN_t))
 		{
@@ -185,8 +186,12 @@ void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 		if (NULL == (frame = nwkFrameAlloc_LLDN(false))){
 			return;
 		}
+		// if frame receveid is LL-AckFrame change state to LLACKFRAME
 		// if frame receveid is LL-MACComand change state to LLCOMMAND
-		frame->state = NWK_RX_STATE_LLCOMMAND;
+		if(ind->data[0] == 0x8c) 
+			frame->state = NWK_RX_STATE_LLACKFRAME;
+		else 
+			frame->state = NWK_RX_STATE_LLCOMMAND;
 	}
 
 	frame->size = ind->size;
@@ -613,7 +618,7 @@ static bool nwkRxIndicateLLCommandFrame(NwkFrame_t *frame)
 	ind.srcEndpoint = 0;
 	ind.dstEndpoint = 0;
 
-	ind.data = &frame->data;
+	ind.data = frame->payload;
 	ind.size = nwkFramePayloadSize(frame);
 	ind.lqi = frame->rx.lqi;
 	ind.rssi = frame->rx.rssi;
@@ -623,6 +628,35 @@ static bool nwkRxIndicateLLCommandFrame(NwkFrame_t *frame)
 	return nwkIb.endpoint[APP_COMMAND_ENDPOINT](&ind);
 }
 
+static bool nwkRxIndicateLLACKFrame(NwkFrame_t *frame)
+{
+	
+		NwkFrameGeneralHeaderLLDN_t *header = &frame->LLgeneral;
+	NWK_DataInd_t ind;
+
+	frame->state = NWK_RX_STATE_FINISH;
+
+	if (NULL == nwkIb.endpoint[APP_ACK_ENDPOINT]) {
+	return false;
+	}
+	
+	/* this informations are not received in a LLDN Command as they are in standart 802.15.4
+	 * all data informatino handle must be done by user 
+	 */
+	ind.srcAddr = 0;
+	ind.dstAddr = 0;
+	ind.srcEndpoint = 0;
+	ind.dstEndpoint = 0;
+
+	ind.data =  frame->payload;
+	ind.size = nwkFramePayloadSize(frame);
+	ind.lqi = frame->rx.lqi;
+	ind.rssi = frame->rx.rssi;
+
+	ind.options	= NWK_OPT_LLDN_ACK;
+
+	return nwkIb.endpoint[APP_ACK_ENDPOINT](&ind);
+}
 
 /*************************************************************************//**
 *****************************************************************************/
@@ -713,11 +747,19 @@ void nwkRxTaskHandler(void)
 			nwkRxIndicateLLBeaconFrame(frame);
 		}
 		break;
+		
 		case NWK_RX_STATE_LLCOMMAND:
 		{
 			nwkRxIndicateLLCommandFrame(frame);
 		}
 		break;
+		
+		case NWK_RX_STATE_LLACKFRAME:
+		{
+			nwkRxIndicateLLACKFrame(frame);
+		}
+		break;
+		
 		}
 	}
 }

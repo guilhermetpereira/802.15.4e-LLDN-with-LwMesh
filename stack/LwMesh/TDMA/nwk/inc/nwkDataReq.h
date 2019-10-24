@@ -113,7 +113,7 @@ typedef struct NWK_ACKFormat_t{
 	uint8_t sourceId;
 	// 127: maximum size avaible on buffer
 	// 4: size of NwkFrameGeneralHeaderLLDN_t
-	uint8_t ackFlags[127 - 4];
+	uint8_t ackFlags[32];
 } NWK_ACKFormat_t;
 
 

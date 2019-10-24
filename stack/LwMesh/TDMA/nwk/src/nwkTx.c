@@ -159,7 +159,7 @@ void nwkTxMacCommandFrameLLDN(NwkFrame_t *frame, uint16_t subtype)
 	// beacon->macFcf.ackRequest				= 0b0;	// zero to indicade no ACK
 	// beacon->macFcf.SubFrameType			= 0b11; // Subtype = LL-MAC command
 	if (subtype & NWK_OPT_MAC_COMMAND) 		mac_command->macFcf = 0xcc; //LL-MAC Command
-	else if (subtype & NWK_OPT_LLDN_DATA) mac_command->macFcf = 0x4c; //LL-Data
+	else if (subtype & NWK_OPT_LLDN_DATA)	mac_command->macFcf = 0x4c; //LL-Data
 	else if (subtype & NWK_OPT_LLDN_ACK) 	mac_command->macFcf = 0x8c;	//LL-Acknowledgment
 	mac_command->macSeqNumber = ++nwkIb.macSeqNum;
 

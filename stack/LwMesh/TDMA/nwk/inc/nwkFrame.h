@@ -130,7 +130,7 @@ typedef struct  NwkFrameBeaconHeaderLLDN_t {
 		uint8_t reserved				: 1;
 		uint8_t numMgmtTimeslots: 3; // number of managment time slots
 		// uplink and downlink must be equal
- } Flags;
+	} Flags;
 
 	uint8_t PanId;
 	uint8_t confSeqNumber;

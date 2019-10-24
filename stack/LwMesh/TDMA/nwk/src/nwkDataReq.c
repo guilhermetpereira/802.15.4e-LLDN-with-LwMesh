@@ -150,13 +150,13 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 
 		if (req->options & 	NWK_OPT_SECOND_BEACON)
 		 frame->LLbeacon.confSeqNumber = 0x01;
-		else if (req->options & 	NWK_OPT_THIRD_BEACON)
+		else if (req->options & NWK_OPT_THIRD_BEACON)
 			frame->LLbeacon.confSeqNumber = 0x02;
 		else frame->LLbeacon.confSeqNumber = 0x00;
 
 		frame->LLbeacon.TimeSlotSize 	= n;
-		uint8_t* shortAddr = (uint8_t* )nwkIb.addr;
-		frame->LLbeacon.PanId = shortAddr[0];
+		uint8_t* shortAddr = (uint8_t* )APP_PANID;
+		frame->LLbeacon.PanId = APP_PANID;
 		// set Frame Control, Security Header and Sequence Nuber fields
 		nwkTxBeaconFrameLLDN(frame);
 	}
@@ -164,10 +164,10 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 		|| req->options & NWK_OPT_LLDN_DATA
 		|| req->options & NWK_OPT_LLDN_ACK )
 	{
+		nwkTxMacCommandFrameLLDN(frame, req->options);
 		frame->tx.control = 0;
 		memcpy(frame->payload, req->data, req->size);
 		frame->size += req->size;
-		nwkTxMacCommandFrameLLDN(frame, req->options);
 	}
 	else if(req->options & NWK_OPT_BEACON )
 	{
@@ -188,7 +188,7 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 
 		nwkTxBeaconFrame(frame);
 	}
-	else
+	else if(req->options != 0)
 	{
 		frame->tx.control = (req->options & NWK_OPT_BROADCAST_PAN_ID) ? NWK_TX_CONTROL_BROADCAST_PAN_ID : 0;
 
