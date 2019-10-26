@@ -640,7 +640,8 @@ static bool nwkRxIndicateLLACKFrame(NwkFrame_t *frame)
 	return false;
 	}
 	
-	/* this informations are not received in a LLDN Command as they are in standart 802.15.4
+	/* 
+	 * this informations are not received in a LLDN Command as they are in standart 802.15.4
 	 * all data informatino handle must be done by user 
 	 */
 	ind.srcAddr = 0;

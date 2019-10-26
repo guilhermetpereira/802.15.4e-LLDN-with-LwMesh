@@ -80,11 +80,7 @@ static void appSendData(void)
 }
 
 #if APP_COORDINATOR
-	/*
-	(9/ 8) = 1
-	ACK_Array[3] = 1 << 8 - ( 9 % 8)
-	9 % 
-	*/
+
 	typedef enum AppPanState_t {
 		APP_PAN_STATE_IDLE,
 		APP_PAN_STATE_DISC_INITIAL,
@@ -105,21 +101,21 @@ static void appSendData(void)
 	
 	static void addToAckArray(uint16_t addres)
 	{
-		uint8_t pos = addres / 8;
-		uint8_t bit_shift;
-	
+		int pos = addres / 8;
+		int bit_shift;
 		bit_shift = 8 - (addres % 8);
-			
 		ACKFrame.ackFlags[pos] |= 1 << bit_shift; 
 		if(pos + 1> ACKFrame_size) ACKFrame_size = pos + 1;
-				printf(" ACK ARRAY[%d] : %d", pos, ACKFrame.ackFlags[pos]);
-
 	}
 	
 	static bool appCommandInd(NWK_DataInd_t *ind)
 	{
 		if(ind->data[0] == LL_DISCOVER_RESPONSE)
-			addToAckArray( ind->data[0]);
+		{
+			NWK_DiscoverResponse_t *msg = (NWK_DiscoverResponse_t*)ind->data;
+			addToAckArray(msg->macAddr);
+		}
+			
 		printf("\nResponse");	
 		return true;
 	}
@@ -207,12 +203,10 @@ static void appSendData(void)
 		NWK_ACKFormat_t *ackframe = (NWK_ACKFormat_t*)ind->data;
 		if(PanId == ackframe->sourceId)
 		{
-			printf("\nACK RECEIVED");
 			int pos = APP_ADDR / 8;
-			int bit_shift;
-			bit_shift = 8 - (APP_ADDR % 8);
-			if( ackframe->ackFlags[pos] & 1 << bit_shift);
-	
+			int bit_shift = 8 - APP_ADDR % 8;
+			if( ackframe->ackFlags[pos] & 1 << bit_shift)	
+							printf("\nACK RECEIVED");	
 		}
 		return true;
 	}
