@@ -74,12 +74,12 @@ static void appSendData(void)
 		NWK_DataReq(&msgReq);
 		#if APP_COORDINATOR
 		#endif
-		printf("\n*Message_send*");
-
+		printf("\n*Message_send* option = %d", msgReq.options);
 	}
 }
 
 #if APP_COORDINATOR
+	#define DELAY 20 // symbols
 
 	typedef enum AppPanState_t {
 		APP_PAN_STATE_IDLE,
@@ -99,13 +99,26 @@ static void appSendData(void)
 		appState = APP_STATE_SEND;
 	}
 	
-	static void addToAckArray(uint16_t addres)
+	static void downlink_delay_handler(void)
 	{
-		int pos = addres / 8;
-		int bit_shift;
-		bit_shift = 8 - (addres % 8);
-		ACKFrame.ackFlags[pos] |= 1 << bit_shift; 
-		if(pos + 1> ACKFrame_size) ACKFrame_size = pos + 1;
+		macsc_disable_cmp_int(MACSC_CC2);
+		appState = APP_STATE_SEND;
+	}
+	
+	
+	static void teste_handler(void)
+	{
+		if(msgReq.options)
+		printf("\n***TIMESLOT****");
+	}
+	
+	static void addToAckArray(uint16_t addres)
+	{	
+		int pos =(int) addres / 8;
+		int bit_shift = 8 - (addres % 8);
+		ACKFrame.ackFlags[pos] |= 1 << bit_shift;
+		if (pos + 1 > ACKFrame_size)
+		ACKFrame_size = pos + 1;
 	}
 	
 	static bool appCommandInd(NWK_DataInd_t *ind)
@@ -114,9 +127,8 @@ static void appSendData(void)
 		{
 			NWK_DiscoverResponse_t *msg = (NWK_DiscoverResponse_t*)ind->data;
 			addToAckArray(msg->macAddr);
-		}
-			
-		printf("\nResponse");	
+			printf("\nResponse %hhx", msg->macAddr);	
+		}			
 		return true;
 	}
 	
@@ -155,13 +167,23 @@ static void appSendData(void)
 			* overflow interrupt, compare 1,2,3 interrupts
 			*/
 			macsc_set_cmp1_int_cb(lldn_server_beacon);
+			macsc_set_cmp2_int_cb(downlink_delay_handler);
+
 			/*
 			* Configure MACSC to generate compare interrupts from channels 1,2,3
 			* Set compare mode to absolute, set compare value.
 			*/
 			macsc_enable_manual_bts();
 			macsc_enable_cmp_int(MACSC_CC1);
+			
 			macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval , MACSC_CC1);
+			macsc_use_cmp(MACSC_RELATIVE_CMP, DELAY , MACSC_CC2);
+
+			
+			  macsc_set_cmp2_int_cb(teste_handler);	
+			  macsc_enable_cmp_int(MACSC_CC2);
+			  macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval / 2, MACSC_CC2);
+			 
 		#endif
 	}
 
@@ -184,11 +206,10 @@ static void appSendData(void)
 		macsc_enable_manual_bts();	
 		rec_beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
 		PanId = rec_beacon->PanId;
-		printf("\nBeacon: PANID = %hhx", PanId); 
 		if(rec_beacon->Flags.txState == DISC_MODE ||
 			rec_beacon->Flags.txState == CONFIG_MODE)
 		{
-			int msg_wait_time = rec_beacon->TimeSlotSize * 2; // symbols
+			int msg_wait_time = rec_beacon->TimeSlotSize * 2 - 190; // symbols 190 is a delay adjustment
 
 			macsc_set_cmp1_int_cb(send_message_timeHandler);
 			macsc_enable_cmp_int(MACSC_CC1);	  
@@ -206,7 +227,7 @@ static void appSendData(void)
 			int pos = APP_ADDR / 8;
 			int bit_shift = 8 - APP_ADDR % 8;
 			if( ackframe->ackFlags[pos] & 1 << bit_shift)	
-							printf("\nACK RECEIVED");	
+				printf("\nACK RECEIVED");	
 		}
 		return true;
 	}
@@ -256,85 +277,83 @@ static void appInit(void)
 
 }
 
-	static void APP_TaskHandler(void)
-	{
-		switch (appState){
-			case APP_STATE_INITIAL:
-			{
-				appInit();
-				#if APP_COORDINATOR
-					appState = APP_STATE_ATT_PAN_STATE;
-				#else
-					appState = APP_STATE_IDLE;
-				#endif
-				break;
-			}
-			case APP_STATE_SEND:
-			{
-
-				appSendData();
-				#if APP_COORDINATOR
-					appState = APP_STATE_ATT_PAN_STATE;
-				#else
-
-					appState = APP_STATE_IDLE;
-				#endif
-				break;
-			}
-			#if APP_COORDINATOR // COORDINATOR SPECIFIC STATE MACHINE
-			case APP_STATE_ATT_PAN_STATE:
-			{
-				switch(appPanState)
-				{
-					case APP_PAN_STATE_DISC_INITIAL:
-					{
-						appPanDiscInit();
-						appState	= APP_STATE_IDLE;
-						appPanState = APP_PAN_STATE_DISC_SECOND_BE;
-						break;
-					}
-					case APP_PAN_STATE_DISC_SECOND_BE:
-					{
-						msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE | NWK_OPT_SECOND_BEACON ;
-						appState	= APP_STATE_IDLE;
-						appPanState = APP_PAN_STATE_DISC_PREPARE_ACK;
-						break;
-					}
-					case APP_PAN_STATE_DISC_PREPARE_ACK:
-					{
-						appPanPrepareACK();
-						//msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE | NWK_OPT_SECOND_BEACON ;
-						appState = APP_STATE_IDLE;
-						//appState	= APP_STATE_SEND;
-						appPanState = APP_PAN_STATE_IDLE;
-						break;
-					}
-					case APP_PAN_STATE_IDLE:
-					{
-						msgReq.options = 0;
-						appState = APP_STATE_IDLE;
-						break;
-					}
-				}
-				break;	
-			}
-			#else // NODES SPECIFIC STATE MACHINE
-			case APP_STATE_PREP_DISC_REPONSE:
-			{
-				if(rec_beacon->confSeqNumber == 0)
-				{
-					appPrepareDiscoverResponse();
-				}
-				else
-				msgReq.options = 0;
-				appState = APP_STATE_IDLE;	
-				break;
-			}
+static void APP_TaskHandler(void)
+{
+	switch (appState){
+		case APP_STATE_INITIAL:
+		{
+			appInit();
+			#if APP_COORDINATOR
+				appState = APP_STATE_ATT_PAN_STATE;
+			#else
+				appState = APP_STATE_IDLE;
 			#endif
-			default:
 			break;
 		}
+		case APP_STATE_SEND:
+		{
+			appSendData();
+			#if APP_COORDINATOR
+				appState = APP_STATE_ATT_PAN_STATE;
+			#else
+				appState = APP_STATE_IDLE;
+			#endif
+			break;
+		}
+		#if APP_COORDINATOR // COORDINATOR SPECIFIC STATE MACHINE
+		case APP_STATE_ATT_PAN_STATE:
+		{
+			switch(appPanState)
+			{
+				case APP_PAN_STATE_DISC_INITIAL:
+				{
+					appPanDiscInit();
+					appState	= APP_STATE_IDLE;
+					appPanState = APP_PAN_STATE_DISC_SECOND_BE;
+					break;
+				}
+				case APP_PAN_STATE_DISC_SECOND_BE:
+				{
+					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE | NWK_OPT_SECOND_BEACON ;
+					appState	= APP_STATE_IDLE;
+					appPanState = APP_PAN_STATE_DISC_PREPARE_ACK;
+					macsc_enable_cmp_int(MACSC_CC2);
+					break;
+				}
+				case APP_PAN_STATE_DISC_PREPARE_ACK:
+				{
+					appPanPrepareACK();
+					appState = APP_STATE_IDLE;
+					appPanState = APP_PAN_STATE_IDLE;
+					printf("\nack");
+					break;
+				}
+				case APP_PAN_STATE_IDLE:
+				{
+					msgReq.options = 0;
+					appState = APP_STATE_IDLE;
+					break;
+				}
+			}
+			break;	
+		}
+		#else // NODES SPECIFIC STATE MACHINE
+		case APP_STATE_PREP_DISC_REPONSE:
+		{
+			if(rec_beacon->confSeqNumber == 0)
+			{
+				appPrepareDiscoverResponse();
+			}
+			else
+			msgReq.options = 0;
+			appState = APP_STATE_IDLE;	
+			break;
+		}
+		#endif
+		default:
+		break;
 	}
+}
 
 	/*****************************************************************************
 	*****************************************************************************/
