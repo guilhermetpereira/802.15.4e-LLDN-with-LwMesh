@@ -125,11 +125,11 @@ typedef struct  NwkFrameBeaconHeaderLLDN_t {
 	/****** MAC Payload *******/
 	struct
 	{
-		uint8_t txState 				: 3;
-		uint8_t txDir 					: 1;
-		uint8_t reserved				: 1;
-		uint8_t numMgmtTimeslots: 3; // number of managment time slots
-		// uplink and downlink must be equal
+		uint8_t txState 			: 3;
+		uint8_t txDir 				: 1;
+		uint8_t reserved			: 1;
+		uint8_t numBaseMgmtTimeslots: 3; // number of managment time slots
+										// uplink and downlink must be equal
 	} Flags;
 
 	uint8_t PanId;

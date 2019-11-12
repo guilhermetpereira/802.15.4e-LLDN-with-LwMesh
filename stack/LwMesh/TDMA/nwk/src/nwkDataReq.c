@@ -139,14 +139,14 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 			frame->LLbeacon.Flags.txState = 0b100; // discovery mode
 		else if (req->options & NWK_OPT_CONFIG_STATE)
 			frame->LLbeacon.Flags.txState = 0b110; // configuration mode
-		else if (req->options & NWK_OPT_RESTART_STATE)
+		else if (req->options & NWK_OPT_RESET_STATE)
 			frame->LLbeacon.Flags.txState = 0b111; // full reset mode
 
 		// set biderectional time slots: 0 - downlink 1 - uplink
 		frame->LLbeacon.Flags.txDir 	= 0b0;
 		frame->LLbeacon.Flags.reserved 	= 0b0;
 		// set number of managment timeslots
-		frame->LLbeacon.Flags.numMgmtTimeslots = numMgmtTs_Disc_Conf;
+		frame->LLbeacon.Flags.numBaseMgmtTimeslots = numBaseTimeSlotperMgmt;
 
 		if (req->options & 	NWK_OPT_SECOND_BEACON)
 		 frame->LLbeacon.confSeqNumber = 0x01;
@@ -154,7 +154,7 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 			frame->LLbeacon.confSeqNumber = 0x02;
 		else frame->LLbeacon.confSeqNumber = 0x00;
 
-		frame->LLbeacon.TimeSlotSize 	= n;
+		frame->LLbeacon.TimeSlotSize 	= n + 50 + 12;
 		uint8_t* shortAddr = (uint8_t* )APP_PANID;
 		frame->LLbeacon.PanId = APP_PANID;
 		// set Frame Control, Security Header and Sequence Nuber fields

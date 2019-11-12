@@ -414,8 +414,8 @@ struct __struct_CSMA_SEED_1_REG {
 #define CSMA_BE_REG     MMIO_REG(0x16F, uint8_t)
 #define CSMA_BE_REG_s   MMIO_REG(0x16F, struct __struct_CSMA_BE_REG)
 struct __struct_CSMA_BE_REG {
-	uint8_t minBe : 4; /* Minimum Back-off Exponent */
-	uint8_t maxBe : 4; /* Maximum Back-off Exponent */
+	uint8_t minBe : 4; /* Minimum Back-off Exponent 3 by default*/
+	uint8_t maxBe : 4; /* Maximum Back-off Exponent 5 by deafult*/
 };
 
 /* Transceiver Digital Test Control Register */

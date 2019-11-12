@@ -140,17 +140,17 @@ void PHY_SetPromiscuousMode(bool mode)
 		PHY_SetPanId(0);
 		PHY_SetIEEEAddr(ieee_address);
 
-// AACK_UPLD_RES_FT = 1, AACK_FLT_RES_FT = 0:
-//	Any non-corrupted frame with a reserved frame type is indicated by a
-//	TRX24_RX_END interrupt. No further address filtering is applied on those frames.
-//	A TRX24_AMI interrupt is never generated and the acknowledgment subfield is
-//	ignored.
+	// AACK_UPLD_RES_FT = 1, AACK_FLT_RES_FT = 0:
+	//	Any non-corrupted frame with a reserved frame type is indicated by a
+	//	TRX24_RX_END interrupt. No further address filtering is applied on those frames.
+	//	A TRX24_AMI interrupt is never generated and the acknowledgment subfield is
+	//	ignored.
 
 		XAH_CTRL_1_REG_s.aackPromMode = 1;	// Enable promiscuous mode
 		XAH_CTRL_1_REG_s.aackUpldResFt = 1;	// Enable reserved frame type reception ; this was changed to one
-                                        // so that the addres isn't checked by filter
+											// so that the addres isn't checked by filter
 		XAH_CTRL_1_REG_s.aackFltrResFt = 0;	// Disable filter of reserved frame types
-		CSMA_SEED_1_REG_s.aackDisAck = 1;		// Disable generation of acknowledgment
+		CSMA_SEED_1_REG_s.aackDisAck = 1;	// Disable generation of acknowledgment
 	}
 	else
 	{
@@ -159,6 +159,17 @@ void PHY_SetPromiscuousMode(bool mode)
 	}
 }
 
+void PHY_SetOptimizedCSMAValues(void)
+{
+	CSMA_BE_REG_s.minBe = 0x03;
+	CSMA_BE_REG_s.maxBe = 0x05;
+	
+	#ifdef PHY_ENABLE_RANDOM_NUMBER_GENERATOR
+	CSMA_SEED_0_REG = (uint8_t)PHY_RandomReq();
+	CSMA_SEED_1_REG_s.csmaSeed_1 = (uint8_t)PHY_RandomReq() : 3;
+	#endif
+	
+}
 
 /*************************************************************************//**
 *****************************************************************************/
@@ -387,6 +398,8 @@ static void phyTrxSetState(uint8_t state)
 	do {TRX_STATE_REG = state; } while (state !=
 			TRX_STATUS_REG_s.trxStatus);
 }
+
+
 
 /*************************************************************************//**
 *****************************************************************************/

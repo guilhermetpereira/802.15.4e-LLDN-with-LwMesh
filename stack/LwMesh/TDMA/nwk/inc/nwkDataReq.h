@@ -66,56 +66,13 @@ enum {
 	NWK_OPT_ONLINE_STATE		= 1 << 7,
 	NWK_OPT_DISCOVERY_STATE		= 1 << 8,
 	NWK_OPT_CONFIG_STATE		= 1 << 9,
-	NWK_OPT_RESTART_STATE		= 1 << 10,
+	NWK_OPT_RESET_STATE			= 1 << 10,
 	NWK_OPT_SECOND_BEACON		= 1 << 11,
 	NWK_OPT_THIRD_BEACON		= 1 << 12,
 	NWK_OPT_LLDN_DATA 			= 1 << 13,
 	NWK_OPT_LLDN_ACK 			= 1 << 14,
 	NWK_OPT_MAC_COMMAND			= 1 << 15,
 };
-
-// payload structure for Discovery Response Frame
-typedef struct NWK_DiscoverResponse_t {
-	uint8_t id;
-	uint16_t macAddr;
-	struct{
-		uint8_t tsDuration	 : 7;
-		uint8_t dirIndicator : 1;
-	}ts_dir;
-} NWK_DiscoverResponse_t;
-
-// payload structure for Configuration Status Frame
-	typedef struct NWK_ConfigStatus_t {
-		uint8_t id;
-		uint8_t s_macAddr;
-		uint8_t assTimeSlot;
-		uint16_t macAddr;
-		struct{
-			uint8_t tsDuration 		: 7;
-			uint8_t dirIndicator 	: 1;
-		}ts_dir;
-	} NWK_ConfigStatus_t;
-
-// payload structure for Configuration Request Frame
-typedef struct NWK_ConfigRequest_t {
-	uint8_t id;
-	uint8_t s_macAddr;
-	uint8_t tx_channel;
-	uint8_t assTimeSlot;
-	uint16_t macAddr;
-	struct{
-		uint8_t tsDuration	: 7;
-		uint8_t mgmtFrames 	: 1;
-	} conf;
-} NWK_ConfigRequest_t;
-
-typedef struct NWK_ACKFormat_t{
-	uint8_t sourceId;
-	// 127: maximum size avaible on buffer
-	// 4: size of NwkFrameGeneralHeaderLLDN_t
-	uint8_t ackFlags[32];
-} NWK_ACKFormat_t;
-
 
 typedef struct NWK_DataReq_t {
 	/* service fields */

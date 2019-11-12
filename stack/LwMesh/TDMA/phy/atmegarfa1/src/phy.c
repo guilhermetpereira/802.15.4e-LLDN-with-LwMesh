@@ -60,7 +60,6 @@ typedef enum {
 } PhyState_t;
 
 /*- Prototypes -------------------------------------------------------------*/
-static void phyTrxSetState(uint8_t state);
 static void phySetRxState(void);
 
 /*- Variables --------------------------------------------------------------*/
@@ -150,6 +149,13 @@ void PHY_SetPromiscuousMode(bool mode)
 		XAH_CTRL_1_REG = 0;
 		CSMA_SEED_1_REG_s.aackDisAck = 0;
 	}
+}
+
+void PHY_SetOptimizedCSMAValues(void)
+{
+	// CSMA_BE_REG_s.minBe = 0x08;
+	// CSMA_BE_REG_s.maxBe = 0x08;
+	CSMA_SEED_0_REG = (uint8_t)PHY_RandomReq();
 }
 
 /*************************************************************************//**
@@ -325,7 +331,7 @@ static void phySetRxState(void)
 
 /*************************************************************************//**
 *****************************************************************************/
-static void phyTrxSetState(uint8_t state)
+void phyTrxSetState(uint8_t state)
 {
 #if (ANTENNA_DIVERSITY == 1) || defined(EXT_RF_FRONT_END_CTRL)
 	if(phyState == PHY_STATE_SLEEP)
@@ -352,6 +358,7 @@ static void phyTrxSetState(uint8_t state)
 	do {TRX_STATE_REG = state; } while (state !=
 			TRX_STATUS_REG_s.trxStatus);
 }
+
 
 /*************************************************************************//**
 *****************************************************************************/
@@ -402,6 +409,7 @@ void PHY_TaskHandler(void)
 
 			if (TRAC_STATUS_SUCCESS == status) {
 				status = PHY_STATUS_SUCCESS;
+				printf("*Message_send* ");
 			} else if (TRAC_STATUS_CHANNEL_ACCESS_FAILURE ==
 					status) {
 				status = PHY_STATUS_CHANNEL_ACCESS_FAILURE;

@@ -88,15 +88,15 @@
 #define macMinLIFSPeriod	 (40) // 40 symbols
 #define aMaxSIFSFrameSize	 (18) // 18 symbols
 
+#define macLLDNdiscoveryModeTimeout 1 // defined based on number of cycles
+
 uint8_t n; // Expected maximum number of octets of data payload
 static float tTS;
 
-#define numMgmtTs_Disc_Conf  2  // discovery and configuration states has 2 TimeSlots in Managment (one uplink, one downlink)
+#define numBaseTimeSlotperMgmt   4
  
  /* MAC Command frames identifier defined by Table 5 : 802.15.4e - 2012 */
-#define LL_DISCOVER_RESPONSE		0x0d
-#define LL_CONFIGURATION_STATUS		0x0e
-#define LL_CONFIGURATION_REQUEST	0x0f
+
 // #define	LL_CTS_SHARED_GROUP			0x10
 // #define	LL_RTS						0x11
 // #define	LL_CTS						0x12
