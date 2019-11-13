@@ -35,7 +35,7 @@
 		/* Only megarf series */
 		#include "conf_sio2host.h" // necessary for prints
 		#define MASTER_MACSC	1
-		#define TIMESLOT_TIMER	1
+		#define TIMESLOT_TIMER	0
 	#endif
 #else
 	/* Only megarf series */
@@ -63,7 +63,7 @@ static void appSendData(void)
 		NWK_DataReq(&msgReq);
 		#if APP_COORDINATOR
 		#endif
-		printf("\noption = %d", msgReq.options);
+		// printf("\noption = %d", msgReq.options);
 	}
 }
 
@@ -73,7 +73,7 @@ static void appSendData(void)
 	static NWK_ACKFormat_t ACKFrame;
 	static int ACKFrame_size = 0;
 	static uint8_t cycles_counter = macLLDNdiscoveryModeTimeout;
-	
+	int counter_associados = 0;
 	static SYS_Timer_t tmrDiscoveryMode;
 
 	static void tmrDiscoveryModeHandler(SYS_Timer_t *timer)
@@ -117,12 +117,13 @@ static void appSendData(void)
 		{
 			NWK_DiscoverResponse_t *msg = (NWK_DiscoverResponse_t*)ind->data;
 			addToAckArray(msg->macAddr);
-			printf("\nDiscover Response %hhx", msg->macAddr);	
+			counter_associados++;
+			// printf("\nDiscover Response %hhx", msg->macAddr);	
 		}
 		else if(ind->data[0] == LL_CONFIGURATION_STATUS)
 		{
 			NWK_ConfigStatus_t *msg = (NWK_ConfigStatus_t*)ind->data;
-			printf("\nConfiguration Status %hhx", msg->macAddr);	
+			// printf("\nConfiguration Status %hhx", msg->macAddr);	
 		}
 		else return false;			
 		return true;
@@ -138,6 +139,22 @@ static void appSendData(void)
 		msgReq.size					= sizeof(uint8_t)*(ACKFrame_size + 1);
 	}
 
+	static void appPanReset(void)
+	{
+		msgReq.dstAddr		= 0;
+		msgReq.dstEndpoint	= APP_BEACON_ENDPOINT;
+		msgReq.srcEndpoint	= APP_BEACON_ENDPOINT;
+		msgReq.options		= NWK_OPT_LLDN_BEACON | NWK_OPT_RESET_STATE;
+		msgReq.data			= NULL;
+		msgReq.size			= 0;
+		
+		for(int i = 0; i < ACKFrame_size; i++)
+		{
+			ACKFrame.ackFlags[i] = 0;
+		}
+		ACKFrame_size = 0;
+	}
+
 	static void appPanDiscInit(void)
 	{		
 		/* Prepare Beacon Message as first beacon in discovery state */		
@@ -149,7 +166,8 @@ static void appSendData(void)
 		msgReq.size					= 0;
 		
 		
-		
+		if(cycles_counter == macLLDNdiscoveryModeTimeout)
+		{
 		/* Calculates Beacon Intervals according to 802.15.4e - 2012 p. 70 */
 		n = 127; // 180 -safe octets
 		tTS =  ((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var); // 0.009088 seconds with n = 255 
@@ -180,6 +198,7 @@ static void appSendData(void)
 			#endif
 			
 		#endif
+		}
 	}
 
 #else 
@@ -215,7 +234,7 @@ static void appSendData(void)
 			macsc_use_cmp(MACSC_RELATIVE_CMP, msg_wait_time + rec_beacon->TimeSlotSize * 2, MACSC_CC2);
 			*/
 		}
-		else if (rec_beacon->Flags.txState == DISC_MODE)
+		else if (rec_beacon->Flags.txState == RESET_MODE)
 		{
 			ack_received = 0;
 		}
@@ -262,11 +281,10 @@ static void appInit(void)
 	PHY_SetRxState(true);
 		
 	#if APP_COORDINATOR
-	  tmrDiscoveryMode.interval = 2500;
+	  tmrDiscoveryMode.interval = 900;
 	  tmrDiscoveryMode.mode = SYS_TIMER_PERIODIC_MODE;
 	  tmrDiscoveryMode.handler = tmrDiscoveryModeHandler;
 	  SYS_TimerStart(&tmrDiscoveryMode);
-		printf("\n---------\n");
 		/* 
 		* Disable CSMA/CA
 		* Disable auto ACK
@@ -322,16 +340,28 @@ static void APP_TaskHandler(void)
 			{
 				case APP_PAN_STATE_RESET:
 				{
-					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_RESET_STATE;
+					appPanReset();
 					appPanState = APP_PAN_STATE_DISC_INITIAL;
-					appState	= APP_STATE_IDLE;
+					appState	= APP_STATE_SEND;
+					cycles_counter = macLLDNdiscoveryModeTimeout;
+					break;
 				}
 				case APP_PAN_STATE_DISC_INITIAL:
 				{
-					printf("\n\nCICLO %d \n", cycles_counter); 
-					appPanDiscInit();
-					appState	= APP_STATE_IDLE;
-					appPanState = APP_PAN_STATE_DISC_SECOND_BE;
+					if(cycles_counter == 0)
+					{	
+						printf("\n%d", counter_associados);
+						counter_associados = 0;
+						macsc_disable_cmp_int(MACSC_CC1);
+						appState = APP_STATE_IDLE;
+						appPanState = APP_PAN_STATE_IDLE;
+					}
+					else
+					{
+						appPanDiscInit();
+						appState	= APP_STATE_IDLE;
+						appPanState = APP_PAN_STATE_DISC_SECOND_BE;
+					}
 					break;
 				}
 				case APP_PAN_STATE_DISC_SECOND_BE:
@@ -345,17 +375,9 @@ static void APP_TaskHandler(void)
 				{
 					macsc_enable_cmp_int(MACSC_CC3);
 					appPanPrepareACK();
-					if(cycles_counter == 0)
-					{
-						appPanState = APP_PAN_STATE_IDLE;
-						cycles_counter = macLLDNdiscoveryModeTimeout;
-					}
-					else
-					{
-						appPanState = APP_PAN_STATE_DISC_INITIAL;
-						cycles_counter--;
-					}
-					 appState = APP_STATE_IDLE;
+					appPanState = APP_PAN_STATE_DISC_INITIAL;
+					cycles_counter--;
+					appState = APP_STATE_IDLE;
 					
 					//printf("\nack");
 					break;

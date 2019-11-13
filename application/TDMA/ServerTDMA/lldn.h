@@ -14,7 +14,6 @@ typedef enum AppState_t {
 	APP_STATE_IDLE,
 	APP_STATE_SEND,
 	APP_STATE_ATT_PAN_STATE,
-	APP_PAN_STATE_RESET,
 	#if !APP_COORDINATOR
 	APP_STATE_PREP_DISC_REPONSE,
 	APP_STATE_PREP_CONFIG_STATUS,
@@ -73,9 +72,11 @@ typedef struct NWK_ACKFormat_t{
 
 	typedef enum AppPanState_t {
 		APP_PAN_STATE_IDLE,
+		APP_PAN_STATE_RESET,
 		APP_PAN_STATE_DISC_INITIAL,
 		APP_PAN_STATE_DISC_SECOND_BE,
 		APP_PAN_STATE_DISC_PREPARE_ACK,
+		
 	} AppPanState_t;
 	
 	typedef struct infoNode{
@@ -88,6 +89,7 @@ typedef struct NWK_ACKFormat_t{
 #else
 	#define DISC_MODE	0b100
 	#define CONFIG_MODE 0b110
+	#define RESET_MODE	0b111
 #endif
 
 
