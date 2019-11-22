@@ -104,6 +104,11 @@ void PHY_Init(void)
 #endif // EXT_RF_FRONT_END_CTRL
 }
 
+void PHY_ResetRadio(void)
+{
+	TRXPR_REG_s.trxrst = 1;
+}
+
 void PHY_SetTdmaMode(bool mode)
 {
 	if(mode)

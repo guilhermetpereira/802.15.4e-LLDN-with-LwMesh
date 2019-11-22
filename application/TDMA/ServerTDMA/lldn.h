@@ -68,7 +68,7 @@ typedef struct NWK_ACKFormat_t{
 
 
 #if APP_COORDINATOR
-	#define DELAY 30 // symbols
+	#define DELAY 100 // symbols
 
 	typedef enum AppPanState_t {
 		APP_PAN_STATE_IDLE,
@@ -76,7 +76,10 @@ typedef struct NWK_ACKFormat_t{
 		APP_PAN_STATE_DISC_INITIAL,
 		APP_PAN_STATE_DISC_SECOND_BE,
 		APP_PAN_STATE_DISC_PREPARE_ACK,
-		
+		APP_PAN_STATE_CONFIG_INITIAL,
+		APP_PAN_STATE_SEND_CONF_REQUEST,
+		APP_PAN_STATE_CONFIG_SECOND_BEACON,
+		APP_PAN_STATE_CONFIG_THIRD_BEACON,
 	} AppPanState_t;
 	
 	typedef struct infoNode{

@@ -98,6 +98,7 @@ void PHY_SetPromiscuousMode(bool mode);
 void PHY_SetOptimizedCSMAValues(void);
 
 void phyTrxSetState(uint8_t state);
+void PHY_ResetRadio(void);
 
 
 /** @} */
