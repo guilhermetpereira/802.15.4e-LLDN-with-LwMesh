@@ -62,7 +62,7 @@ typedef enum {
 } PhyState_t;
 
 /*- Prototypes -------------------------------------------------------------*/
-static void phyTrxSetState(uint8_t state);
+void phyTrxSetState(uint8_t state);
 static void phySetChannel(void);
 static void phySetRxState(void);
 
@@ -112,6 +112,13 @@ void PHY_Init(void)
 	TRX_CTRL_1_REG_s.paExtEn = 1;
 #endif // EXT_RF_FRONT_END_CTRL
 }
+
+void PHY_ResetRadio(void)
+{
+	TRXPR_REG_s.trxrst = 1;
+}
+
+
 void PHY_SetTdmaMode(bool mode)
 {
 	if(mode)
@@ -161,15 +168,11 @@ void PHY_SetPromiscuousMode(bool mode)
 
 void PHY_SetOptimizedCSMAValues(void)
 {
-	CSMA_BE_REG_s.minBe = 0x03;
-	CSMA_BE_REG_s.maxBe = 0x05;
-	
-	#ifdef PHY_ENABLE_RANDOM_NUMBER_GENERATOR
+	// CSMA_BE_REG_s.minBe = 0x08;
+	// CSMA_BE_REG_s.maxBe = 0x08;
 	CSMA_SEED_0_REG = (uint8_t)PHY_RandomReq();
-	CSMA_SEED_1_REG_s.csmaSeed_1 = (uint8_t)PHY_RandomReq() : 3;
-	#endif
-	
 }
+
 
 /*************************************************************************//**
 *****************************************************************************/
@@ -371,7 +374,7 @@ static void phySetRxState(void)
 
 /*************************************************************************//**
 *****************************************************************************/
-static void phyTrxSetState(uint8_t state)
+void phyTrxSetState(uint8_t state)
 {
 #if (ANTENNA_DIVERSITY == 1) || defined(EXT_RF_FRONT_END_CTRL)
 	if(phyState == PHY_STATE_SLEEP)

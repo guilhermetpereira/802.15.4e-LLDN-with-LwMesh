@@ -20,6 +20,36 @@ typedef enum AppState_t {
 	#endif
 } AppState_t;
 
+#if APP_COORDINATOR
+	#define DELAY 100 // symbols
+
+	typedef enum AppPanState_t {
+		APP_PAN_STATE_IDLE,
+		APP_PAN_STATE_RESET,
+		APP_PAN_STATE_DISC_INITIAL,
+		APP_PAN_STATE_DISC_SECOND_BE,
+		APP_PAN_STATE_DISC_PREPARE_ACK,
+		APP_PAN_STATE_CONFIG_INITIAL,
+		APP_PAN_STATE_SEND_CONF_REQUEST,
+		APP_PAN_STATE_CONFIG_SECOND_BEACON,
+		APP_PAN_STATE_CONFIG_THIRD_BEACON,
+	} AppPanState_t;
+	
+	typedef struct infoNode{
+		uint8_t s_macAddr;
+		uint8_t assTimeSlot;
+		uint16_t macAddr;
+		uint8_t tsDuration;
+	};
+	
+#else
+	#define DISC_MODE	0b100
+	#define CONFIG_MODE 0b110
+	#define RESET_MODE	0b111
+#endif
+
+
+
 #define LL_DISCOVER_RESPONSE		0x0d
 #define LL_CONFIGURATION_STATUS		0x0e
 #define LL_CONFIGURATION_REQUEST	0x0f
@@ -67,33 +97,6 @@ typedef struct NWK_ACKFormat_t{
 } NWK_ACKFormat_t;
 
 
-#if APP_COORDINATOR
-	#define DELAY 100 // symbols
-
-	typedef enum AppPanState_t {
-		APP_PAN_STATE_IDLE,
-		APP_PAN_STATE_RESET,
-		APP_PAN_STATE_DISC_INITIAL,
-		APP_PAN_STATE_DISC_SECOND_BE,
-		APP_PAN_STATE_DISC_PREPARE_ACK,
-		APP_PAN_STATE_CONFIG_INITIAL,
-		APP_PAN_STATE_SEND_CONF_REQUEST,
-		APP_PAN_STATE_CONFIG_SECOND_BEACON,
-		APP_PAN_STATE_CONFIG_THIRD_BEACON,
-	} AppPanState_t;
-	
-	typedef struct infoNode{
-		uint8_t s_macAddr;
-		uint8_t assTimeSlot;
-		uint16_t macAddr;
-		uint8_t tsDuration;
-	};
-	
-#else
-	#define DISC_MODE	0b100
-	#define CONFIG_MODE 0b110
-	#define RESET_MODE	0b111
-#endif
 
 
 

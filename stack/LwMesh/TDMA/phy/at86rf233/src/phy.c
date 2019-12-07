@@ -219,7 +219,8 @@ void PHY_Wakeup(void)
 
 /*************************************************************************//**
 *****************************************************************************/
-void PHY_DataReq(uint8_t *data)
+
+void PHY_DataReq(uint8_t *data, uint8_t size)
 {
 #if (ANTENNA_DIVERSITY == 1)
 #endif // ANTENNA_DIVERSITY
@@ -235,7 +236,7 @@ void PHY_DataReq(uint8_t *data)
 	 * and data starts from second byte.
 	 */
 	data[0] += 2;
-	trx_frame_write(data, (data[0] - 1) /* length value*/);
+	trx_frame_write(data, size /* length value*/);
 
 	phyState = PHY_STATE_TX_WAIT_END;
 
@@ -433,7 +434,7 @@ void PHY_TaskHandler(void)
 
 			phySetRxState();
 			phyState = PHY_STATE_IDLE;
-
+		
 			PHY_DataConf(status);
 		}
 	}

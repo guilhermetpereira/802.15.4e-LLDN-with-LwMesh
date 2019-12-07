@@ -95,7 +95,10 @@ void PHY_EncryptReq(uint8_t *text, uint8_t *key);
 int8_t PHY_EdReq(void);
 void PHY_SetTdmaMode(bool mode);
 void PHY_SetPromiscuousMode(bool mode);
-void PHY_SetOptimizedCSMAValues(void)
+void PHY_SetOptimizedCSMAValues(void);
+void phyTrxSetState(uint8_t state);
+void PHY_ResetRadio(void);
+
 
 /** @} */
 #endif /* _PHY_H_ */

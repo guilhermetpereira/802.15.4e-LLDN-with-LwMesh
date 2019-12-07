@@ -1,0 +1,2957 @@
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "bpm.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .text
+  27              	 .align 1
+  28              	 .syntax unified
+  29              	 .thumb
+  30              	 .thumb_func
+  31              	 .fpu softvfp
+  33              	cpu_irq_save:
+  34              	.LFB112:
+  35              	 .file 1 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
+   1:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** /**
+   2:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \file
+   3:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+   4:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \brief Global interrupt management for SAM D20, SAM3 and SAM4 (NVIC based)
+   5:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+   6:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * Copyright (c) 2012-2013 Atmel Corporation. All rights reserved.
+   7:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+   8:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \asf_license_start
+   9:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  10:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \page License
+  11:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  12:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  15:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  18:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  22:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *    from this software without specific prior written permission.
+  24:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  25:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *    Atmel microcontroller product.
+  27:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  28:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  40:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \asf_license_stop
+  41:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  42:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  */
+  43:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+  44:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** #ifndef UTILS_INTERRUPT_INTERRUPT_H
+  45:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** #define UTILS_INTERRUPT_INTERRUPT_H
+  46:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+  47:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** #include <compiler.h>
+  48:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** #include <parts.h>
+  49:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+  50:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** /**
+  51:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \weakgroup interrupt_group
+  52:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  53:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * @{
+  54:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  */
+  55:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+  56:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** /**
+  57:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \name Interrupt Service Routine definition
+  58:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  59:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * @{
+  60:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  */
+  61:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+  62:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** /**
+  63:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \brief Define service routine
+  64:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  65:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \note For NVIC devices the interrupt service routines are predefined to
+  66:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *       add to vector table in binary generation, so there is no service
+  67:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *       register at run time. The routine collections are in exceptions.h.
+  68:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  69:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * Usage:
+  70:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \code
+  71:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * ISR(foo_irq_handler)
+  72:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * {
+  73:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *      // Function definition
+  74:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *      ...
+  75:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * }
+  76:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \endcode
+  77:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  78:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \param func Name for the function.
+  79:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  */
+  80:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** #  define ISR(func)   \
+  81:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	void func (void)
+  82:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+  83:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** /**
+  84:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \brief Initialize interrupt vectors
+  85:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  86:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * For NVIC the interrupt vectors are put in vector table. So nothing
+  87:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * to do to initialize them, except defined the vector function with
+  88:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * right name.
+  89:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  90:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * This must be called prior to \ref irq_register_handler.
+  91:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  */
+  92:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** #  define irq_initialize_vectors()   \
+  93:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	do {                             \
+  94:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	} while(0)
+  95:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+  96:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** /**
+  97:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \brief Register handler for interrupt
+  98:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+  99:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * For NVIC the interrupt vectors are put in vector table. So nothing
+ 100:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * to do to register them, except defined the vector function with
+ 101:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * right name.
+ 102:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+ 103:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * Usage:
+ 104:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \code
+ 105:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * irq_initialize_vectors();
+ 106:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * irq_register_handler(foo_irq_handler);
+ 107:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \endcode
+ 108:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *
+ 109:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \note The function \a func must be defined with the \ref ISR macro.
+ 110:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  * \note The functions prototypes can be found in the device exception header
+ 111:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  *       files (exceptions.h).
+ 112:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h ****  */
+ 113:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** #  define irq_register_handler(int_num, int_prio)                      \
+ 114:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	NVIC_ClearPendingIRQ(    (IRQn_Type)int_num);                      \
+ 115:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	NVIC_SetPriority(    (IRQn_Type)int_num, int_prio);                \
+ 116:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	NVIC_EnableIRQ(      (IRQn_Type)int_num);                          \
+ 117:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+ 118:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** //@}
+ 119:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+ 120:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** #  define cpu_irq_enable()                     \
+ 121:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	do {                                       \
+ 122:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 		g_interrupt_enabled = true;            \
+ 123:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 		__DMB();                               \
+ 124:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 		__enable_irq();                        \
+ 125:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	} while (0)
+ 126:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** #  define cpu_irq_disable()                    \
+ 127:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	do {                                       \
+ 128:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 		__disable_irq();                       \
+ 129:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 		__DMB();                               \
+ 130:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 		g_interrupt_enabled = false;           \
+ 131:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	} while (0)
+ 132:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+ 133:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** typedef uint32_t irqflags_t;
+ 134:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+ 135:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** #if !defined(__DOXYGEN__)
+ 136:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** extern volatile bool g_interrupt_enabled;
+ 137:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** #endif
+ 138:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+ 139:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** #define cpu_irq_is_enabled()    (__get_PRIMASK() == 0)
+ 140:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+ 141:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** static volatile uint32_t cpu_irq_critical_section_counter;
+ 142:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** static volatile bool     cpu_irq_prev_interrupt_state;
+ 143:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+ 144:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** static inline irqflags_t cpu_irq_save(void)
+ 145:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** {
+  36              	 .loc 1 145 0
+  37              	 .cfi_startproc
+  38              	 
+  39              	 
+  40              	 
+  41 0000 80B4     	 push {r7}
+  42              	.LCFI0:
+  43              	 .cfi_def_cfa_offset 4
+  44              	 .cfi_offset 7,-4
+  45 0002 83B0     	 sub sp,sp,#12
+  46              	.LCFI1:
+  47              	 .cfi_def_cfa_offset 16
+  48 0004 00AF     	 add r7,sp,#0
+  49              	.LCFI2:
+  50              	 .cfi_def_cfa_register 7
+  51              	.LBB16:
+  52              	.LBB17:
+  53              	 .file 2 "../../../platform/thirdparty/CMSIS/include/core_cmFunc.h"
+   1:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /**************************************************************************//**
+   2:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * @file     core_cmFunc.h
+   3:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * @brief    CMSIS Cortex-M Core Function Access Header File
+   4:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * @version  V3.00
+   5:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * @date     19. January 2012
+   6:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  *
+   7:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * @note
+   8:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * Copyright (C) 2009-2012 ARM Limited. All rights reserved.
+   9:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  *
+  10:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * @par
+  11:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * ARM Limited (ARM) is supplying this software for use with Cortex-M 
+  12:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * processor based microcontrollers.  This file can be freely distributed 
+  13:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * within development tools that are supporting such ARM based processors. 
+  14:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  *
+  15:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * @par
+  16:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
+  17:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+  18:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
+  19:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
+  20:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  21:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  *
+  22:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  ******************************************************************************/
+  23:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  24:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #ifndef __CORE_CMFUNC_H
+  25:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #define __CORE_CMFUNC_H
+  26:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  27:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /* ###########################  Core Function Access  ########################### */
+  28:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \ingroup  CMSIS_Core_FunctionInterface   
+  29:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+  30:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   @{
+  31:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+  32:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  33:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #if   defined ( __CC_ARM ) /*------------------RealView Compiler -----------------*/
+  34:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /* ARM armcc specific functions */
+  35:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  36:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #if (__ARMCC_VERSION < 400677)
+  37:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   #error "Please use ARM Compiler Toolchain V4.0.677 or later!"
+  38:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #endif
+  39:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  40:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /* intrinsic void __enable_irq();     */
+  41:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /* intrinsic void __disable_irq();    */
+  42:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  43:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get Control Register
+  44:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  45:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the content of the Control Register.
+  46:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  47:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               Control Register value
+  48:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+  49:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE uint32_t __get_CONTROL(void)
+  50:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+  51:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regControl         __ASM("control");
+  52:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(__regControl);
+  53:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+  54:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  55:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  56:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Set Control Register
+  57:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  58:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function writes the given value to the Control Register.
+  59:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  60:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \param [in]    control  Control Register value to set
+  61:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+  62:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE void __set_CONTROL(uint32_t control)
+  63:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+  64:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regControl         __ASM("control");
+  65:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __regControl = control;
+  66:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+  67:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  68:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  69:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get IPSR Register
+  70:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  71:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the content of the IPSR Register.
+  72:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  73:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               IPSR Register value
+  74:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+  75:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE uint32_t __get_IPSR(void)
+  76:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+  77:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regIPSR          __ASM("ipsr");
+  78:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(__regIPSR);
+  79:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+  80:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  81:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  82:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get APSR Register
+  83:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  84:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the content of the APSR Register.
+  85:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  86:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               APSR Register value
+  87:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+  88:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE uint32_t __get_APSR(void)
+  89:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+  90:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regAPSR          __ASM("apsr");
+  91:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(__regAPSR);
+  92:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+  93:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  94:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  95:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get xPSR Register
+  96:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  97:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the content of the xPSR Register.
+  98:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+  99:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               xPSR Register value
+ 100:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 101:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE uint32_t __get_xPSR(void)
+ 102:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 103:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regXPSR          __ASM("xpsr");
+ 104:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(__regXPSR);
+ 105:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 106:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 107:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 108:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get Process Stack Pointer
+ 109:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 110:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the current value of the Process Stack Pointer (PSP).
+ 111:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 112:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               PSP Register value
+ 113:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 114:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE uint32_t __get_PSP(void)
+ 115:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 116:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regProcessStackPointer  __ASM("psp");
+ 117:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(__regProcessStackPointer);
+ 118:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 119:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 120:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 121:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Set Process Stack Pointer
+ 122:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 123:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function assigns the given value to the Process Stack Pointer (PSP).
+ 124:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 125:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 126:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 127:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE void __set_PSP(uint32_t topOfProcStack)
+ 128:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 129:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regProcessStackPointer  __ASM("psp");
+ 130:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __regProcessStackPointer = topOfProcStack;
+ 131:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 132:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 133:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 134:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get Main Stack Pointer
+ 135:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 136:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the current value of the Main Stack Pointer (MSP).
+ 137:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 138:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               MSP Register value
+ 139:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 140:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE uint32_t __get_MSP(void)
+ 141:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 142:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regMainStackPointer     __ASM("msp");
+ 143:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(__regMainStackPointer);
+ 144:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 145:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 146:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 147:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Set Main Stack Pointer
+ 148:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 149:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function assigns the given value to the Main Stack Pointer (MSP).
+ 150:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 151:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 152:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 153:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE void __set_MSP(uint32_t topOfMainStack)
+ 154:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 155:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regMainStackPointer     __ASM("msp");
+ 156:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __regMainStackPointer = topOfMainStack;
+ 157:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 158:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 159:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 160:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get Priority Mask
+ 161:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 162:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the current state of the priority mask bit from the Priority Mask Registe
+ 163:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 164:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               Priority Mask value
+ 165:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 166:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE uint32_t __get_PRIMASK(void)
+ 167:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 168:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regPriMask         __ASM("primask");
+ 169:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(__regPriMask);
+ 170:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 171:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 172:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 173:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Set Priority Mask
+ 174:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 175:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function assigns the given value to the Priority Mask Register.
+ 176:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 177:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \param [in]    priMask  Priority Mask
+ 178:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 179:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE void __set_PRIMASK(uint32_t priMask)
+ 180:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 181:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regPriMask         __ASM("primask");
+ 182:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __regPriMask = (priMask);
+ 183:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 184:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  
+ 185:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 186:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #if       (__CORTEX_M >= 0x03)
+ 187:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 188:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Enable FIQ
+ 189:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 190:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function enables FIQ interrupts by clearing the F-bit in the CPSR.
+ 191:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 192:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 193:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #define __enable_fault_irq                __enable_fiq
+ 194:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 195:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 196:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Disable FIQ
+ 197:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 198:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function disables FIQ interrupts by setting the F-bit in the CPSR.
+ 199:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 200:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 201:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #define __disable_fault_irq               __disable_fiq
+ 202:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 203:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 204:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get Base Priority
+ 205:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 206:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the current value of the Base Priority register.
+ 207:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 208:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               Base Priority register value
+ 209:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 210:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE uint32_t  __get_BASEPRI(void)
+ 211:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 212:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regBasePri         __ASM("basepri");
+ 213:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(__regBasePri);
+ 214:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 215:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 216:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 217:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Set Base Priority
+ 218:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 219:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function assigns the given value to the Base Priority register.
+ 220:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 221:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \param [in]    basePri  Base Priority value to set
+ 222:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 223:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE void __set_BASEPRI(uint32_t basePri)
+ 224:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 225:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regBasePri         __ASM("basepri");
+ 226:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __regBasePri = (basePri & 0xff);
+ 227:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 228:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  
+ 229:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 230:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get Fault Mask
+ 231:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 232:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the current value of the Fault Mask register.
+ 233:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 234:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               Fault Mask register value
+ 235:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 236:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE uint32_t __get_FAULTMASK(void)
+ 237:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 238:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regFaultMask       __ASM("faultmask");
+ 239:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(__regFaultMask);
+ 240:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 241:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 242:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 243:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Set Fault Mask
+ 244:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 245:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function assigns the given value to the Fault Mask register.
+ 246:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 247:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \param [in]    faultMask  Fault Mask value to set
+ 248:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 249:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE void __set_FAULTMASK(uint32_t faultMask)
+ 250:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 251:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regFaultMask       __ASM("faultmask");
+ 252:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __regFaultMask = (faultMask & (uint32_t)1);
+ 253:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 254:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 255:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 256:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 257:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 258:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #if       (__CORTEX_M == 0x04)
+ 259:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 260:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get FPSCR
+ 261:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 262:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the current value of the Floating Point Status/Control register.
+ 263:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 264:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               Floating Point Status/Control register value
+ 265:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 266:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE uint32_t __get_FPSCR(void)
+ 267:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 268:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
+ 269:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regfpscr         __ASM("fpscr");
+ 270:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(__regfpscr);
+ 271:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #else
+ 272:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****    return(0);
+ 273:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #endif
+ 274:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 275:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 276:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 277:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Set FPSCR
+ 278:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 279:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function assigns the given value to the Floating Point Status/Control register.
+ 280:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 281:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \param [in]    fpscr  Floating Point Status/Control value to set
+ 282:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 283:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __STATIC_INLINE void __set_FPSCR(uint32_t fpscr)
+ 284:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 285:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
+ 286:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t __regfpscr         __ASM("fpscr");
+ 287:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __regfpscr = (fpscr);
+ 288:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #endif
+ 289:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 290:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 291:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #endif /* (__CORTEX_M == 0x04) */
+ 292:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 293:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 294:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #elif defined ( __ICCARM__ ) /*------------------ ICC Compiler -------------------*/
+ 295:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /* IAR iccarm specific functions */
+ 296:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 297:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #include <cmsis_iar.h>
+ 298:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 299:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 300:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #elif defined ( __TMS470__ ) /*---------------- TI CCS Compiler ------------------*/
+ 301:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /* TI CCS specific functions */
+ 302:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 303:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #include <cmsis_ccs.h>
+ 304:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 305:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 306:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** #elif defined ( __GNUC__ ) /*------------------ GNU Compiler ---------------------*/
+ 307:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /* GNU gcc specific functions */
+ 308:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 309:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Enable IRQ Interrupts
+ 310:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 311:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 312:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 313:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 314:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __enable_irq(void)
+ 315:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 316:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __ASM volatile ("cpsie i");
+ 317:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 318:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 319:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 320:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Disable IRQ Interrupts
+ 321:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 322:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   This function disables IRQ interrupts by setting the I-bit in the CPSR.
+ 323:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 324:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 325:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __disable_irq(void)
+ 326:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 327:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __ASM volatile ("cpsid i");
+ 328:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 329:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 330:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 331:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get Control Register
+ 332:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 333:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the content of the Control Register.
+ 334:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 335:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               Control Register value
+ 336:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 337:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __get_CONTROL(void)
+ 338:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 339:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   uint32_t result;
+ 340:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 341:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __ASM volatile ("MRS %0, control" : "=r" (result) );
+ 342:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(result);
+ 343:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 344:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 345:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 346:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Set Control Register
+ 347:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 348:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function writes the given value to the Control Register.
+ 349:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 350:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \param [in]    control  Control Register value to set
+ 351:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 352:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __set_CONTROL(uint32_t control)
+ 353:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 354:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __ASM volatile ("MSR control, %0" : : "r" (control) );
+ 355:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 356:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 357:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 358:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get IPSR Register
+ 359:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 360:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the content of the IPSR Register.
+ 361:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 362:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               IPSR Register value
+ 363:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 364:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __get_IPSR(void)
+ 365:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 366:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   uint32_t result;
+ 367:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 368:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __ASM volatile ("MRS %0, ipsr" : "=r" (result) );
+ 369:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(result);
+ 370:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 371:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 372:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 373:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get APSR Register
+ 374:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 375:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the content of the APSR Register.
+ 376:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 377:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               APSR Register value
+ 378:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 379:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __get_APSR(void)
+ 380:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 381:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   uint32_t result;
+ 382:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 383:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __ASM volatile ("MRS %0, apsr" : "=r" (result) );
+ 384:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(result);
+ 385:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 386:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 387:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 388:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get xPSR Register
+ 389:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 390:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the content of the xPSR Register.
+ 391:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 392:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               xPSR Register value
+ 393:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 394:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __get_xPSR(void)
+ 395:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 396:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   uint32_t result;
+ 397:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 398:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __ASM volatile ("MRS %0, xpsr" : "=r" (result) );
+ 399:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(result);
+ 400:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 401:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 402:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 403:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get Process Stack Pointer
+ 404:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 405:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the current value of the Process Stack Pointer (PSP).
+ 406:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 407:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               PSP Register value
+ 408:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 409:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __get_PSP(void)
+ 410:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 411:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t result;
+ 412:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 413:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __ASM volatile ("MRS %0, psp\n"  : "=r" (result) );
+ 414:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(result);
+ 415:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 416:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  
+ 417:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 418:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Set Process Stack Pointer
+ 419:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 420:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function assigns the given value to the Process Stack Pointer (PSP).
+ 421:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 422:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 423:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 424:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __set_PSP(uint32_t topOfProcStack)
+ 425:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 426:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __ASM volatile ("MSR psp, %0\n" : : "r" (topOfProcStack) );
+ 427:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 428:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 429:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 430:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get Main Stack Pointer
+ 431:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 432:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the current value of the Main Stack Pointer (MSP).
+ 433:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 434:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               MSP Register value
+ 435:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 436:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __get_MSP(void)
+ 437:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 438:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   register uint32_t result;
+ 439:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 440:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __ASM volatile ("MRS %0, msp\n" : "=r" (result) );
+ 441:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(result);
+ 442:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 443:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  
+ 444:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 445:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Set Main Stack Pointer
+ 446:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 447:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function assigns the given value to the Main Stack Pointer (MSP).
+ 448:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 449:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 450:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 451:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __set_MSP(uint32_t topOfMainStack)
+ 452:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 453:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __ASM volatile ("MSR msp, %0\n" : : "r" (topOfMainStack) );
+ 454:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 455:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 456:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 457:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /** \brief  Get Priority Mask
+ 458:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 459:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     This function returns the current state of the priority mask bit from the Priority Mask Registe
+ 460:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 461:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****     \return               Priority Mask value
+ 462:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  */
+ 463:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE uint32_t __get_PRIMASK(void)
+ 464:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
+ 465:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   uint32_t result;
+ 466:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** 
+ 467:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __ASM volatile ("MRS %0, primask" : "=r" (result) );
+  54              	 .loc 2 467 0
+  55              	 .syntax unified
+  56              	
+  57 0006 EFF31083 	 MRS r3,primask
+  58              	
+  59              	 .thumb
+  60              	 .syntax unified
+  61 000a 3B60     	 str r3,[r7]
+ 468:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   return(result);
+  62              	 .loc 2 468 0
+  63 000c 3B68     	 ldr r3,[r7]
+  64              	.LBE17:
+  65              	.LBE16:
+ 146:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	irqflags_t flags = cpu_irq_is_enabled();
+  66              	 .loc 1 146 0
+  67 000e 002B     	 cmp r3,#0
+  68 0010 0CBF     	 ite eq
+  69 0012 0123     	 moveq r3,#1
+  70 0014 0023     	 movne r3,#0
+  71 0016 DBB2     	 uxtb r3,r3
+  72 0018 7B60     	 str r3,[r7,#4]
+  73              	.LBB18:
+  74              	.LBB19:
+ 327:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+  75              	 .loc 2 327 0
+  76              	 .syntax unified
+  77              	
+  78 001a 72B6     	 cpsid i
+  79              	
+  80              	 .thumb
+  81              	 .syntax unified
+  82              	.LBE19:
+  83              	.LBE18:
+  84              	.LBB20:
+  85              	.LBB21:
+  86              	 .file 3 "../../../platform/thirdparty/CMSIS/include/core_cmInstr.h"
+   1:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /**************************************************************************//**
+   2:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @file     core_cmInstr.h
+   3:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @brief    CMSIS Cortex-M Core Instruction Access Header File
+   4:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @version  V3.00
+   5:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @date     07. February 2012
+   6:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  *
+   7:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @note
+   8:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * Copyright (C) 2009-2012 ARM Limited. All rights reserved.
+   9:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  *
+  10:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @par
+  11:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * ARM Limited (ARM) is supplying this software for use with Cortex-M
+  12:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * processor based microcontrollers.  This file can be freely distributed
+  13:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * within development tools that are supporting such ARM based processors.
+  14:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  *
+  15:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @par
+  16:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
+  17:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+  18:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
+  19:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
+  20:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  21:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  *
+  22:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  ******************************************************************************/
+  23:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  24:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #ifndef __CORE_CMINSTR_H
+  25:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __CORE_CMINSTR_H
+  26:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  27:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  28:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /* ##########################  Core Instruction Access  ######################### */
+  29:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \defgroup CMSIS_Core_InstructionInterface CMSIS Core Instruction Interface
+  30:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   Access to dedicated instructions
+  31:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   @{
+  32:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** */
+  33:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  34:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #if   defined ( __CC_ARM ) /*------------------RealView Compiler -----------------*/
+  35:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /* ARM armcc specific functions */
+  36:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  37:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #if (__ARMCC_VERSION < 400677)
+  38:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   #error "Please use ARM Compiler Toolchain V4.0.677 or later!"
+  39:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #endif
+  40:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  41:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  42:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  No Operation
+  43:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  44:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     No Operation does nothing. This instruction can be used for code alignment purposes.
+  45:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  46:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __NOP                             __nop
+  47:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  48:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  49:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Wait For Interrupt
+  50:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  51:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     Wait For Interrupt is a hint instruction that suspends execution
+  52:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     until one of a number of events occurs.
+  53:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  54:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __WFI                             __wfi
+  55:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  56:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  57:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Wait For Event
+  58:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  59:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     Wait For Event is a hint instruction that permits the processor to enter
+  60:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     a low-power state until one of a number of events occurs.
+  61:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  62:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __WFE                             __wfe
+  63:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  64:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  65:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Send Event
+  66:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  67:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+  68:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  69:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __SEV                             __sev
+  70:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  71:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  72:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Instruction Synchronization Barrier
+  73:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  74:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     Instruction Synchronization Barrier flushes the pipeline in the processor,
+  75:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     so that all instructions following the ISB are fetched from cache or
+  76:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     memory, after the instruction has been completed.
+  77:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  78:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __ISB()                           __isb(0xF)
+  79:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  80:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  81:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Data Synchronization Barrier
+  82:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  83:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function acts as a special kind of Data Memory Barrier.
+  84:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     It completes when all explicit memory accesses before this instruction complete.
+  85:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  86:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __DSB()                           __dsb(0xF)
+  87:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  88:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  89:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Data Memory Barrier
+  90:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  91:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function ensures the apparent order of the explicit memory operations before
+  92:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     and after the instruction, without ensuring their completion.
+  93:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+  94:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __DMB()                           __dmb(0xF)
+  95:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  96:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  97:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Reverse byte order (32 bit)
+  98:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+  99:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function reverses the byte order in integer value.
+ 100:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 101:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 102:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return               Reversed value
+ 103:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 104:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __REV                             __rev
+ 105:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 106:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 107:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Reverse byte order (16 bit)
+ 108:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 109:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function reverses the byte order in two unsigned short values.
+ 110:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 111:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 112:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return               Reversed value
+ 113:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 114:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** __attribute__((section(".rev16_text"))) __STATIC_INLINE __ASM uint32_t __REV16(uint32_t value)
+ 115:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** {
+ 116:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   rev16 r0, r0
+ 117:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   bx lr
+ 118:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** }
+ 119:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 120:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 121:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Reverse byte order in signed short value
+ 122:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 123:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function reverses the byte order in a signed short value with sign extension to integer.
+ 124:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 125:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 126:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return               Reversed value
+ 127:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 128:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** __attribute__((section(".revsh_text"))) __STATIC_INLINE __ASM int32_t __REVSH(int32_t value)
+ 129:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** {
+ 130:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   revsh r0, r0
+ 131:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   bx lr
+ 132:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** }
+ 133:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 134:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 135:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Rotate Right in unsigned value (32 bit)
+ 136:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 137:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function Rotate Right (immediate) provides the value of the contents of a register rotated
+ 138:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 139:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    value  Value to rotate
+ 140:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    value  Number of Bits to rotate
+ 141:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return               Rotated value
+ 142:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 143:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __ROR                             __ror
+ 144:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 145:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 146:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #if       (__CORTEX_M >= 0x03)
+ 147:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 148:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Reverse bit order of value
+ 149:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 150:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function reverses the bit order of the given value.
+ 151:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 152:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 153:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return               Reversed value
+ 154:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 155:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __RBIT                            __rbit
+ 156:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 157:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 158:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  LDR Exclusive (8 bit)
+ 159:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 160:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function performs a exclusive LDR command for 8 bit value.
+ 161:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 162:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 163:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return             value of type uint8_t at (*ptr)
+ 164:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 165:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __LDREXB(ptr)                     ((uint8_t ) __ldrex(ptr))
+ 166:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 167:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 168:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  LDR Exclusive (16 bit)
+ 169:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 170:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function performs a exclusive LDR command for 16 bit values.
+ 171:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 172:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 173:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return        value of type uint16_t at (*ptr)
+ 174:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 175:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __LDREXH(ptr)                     ((uint16_t) __ldrex(ptr))
+ 176:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 177:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 178:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  LDR Exclusive (32 bit)
+ 179:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 180:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function performs a exclusive LDR command for 32 bit values.
+ 181:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 182:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 183:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return        value of type uint32_t at (*ptr)
+ 184:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 185:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __LDREXW(ptr)                     ((uint32_t ) __ldrex(ptr))
+ 186:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 187:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 188:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  STR Exclusive (8 bit)
+ 189:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 190:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function performs a exclusive STR command for 8 bit values.
+ 191:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 192:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]  value  Value to store
+ 193:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 194:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return          0  Function succeeded
+ 195:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return          1  Function failed
+ 196:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 197:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __STREXB(value, ptr)              __strex(value, ptr)
+ 198:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 199:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 200:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  STR Exclusive (16 bit)
+ 201:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 202:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function performs a exclusive STR command for 16 bit values.
+ 203:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 204:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]  value  Value to store
+ 205:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 206:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return          0  Function succeeded
+ 207:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return          1  Function failed
+ 208:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 209:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __STREXH(value, ptr)              __strex(value, ptr)
+ 210:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 211:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 212:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  STR Exclusive (32 bit)
+ 213:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 214:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function performs a exclusive STR command for 32 bit values.
+ 215:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 216:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]  value  Value to store
+ 217:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 218:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return          0  Function succeeded
+ 219:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return          1  Function failed
+ 220:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 221:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __STREXW(value, ptr)              __strex(value, ptr)
+ 222:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 223:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 224:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Remove the exclusive lock
+ 225:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 226:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function removes the exclusive lock which is created by LDREX.
+ 227:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 228:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 229:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __CLREX                           __clrex
+ 230:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 231:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 232:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Signed Saturate
+ 233:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 234:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function saturates a signed value.
+ 235:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 236:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]  value  Value to be saturated
+ 237:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    sat  Bit position to saturate to (1..32)
+ 238:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return             Saturated value
+ 239:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 240:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __SSAT                            __ssat
+ 241:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 242:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 243:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Unsigned Saturate
+ 244:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 245:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function saturates an unsigned value.
+ 246:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 247:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]  value  Value to be saturated
+ 248:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]    sat  Bit position to saturate to (0..31)
+ 249:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return             Saturated value
+ 250:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 251:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __USAT                            __usat
+ 252:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 253:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 254:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Count leading zeros
+ 255:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 256:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function counts the number of leading zeros of a data value.
+ 257:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 258:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \param [in]  value  Value to count the leading zeros
+ 259:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     \return             number of leading zeros in value
+ 260:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 261:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #define __CLZ                             __clz
+ 262:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 263:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 264:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 265:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 266:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 267:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #elif defined ( __ICCARM__ ) /*------------------ ICC Compiler -------------------*/
+ 268:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /* IAR iccarm specific functions */
+ 269:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 270:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #include <cmsis_iar.h>
+ 271:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 272:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 273:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #elif defined ( __TMS470__ ) /*---------------- TI CCS Compiler ------------------*/
+ 274:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /* TI CCS specific functions */
+ 275:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 276:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #include <cmsis_ccs.h>
+ 277:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 278:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 279:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** #elif defined ( __GNUC__ ) /*------------------ GNU Compiler ---------------------*/
+ 280:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /* GNU gcc specific functions */
+ 281:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 282:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  No Operation
+ 283:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 284:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     No Operation does nothing. This instruction can be used for code alignment purposes.
+ 285:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 286:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __NOP(void)
+ 287:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** {
+ 288:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   __ASM volatile ("nop");
+ 289:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** }
+ 290:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 291:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 292:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Wait For Interrupt
+ 293:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 294:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     Wait For Interrupt is a hint instruction that suspends execution
+ 295:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     until one of a number of events occurs.
+ 296:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 297:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __WFI(void)
+ 298:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** {
+ 299:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   __ASM volatile ("wfi");
+ 300:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** }
+ 301:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 302:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 303:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Wait For Event
+ 304:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 305:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     Wait For Event is a hint instruction that permits the processor to enter
+ 306:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     a low-power state until one of a number of events occurs.
+ 307:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 308:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __WFE(void)
+ 309:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** {
+ 310:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   __ASM volatile ("wfe");
+ 311:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** }
+ 312:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 313:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 314:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Send Event
+ 315:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 316:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+ 317:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 318:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __SEV(void)
+ 319:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** {
+ 320:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   __ASM volatile ("sev");
+ 321:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** }
+ 322:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 323:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 324:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Instruction Synchronization Barrier
+ 325:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 326:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     Instruction Synchronization Barrier flushes the pipeline in the processor,
+ 327:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     so that all instructions following the ISB are fetched from cache or
+ 328:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     memory, after the instruction has been completed.
+ 329:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 330:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __ISB(void)
+ 331:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** {
+ 332:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   __ASM volatile ("isb");
+ 333:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** }
+ 334:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 335:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 336:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Data Synchronization Barrier
+ 337:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 338:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function acts as a special kind of Data Memory Barrier.
+ 339:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     It completes when all explicit memory accesses before this instruction complete.
+ 340:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 341:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __DSB(void)
+ 342:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** {
+ 343:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   __ASM volatile ("dsb");
+ 344:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** }
+ 345:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 346:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 347:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /** \brief  Data Memory Barrier
+ 348:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** 
+ 349:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     This function ensures the apparent order of the explicit memory operations before
+ 350:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****     and after the instruction, without ensuring their completion.
+ 351:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  */
+ 352:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __DMB(void)
+ 353:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** {
+ 354:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   __ASM volatile ("dmb");
+  87              	 .loc 3 354 0
+  88              	 .syntax unified
+  89              	
+  90 001c BFF35F8F 	 dmb
+  91              	
+  92              	 .thumb
+  93              	 .syntax unified
+  94              	.LBE21:
+  95              	.LBE20:
+ 147:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	cpu_irq_disable();
+  96              	 .loc 1 147 0
+  97 0020 044B     	 ldr r3,.L4
+  98 0022 0022     	 movs r2,#0
+  99 0024 1A70     	 strb r2,[r3]
+ 148:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	return flags;
+ 100              	 .loc 1 148 0
+ 101 0026 7B68     	 ldr r3,[r7,#4]
+ 149:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** }
+ 102              	 .loc 1 149 0
+ 103 0028 1846     	 mov r0,r3
+ 104 002a 0C37     	 adds r7,r7,#12
+ 105              	.LCFI3:
+ 106              	 .cfi_def_cfa_offset 4
+ 107 002c BD46     	 mov sp,r7
+ 108              	.LCFI4:
+ 109              	 .cfi_def_cfa_register 13
+ 110              	 
+ 111 002e 80BC     	 pop {r7}
+ 112              	.LCFI5:
+ 113              	 .cfi_restore 7
+ 114              	 .cfi_def_cfa_offset 0
+ 115 0030 7047     	 bx lr
+ 116              	.L5:
+ 117 0032 00BF     	 .align 2
+ 118              	.L4:
+ 119 0034 00000000 	 .word g_interrupt_enabled
+ 120              	 .cfi_endproc
+ 121              	.LFE112:
+ 123              	 .align 1
+ 124              	 .syntax unified
+ 125              	 .thumb
+ 126              	 .thumb_func
+ 127              	 .fpu softvfp
+ 129              	cpu_irq_is_enabled_flags:
+ 130              	.LFB113:
+ 150:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+ 151:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** static inline bool cpu_irq_is_enabled_flags(irqflags_t flags)
+ 152:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** {
+ 131              	 .loc 1 152 0
+ 132              	 .cfi_startproc
+ 133              	 
+ 134              	 
+ 135              	 
+ 136 0038 80B4     	 push {r7}
+ 137              	.LCFI6:
+ 138              	 .cfi_def_cfa_offset 4
+ 139              	 .cfi_offset 7,-4
+ 140 003a 83B0     	 sub sp,sp,#12
+ 141              	.LCFI7:
+ 142              	 .cfi_def_cfa_offset 16
+ 143 003c 00AF     	 add r7,sp,#0
+ 144              	.LCFI8:
+ 145              	 .cfi_def_cfa_register 7
+ 146 003e 7860     	 str r0,[r7,#4]
+ 153:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	return (flags);
+ 147              	 .loc 1 153 0
+ 148 0040 7B68     	 ldr r3,[r7,#4]
+ 149 0042 002B     	 cmp r3,#0
+ 150 0044 14BF     	 ite ne
+ 151 0046 0123     	 movne r3,#1
+ 152 0048 0023     	 moveq r3,#0
+ 153 004a DBB2     	 uxtb r3,r3
+ 154:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** }
+ 154              	 .loc 1 154 0
+ 155 004c 1846     	 mov r0,r3
+ 156 004e 0C37     	 adds r7,r7,#12
+ 157              	.LCFI9:
+ 158              	 .cfi_def_cfa_offset 4
+ 159 0050 BD46     	 mov sp,r7
+ 160              	.LCFI10:
+ 161              	 .cfi_def_cfa_register 13
+ 162              	 
+ 163 0052 80BC     	 pop {r7}
+ 164              	.LCFI11:
+ 165              	 .cfi_restore 7
+ 166              	 .cfi_def_cfa_offset 0
+ 167 0054 7047     	 bx lr
+ 168              	 .cfi_endproc
+ 169              	.LFE113:
+ 171              	 .align 1
+ 172              	 .syntax unified
+ 173              	 .thumb
+ 174              	 .thumb_func
+ 175              	 .fpu softvfp
+ 177              	cpu_irq_restore:
+ 178              	.LFB114:
+ 155:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 
+ 156:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** static inline void cpu_irq_restore(irqflags_t flags)
+ 157:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** {
+ 179              	 .loc 1 157 0
+ 180              	 .cfi_startproc
+ 181              	 
+ 182              	 
+ 183 0056 80B5     	 push {r7,lr}
+ 184              	.LCFI12:
+ 185              	 .cfi_def_cfa_offset 8
+ 186              	 .cfi_offset 7,-8
+ 187              	 .cfi_offset 14,-4
+ 188 0058 82B0     	 sub sp,sp,#8
+ 189              	.LCFI13:
+ 190              	 .cfi_def_cfa_offset 16
+ 191 005a 00AF     	 add r7,sp,#0
+ 192              	.LCFI14:
+ 193              	 .cfi_def_cfa_register 7
+ 194 005c 7860     	 str r0,[r7,#4]
+ 158:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 	if (cpu_irq_is_enabled_flags(flags))
+ 195              	 .loc 1 158 0
+ 196 005e 7868     	 ldr r0,[r7,#4]
+ 197 0060 FFF7EAFF 	 bl cpu_irq_is_enabled_flags
+ 198 0064 0346     	 mov r3,r0
+ 199 0066 002B     	 cmp r3,#0
+ 200 0068 05D0     	 beq .L10
+ 159:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** 		cpu_irq_enable();
+ 201              	 .loc 1 159 0
+ 202 006a 054B     	 ldr r3,.L11
+ 203 006c 0122     	 movs r2,#1
+ 204 006e 1A70     	 strb r2,[r3]
+ 205              	.LBB22:
+ 206              	.LBB23:
+ 207              	 .loc 3 354 0
+ 208              	 .syntax unified
+ 209              	
+ 210 0070 BFF35F8F 	 dmb
+ 211              	
+ 212              	 .thumb
+ 213              	 .syntax unified
+ 214              	.LBE23:
+ 215              	.LBE22:
+ 216              	.LBB24:
+ 217              	.LBB25:
+ 316:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 218              	 .loc 2 316 0
+ 219              	 .syntax unified
+ 220              	
+ 221 0074 62B6     	 cpsie i
+ 222              	
+ 223              	 .thumb
+ 224              	 .syntax unified
+ 225              	.L10:
+ 226              	.LBE25:
+ 227              	.LBE24:
+ 160:../../../platform/common/utils/interrupt/interrupt_sam_nvic.h **** }
+ 228              	 .loc 1 160 0
+ 229 0076 00BF     	 nop
+ 230 0078 0837     	 adds r7,r7,#8
+ 231              	.LCFI15:
+ 232              	 .cfi_def_cfa_offset 8
+ 233 007a BD46     	 mov sp,r7
+ 234              	.LCFI16:
+ 235              	 .cfi_def_cfa_register 13
+ 236              	 
+ 237 007c 80BD     	 pop {r7,pc}
+ 238              	.L12:
+ 239 007e 00BF     	 .align 2
+ 240              	.L11:
+ 241 0080 00000000 	 .word g_interrupt_enabled
+ 242              	 .cfi_endproc
+ 243              	.LFE114:
+ 245              	 .section .ramfunc,"ax",%progbits
+ 246              	 .align 1
+ 247              	 .global bpm_ps_no_halt_exec
+ 248              	 .syntax unified
+ 249              	 .thumb
+ 250              	 .thumb_func
+ 251              	 .fpu softvfp
+ 253              	bpm_ps_no_halt_exec:
+ 254              	.LFB123:
+ 255              	 .file 4 "../../../platform/sam/drivers/bpm/bpm.c"
+   1:../../../platform/sam/drivers/bpm/bpm.c **** /**
+   2:../../../platform/sam/drivers/bpm/bpm.c ****  * \file
+   3:../../../platform/sam/drivers/bpm/bpm.c ****  *
+   4:../../../platform/sam/drivers/bpm/bpm.c ****  * \brief BPM driver
+   5:../../../platform/sam/drivers/bpm/bpm.c ****  *
+   6:../../../platform/sam/drivers/bpm/bpm.c ****  * Copyright (c) 2012 - 2013 Atmel Corporation. All rights reserved.
+   7:../../../platform/sam/drivers/bpm/bpm.c ****  *
+   8:../../../platform/sam/drivers/bpm/bpm.c ****  * \asf_license_start
+   9:../../../platform/sam/drivers/bpm/bpm.c ****  *
+  10:../../../platform/sam/drivers/bpm/bpm.c ****  * \page License
+  11:../../../platform/sam/drivers/bpm/bpm.c ****  *
+  12:../../../platform/sam/drivers/bpm/bpm.c ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/sam/drivers/bpm/bpm.c ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/sam/drivers/bpm/bpm.c ****  *
+  15:../../../platform/sam/drivers/bpm/bpm.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/sam/drivers/bpm/bpm.c ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/sam/drivers/bpm/bpm.c ****  *
+  18:../../../platform/sam/drivers/bpm/bpm.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/sam/drivers/bpm/bpm.c ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/sam/drivers/bpm/bpm.c ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/sam/drivers/bpm/bpm.c ****  *
+  22:../../../platform/sam/drivers/bpm/bpm.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/sam/drivers/bpm/bpm.c ****  *    from this software without specific prior written permission.
+  24:../../../platform/sam/drivers/bpm/bpm.c ****  *
+  25:../../../platform/sam/drivers/bpm/bpm.c ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/sam/drivers/bpm/bpm.c ****  *    Atmel microcontroller product.
+  27:../../../platform/sam/drivers/bpm/bpm.c ****  *
+  28:../../../platform/sam/drivers/bpm/bpm.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/sam/drivers/bpm/bpm.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/sam/drivers/bpm/bpm.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/sam/drivers/bpm/bpm.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/sam/drivers/bpm/bpm.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/sam/drivers/bpm/bpm.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/sam/drivers/bpm/bpm.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/sam/drivers/bpm/bpm.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/sam/drivers/bpm/bpm.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/sam/drivers/bpm/bpm.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/sam/drivers/bpm/bpm.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/sam/drivers/bpm/bpm.c ****  *
+  40:../../../platform/sam/drivers/bpm/bpm.c ****  * \asf_license_stop
+  41:../../../platform/sam/drivers/bpm/bpm.c ****  *
+  42:../../../platform/sam/drivers/bpm/bpm.c ****  */
+  43:../../../platform/sam/drivers/bpm/bpm.c **** 
+  44:../../../platform/sam/drivers/bpm/bpm.c **** #include "compiler.h"
+  45:../../../platform/sam/drivers/bpm/bpm.c **** #include "bpm.h"
+  46:../../../platform/sam/drivers/bpm/bpm.c **** 
+  47:../../../platform/sam/drivers/bpm/bpm.c **** RAMFUNC bool bpm_ps_no_halt_exec(Bpm *bpm, uint32_t pmcon);
+  48:../../../platform/sam/drivers/bpm/bpm.c **** /**
+  49:../../../platform/sam/drivers/bpm/bpm.c ****  * \brief Execute Power Scaling No Halt with a delay loop
+  50:../../../platform/sam/drivers/bpm/bpm.c ****  *
+  51:../../../platform/sam/drivers/bpm/bpm.c ****  * \note SysTick is used to check timeout.
+  52:../../../platform/sam/drivers/bpm/bpm.c ****  *
+  53:../../../platform/sam/drivers/bpm/bpm.c ****  * \param bpm BPM register base
+  54:../../../platform/sam/drivers/bpm/bpm.c ****  * \param pmcon BPM_PMCON value to write
+  55:../../../platform/sam/drivers/bpm/bpm.c ****  *
+  56:../../../platform/sam/drivers/bpm/bpm.c ****  * \return PSOK status, true if set.
+  57:../../../platform/sam/drivers/bpm/bpm.c ****  */
+  58:../../../platform/sam/drivers/bpm/bpm.c **** RAMFUNC bool bpm_ps_no_halt_exec(Bpm *bpm, uint32_t pmcon)
+  59:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 256              	 .loc 4 59 0
+ 257              	 .cfi_startproc
+ 258              	 
+ 259              	 
+ 260              	 
+ 261 0000 80B4     	 push {r7}
+ 262              	.LCFI17:
+ 263              	 .cfi_def_cfa_offset 4
+ 264              	 .cfi_offset 7,-4
+ 265 0002 85B0     	 sub sp,sp,#20
+ 266              	.LCFI18:
+ 267              	 .cfi_def_cfa_offset 24
+ 268 0004 00AF     	 add r7,sp,#0
+ 269              	.LCFI19:
+ 270              	 .cfi_def_cfa_register 7
+ 271 0006 7860     	 str r0,[r7,#4]
+ 272 0008 3960     	 str r1,[r7]
+  60:../../../platform/sam/drivers/bpm/bpm.c **** 	bool b_psok = false;
+ 273              	 .loc 4 60 0
+ 274 000a 0023     	 movs r3,#0
+ 275 000c FB73     	 strb r3,[r7,#15]
+  61:../../../platform/sam/drivers/bpm/bpm.c **** 	bool b_timeout = false;
+ 276              	 .loc 4 61 0
+ 277 000e 0023     	 movs r3,#0
+ 278 0010 BB73     	 strb r3,[r7,#14]
+  62:../../../platform/sam/drivers/bpm/bpm.c **** 	BPM_UNLOCK(PMCON);
+ 279              	 .loc 4 62 0
+ 280 0012 154B     	 ldr r3,.L17
+ 281 0014 154A     	 ldr r2,.L17+4
+ 282 0016 9A61     	 str r2,[r3,#24]
+  63:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_PMCON = pmcon;
+ 283              	 .loc 4 63 0
+ 284 0018 7B68     	 ldr r3,[r7,#4]
+ 285 001a 3A68     	 ldr r2,[r7]
+ 286 001c DA61     	 str r2,[r3,#28]
+ 287              	.L15:
+  64:../../../platform/sam/drivers/bpm/bpm.c **** 	do {
+  65:../../../platform/sam/drivers/bpm/bpm.c **** 		b_psok = (BPM->BPM_SR & BPM_SR_PSOK);
+ 288              	 .loc 4 65 0 discriminator 2
+ 289 001e 124B     	 ldr r3,.L17
+ 290 0020 5B69     	 ldr r3,[r3,#20]
+ 291 0022 03F00103 	 and r3,r3,#1
+ 292 0026 002B     	 cmp r3,#0
+ 293 0028 14BF     	 ite ne
+ 294 002a 0123     	 movne r3,#1
+ 295 002c 0023     	 moveq r3,#0
+ 296 002e FB73     	 strb r3,[r7,#15]
+  66:../../../platform/sam/drivers/bpm/bpm.c **** 		b_timeout = (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk);
+ 297              	 .loc 4 66 0 discriminator 2
+ 298 0030 0F4B     	 ldr r3,.L17+8
+ 299 0032 1B68     	 ldr r3,[r3]
+ 300 0034 03F48033 	 and r3,r3,#65536
+ 301 0038 002B     	 cmp r3,#0
+ 302 003a 14BF     	 ite ne
+ 303 003c 0123     	 movne r3,#1
+ 304 003e 0023     	 moveq r3,#0
+ 305 0040 BB73     	 strb r3,[r7,#14]
+  67:../../../platform/sam/drivers/bpm/bpm.c **** 	} while (!b_psok && !b_timeout);
+ 306              	 .loc 4 67 0 discriminator 2
+ 307 0042 FB7B     	 ldrb r3,[r7,#15]
+ 308 0044 83F00103 	 eor r3,r3,#1
+ 309 0048 DBB2     	 uxtb r3,r3
+ 310 004a 002B     	 cmp r3,#0
+ 311 004c 05D0     	 beq .L14
+ 312              	 .loc 4 67 0 is_stmt 0 discriminator 1
+ 313 004e BB7B     	 ldrb r3,[r7,#14]
+ 314 0050 83F00103 	 eor r3,r3,#1
+ 315 0054 DBB2     	 uxtb r3,r3
+ 316 0056 002B     	 cmp r3,#0
+ 317 0058 E1D1     	 bne .L15
+ 318              	.L14:
+  68:../../../platform/sam/drivers/bpm/bpm.c **** 	return b_psok;
+ 319              	 .loc 4 68 0 is_stmt 1
+ 320 005a FB7B     	 ldrb r3,[r7,#15]
+  69:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 321              	 .loc 4 69 0
+ 322 005c 1846     	 mov r0,r3
+ 323 005e 1437     	 adds r7,r7,#20
+ 324              	.LCFI20:
+ 325              	 .cfi_def_cfa_offset 4
+ 326 0060 BD46     	 mov sp,r7
+ 327              	.LCFI21:
+ 328              	 .cfi_def_cfa_register 13
+ 329              	 
+ 330 0062 80BC     	 pop {r7}
+ 331              	.LCFI22:
+ 332              	 .cfi_restore 7
+ 333              	 .cfi_def_cfa_offset 0
+ 334 0064 7047     	 bx lr
+ 335              	.L18:
+ 336 0066 00BF     	 .align 2
+ 337              	.L17:
+ 338 0068 00000F40 	 .word 1074724864
+ 339 006c 1C0000AA 	 .word -1442840548
+ 340 0070 10E000E0 	 .word -536813552
+ 341              	 .cfi_endproc
+ 342              	.LFE123:
+ 344              	 .text
+ 345              	 .align 1
+ 346              	 .global bpm_power_scaling_cpu_failsafe
+ 347              	 .syntax unified
+ 348              	 .thumb
+ 349              	 .thumb_func
+ 350              	 .fpu softvfp
+ 352              	bpm_power_scaling_cpu_failsafe:
+ 353              	.LFB124:
+  70:../../../platform/sam/drivers/bpm/bpm.c **** 
+  71:../../../platform/sam/drivers/bpm/bpm.c **** 
+  72:../../../platform/sam/drivers/bpm/bpm.c **** bool bpm_power_scaling_cpu_failsafe(Bpm *bpm, uint32_t ps_value,
+  73:../../../platform/sam/drivers/bpm/bpm.c **** 	uint32_t timeout)
+  74:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 354              	 .loc 4 74 0
+ 355              	 .cfi_startproc
+ 356              	 
+ 357              	 
+ 358 0084 80B5     	 push {r7,lr}
+ 359              	.LCFI23:
+ 360              	 .cfi_def_cfa_offset 8
+ 361              	 .cfi_offset 7,-8
+ 362              	 .cfi_offset 14,-4
+ 363 0086 8AB0     	 sub sp,sp,#40
+ 364              	.LCFI24:
+ 365              	 .cfi_def_cfa_offset 48
+ 366 0088 00AF     	 add r7,sp,#0
+ 367              	.LCFI25:
+ 368              	 .cfi_def_cfa_register 7
+ 369 008a F860     	 str r0,[r7,#12]
+ 370 008c B960     	 str r1,[r7,#8]
+ 371 008e 7A60     	 str r2,[r7,#4]
+  75:../../../platform/sam/drivers/bpm/bpm.c **** 	uint32_t pmcon = 0;
+ 372              	 .loc 4 75 0
+ 373 0090 0023     	 movs r3,#0
+ 374 0092 7B62     	 str r3,[r7,#36]
+  76:../../../platform/sam/drivers/bpm/bpm.c **** 
+  77:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Read last PM_CON value */
+  78:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon = bpm->BPM_PMCON;
+ 375              	 .loc 4 78 0
+ 376 0094 FB68     	 ldr r3,[r7,#12]
+ 377 0096 DB69     	 ldr r3,[r3,#28]
+ 378 0098 7B62     	 str r3,[r7,#36]
+  79:../../../platform/sam/drivers/bpm/bpm.c **** 
+  80:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Clear last PS Value & Write new one */
+  81:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon &= ~BPM_PMCON_PS_Msk;
+ 379              	 .loc 4 81 0
+ 380 009a 7B6A     	 ldr r3,[r7,#36]
+ 381 009c 23F00303 	 bic r3,r3,#3
+ 382 00a0 7B62     	 str r3,[r7,#36]
+  82:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon |= BPM_PMCON_PS(ps_value);
+ 383              	 .loc 4 82 0
+ 384 00a2 BB68     	 ldr r3,[r7,#8]
+ 385 00a4 03F00303 	 and r3,r3,#3
+ 386 00a8 7A6A     	 ldr r2,[r7,#36]
+ 387 00aa 1343     	 orrs r3,r3,r2
+ 388 00ac 7B62     	 str r3,[r7,#36]
+  83:../../../platform/sam/drivers/bpm/bpm.c **** 
+  84:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Set PSCM Value: PS change no halt */
+  85:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon |= BPM_PMCON_PSCM;
+ 389              	 .loc 4 85 0
+ 390 00ae 7B6A     	 ldr r3,[r7,#36]
+ 391 00b0 43F00803 	 orr r3,r3,#8
+ 392 00b4 7B62     	 str r3,[r7,#36]
+  86:../../../platform/sam/drivers/bpm/bpm.c **** 
+  87:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Power Scaling Change Request */
+  88:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon |= BPM_PMCON_PSCREQ;
+ 393              	 .loc 4 88 0
+ 394 00b6 7B6A     	 ldr r3,[r7,#36]
+ 395 00b8 43F00403 	 orr r3,r3,#4
+ 396 00bc 7B62     	 str r3,[r7,#36]
+  89:../../../platform/sam/drivers/bpm/bpm.c **** 
+  90:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Execute power scaling no halt in RAM */
+  91:../../../platform/sam/drivers/bpm/bpm.c **** 	irqflags_t flags;
+  92:../../../platform/sam/drivers/bpm/bpm.c **** 	bool b_psok;
+  93:../../../platform/sam/drivers/bpm/bpm.c **** 	uint32_t ctrl, load, val;
+  94:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Avoid interrupt while flash halt */
+  95:../../../platform/sam/drivers/bpm/bpm.c **** 	flags = cpu_irq_save();
+ 397              	 .loc 4 95 0
+ 398 00be FFF79FFF 	 bl cpu_irq_save
+ 399 00c2 3862     	 str r0,[r7,#32]
+  96:../../../platform/sam/drivers/bpm/bpm.c **** 
+  97:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Save SysTick */
+  98:../../../platform/sam/drivers/bpm/bpm.c **** 	val = SysTick->VAL;
+ 400              	 .loc 4 98 0
+ 401 00c4 144B     	 ldr r3,.L21
+ 402 00c6 9B68     	 ldr r3,[r3,#8]
+ 403 00c8 FB61     	 str r3,[r7,#28]
+  99:../../../platform/sam/drivers/bpm/bpm.c **** 	ctrl = SysTick->CTRL;
+ 404              	 .loc 4 99 0
+ 405 00ca 134B     	 ldr r3,.L21
+ 406 00cc 1B68     	 ldr r3,[r3]
+ 407 00ce BB61     	 str r3,[r7,#24]
+ 100:../../../platform/sam/drivers/bpm/bpm.c **** 	load = SysTick->LOAD;
+ 408              	 .loc 4 100 0
+ 409 00d0 114B     	 ldr r3,.L21
+ 410 00d2 5B68     	 ldr r3,[r3,#4]
+ 411 00d4 7B61     	 str r3,[r7,#20]
+ 101:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Setup SysTick & start counting */
+ 102:../../../platform/sam/drivers/bpm/bpm.c **** 	SysTick->LOAD = timeout;
+ 412              	 .loc 4 102 0
+ 413 00d6 104A     	 ldr r2,.L21
+ 414 00d8 7B68     	 ldr r3,[r7,#4]
+ 415 00da 5360     	 str r3,[r2,#4]
+ 103:../../../platform/sam/drivers/bpm/bpm.c **** 	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk;
+ 416              	 .loc 4 103 0
+ 417 00dc 0E4B     	 ldr r3,.L21
+ 418 00de 0522     	 movs r2,#5
+ 419 00e0 1A60     	 str r2,[r3]
+ 104:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 105:../../../platform/sam/drivers/bpm/bpm.c **** 	b_psok = bpm_ps_no_halt_exec(bpm, pmcon);
+ 420              	 .loc 4 105 0
+ 421 00e2 796A     	 ldr r1,[r7,#36]
+ 422 00e4 F868     	 ldr r0,[r7,#12]
+ 423 00e6 0D4B     	 ldr r3,.L21+4
+ 424 00e8 9847     	 blx r3
+ 425              	.LVL0:
+ 426 00ea 0346     	 mov r3,r0
+ 427 00ec FB74     	 strb r3,[r7,#19]
+ 106:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 107:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Restore SysTick */
+ 108:../../../platform/sam/drivers/bpm/bpm.c **** 	SysTick->CTRL = 0;
+ 428              	 .loc 4 108 0
+ 429 00ee 0A4B     	 ldr r3,.L21
+ 430 00f0 0022     	 movs r2,#0
+ 431 00f2 1A60     	 str r2,[r3]
+ 109:../../../platform/sam/drivers/bpm/bpm.c **** 	SysTick->LOAD = load;
+ 432              	 .loc 4 109 0
+ 433 00f4 084A     	 ldr r2,.L21
+ 434 00f6 7B69     	 ldr r3,[r7,#20]
+ 435 00f8 5360     	 str r3,[r2,#4]
+ 110:../../../platform/sam/drivers/bpm/bpm.c **** 	SysTick->VAL = val;
+ 436              	 .loc 4 110 0
+ 437 00fa 074A     	 ldr r2,.L21
+ 438 00fc FB69     	 ldr r3,[r7,#28]
+ 439 00fe 9360     	 str r3,[r2,#8]
+ 111:../../../platform/sam/drivers/bpm/bpm.c **** 	SysTick->CTRL = ctrl;
+ 440              	 .loc 4 111 0
+ 441 0100 054A     	 ldr r2,.L21
+ 442 0102 BB69     	 ldr r3,[r7,#24]
+ 443 0104 1360     	 str r3,[r2]
+ 112:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 113:../../../platform/sam/drivers/bpm/bpm.c **** 	cpu_irq_restore(flags);
+ 444              	 .loc 4 113 0
+ 445 0106 386A     	 ldr r0,[r7,#32]
+ 446 0108 FFF7A5FF 	 bl cpu_irq_restore
+ 114:../../../platform/sam/drivers/bpm/bpm.c **** 	return b_psok;
+ 447              	 .loc 4 114 0
+ 448 010c FB7C     	 ldrb r3,[r7,#19]
+ 115:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 449              	 .loc 4 115 0
+ 450 010e 1846     	 mov r0,r3
+ 451 0110 2837     	 adds r7,r7,#40
+ 452              	.LCFI26:
+ 453              	 .cfi_def_cfa_offset 8
+ 454 0112 BD46     	 mov sp,r7
+ 455              	.LCFI27:
+ 456              	 .cfi_def_cfa_register 13
+ 457              	 
+ 458 0114 80BD     	 pop {r7,pc}
+ 459              	.L22:
+ 460 0116 00BF     	 .align 2
+ 461              	.L21:
+ 462 0118 10E000E0 	 .word -536813552
+ 463 011c 00000000 	 .word bpm_ps_no_halt_exec
+ 464              	 .cfi_endproc
+ 465              	.LFE124:
+ 467              	 .align 1
+ 468              	 .global bpm_power_scaling_cpu
+ 469              	 .syntax unified
+ 470              	 .thumb
+ 471              	 .thumb_func
+ 472              	 .fpu softvfp
+ 474              	bpm_power_scaling_cpu:
+ 475              	.LFB125:
+ 116:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 117:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_power_scaling_cpu(Bpm *bpm, uint32_t ps_value)
+ 118:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 476              	 .loc 4 118 0
+ 477              	 .cfi_startproc
+ 478              	 
+ 479              	 
+ 480              	 
+ 481 0120 80B4     	 push {r7}
+ 482              	.LCFI28:
+ 483              	 .cfi_def_cfa_offset 4
+ 484              	 .cfi_offset 7,-4
+ 485 0122 85B0     	 sub sp,sp,#20
+ 486              	.LCFI29:
+ 487              	 .cfi_def_cfa_offset 24
+ 488 0124 00AF     	 add r7,sp,#0
+ 489              	.LCFI30:
+ 490              	 .cfi_def_cfa_register 7
+ 491 0126 7860     	 str r0,[r7,#4]
+ 492 0128 3960     	 str r1,[r7]
+ 119:../../../platform/sam/drivers/bpm/bpm.c **** 	uint32_t pmcon = 0;
+ 493              	 .loc 4 119 0
+ 494 012a 0023     	 movs r3,#0
+ 495 012c FB60     	 str r3,[r7,#12]
+ 120:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Read last PM_CON value */
+ 121:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon = bpm->BPM_PMCON;
+ 496              	 .loc 4 121 0
+ 497 012e 7B68     	 ldr r3,[r7,#4]
+ 498 0130 DB69     	 ldr r3,[r3,#28]
+ 499 0132 FB60     	 str r3,[r7,#12]
+ 122:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Clear last PS Value */
+ 123:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon &= ~BPM_PMCON_PS_Msk;
+ 500              	 .loc 4 123 0
+ 501 0134 FB68     	 ldr r3,[r7,#12]
+ 502 0136 23F00303 	 bic r3,r3,#3
+ 503 013a FB60     	 str r3,[r7,#12]
+ 124:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Write new PS Value */
+ 125:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon |= BPM_PMCON_PS(ps_value);
+ 504              	 .loc 4 125 0
+ 505 013c 3B68     	 ldr r3,[r7]
+ 506 013e 03F00303 	 and r3,r3,#3
+ 507 0142 FA68     	 ldr r2,[r7,#12]
+ 508 0144 1343     	 orrs r3,r3,r2
+ 509 0146 FB60     	 str r3,[r7,#12]
+ 126:../../../platform/sam/drivers/bpm/bpm.c **** 	/* PSCM: without CPU halt */
+ 127:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon |= BPM_PMCON_PSCM;
+ 510              	 .loc 4 127 0
+ 511 0148 FB68     	 ldr r3,[r7,#12]
+ 512 014a 43F00803 	 orr r3,r3,#8
+ 513 014e FB60     	 str r3,[r7,#12]
+ 128:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Power Scaling Change Request */
+ 129:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon |= BPM_PMCON_PSCREQ;
+ 514              	 .loc 4 129 0
+ 515 0150 FB68     	 ldr r3,[r7,#12]
+ 516 0152 43F00403 	 orr r3,r3,#4
+ 517 0156 FB60     	 str r3,[r7,#12]
+ 130:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Unlock PMCON register */
+ 131:../../../platform/sam/drivers/bpm/bpm.c **** 	BPM_UNLOCK(PMCON);
+ 518              	 .loc 4 131 0
+ 519 0158 054B     	 ldr r3,.L24
+ 520 015a 064A     	 ldr r2,.L24+4
+ 521 015c 9A61     	 str r2,[r3,#24]
+ 132:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Write back PM_CON value */
+ 133:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_PMCON = pmcon;
+ 522              	 .loc 4 133 0
+ 523 015e 7B68     	 ldr r3,[r7,#4]
+ 524 0160 FA68     	 ldr r2,[r7,#12]
+ 525 0162 DA61     	 str r2,[r3,#28]
+ 134:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 526              	 .loc 4 134 0
+ 527 0164 00BF     	 nop
+ 528 0166 1437     	 adds r7,r7,#20
+ 529              	.LCFI31:
+ 530              	 .cfi_def_cfa_offset 4
+ 531 0168 BD46     	 mov sp,r7
+ 532              	.LCFI32:
+ 533              	 .cfi_def_cfa_register 13
+ 534              	 
+ 535 016a 80BC     	 pop {r7}
+ 536              	.LCFI33:
+ 537              	 .cfi_restore 7
+ 538              	 .cfi_def_cfa_offset 0
+ 539 016c 7047     	 bx lr
+ 540              	.L25:
+ 541 016e 00BF     	 .align 2
+ 542              	.L24:
+ 543 0170 00000F40 	 .word 1074724864
+ 544 0174 1C0000AA 	 .word -1442840548
+ 545              	 .cfi_endproc
+ 546              	.LFE125:
+ 548              	 .align 1
+ 549              	 .global bpm_enable_fast_wakeup
+ 550              	 .syntax unified
+ 551              	 .thumb
+ 552              	 .thumb_func
+ 553              	 .fpu softvfp
+ 555              	bpm_enable_fast_wakeup:
+ 556              	.LFB126:
+ 135:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 136:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_enable_fast_wakeup(Bpm *bpm)
+ 137:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 557              	 .loc 4 137 0
+ 558              	 .cfi_startproc
+ 559              	 
+ 560              	 
+ 561              	 
+ 562 0178 80B4     	 push {r7}
+ 563              	.LCFI34:
+ 564              	 .cfi_def_cfa_offset 4
+ 565              	 .cfi_offset 7,-4
+ 566 017a 85B0     	 sub sp,sp,#20
+ 567              	.LCFI35:
+ 568              	 .cfi_def_cfa_offset 24
+ 569 017c 00AF     	 add r7,sp,#0
+ 570              	.LCFI36:
+ 571              	 .cfi_def_cfa_register 7
+ 572 017e 7860     	 str r0,[r7,#4]
+ 138:../../../platform/sam/drivers/bpm/bpm.c **** 	uint32_t pmcon = bpm->BPM_PMCON | BPM_PMCON_FASTWKUP;
+ 573              	 .loc 4 138 0
+ 574 0180 7B68     	 ldr r3,[r7,#4]
+ 575 0182 DB69     	 ldr r3,[r3,#28]
+ 576 0184 43F08073 	 orr r3,r3,#16777216
+ 577 0188 FB60     	 str r3,[r7,#12]
+ 139:../../../platform/sam/drivers/bpm/bpm.c **** 	BPM_UNLOCK(PMCON);
+ 578              	 .loc 4 139 0
+ 579 018a 054B     	 ldr r3,.L27
+ 580 018c 054A     	 ldr r2,.L27+4
+ 581 018e 9A61     	 str r2,[r3,#24]
+ 140:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_PMCON = pmcon;
+ 582              	 .loc 4 140 0
+ 583 0190 7B68     	 ldr r3,[r7,#4]
+ 584 0192 FA68     	 ldr r2,[r7,#12]
+ 585 0194 DA61     	 str r2,[r3,#28]
+ 141:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 586              	 .loc 4 141 0
+ 587 0196 00BF     	 nop
+ 588 0198 1437     	 adds r7,r7,#20
+ 589              	.LCFI37:
+ 590              	 .cfi_def_cfa_offset 4
+ 591 019a BD46     	 mov sp,r7
+ 592              	.LCFI38:
+ 593              	 .cfi_def_cfa_register 13
+ 594              	 
+ 595 019c 80BC     	 pop {r7}
+ 596              	.LCFI39:
+ 597              	 .cfi_restore 7
+ 598              	 .cfi_def_cfa_offset 0
+ 599 019e 7047     	 bx lr
+ 600              	.L28:
+ 601              	 .align 2
+ 602              	.L27:
+ 603 01a0 00000F40 	 .word 1074724864
+ 604 01a4 1C0000AA 	 .word -1442840548
+ 605              	 .cfi_endproc
+ 606              	.LFE126:
+ 608              	 .align 1
+ 609              	 .global bpm_disable_fast_wakeup
+ 610              	 .syntax unified
+ 611              	 .thumb
+ 612              	 .thumb_func
+ 613              	 .fpu softvfp
+ 615              	bpm_disable_fast_wakeup:
+ 616              	.LFB127:
+ 142:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 143:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_disable_fast_wakeup(Bpm *bpm)
+ 144:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 617              	 .loc 4 144 0
+ 618              	 .cfi_startproc
+ 619              	 
+ 620              	 
+ 621              	 
+ 622 01a8 80B4     	 push {r7}
+ 623              	.LCFI40:
+ 624              	 .cfi_def_cfa_offset 4
+ 625              	 .cfi_offset 7,-4
+ 626 01aa 85B0     	 sub sp,sp,#20
+ 627              	.LCFI41:
+ 628              	 .cfi_def_cfa_offset 24
+ 629 01ac 00AF     	 add r7,sp,#0
+ 630              	.LCFI42:
+ 631              	 .cfi_def_cfa_register 7
+ 632 01ae 7860     	 str r0,[r7,#4]
+ 145:../../../platform/sam/drivers/bpm/bpm.c **** 	uint32_t pmcon = bpm->BPM_PMCON & (~BPM_PMCON_FASTWKUP);
+ 633              	 .loc 4 145 0
+ 634 01b0 7B68     	 ldr r3,[r7,#4]
+ 635 01b2 DB69     	 ldr r3,[r3,#28]
+ 636 01b4 23F08073 	 bic r3,r3,#16777216
+ 637 01b8 FB60     	 str r3,[r7,#12]
+ 146:../../../platform/sam/drivers/bpm/bpm.c **** 	BPM_UNLOCK(PMCON);
+ 638              	 .loc 4 146 0
+ 639 01ba 054B     	 ldr r3,.L30
+ 640 01bc 054A     	 ldr r2,.L30+4
+ 641 01be 9A61     	 str r2,[r3,#24]
+ 147:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_PMCON = pmcon;
+ 642              	 .loc 4 147 0
+ 643 01c0 7B68     	 ldr r3,[r7,#4]
+ 644 01c2 FA68     	 ldr r2,[r7,#12]
+ 645 01c4 DA61     	 str r2,[r3,#28]
+ 148:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 646              	 .loc 4 148 0
+ 647 01c6 00BF     	 nop
+ 648 01c8 1437     	 adds r7,r7,#20
+ 649              	.LCFI43:
+ 650              	 .cfi_def_cfa_offset 4
+ 651 01ca BD46     	 mov sp,r7
+ 652              	.LCFI44:
+ 653              	 .cfi_def_cfa_register 13
+ 654              	 
+ 655 01cc 80BC     	 pop {r7}
+ 656              	.LCFI45:
+ 657              	 .cfi_restore 7
+ 658              	 .cfi_def_cfa_offset 0
+ 659 01ce 7047     	 bx lr
+ 660              	.L31:
+ 661              	 .align 2
+ 662              	.L30:
+ 663 01d0 00000F40 	 .word 1074724864
+ 664 01d4 1C0000AA 	 .word -1442840548
+ 665              	 .cfi_endproc
+ 666              	.LFE127:
+ 668              	 .align 1
+ 669              	 .global bpm_set_clk32_source
+ 670              	 .syntax unified
+ 671              	 .thumb
+ 672              	 .thumb_func
+ 673              	 .fpu softvfp
+ 675              	bpm_set_clk32_source:
+ 676              	.LFB128:
+ 149:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 150:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_set_clk32_source(Bpm *bpm, uint32_t source)
+ 151:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 677              	 .loc 4 151 0
+ 678              	 .cfi_startproc
+ 679              	 
+ 680              	 
+ 681              	 
+ 682 01d8 80B4     	 push {r7}
+ 683              	.LCFI46:
+ 684              	 .cfi_def_cfa_offset 4
+ 685              	 .cfi_offset 7,-4
+ 686 01da 85B0     	 sub sp,sp,#20
+ 687              	.LCFI47:
+ 688              	 .cfi_def_cfa_offset 24
+ 689 01dc 00AF     	 add r7,sp,#0
+ 690              	.LCFI48:
+ 691              	 .cfi_def_cfa_register 7
+ 692 01de 7860     	 str r0,[r7,#4]
+ 693 01e0 3960     	 str r1,[r7]
+ 152:../../../platform/sam/drivers/bpm/bpm.c **** 	uint32_t pmcon;
+ 153:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 154:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Read PMCON first */
+ 155:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon = bpm->BPM_PMCON;
+ 694              	 .loc 4 155 0
+ 695 01e2 7B68     	 ldr r3,[r7,#4]
+ 696 01e4 DB69     	 ldr r3,[r3,#28]
+ 697 01e6 FB60     	 str r3,[r7,#12]
+ 156:../../../platform/sam/drivers/bpm/bpm.c **** 	if (source == BPM_CLK32_SOURCE_OSC32K) {
+ 698              	 .loc 4 156 0
+ 699 01e8 3B68     	 ldr r3,[r7]
+ 700 01ea 002B     	 cmp r3,#0
+ 701 01ec 04D1     	 bne .L33
+ 157:../../../platform/sam/drivers/bpm/bpm.c **** 		/* Clear CK32S for OSC32K */
+ 158:../../../platform/sam/drivers/bpm/bpm.c **** 		pmcon &= ~BPM_PMCON_CK32S;
+ 702              	 .loc 4 158 0
+ 703 01ee FB68     	 ldr r3,[r7,#12]
+ 704 01f0 23F48033 	 bic r3,r3,#65536
+ 705 01f4 FB60     	 str r3,[r7,#12]
+ 706 01f6 03E0     	 b .L34
+ 707              	.L33:
+ 159:../../../platform/sam/drivers/bpm/bpm.c **** 	} else {
+ 160:../../../platform/sam/drivers/bpm/bpm.c **** 		/* Set CK32S for RC32K */
+ 161:../../../platform/sam/drivers/bpm/bpm.c **** 		pmcon |= BPM_PMCON_CK32S;
+ 708              	 .loc 4 161 0
+ 709 01f8 FB68     	 ldr r3,[r7,#12]
+ 710 01fa 43F48033 	 orr r3,r3,#65536
+ 711 01fe FB60     	 str r3,[r7,#12]
+ 712              	.L34:
+ 162:../../../platform/sam/drivers/bpm/bpm.c **** 	}
+ 163:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 164:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Unlock PMCON register */
+ 165:../../../platform/sam/drivers/bpm/bpm.c **** 	BPM_UNLOCK(PMCON);
+ 713              	 .loc 4 165 0
+ 714 0200 054B     	 ldr r3,.L35
+ 715 0202 064A     	 ldr r2,.L35+4
+ 716 0204 9A61     	 str r2,[r3,#24]
+ 166:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_PMCON = pmcon;
+ 717              	 .loc 4 166 0
+ 718 0206 7B68     	 ldr r3,[r7,#4]
+ 719 0208 FA68     	 ldr r2,[r7,#12]
+ 720 020a DA61     	 str r2,[r3,#28]
+ 167:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 721              	 .loc 4 167 0
+ 722 020c 00BF     	 nop
+ 723 020e 1437     	 adds r7,r7,#20
+ 724              	.LCFI49:
+ 725              	 .cfi_def_cfa_offset 4
+ 726 0210 BD46     	 mov sp,r7
+ 727              	.LCFI50:
+ 728              	 .cfi_def_cfa_register 13
+ 729              	 
+ 730 0212 80BC     	 pop {r7}
+ 731              	.LCFI51:
+ 732              	 .cfi_restore 7
+ 733              	 .cfi_def_cfa_offset 0
+ 734 0214 7047     	 bx lr
+ 735              	.L36:
+ 736 0216 00BF     	 .align 2
+ 737              	.L35:
+ 738 0218 00000F40 	 .word 1074724864
+ 739 021c 1C0000AA 	 .word -1442840548
+ 740              	 .cfi_endproc
+ 741              	.LFE128:
+ 743              	 .align 1
+ 744              	 .global bpm_get_backup_wakeup_cause
+ 745              	 .syntax unified
+ 746              	 .thumb
+ 747              	 .thumb_func
+ 748              	 .fpu softvfp
+ 750              	bpm_get_backup_wakeup_cause:
+ 751              	.LFB129:
+ 168:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 169:../../../platform/sam/drivers/bpm/bpm.c **** uint32_t bpm_get_backup_wakeup_cause(Bpm *bpm)
+ 170:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 752              	 .loc 4 170 0
+ 753              	 .cfi_startproc
+ 754              	 
+ 755              	 
+ 756              	 
+ 757 0220 80B4     	 push {r7}
+ 758              	.LCFI52:
+ 759              	 .cfi_def_cfa_offset 4
+ 760              	 .cfi_offset 7,-4
+ 761 0222 83B0     	 sub sp,sp,#12
+ 762              	.LCFI53:
+ 763              	 .cfi_def_cfa_offset 16
+ 764 0224 00AF     	 add r7,sp,#0
+ 765              	.LCFI54:
+ 766              	 .cfi_def_cfa_register 7
+ 767 0226 7860     	 str r0,[r7,#4]
+ 171:../../../platform/sam/drivers/bpm/bpm.c **** 	return bpm->BPM_BKUPWCAUSE;
+ 768              	 .loc 4 171 0
+ 769 0228 7B68     	 ldr r3,[r7,#4]
+ 770 022a 9B6A     	 ldr r3,[r3,#40]
+ 172:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 771              	 .loc 4 172 0
+ 772 022c 1846     	 mov r0,r3
+ 773 022e 0C37     	 adds r7,r7,#12
+ 774              	.LCFI55:
+ 775              	 .cfi_def_cfa_offset 4
+ 776 0230 BD46     	 mov sp,r7
+ 777              	.LCFI56:
+ 778              	 .cfi_def_cfa_register 13
+ 779              	 
+ 780 0232 80BC     	 pop {r7}
+ 781              	.LCFI57:
+ 782              	 .cfi_restore 7
+ 783              	 .cfi_def_cfa_offset 0
+ 784 0234 7047     	 bx lr
+ 785              	 .cfi_endproc
+ 786              	.LFE129:
+ 788              	 .align 1
+ 789              	 .global bpm_enable_wakeup_source
+ 790              	 .syntax unified
+ 791              	 .thumb
+ 792              	 .thumb_func
+ 793              	 .fpu softvfp
+ 795              	bpm_enable_wakeup_source:
+ 796              	.LFB130:
+ 173:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 174:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_enable_wakeup_source(Bpm *bpm, uint32_t sources)
+ 175:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 797              	 .loc 4 175 0
+ 798              	 .cfi_startproc
+ 799              	 
+ 800              	 
+ 801              	 
+ 802 0236 80B4     	 push {r7}
+ 803              	.LCFI58:
+ 804              	 .cfi_def_cfa_offset 4
+ 805              	 .cfi_offset 7,-4
+ 806 0238 83B0     	 sub sp,sp,#12
+ 807              	.LCFI59:
+ 808              	 .cfi_def_cfa_offset 16
+ 809 023a 00AF     	 add r7,sp,#0
+ 810              	.LCFI60:
+ 811              	 .cfi_def_cfa_register 7
+ 812 023c 7860     	 str r0,[r7,#4]
+ 813 023e 3960     	 str r1,[r7]
+ 176:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Write BKUPWEN value */
+ 177:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_BKUPWEN |= sources;
+ 814              	 .loc 4 177 0
+ 815 0240 7B68     	 ldr r3,[r7,#4]
+ 816 0242 DA6A     	 ldr r2,[r3,#44]
+ 817 0244 3B68     	 ldr r3,[r7]
+ 818 0246 1A43     	 orrs r2,r2,r3
+ 819 0248 7B68     	 ldr r3,[r7,#4]
+ 820 024a DA62     	 str r2,[r3,#44]
+ 178:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 821              	 .loc 4 178 0
+ 822 024c 00BF     	 nop
+ 823 024e 0C37     	 adds r7,r7,#12
+ 824              	.LCFI61:
+ 825              	 .cfi_def_cfa_offset 4
+ 826 0250 BD46     	 mov sp,r7
+ 827              	.LCFI62:
+ 828              	 .cfi_def_cfa_register 13
+ 829              	 
+ 830 0252 80BC     	 pop {r7}
+ 831              	.LCFI63:
+ 832              	 .cfi_restore 7
+ 833              	 .cfi_def_cfa_offset 0
+ 834 0254 7047     	 bx lr
+ 835              	 .cfi_endproc
+ 836              	.LFE130:
+ 838              	 .align 1
+ 839              	 .global bpm_disable_wakeup_source
+ 840              	 .syntax unified
+ 841              	 .thumb
+ 842              	 .thumb_func
+ 843              	 .fpu softvfp
+ 845              	bpm_disable_wakeup_source:
+ 846              	.LFB131:
+ 179:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 180:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_disable_wakeup_source(Bpm *bpm, uint32_t sources)
+ 181:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 847              	 .loc 4 181 0
+ 848              	 .cfi_startproc
+ 849              	 
+ 850              	 
+ 851              	 
+ 852 0256 80B4     	 push {r7}
+ 853              	.LCFI64:
+ 854              	 .cfi_def_cfa_offset 4
+ 855              	 .cfi_offset 7,-4
+ 856 0258 83B0     	 sub sp,sp,#12
+ 857              	.LCFI65:
+ 858              	 .cfi_def_cfa_offset 16
+ 859 025a 00AF     	 add r7,sp,#0
+ 860              	.LCFI66:
+ 861              	 .cfi_def_cfa_register 7
+ 862 025c 7860     	 str r0,[r7,#4]
+ 863 025e 3960     	 str r1,[r7]
+ 182:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Write BKUPWEN value */
+ 183:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_BKUPWEN &= ~sources;
+ 864              	 .loc 4 183 0
+ 865 0260 7B68     	 ldr r3,[r7,#4]
+ 866 0262 DA6A     	 ldr r2,[r3,#44]
+ 867 0264 3B68     	 ldr r3,[r7]
+ 868 0266 DB43     	 mvns r3,r3
+ 869 0268 1A40     	 ands r2,r2,r3
+ 870 026a 7B68     	 ldr r3,[r7,#4]
+ 871 026c DA62     	 str r2,[r3,#44]
+ 184:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 872              	 .loc 4 184 0
+ 873 026e 00BF     	 nop
+ 874 0270 0C37     	 adds r7,r7,#12
+ 875              	.LCFI67:
+ 876              	 .cfi_def_cfa_offset 4
+ 877 0272 BD46     	 mov sp,r7
+ 878              	.LCFI68:
+ 879              	 .cfi_def_cfa_register 13
+ 880              	 
+ 881 0274 80BC     	 pop {r7}
+ 882              	.LCFI69:
+ 883              	 .cfi_restore 7
+ 884              	 .cfi_def_cfa_offset 0
+ 885 0276 7047     	 bx lr
+ 886              	 .cfi_endproc
+ 887              	.LFE131:
+ 889              	 .align 1
+ 890              	 .global bpm_enable_backup_pin
+ 891              	 .syntax unified
+ 892              	 .thumb
+ 893              	 .thumb_func
+ 894              	 .fpu softvfp
+ 896              	bpm_enable_backup_pin:
+ 897              	.LFB132:
+ 185:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 186:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_enable_backup_pin(Bpm *bpm, uint32_t backup_pins)
+ 187:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 898              	 .loc 4 187 0
+ 899              	 .cfi_startproc
+ 900              	 
+ 901              	 
+ 902              	 
+ 903 0278 80B4     	 push {r7}
+ 904              	.LCFI70:
+ 905              	 .cfi_def_cfa_offset 4
+ 906              	 .cfi_offset 7,-4
+ 907 027a 83B0     	 sub sp,sp,#12
+ 908              	.LCFI71:
+ 909              	 .cfi_def_cfa_offset 16
+ 910 027c 00AF     	 add r7,sp,#0
+ 911              	.LCFI72:
+ 912              	 .cfi_def_cfa_register 7
+ 913 027e 7860     	 str r0,[r7,#4]
+ 914 0280 3960     	 str r1,[r7]
+ 188:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Write back BKUPPMUX value */
+ 189:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_BKUPPMUX |= backup_pins;
+ 915              	 .loc 4 189 0
+ 916 0282 7B68     	 ldr r3,[r7,#4]
+ 917 0284 1A6B     	 ldr r2,[r3,#48]
+ 918 0286 3B68     	 ldr r3,[r7]
+ 919 0288 1A43     	 orrs r2,r2,r3
+ 920 028a 7B68     	 ldr r3,[r7,#4]
+ 921 028c 1A63     	 str r2,[r3,#48]
+ 190:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 922              	 .loc 4 190 0
+ 923 028e 00BF     	 nop
+ 924 0290 0C37     	 adds r7,r7,#12
+ 925              	.LCFI73:
+ 926              	 .cfi_def_cfa_offset 4
+ 927 0292 BD46     	 mov sp,r7
+ 928              	.LCFI74:
+ 929              	 .cfi_def_cfa_register 13
+ 930              	 
+ 931 0294 80BC     	 pop {r7}
+ 932              	.LCFI75:
+ 933              	 .cfi_restore 7
+ 934              	 .cfi_def_cfa_offset 0
+ 935 0296 7047     	 bx lr
+ 936              	 .cfi_endproc
+ 937              	.LFE132:
+ 939              	 .align 1
+ 940              	 .global bpm_disable_backup_pin
+ 941              	 .syntax unified
+ 942              	 .thumb
+ 943              	 .thumb_func
+ 944              	 .fpu softvfp
+ 946              	bpm_disable_backup_pin:
+ 947              	.LFB133:
+ 191:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 192:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_disable_backup_pin(Bpm *bpm, uint32_t backup_pins)
+ 193:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 948              	 .loc 4 193 0
+ 949              	 .cfi_startproc
+ 950              	 
+ 951              	 
+ 952              	 
+ 953 0298 80B4     	 push {r7}
+ 954              	.LCFI76:
+ 955              	 .cfi_def_cfa_offset 4
+ 956              	 .cfi_offset 7,-4
+ 957 029a 83B0     	 sub sp,sp,#12
+ 958              	.LCFI77:
+ 959              	 .cfi_def_cfa_offset 16
+ 960 029c 00AF     	 add r7,sp,#0
+ 961              	.LCFI78:
+ 962              	 .cfi_def_cfa_register 7
+ 963 029e 7860     	 str r0,[r7,#4]
+ 964 02a0 3960     	 str r1,[r7]
+ 194:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Write back BKUPPMUX value */
+ 195:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_BKUPPMUX &= ~backup_pins;
+ 965              	 .loc 4 195 0
+ 966 02a2 7B68     	 ldr r3,[r7,#4]
+ 967 02a4 1A6B     	 ldr r2,[r3,#48]
+ 968 02a6 3B68     	 ldr r3,[r7]
+ 969 02a8 DB43     	 mvns r3,r3
+ 970 02aa 1A40     	 ands r2,r2,r3
+ 971 02ac 7B68     	 ldr r3,[r7,#4]
+ 972 02ae 1A63     	 str r2,[r3,#48]
+ 196:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 973              	 .loc 4 196 0
+ 974 02b0 00BF     	 nop
+ 975 02b2 0C37     	 adds r7,r7,#12
+ 976              	.LCFI79:
+ 977              	 .cfi_def_cfa_offset 4
+ 978 02b4 BD46     	 mov sp,r7
+ 979              	.LCFI80:
+ 980              	 .cfi_def_cfa_register 13
+ 981              	 
+ 982 02b6 80BC     	 pop {r7}
+ 983              	.LCFI81:
+ 984              	 .cfi_restore 7
+ 985              	 .cfi_def_cfa_offset 0
+ 986 02b8 7047     	 bx lr
+ 987              	 .cfi_endproc
+ 988              	.LFE133:
+ 990              	 .align 1
+ 991              	 .global bpm_enable_io_retention
+ 992              	 .syntax unified
+ 993              	 .thumb
+ 994              	 .thumb_func
+ 995              	 .fpu softvfp
+ 997              	bpm_enable_io_retention:
+ 998              	.LFB134:
+ 197:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 198:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_enable_io_retention(Bpm *bpm)
+ 199:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 999              	 .loc 4 199 0
+ 1000              	 .cfi_startproc
+ 1001              	 
+ 1002              	 
+ 1003              	 
+ 1004 02ba 80B4     	 push {r7}
+ 1005              	.LCFI82:
+ 1006              	 .cfi_def_cfa_offset 4
+ 1007              	 .cfi_offset 7,-4
+ 1008 02bc 83B0     	 sub sp,sp,#12
+ 1009              	.LCFI83:
+ 1010              	 .cfi_def_cfa_offset 16
+ 1011 02be 00AF     	 add r7,sp,#0
+ 1012              	.LCFI84:
+ 1013              	 .cfi_def_cfa_register 7
+ 1014 02c0 7860     	 str r0,[r7,#4]
+ 200:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_IORET |= BPM_IORET_RET;
+ 1015              	 .loc 4 200 0
+ 1016 02c2 7B68     	 ldr r3,[r7,#4]
+ 1017 02c4 5B6B     	 ldr r3,[r3,#52]
+ 1018 02c6 43F00102 	 orr r2,r3,#1
+ 1019 02ca 7B68     	 ldr r3,[r7,#4]
+ 1020 02cc 5A63     	 str r2,[r3,#52]
+ 201:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 1021              	 .loc 4 201 0
+ 1022 02ce 00BF     	 nop
+ 1023 02d0 0C37     	 adds r7,r7,#12
+ 1024              	.LCFI85:
+ 1025              	 .cfi_def_cfa_offset 4
+ 1026 02d2 BD46     	 mov sp,r7
+ 1027              	.LCFI86:
+ 1028              	 .cfi_def_cfa_register 13
+ 1029              	 
+ 1030 02d4 80BC     	 pop {r7}
+ 1031              	.LCFI87:
+ 1032              	 .cfi_restore 7
+ 1033              	 .cfi_def_cfa_offset 0
+ 1034 02d6 7047     	 bx lr
+ 1035              	 .cfi_endproc
+ 1036              	.LFE134:
+ 1038              	 .align 1
+ 1039              	 .global bpm_disable_io_retention
+ 1040              	 .syntax unified
+ 1041              	 .thumb
+ 1042              	 .thumb_func
+ 1043              	 .fpu softvfp
+ 1045              	bpm_disable_io_retention:
+ 1046              	.LFB135:
+ 202:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 203:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_disable_io_retention(Bpm *bpm)
+ 204:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 1047              	 .loc 4 204 0
+ 1048              	 .cfi_startproc
+ 1049              	 
+ 1050              	 
+ 1051              	 
+ 1052 02d8 80B4     	 push {r7}
+ 1053              	.LCFI88:
+ 1054              	 .cfi_def_cfa_offset 4
+ 1055              	 .cfi_offset 7,-4
+ 1056 02da 83B0     	 sub sp,sp,#12
+ 1057              	.LCFI89:
+ 1058              	 .cfi_def_cfa_offset 16
+ 1059 02dc 00AF     	 add r7,sp,#0
+ 1060              	.LCFI90:
+ 1061              	 .cfi_def_cfa_register 7
+ 1062 02de 7860     	 str r0,[r7,#4]
+ 205:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_IORET &= ~BPM_IORET_RET;
+ 1063              	 .loc 4 205 0
+ 1064 02e0 7B68     	 ldr r3,[r7,#4]
+ 1065 02e2 5B6B     	 ldr r3,[r3,#52]
+ 1066 02e4 23F00102 	 bic r2,r3,#1
+ 1067 02e8 7B68     	 ldr r3,[r7,#4]
+ 1068 02ea 5A63     	 str r2,[r3,#52]
+ 206:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 1069              	 .loc 4 206 0
+ 1070 02ec 00BF     	 nop
+ 1071 02ee 0C37     	 adds r7,r7,#12
+ 1072              	.LCFI91:
+ 1073              	 .cfi_def_cfa_offset 4
+ 1074 02f0 BD46     	 mov sp,r7
+ 1075              	.LCFI92:
+ 1076              	 .cfi_def_cfa_register 13
+ 1077              	 
+ 1078 02f2 80BC     	 pop {r7}
+ 1079              	.LCFI93:
+ 1080              	 .cfi_restore 7
+ 1081              	 .cfi_def_cfa_offset 0
+ 1082 02f4 7047     	 bx lr
+ 1083              	 .cfi_endproc
+ 1084              	.LFE135:
+ 1086              	 .align 1
+ 1087              	 .global bpm_enable_interrupt
+ 1088              	 .syntax unified
+ 1089              	 .thumb
+ 1090              	 .thumb_func
+ 1091              	 .fpu softvfp
+ 1093              	bpm_enable_interrupt:
+ 1094              	.LFB136:
+ 207:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 208:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_enable_interrupt(Bpm *bpm, uint32_t sources)
+ 209:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 1095              	 .loc 4 209 0
+ 1096              	 .cfi_startproc
+ 1097              	 
+ 1098              	 
+ 1099              	 
+ 1100 02f6 80B4     	 push {r7}
+ 1101              	.LCFI94:
+ 1102              	 .cfi_def_cfa_offset 4
+ 1103              	 .cfi_offset 7,-4
+ 1104 02f8 83B0     	 sub sp,sp,#12
+ 1105              	.LCFI95:
+ 1106              	 .cfi_def_cfa_offset 16
+ 1107 02fa 00AF     	 add r7,sp,#0
+ 1108              	.LCFI96:
+ 1109              	 .cfi_def_cfa_register 7
+ 1110 02fc 7860     	 str r0,[r7,#4]
+ 1111 02fe 3960     	 str r1,[r7]
+ 210:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_IER = sources;
+ 1112              	 .loc 4 210 0
+ 1113 0300 7B68     	 ldr r3,[r7,#4]
+ 1114 0302 3A68     	 ldr r2,[r7]
+ 1115 0304 1A60     	 str r2,[r3]
+ 211:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 1116              	 .loc 4 211 0
+ 1117 0306 00BF     	 nop
+ 1118 0308 0C37     	 adds r7,r7,#12
+ 1119              	.LCFI97:
+ 1120              	 .cfi_def_cfa_offset 4
+ 1121 030a BD46     	 mov sp,r7
+ 1122              	.LCFI98:
+ 1123              	 .cfi_def_cfa_register 13
+ 1124              	 
+ 1125 030c 80BC     	 pop {r7}
+ 1126              	.LCFI99:
+ 1127              	 .cfi_restore 7
+ 1128              	 .cfi_def_cfa_offset 0
+ 1129 030e 7047     	 bx lr
+ 1130              	 .cfi_endproc
+ 1131              	.LFE136:
+ 1133              	 .align 1
+ 1134              	 .global bpm_disable_interrupt
+ 1135              	 .syntax unified
+ 1136              	 .thumb
+ 1137              	 .thumb_func
+ 1138              	 .fpu softvfp
+ 1140              	bpm_disable_interrupt:
+ 1141              	.LFB137:
+ 212:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 213:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_disable_interrupt(Bpm *bpm, uint32_t sources)
+ 214:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 1142              	 .loc 4 214 0
+ 1143              	 .cfi_startproc
+ 1144              	 
+ 1145              	 
+ 1146              	 
+ 1147 0310 80B4     	 push {r7}
+ 1148              	.LCFI100:
+ 1149              	 .cfi_def_cfa_offset 4
+ 1150              	 .cfi_offset 7,-4
+ 1151 0312 83B0     	 sub sp,sp,#12
+ 1152              	.LCFI101:
+ 1153              	 .cfi_def_cfa_offset 16
+ 1154 0314 00AF     	 add r7,sp,#0
+ 1155              	.LCFI102:
+ 1156              	 .cfi_def_cfa_register 7
+ 1157 0316 7860     	 str r0,[r7,#4]
+ 1158 0318 3960     	 str r1,[r7]
+ 215:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_IDR = sources;
+ 1159              	 .loc 4 215 0
+ 1160 031a 7B68     	 ldr r3,[r7,#4]
+ 1161 031c 3A68     	 ldr r2,[r7]
+ 1162 031e 5A60     	 str r2,[r3,#4]
+ 216:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 1163              	 .loc 4 216 0
+ 1164 0320 00BF     	 nop
+ 1165 0322 0C37     	 adds r7,r7,#12
+ 1166              	.LCFI103:
+ 1167              	 .cfi_def_cfa_offset 4
+ 1168 0324 BD46     	 mov sp,r7
+ 1169              	.LCFI104:
+ 1170              	 .cfi_def_cfa_register 13
+ 1171              	 
+ 1172 0326 80BC     	 pop {r7}
+ 1173              	.LCFI105:
+ 1174              	 .cfi_restore 7
+ 1175              	 .cfi_def_cfa_offset 0
+ 1176 0328 7047     	 bx lr
+ 1177              	 .cfi_endproc
+ 1178              	.LFE137:
+ 1180              	 .align 1
+ 1181              	 .global bpm_get_interrupt_mask
+ 1182              	 .syntax unified
+ 1183              	 .thumb
+ 1184              	 .thumb_func
+ 1185              	 .fpu softvfp
+ 1187              	bpm_get_interrupt_mask:
+ 1188              	.LFB138:
+ 217:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 218:../../../platform/sam/drivers/bpm/bpm.c **** uint32_t bpm_get_interrupt_mask(Bpm *bpm)
+ 219:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 1189              	 .loc 4 219 0
+ 1190              	 .cfi_startproc
+ 1191              	 
+ 1192              	 
+ 1193              	 
+ 1194 032a 80B4     	 push {r7}
+ 1195              	.LCFI106:
+ 1196              	 .cfi_def_cfa_offset 4
+ 1197              	 .cfi_offset 7,-4
+ 1198 032c 83B0     	 sub sp,sp,#12
+ 1199              	.LCFI107:
+ 1200              	 .cfi_def_cfa_offset 16
+ 1201 032e 00AF     	 add r7,sp,#0
+ 1202              	.LCFI108:
+ 1203              	 .cfi_def_cfa_register 7
+ 1204 0330 7860     	 str r0,[r7,#4]
+ 220:../../../platform/sam/drivers/bpm/bpm.c **** 	return bpm->BPM_IMR;
+ 1205              	 .loc 4 220 0
+ 1206 0332 7B68     	 ldr r3,[r7,#4]
+ 1207 0334 9B68     	 ldr r3,[r3,#8]
+ 221:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 1208              	 .loc 4 221 0
+ 1209 0336 1846     	 mov r0,r3
+ 1210 0338 0C37     	 adds r7,r7,#12
+ 1211              	.LCFI109:
+ 1212              	 .cfi_def_cfa_offset 4
+ 1213 033a BD46     	 mov sp,r7
+ 1214              	.LCFI110:
+ 1215              	 .cfi_def_cfa_register 13
+ 1216              	 
+ 1217 033c 80BC     	 pop {r7}
+ 1218              	.LCFI111:
+ 1219              	 .cfi_restore 7
+ 1220              	 .cfi_def_cfa_offset 0
+ 1221 033e 7047     	 bx lr
+ 1222              	 .cfi_endproc
+ 1223              	.LFE138:
+ 1225              	 .align 1
+ 1226              	 .global bpm_get_interrupt_status
+ 1227              	 .syntax unified
+ 1228              	 .thumb
+ 1229              	 .thumb_func
+ 1230              	 .fpu softvfp
+ 1232              	bpm_get_interrupt_status:
+ 1233              	.LFB139:
+ 222:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 223:../../../platform/sam/drivers/bpm/bpm.c **** uint32_t bpm_get_interrupt_status(Bpm *bpm)
+ 224:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 1234              	 .loc 4 224 0
+ 1235              	 .cfi_startproc
+ 1236              	 
+ 1237              	 
+ 1238              	 
+ 1239 0340 80B4     	 push {r7}
+ 1240              	.LCFI112:
+ 1241              	 .cfi_def_cfa_offset 4
+ 1242              	 .cfi_offset 7,-4
+ 1243 0342 83B0     	 sub sp,sp,#12
+ 1244              	.LCFI113:
+ 1245              	 .cfi_def_cfa_offset 16
+ 1246 0344 00AF     	 add r7,sp,#0
+ 1247              	.LCFI114:
+ 1248              	 .cfi_def_cfa_register 7
+ 1249 0346 7860     	 str r0,[r7,#4]
+ 225:../../../platform/sam/drivers/bpm/bpm.c **** 	return bpm->BPM_ISR;
+ 1250              	 .loc 4 225 0
+ 1251 0348 7B68     	 ldr r3,[r7,#4]
+ 1252 034a DB68     	 ldr r3,[r3,#12]
+ 226:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 1253              	 .loc 4 226 0
+ 1254 034c 1846     	 mov r0,r3
+ 1255 034e 0C37     	 adds r7,r7,#12
+ 1256              	.LCFI115:
+ 1257              	 .cfi_def_cfa_offset 4
+ 1258 0350 BD46     	 mov sp,r7
+ 1259              	.LCFI116:
+ 1260              	 .cfi_def_cfa_register 13
+ 1261              	 
+ 1262 0352 80BC     	 pop {r7}
+ 1263              	.LCFI117:
+ 1264              	 .cfi_restore 7
+ 1265              	 .cfi_def_cfa_offset 0
+ 1266 0354 7047     	 bx lr
+ 1267              	 .cfi_endproc
+ 1268              	.LFE139:
+ 1270              	 .align 1
+ 1271              	 .global bpm_clear_interrupt
+ 1272              	 .syntax unified
+ 1273              	 .thumb
+ 1274              	 .thumb_func
+ 1275              	 .fpu softvfp
+ 1277              	bpm_clear_interrupt:
+ 1278              	.LFB140:
+ 227:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 228:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_clear_interrupt(Bpm *bpm, uint32_t sources)
+ 229:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 1279              	 .loc 4 229 0
+ 1280              	 .cfi_startproc
+ 1281              	 
+ 1282              	 
+ 1283              	 
+ 1284 0356 80B4     	 push {r7}
+ 1285              	.LCFI118:
+ 1286              	 .cfi_def_cfa_offset 4
+ 1287              	 .cfi_offset 7,-4
+ 1288 0358 83B0     	 sub sp,sp,#12
+ 1289              	.LCFI119:
+ 1290              	 .cfi_def_cfa_offset 16
+ 1291 035a 00AF     	 add r7,sp,#0
+ 1292              	.LCFI120:
+ 1293              	 .cfi_def_cfa_register 7
+ 1294 035c 7860     	 str r0,[r7,#4]
+ 1295 035e 3960     	 str r1,[r7]
+ 230:../../../platform/sam/drivers/bpm/bpm.c **** 	bpm->BPM_ICR = sources;
+ 1296              	 .loc 4 230 0
+ 1297 0360 7B68     	 ldr r3,[r7,#4]
+ 1298 0362 3A68     	 ldr r2,[r7]
+ 1299 0364 1A61     	 str r2,[r3,#16]
+ 231:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 1300              	 .loc 4 231 0
+ 1301 0366 00BF     	 nop
+ 1302 0368 0C37     	 adds r7,r7,#12
+ 1303              	.LCFI121:
+ 1304              	 .cfi_def_cfa_offset 4
+ 1305 036a BD46     	 mov sp,r7
+ 1306              	.LCFI122:
+ 1307              	 .cfi_def_cfa_register 13
+ 1308              	 
+ 1309 036c 80BC     	 pop {r7}
+ 1310              	.LCFI123:
+ 1311              	 .cfi_restore 7
+ 1312              	 .cfi_def_cfa_offset 0
+ 1313 036e 7047     	 bx lr
+ 1314              	 .cfi_endproc
+ 1315              	.LFE140:
+ 1317              	 .align 1
+ 1318              	 .global bpm_get_status
+ 1319              	 .syntax unified
+ 1320              	 .thumb
+ 1321              	 .thumb_func
+ 1322              	 .fpu softvfp
+ 1324              	bpm_get_status:
+ 1325              	.LFB141:
+ 232:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 233:../../../platform/sam/drivers/bpm/bpm.c **** uint32_t bpm_get_status(Bpm *bpm)
+ 234:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 1326              	 .loc 4 234 0
+ 1327              	 .cfi_startproc
+ 1328              	 
+ 1329              	 
+ 1330              	 
+ 1331 0370 80B4     	 push {r7}
+ 1332              	.LCFI124:
+ 1333              	 .cfi_def_cfa_offset 4
+ 1334              	 .cfi_offset 7,-4
+ 1335 0372 83B0     	 sub sp,sp,#12
+ 1336              	.LCFI125:
+ 1337              	 .cfi_def_cfa_offset 16
+ 1338 0374 00AF     	 add r7,sp,#0
+ 1339              	.LCFI126:
+ 1340              	 .cfi_def_cfa_register 7
+ 1341 0376 7860     	 str r0,[r7,#4]
+ 235:../../../platform/sam/drivers/bpm/bpm.c **** 	return bpm->BPM_SR;
+ 1342              	 .loc 4 235 0
+ 1343 0378 7B68     	 ldr r3,[r7,#4]
+ 1344 037a 5B69     	 ldr r3,[r3,#20]
+ 236:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 1345              	 .loc 4 236 0
+ 1346 037c 1846     	 mov r0,r3
+ 1347 037e 0C37     	 adds r7,r7,#12
+ 1348              	.LCFI127:
+ 1349              	 .cfi_def_cfa_offset 4
+ 1350 0380 BD46     	 mov sp,r7
+ 1351              	.LCFI128:
+ 1352              	 .cfi_def_cfa_register 13
+ 1353              	 
+ 1354 0382 80BC     	 pop {r7}
+ 1355              	.LCFI129:
+ 1356              	 .cfi_restore 7
+ 1357              	 .cfi_def_cfa_offset 0
+ 1358 0384 7047     	 bx lr
+ 1359              	 .cfi_endproc
+ 1360              	.LFE141:
+ 1362              	 .align 1
+ 1363              	 .global bpm_get_version
+ 1364              	 .syntax unified
+ 1365              	 .thumb
+ 1366              	 .thumb_func
+ 1367              	 .fpu softvfp
+ 1369              	bpm_get_version:
+ 1370              	.LFB142:
+ 237:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 238:../../../platform/sam/drivers/bpm/bpm.c **** uint32_t bpm_get_version(Bpm *bpm)
+ 239:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 1371              	 .loc 4 239 0
+ 1372              	 .cfi_startproc
+ 1373              	 
+ 1374              	 
+ 1375              	 
+ 1376 0386 80B4     	 push {r7}
+ 1377              	.LCFI130:
+ 1378              	 .cfi_def_cfa_offset 4
+ 1379              	 .cfi_offset 7,-4
+ 1380 0388 83B0     	 sub sp,sp,#12
+ 1381              	.LCFI131:
+ 1382              	 .cfi_def_cfa_offset 16
+ 1383 038a 00AF     	 add r7,sp,#0
+ 1384              	.LCFI132:
+ 1385              	 .cfi_def_cfa_register 7
+ 1386 038c 7860     	 str r0,[r7,#4]
+ 240:../../../platform/sam/drivers/bpm/bpm.c **** 	return bpm->BPM_VERSION;
+ 1387              	 .loc 4 240 0
+ 1388 038e 7B68     	 ldr r3,[r7,#4]
+ 1389 0390 D3F8FC30 	 ldr r3,[r3,#252]
+ 241:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 1390              	 .loc 4 241 0
+ 1391 0394 1846     	 mov r0,r3
+ 1392 0396 0C37     	 adds r7,r7,#12
+ 1393              	.LCFI133:
+ 1394              	 .cfi_def_cfa_offset 4
+ 1395 0398 BD46     	 mov sp,r7
+ 1396              	.LCFI134:
+ 1397              	 .cfi_def_cfa_register 13
+ 1398              	 
+ 1399 039a 80BC     	 pop {r7}
+ 1400              	.LCFI135:
+ 1401              	 .cfi_restore 7
+ 1402              	 .cfi_def_cfa_offset 0
+ 1403 039c 7047     	 bx lr
+ 1404              	 .cfi_endproc
+ 1405              	.LFE142:
+ 1407              	 .align 1
+ 1408              	 .global bpm_sleep
+ 1409              	 .syntax unified
+ 1410              	 .thumb
+ 1411              	 .thumb_func
+ 1412              	 .fpu softvfp
+ 1414              	bpm_sleep:
+ 1415              	.LFB143:
+ 242:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 243:../../../platform/sam/drivers/bpm/bpm.c **** void bpm_sleep(Bpm *bpm, uint32_t sleep_mode)
+ 244:../../../platform/sam/drivers/bpm/bpm.c **** {
+ 1416              	 .loc 4 244 0
+ 1417              	 .cfi_startproc
+ 1418              	 
+ 1419              	 
+ 1420              	 
+ 1421 039e 80B4     	 push {r7}
+ 1422              	.LCFI136:
+ 1423              	 .cfi_def_cfa_offset 4
+ 1424              	 .cfi_offset 7,-4
+ 1425 03a0 85B0     	 sub sp,sp,#20
+ 1426              	.LCFI137:
+ 1427              	 .cfi_def_cfa_offset 24
+ 1428 03a2 00AF     	 add r7,sp,#0
+ 1429              	.LCFI138:
+ 1430              	 .cfi_def_cfa_register 7
+ 1431 03a4 7860     	 str r0,[r7,#4]
+ 1432 03a6 3960     	 str r1,[r7]
+ 245:../../../platform/sam/drivers/bpm/bpm.c **** 	uint32_t pmcon;
+ 246:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 247:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Read PMCON register */
+ 248:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon = bpm->BPM_PMCON;
+ 1433              	 .loc 4 248 0
+ 1434 03a8 7B68     	 ldr r3,[r7,#4]
+ 1435 03aa DB69     	 ldr r3,[r3,#28]
+ 1436 03ac FB60     	 str r3,[r7,#12]
+ 249:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon &= ~BPM_PMCON_BKUP;
+ 1437              	 .loc 4 249 0
+ 1438 03ae FB68     	 ldr r3,[r7,#12]
+ 1439 03b0 23F48073 	 bic r3,r3,#256
+ 1440 03b4 FB60     	 str r3,[r7,#12]
+ 250:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon &= ~BPM_PMCON_RET;
+ 1441              	 .loc 4 250 0
+ 1442 03b6 FB68     	 ldr r3,[r7,#12]
+ 1443 03b8 23F40073 	 bic r3,r3,#512
+ 1444 03bc FB60     	 str r3,[r7,#12]
+ 251:../../../platform/sam/drivers/bpm/bpm.c **** 	pmcon &= ~BPM_PMCON_SLEEP_Msk;
+ 1445              	 .loc 4 251 0
+ 1446 03be FB68     	 ldr r3,[r7,#12]
+ 1447 03c0 23F44053 	 bic r3,r3,#12288
+ 1448 03c4 FB60     	 str r3,[r7,#12]
+ 252:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 253:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Unlock PMCON register */
+ 254:../../../platform/sam/drivers/bpm/bpm.c **** 	BPM_UNLOCK(PMCON);
+ 1449              	 .loc 4 254 0
+ 1450 03c6 434B     	 ldr r3,.L69
+ 1451 03c8 434A     	 ldr r2,.L69+4
+ 1452 03ca 9A61     	 str r2,[r3,#24]
+ 255:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 256:../../../platform/sam/drivers/bpm/bpm.c **** 	if (sleep_mode == BPM_SM_SLEEP_0) {
+ 1453              	 .loc 4 256 0
+ 1454 03cc 3B68     	 ldr r3,[r7]
+ 1455 03ce 012B     	 cmp r3,#1
+ 1456 03d0 09D1     	 bne .L57
+ 257:../../../platform/sam/drivers/bpm/bpm.c **** 		pmcon |= BPM_PMCON_SLEEP(0);
+ 258:../../../platform/sam/drivers/bpm/bpm.c **** 		bpm->BPM_PMCON = pmcon;
+ 1457              	 .loc 4 258 0
+ 1458 03d2 7B68     	 ldr r3,[r7,#4]
+ 1459 03d4 FA68     	 ldr r2,[r7,#12]
+ 1460 03d6 DA61     	 str r2,[r3,#28]
+ 259:../../../platform/sam/drivers/bpm/bpm.c **** 		SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+ 1461              	 .loc 4 259 0
+ 1462 03d8 404A     	 ldr r2,.L69+8
+ 1463 03da 404B     	 ldr r3,.L69+8
+ 1464 03dc 1B69     	 ldr r3,[r3,#16]
+ 1465 03de 23F00403 	 bic r3,r3,#4
+ 1466 03e2 1361     	 str r3,[r2,#16]
+ 1467 03e4 60E0     	 b .L68
+ 1468              	.L57:
+ 260:../../../platform/sam/drivers/bpm/bpm.c **** 	} else if (sleep_mode == BPM_SM_SLEEP_1) {
+ 1469              	 .loc 4 260 0
+ 1470 03e6 3B68     	 ldr r3,[r7]
+ 1471 03e8 022B     	 cmp r3,#2
+ 1472 03ea 0DD1     	 bne .L59
+ 261:../../../platform/sam/drivers/bpm/bpm.c **** 		pmcon |= BPM_PMCON_SLEEP(1);
+ 1473              	 .loc 4 261 0
+ 1474 03ec FB68     	 ldr r3,[r7,#12]
+ 1475 03ee 43F48053 	 orr r3,r3,#4096
+ 1476 03f2 FB60     	 str r3,[r7,#12]
+ 262:../../../platform/sam/drivers/bpm/bpm.c **** 		bpm->BPM_PMCON = pmcon;
+ 1477              	 .loc 4 262 0
+ 1478 03f4 7B68     	 ldr r3,[r7,#4]
+ 1479 03f6 FA68     	 ldr r2,[r7,#12]
+ 1480 03f8 DA61     	 str r2,[r3,#28]
+ 263:../../../platform/sam/drivers/bpm/bpm.c **** 		SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+ 1481              	 .loc 4 263 0
+ 1482 03fa 384A     	 ldr r2,.L69+8
+ 1483 03fc 374B     	 ldr r3,.L69+8
+ 1484 03fe 1B69     	 ldr r3,[r3,#16]
+ 1485 0400 23F00403 	 bic r3,r3,#4
+ 1486 0404 1361     	 str r3,[r2,#16]
+ 1487 0406 4FE0     	 b .L68
+ 1488              	.L59:
+ 264:../../../platform/sam/drivers/bpm/bpm.c **** 	} else if (sleep_mode == BPM_SM_SLEEP_2) {
+ 1489              	 .loc 4 264 0
+ 1490 0408 3B68     	 ldr r3,[r7]
+ 1491 040a 032B     	 cmp r3,#3
+ 1492 040c 0DD1     	 bne .L60
+ 265:../../../platform/sam/drivers/bpm/bpm.c **** 		pmcon |= BPM_PMCON_SLEEP(2);
+ 1493              	 .loc 4 265 0
+ 1494 040e FB68     	 ldr r3,[r7,#12]
+ 1495 0410 43F40053 	 orr r3,r3,#8192
+ 1496 0414 FB60     	 str r3,[r7,#12]
+ 266:../../../platform/sam/drivers/bpm/bpm.c **** 		bpm->BPM_PMCON = pmcon;
+ 1497              	 .loc 4 266 0
+ 1498 0416 7B68     	 ldr r3,[r7,#4]
+ 1499 0418 FA68     	 ldr r2,[r7,#12]
+ 1500 041a DA61     	 str r2,[r3,#28]
+ 267:../../../platform/sam/drivers/bpm/bpm.c **** 		SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+ 1501              	 .loc 4 267 0
+ 1502 041c 2F4A     	 ldr r2,.L69+8
+ 1503 041e 2F4B     	 ldr r3,.L69+8
+ 1504 0420 1B69     	 ldr r3,[r3,#16]
+ 1505 0422 23F00403 	 bic r3,r3,#4
+ 1506 0426 1361     	 str r3,[r2,#16]
+ 1507 0428 3EE0     	 b .L68
+ 1508              	.L60:
+ 268:../../../platform/sam/drivers/bpm/bpm.c **** 	} else if (sleep_mode == BPM_SM_SLEEP_3) {
+ 1509              	 .loc 4 268 0
+ 1510 042a 3B68     	 ldr r3,[r7]
+ 1511 042c 042B     	 cmp r3,#4
+ 1512 042e 0DD1     	 bne .L61
+ 269:../../../platform/sam/drivers/bpm/bpm.c **** 		pmcon |= BPM_PMCON_SLEEP(3);
+ 1513              	 .loc 4 269 0
+ 1514 0430 FB68     	 ldr r3,[r7,#12]
+ 1515 0432 43F44053 	 orr r3,r3,#12288
+ 1516 0436 FB60     	 str r3,[r7,#12]
+ 270:../../../platform/sam/drivers/bpm/bpm.c **** 		bpm->BPM_PMCON = pmcon;
+ 1517              	 .loc 4 270 0
+ 1518 0438 7B68     	 ldr r3,[r7,#4]
+ 1519 043a FA68     	 ldr r2,[r7,#12]
+ 1520 043c DA61     	 str r2,[r3,#28]
+ 271:../../../platform/sam/drivers/bpm/bpm.c **** 		SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+ 1521              	 .loc 4 271 0
+ 1522 043e 274A     	 ldr r2,.L69+8
+ 1523 0440 264B     	 ldr r3,.L69+8
+ 1524 0442 1B69     	 ldr r3,[r3,#16]
+ 1525 0444 23F00403 	 bic r3,r3,#4
+ 1526 0448 1361     	 str r3,[r2,#16]
+ 1527 044a 2DE0     	 b .L68
+ 1528              	.L61:
+ 272:../../../platform/sam/drivers/bpm/bpm.c **** 	} else if (sleep_mode == BPM_SM_WAIT) {
+ 1529              	 .loc 4 272 0
+ 1530 044c 3B68     	 ldr r3,[r7]
+ 1531 044e 052B     	 cmp r3,#5
+ 1532 0450 09D1     	 bne .L62
+ 273:../../../platform/sam/drivers/bpm/bpm.c **** 		bpm->BPM_PMCON = pmcon;
+ 1533              	 .loc 4 273 0
+ 1534 0452 7B68     	 ldr r3,[r7,#4]
+ 1535 0454 FA68     	 ldr r2,[r7,#12]
+ 1536 0456 DA61     	 str r2,[r3,#28]
+ 274:../../../platform/sam/drivers/bpm/bpm.c **** 		SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+ 1537              	 .loc 4 274 0
+ 1538 0458 204A     	 ldr r2,.L69+8
+ 1539 045a 204B     	 ldr r3,.L69+8
+ 1540 045c 1B69     	 ldr r3,[r3,#16]
+ 1541 045e 43F00403 	 orr r3,r3,#4
+ 1542 0462 1361     	 str r3,[r2,#16]
+ 1543 0464 20E0     	 b .L68
+ 1544              	.L62:
+ 275:../../../platform/sam/drivers/bpm/bpm.c **** 	} else if (sleep_mode == BPM_SM_RET) {
+ 1545              	 .loc 4 275 0
+ 1546 0466 3B68     	 ldr r3,[r7]
+ 1547 0468 062B     	 cmp r3,#6
+ 1548 046a 0DD1     	 bne .L63
+ 276:../../../platform/sam/drivers/bpm/bpm.c **** 		pmcon |= BPM_PMCON_RET;
+ 1549              	 .loc 4 276 0
+ 1550 046c FB68     	 ldr r3,[r7,#12]
+ 1551 046e 43F40073 	 orr r3,r3,#512
+ 1552 0472 FB60     	 str r3,[r7,#12]
+ 277:../../../platform/sam/drivers/bpm/bpm.c **** 		bpm->BPM_PMCON = pmcon;
+ 1553              	 .loc 4 277 0
+ 1554 0474 7B68     	 ldr r3,[r7,#4]
+ 1555 0476 FA68     	 ldr r2,[r7,#12]
+ 1556 0478 DA61     	 str r2,[r3,#28]
+ 278:../../../platform/sam/drivers/bpm/bpm.c **** 		SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+ 1557              	 .loc 4 278 0
+ 1558 047a 184A     	 ldr r2,.L69+8
+ 1559 047c 174B     	 ldr r3,.L69+8
+ 1560 047e 1B69     	 ldr r3,[r3,#16]
+ 1561 0480 43F00403 	 orr r3,r3,#4
+ 1562 0484 1361     	 str r3,[r2,#16]
+ 1563 0486 0FE0     	 b .L68
+ 1564              	.L63:
+ 279:../../../platform/sam/drivers/bpm/bpm.c **** 	} else if (sleep_mode == BPM_SM_BACKUP) { 
+ 1565              	 .loc 4 279 0
+ 1566 0488 3B68     	 ldr r3,[r7]
+ 1567 048a 072B     	 cmp r3,#7
+ 1568 048c 1CD1     	 bne .L67
+ 280:../../../platform/sam/drivers/bpm/bpm.c **** 		pmcon |= BPM_PMCON_BKUP;
+ 1569              	 .loc 4 280 0
+ 1570 048e FB68     	 ldr r3,[r7,#12]
+ 1571 0490 43F48073 	 orr r3,r3,#256
+ 1572 0494 FB60     	 str r3,[r7,#12]
+ 281:../../../platform/sam/drivers/bpm/bpm.c **** 		bpm->BPM_PMCON = pmcon;
+ 1573              	 .loc 4 281 0
+ 1574 0496 7B68     	 ldr r3,[r7,#4]
+ 1575 0498 FA68     	 ldr r2,[r7,#12]
+ 1576 049a DA61     	 str r2,[r3,#28]
+ 282:../../../platform/sam/drivers/bpm/bpm.c **** 		SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+ 1577              	 .loc 4 282 0
+ 1578 049c 0F4A     	 ldr r2,.L69+8
+ 1579 049e 0F4B     	 ldr r3,.L69+8
+ 1580 04a0 1B69     	 ldr r3,[r3,#16]
+ 1581 04a2 43F00403 	 orr r3,r3,#4
+ 1582 04a6 1361     	 str r3,[r2,#16]
+ 1583              	.L68:
+ 283:../../../platform/sam/drivers/bpm/bpm.c **** 	} else {
+ 284:../../../platform/sam/drivers/bpm/bpm.c **** 		return;
+ 285:../../../platform/sam/drivers/bpm/bpm.c **** 	}
+ 286:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 287:../../../platform/sam/drivers/bpm/bpm.c **** 	/* Wait until vreg is ok. */
+ 288:../../../platform/sam/drivers/bpm/bpm.c **** 	while(!(BSCIF->BSCIF_PCLKSR & BSCIF_PCLKSR_VREGOK));
+ 1584              	 .loc 4 288 0
+ 1585 04a8 00BF     	 nop
+ 1586              	.L66:
+ 1587              	 .loc 4 288 0 is_stmt 0 discriminator 1
+ 1588 04aa 0D4B     	 ldr r3,.L69+12
+ 1589 04ac 5B69     	 ldr r3,[r3,#20]
+ 1590 04ae 03F48063 	 and r3,r3,#1024
+ 1591 04b2 002B     	 cmp r3,#0
+ 1592 04b4 F9D0     	 beq .L66
+ 289:../../../platform/sam/drivers/bpm/bpm.c **** 	asm volatile ("wfi");
+ 1593              	 .loc 4 289 0 is_stmt 1
+ 1594              	 .syntax unified
+ 1595              	
+ 1596 04b6 30BF     	 wfi
+ 1597              	
+ 290:../../../platform/sam/drivers/bpm/bpm.c **** 	/* ensure sleep request propagation to flash. */
+ 291:../../../platform/sam/drivers/bpm/bpm.c **** 	asm volatile ("nop");
+ 1598              	 .loc 4 291 0
+ 1599              	
+ 1600 04b8 00BF     	 nop
+ 1601              	
+ 292:../../../platform/sam/drivers/bpm/bpm.c **** 
+ 293:../../../platform/sam/drivers/bpm/bpm.c **** 	/* The interrupts wake-up from the previous wfi, but there are still
+ 294:../../../platform/sam/drivers/bpm/bpm.c **** 	 * masked since we are in the critical section thanks to the previous
+ 295:../../../platform/sam/drivers/bpm/bpm.c **** 	 * set_pri_mask(1). Thus, we need to leave the critical section.
+ 296:../../../platform/sam/drivers/bpm/bpm.c **** 	 * Please note that we should probably use something like
+ 297:../../../platform/sam/drivers/bpm/bpm.c **** 	 * cpu_leave_critical(), using set_pri_mask(0)
+ 298:../../../platform/sam/drivers/bpm/bpm.c **** 	 */
+ 299:../../../platform/sam/drivers/bpm/bpm.c **** 	cpu_irq_enable();
+ 1602              	 .loc 4 299 0
+ 1603              	 .thumb
+ 1604              	 .syntax unified
+ 1605 04ba 0A4B     	 ldr r3,.L69+16
+ 1606 04bc 0122     	 movs r2,#1
+ 1607 04be 1A70     	 strb r2,[r3]
+ 1608              	.LBB26:
+ 1609              	.LBB27:
+ 1610              	 .loc 3 354 0
+ 1611              	 .syntax unified
+ 1612              	
+ 1613 04c0 BFF35F8F 	 dmb
+ 1614              	
+ 1615              	 .thumb
+ 1616              	 .syntax unified
+ 1617              	.LBE27:
+ 1618              	.LBE26:
+ 1619              	.LBB28:
+ 1620              	.LBB29:
+ 316:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** }
+ 1621              	 .loc 2 316 0
+ 1622              	 .syntax unified
+ 1623              	
+ 1624 04c4 62B6     	 cpsie i
+ 1625              	
+ 1626              	 .thumb
+ 1627              	 .syntax unified
+ 1628 04c6 00E0     	 b .L56
+ 1629              	.L67:
+ 1630              	.LBE29:
+ 1631              	.LBE28:
+ 284:../../../platform/sam/drivers/bpm/bpm.c **** 	}
+ 1632              	 .loc 4 284 0
+ 1633 04c8 00BF     	 nop
+ 1634              	.L56:
+ 300:../../../platform/sam/drivers/bpm/bpm.c **** }
+ 1635              	 .loc 4 300 0
+ 1636 04ca 1437     	 adds r7,r7,#20
+ 1637              	.LCFI139:
+ 1638              	 .cfi_def_cfa_offset 4
+ 1639 04cc BD46     	 mov sp,r7
+ 1640              	.LCFI140:
+ 1641              	 .cfi_def_cfa_register 13
+ 1642              	 
+ 1643 04ce 80BC     	 pop {r7}
+ 1644              	.LCFI141:
+ 1645              	 .cfi_restore 7
+ 1646              	 .cfi_def_cfa_offset 0
+ 1647 04d0 7047     	 bx lr
+ 1648              	.L70:
+ 1649 04d2 00BF     	 .align 2
+ 1650              	.L69:
+ 1651 04d4 00000F40 	 .word 1074724864
+ 1652 04d8 1C0000AA 	 .word -1442840548
+ 1653 04dc 00ED00E0 	 .word -536810240
+ 1654 04e0 00040F40 	 .word 1074725888
+ 1655 04e4 00000000 	 .word g_interrupt_enabled
+ 1656              	 .cfi_endproc
+ 1657              	.LFE143:
+ 1659              	.Letext0:
+ 1660              	 .file 5 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 1661              	 .file 6 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 1662              	 .file 7 "../../../platform/sam/utils/cmsis/sam4l/include/sam4lc4b.h"
+ 1663              	 .file 8 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+ 1664              	 .file 9 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 1665              	 .file 10 "../../../platform/sam/utils/cmsis/sam4l/include/component/component_bpm.h"
+ 1666              	 .file 11 "../../../platform/sam/utils/cmsis/sam4l/include/component/component_bscif.h"
+ 1667              	 .file 12 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 1668              	 .file 13 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 1669              	 .file 14 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 1670              	 .file 15 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 1671              	 .file 16 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 bpm.c
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
+    {standard input}:27     .text:00000000 $t
+    {standard input}:33     .text:00000000 cpu_irq_save
+    {standard input}:119    .text:00000034 $d
+    {standard input}:123    .text:00000038 $t
+    {standard input}:129    .text:00000038 cpu_irq_is_enabled_flags
+    {standard input}:177    .text:00000056 cpu_irq_restore
+    {standard input}:241    .text:00000080 $d
+    {standard input}:246    .ramfunc:00000000 $t
+    {standard input}:253    .ramfunc:00000000 bpm_ps_no_halt_exec
+    {standard input}:338    .ramfunc:00000068 $d
+    {standard input}:345    .text:00000084 $t
+    {standard input}:352    .text:00000084 bpm_power_scaling_cpu_failsafe
+    {standard input}:462    .text:00000118 $d
+    {standard input}:467    .text:00000120 $t
+    {standard input}:474    .text:00000120 bpm_power_scaling_cpu
+    {standard input}:543    .text:00000170 $d
+    {standard input}:548    .text:00000178 $t
+    {standard input}:555    .text:00000178 bpm_enable_fast_wakeup
+    {standard input}:603    .text:000001a0 $d
+    {standard input}:608    .text:000001a8 $t
+    {standard input}:615    .text:000001a8 bpm_disable_fast_wakeup
+    {standard input}:663    .text:000001d0 $d
+    {standard input}:668    .text:000001d8 $t
+    {standard input}:675    .text:000001d8 bpm_set_clk32_source
+    {standard input}:738    .text:00000218 $d
+    {standard input}:743    .text:00000220 $t
+    {standard input}:750    .text:00000220 bpm_get_backup_wakeup_cause
+    {standard input}:795    .text:00000236 bpm_enable_wakeup_source
+    {standard input}:845    .text:00000256 bpm_disable_wakeup_source
+    {standard input}:896    .text:00000278 bpm_enable_backup_pin
+    {standard input}:946    .text:00000298 bpm_disable_backup_pin
+    {standard input}:997    .text:000002ba bpm_enable_io_retention
+    {standard input}:1045   .text:000002d8 bpm_disable_io_retention
+    {standard input}:1093   .text:000002f6 bpm_enable_interrupt
+    {standard input}:1140   .text:00000310 bpm_disable_interrupt
+    {standard input}:1187   .text:0000032a bpm_get_interrupt_mask
+    {standard input}:1232   .text:00000340 bpm_get_interrupt_status
+    {standard input}:1277   .text:00000356 bpm_clear_interrupt
+    {standard input}:1324   .text:00000370 bpm_get_status
+    {standard input}:1369   .text:00000386 bpm_get_version
+    {standard input}:1414   .text:0000039e bpm_sleep
+    {standard input}:1651   .text:000004d4 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+g_interrupt_enabled

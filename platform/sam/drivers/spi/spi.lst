@@ -1,0 +1,1756 @@
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "spi.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .text
+  27              	 .align 1
+  28              	 .syntax unified
+  29              	 .thumb
+  30              	 .thumb_func
+  31              	 .fpu softvfp
+  33              	spi_get_peripheral_select_mode:
+  34              	.LFB131:
+  35              	 .file 1 "../../../platform/sam/drivers/spi/spi.h"
+   1:../../../platform/sam/drivers/spi/spi.h **** /**
+   2:../../../platform/sam/drivers/spi/spi.h ****  * \file
+   3:../../../platform/sam/drivers/spi/spi.h ****  *
+   4:../../../platform/sam/drivers/spi/spi.h ****  * \brief Serial Peripheral Interface (SPI) driver for SAM.
+   5:../../../platform/sam/drivers/spi/spi.h ****  *
+   6:../../../platform/sam/drivers/spi/spi.h ****  * Copyright (c) 2011-2014 Atmel Corporation. All rights reserved.
+   7:../../../platform/sam/drivers/spi/spi.h ****  *
+   8:../../../platform/sam/drivers/spi/spi.h ****  * \asf_license_start
+   9:../../../platform/sam/drivers/spi/spi.h ****  *
+  10:../../../platform/sam/drivers/spi/spi.h ****  * \page License
+  11:../../../platform/sam/drivers/spi/spi.h ****  *
+  12:../../../platform/sam/drivers/spi/spi.h ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/sam/drivers/spi/spi.h ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/sam/drivers/spi/spi.h ****  *
+  15:../../../platform/sam/drivers/spi/spi.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/sam/drivers/spi/spi.h ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/sam/drivers/spi/spi.h ****  *
+  18:../../../platform/sam/drivers/spi/spi.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/sam/drivers/spi/spi.h ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/sam/drivers/spi/spi.h ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/sam/drivers/spi/spi.h ****  *
+  22:../../../platform/sam/drivers/spi/spi.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/sam/drivers/spi/spi.h ****  *    from this software without specific prior written permission.
+  24:../../../platform/sam/drivers/spi/spi.h ****  *
+  25:../../../platform/sam/drivers/spi/spi.h ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/sam/drivers/spi/spi.h ****  *    Atmel microcontroller product.
+  27:../../../platform/sam/drivers/spi/spi.h ****  *
+  28:../../../platform/sam/drivers/spi/spi.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/sam/drivers/spi/spi.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/sam/drivers/spi/spi.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/sam/drivers/spi/spi.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/sam/drivers/spi/spi.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/sam/drivers/spi/spi.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/sam/drivers/spi/spi.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/sam/drivers/spi/spi.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/sam/drivers/spi/spi.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/sam/drivers/spi/spi.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/sam/drivers/spi/spi.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/sam/drivers/spi/spi.h ****  *
+  40:../../../platform/sam/drivers/spi/spi.h ****  * \asf_license_stop
+  41:../../../platform/sam/drivers/spi/spi.h ****  *
+  42:../../../platform/sam/drivers/spi/spi.h ****  */
+  43:../../../platform/sam/drivers/spi/spi.h **** 
+  44:../../../platform/sam/drivers/spi/spi.h **** #ifndef SPI_H_INCLUDED
+  45:../../../platform/sam/drivers/spi/spi.h **** #define SPI_H_INCLUDED
+  46:../../../platform/sam/drivers/spi/spi.h **** 
+  47:../../../platform/sam/drivers/spi/spi.h **** #include "compiler.h"
+  48:../../../platform/sam/drivers/spi/spi.h **** 
+  49:../../../platform/sam/drivers/spi/spi.h **** /// @cond 0
+  50:../../../platform/sam/drivers/spi/spi.h **** /**INDENT-OFF**/
+  51:../../../platform/sam/drivers/spi/spi.h **** #ifdef __cplusplus
+  52:../../../platform/sam/drivers/spi/spi.h **** extern "C" {
+  53:../../../platform/sam/drivers/spi/spi.h **** #endif
+  54:../../../platform/sam/drivers/spi/spi.h **** /**INDENT-ON**/
+  55:../../../platform/sam/drivers/spi/spi.h **** /// @endcond
+  56:../../../platform/sam/drivers/spi/spi.h **** 
+  57:../../../platform/sam/drivers/spi/spi.h **** /** Time-out value (number of attempts). */
+  58:../../../platform/sam/drivers/spi/spi.h **** #define SPI_TIMEOUT       15000
+  59:../../../platform/sam/drivers/spi/spi.h **** 
+  60:../../../platform/sam/drivers/spi/spi.h **** /** Status codes used by the SPI driver. */
+  61:../../../platform/sam/drivers/spi/spi.h **** typedef enum
+  62:../../../platform/sam/drivers/spi/spi.h **** {
+  63:../../../platform/sam/drivers/spi/spi.h **** 	SPI_ERROR = -1,
+  64:../../../platform/sam/drivers/spi/spi.h **** 	SPI_OK = 0,
+  65:../../../platform/sam/drivers/spi/spi.h **** 	SPI_ERROR_TIMEOUT = 1,
+  66:../../../platform/sam/drivers/spi/spi.h **** 	SPI_ERROR_ARGUMENT,
+  67:../../../platform/sam/drivers/spi/spi.h **** 	SPI_ERROR_OVERRUN,
+  68:../../../platform/sam/drivers/spi/spi.h **** 	SPI_ERROR_MODE_FAULT,
+  69:../../../platform/sam/drivers/spi/spi.h **** 	SPI_ERROR_OVERRUN_AND_MODE_FAULT
+  70:../../../platform/sam/drivers/spi/spi.h **** } spi_status_t;
+  71:../../../platform/sam/drivers/spi/spi.h **** 
+  72:../../../platform/sam/drivers/spi/spi.h **** /** SPI Chip Select behavior modes while transferring. */
+  73:../../../platform/sam/drivers/spi/spi.h **** typedef enum spi_cs_behavior {
+  74:../../../platform/sam/drivers/spi/spi.h **** 	/** CS does not rise until a new transfer is requested on different chip select. */
+  75:../../../platform/sam/drivers/spi/spi.h **** 	SPI_CS_KEEP_LOW = SPI_CSR_CSAAT,
+  76:../../../platform/sam/drivers/spi/spi.h **** 	/** CS rises if there is no more data to transfer. */
+  77:../../../platform/sam/drivers/spi/spi.h **** 	SPI_CS_RISE_NO_TX = 0,
+  78:../../../platform/sam/drivers/spi/spi.h **** 	/** CS is de-asserted systematically during a time DLYBCS. */
+  79:../../../platform/sam/drivers/spi/spi.h **** 	SPI_CS_RISE_FORCED = SPI_CSR_CSNAAT
+  80:../../../platform/sam/drivers/spi/spi.h **** } spi_cs_behavior_t;
+  81:../../../platform/sam/drivers/spi/spi.h **** 
+  82:../../../platform/sam/drivers/spi/spi.h **** /**
+  83:../../../platform/sam/drivers/spi/spi.h ****  * \brief Generate Peripheral Chip Select Value from Chip Select ID
+  84:../../../platform/sam/drivers/spi/spi.h ****  * \note When chip select n is working, PCS bit n is set to low level.
+  85:../../../platform/sam/drivers/spi/spi.h ****  *
+  86:../../../platform/sam/drivers/spi/spi.h ****  * \param chip_sel_id The chip select number used
+  87:../../../platform/sam/drivers/spi/spi.h ****  */
+  88:../../../platform/sam/drivers/spi/spi.h **** #define spi_get_pcs(chip_sel_id) ((~(1u<<(chip_sel_id)))&0xF)
+  89:../../../platform/sam/drivers/spi/spi.h **** 
+  90:../../../platform/sam/drivers/spi/spi.h **** /**
+  91:../../../platform/sam/drivers/spi/spi.h ****  * \brief Reset SPI and set it to Slave mode.
+  92:../../../platform/sam/drivers/spi/spi.h ****  *
+  93:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+  94:../../../platform/sam/drivers/spi/spi.h ****  */
+  95:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_reset(Spi *p_spi)
+  96:../../../platform/sam/drivers/spi/spi.h **** {
+  97:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_CR = SPI_CR_SWRST;
+  98:../../../platform/sam/drivers/spi/spi.h **** }
+  99:../../../platform/sam/drivers/spi/spi.h **** 
+ 100:../../../platform/sam/drivers/spi/spi.h **** /**
+ 101:../../../platform/sam/drivers/spi/spi.h ****  * \brief Enable SPI.
+ 102:../../../platform/sam/drivers/spi/spi.h ****  *
+ 103:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 104:../../../platform/sam/drivers/spi/spi.h ****  */
+ 105:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_enable(Spi *p_spi)
+ 106:../../../platform/sam/drivers/spi/spi.h **** {
+ 107:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_CR = SPI_CR_SPIEN;
+ 108:../../../platform/sam/drivers/spi/spi.h **** }
+ 109:../../../platform/sam/drivers/spi/spi.h **** 
+ 110:../../../platform/sam/drivers/spi/spi.h **** /**
+ 111:../../../platform/sam/drivers/spi/spi.h ****  * \brief Disable SPI.
+ 112:../../../platform/sam/drivers/spi/spi.h ****  *
+ 113:../../../platform/sam/drivers/spi/spi.h ****  * \note CS is de-asserted, which indicates that the last data is done, and user
+ 114:../../../platform/sam/drivers/spi/spi.h ****  * should check TX_EMPTY before disabling SPI.
+ 115:../../../platform/sam/drivers/spi/spi.h ****  *
+ 116:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 117:../../../platform/sam/drivers/spi/spi.h ****  */
+ 118:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_disable(Spi *p_spi)
+ 119:../../../platform/sam/drivers/spi/spi.h **** {
+ 120:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_CR = SPI_CR_SPIDIS;
+ 121:../../../platform/sam/drivers/spi/spi.h **** }
+ 122:../../../platform/sam/drivers/spi/spi.h **** 
+ 123:../../../platform/sam/drivers/spi/spi.h **** /**
+ 124:../../../platform/sam/drivers/spi/spi.h ****  * \brief Issue a LASTXFER command.
+ 125:../../../platform/sam/drivers/spi/spi.h ****  *  The next transfer is the last transfer and after that CS is de-asserted.
+ 126:../../../platform/sam/drivers/spi/spi.h ****  *
+ 127:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 128:../../../platform/sam/drivers/spi/spi.h ****  */
+ 129:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_set_lastxfer(Spi *p_spi)
+ 130:../../../platform/sam/drivers/spi/spi.h **** {
+ 131:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_CR = SPI_CR_LASTXFER;
+ 132:../../../platform/sam/drivers/spi/spi.h **** }
+ 133:../../../platform/sam/drivers/spi/spi.h **** 
+ 134:../../../platform/sam/drivers/spi/spi.h **** /**
+ 135:../../../platform/sam/drivers/spi/spi.h ****  * \brief Set SPI to Master mode.
+ 136:../../../platform/sam/drivers/spi/spi.h ****  *
+ 137:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 138:../../../platform/sam/drivers/spi/spi.h ****  */
+ 139:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_set_master_mode(Spi *p_spi)
+ 140:../../../platform/sam/drivers/spi/spi.h **** {
+ 141:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR |= SPI_MR_MSTR;
+ 142:../../../platform/sam/drivers/spi/spi.h **** }
+ 143:../../../platform/sam/drivers/spi/spi.h **** 
+ 144:../../../platform/sam/drivers/spi/spi.h **** /**
+ 145:../../../platform/sam/drivers/spi/spi.h ****  * \brief Set SPI to Slave mode.
+ 146:../../../platform/sam/drivers/spi/spi.h ****  *
+ 147:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 148:../../../platform/sam/drivers/spi/spi.h ****  */
+ 149:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_set_slave_mode(Spi *p_spi)
+ 150:../../../platform/sam/drivers/spi/spi.h **** {
+ 151:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR &= (~SPI_MR_MSTR);
+ 152:../../../platform/sam/drivers/spi/spi.h **** }
+ 153:../../../platform/sam/drivers/spi/spi.h **** 
+ 154:../../../platform/sam/drivers/spi/spi.h **** /**
+ 155:../../../platform/sam/drivers/spi/spi.h ****  * \brief Get SPI work mode.
+ 156:../../../platform/sam/drivers/spi/spi.h ****  *
+ 157:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 158:../../../platform/sam/drivers/spi/spi.h ****  *
+ 159:../../../platform/sam/drivers/spi/spi.h ****  * \return 1 for master mode, 0 for slave mode.
+ 160:../../../platform/sam/drivers/spi/spi.h ****  */
+ 161:../../../platform/sam/drivers/spi/spi.h **** static inline uint32_t spi_get_mode(Spi *p_spi)
+ 162:../../../platform/sam/drivers/spi/spi.h **** {
+ 163:../../../platform/sam/drivers/spi/spi.h **** 	if (p_spi->SPI_MR & SPI_MR_MSTR) {
+ 164:../../../platform/sam/drivers/spi/spi.h **** 		return 1;
+ 165:../../../platform/sam/drivers/spi/spi.h **** 	} else {
+ 166:../../../platform/sam/drivers/spi/spi.h **** 		return 0;
+ 167:../../../platform/sam/drivers/spi/spi.h **** 	}
+ 168:../../../platform/sam/drivers/spi/spi.h **** }
+ 169:../../../platform/sam/drivers/spi/spi.h **** 
+ 170:../../../platform/sam/drivers/spi/spi.h **** /**
+ 171:../../../platform/sam/drivers/spi/spi.h ****  * \brief Set Variable Peripheral Select.
+ 172:../../../platform/sam/drivers/spi/spi.h ****  * Peripheral Chip Select can be controlled by SPI_TDR.
+ 173:../../../platform/sam/drivers/spi/spi.h ****  *
+ 174:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 175:../../../platform/sam/drivers/spi/spi.h ****  */
+ 176:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_set_variable_peripheral_select(Spi *p_spi)
+ 177:../../../platform/sam/drivers/spi/spi.h **** {
+ 178:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR |= SPI_MR_PS;
+ 179:../../../platform/sam/drivers/spi/spi.h **** }
+ 180:../../../platform/sam/drivers/spi/spi.h **** 
+ 181:../../../platform/sam/drivers/spi/spi.h **** /**
+ 182:../../../platform/sam/drivers/spi/spi.h ****  * \brief Set Fixed Peripheral Select.
+ 183:../../../platform/sam/drivers/spi/spi.h ****  *  Peripheral Chip Select is controlled by SPI_MR.
+ 184:../../../platform/sam/drivers/spi/spi.h ****  *
+ 185:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 186:../../../platform/sam/drivers/spi/spi.h ****  */
+ 187:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_set_fixed_peripheral_select(Spi *p_spi)
+ 188:../../../platform/sam/drivers/spi/spi.h **** {
+ 189:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR &= (~SPI_MR_PS);
+ 190:../../../platform/sam/drivers/spi/spi.h **** }
+ 191:../../../platform/sam/drivers/spi/spi.h **** 
+ 192:../../../platform/sam/drivers/spi/spi.h **** /**
+ 193:../../../platform/sam/drivers/spi/spi.h ****  * \brief Get Peripheral Select mode.
+ 194:../../../platform/sam/drivers/spi/spi.h ****  *
+ 195:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 196:../../../platform/sam/drivers/spi/spi.h ****  *
+ 197:../../../platform/sam/drivers/spi/spi.h ****  * \return 1 for Variable mode, 0 for fixed mode.
+ 198:../../../platform/sam/drivers/spi/spi.h ****  */
+ 199:../../../platform/sam/drivers/spi/spi.h **** static inline uint32_t spi_get_peripheral_select_mode(Spi *p_spi)
+ 200:../../../platform/sam/drivers/spi/spi.h **** {
+  36              	 .loc 1 200 0
+  37              	 .cfi_startproc
+  38              	 
+  39              	 
+  40              	 
+  41 0000 80B4     	 push {r7}
+  42              	.LCFI0:
+  43              	 .cfi_def_cfa_offset 4
+  44              	 .cfi_offset 7,-4
+  45 0002 83B0     	 sub sp,sp,#12
+  46              	.LCFI1:
+  47              	 .cfi_def_cfa_offset 16
+  48 0004 00AF     	 add r7,sp,#0
+  49              	.LCFI2:
+  50              	 .cfi_def_cfa_register 7
+  51 0006 7860     	 str r0,[r7,#4]
+ 201:../../../platform/sam/drivers/spi/spi.h **** 	if (p_spi->SPI_MR & SPI_MR_PS) {
+  52              	 .loc 1 201 0
+  53 0008 7B68     	 ldr r3,[r7,#4]
+  54 000a 5B68     	 ldr r3,[r3,#4]
+  55 000c 03F00203 	 and r3,r3,#2
+  56 0010 002B     	 cmp r3,#0
+  57 0012 01D0     	 beq .L2
+ 202:../../../platform/sam/drivers/spi/spi.h **** 		return 1;
+  58              	 .loc 1 202 0
+  59 0014 0123     	 movs r3,#1
+  60 0016 00E0     	 b .L3
+  61              	.L2:
+ 203:../../../platform/sam/drivers/spi/spi.h **** 	} else {
+ 204:../../../platform/sam/drivers/spi/spi.h **** 		return 0;
+  62              	 .loc 1 204 0
+  63 0018 0023     	 movs r3,#0
+  64              	.L3:
+ 205:../../../platform/sam/drivers/spi/spi.h **** 	}
+ 206:../../../platform/sam/drivers/spi/spi.h **** }
+  65              	 .loc 1 206 0
+  66 001a 1846     	 mov r0,r3
+  67 001c 0C37     	 adds r7,r7,#12
+  68              	.LCFI3:
+  69              	 .cfi_def_cfa_offset 4
+  70 001e BD46     	 mov sp,r7
+  71              	.LCFI4:
+  72              	 .cfi_def_cfa_register 13
+  73              	 
+  74 0020 80BC     	 pop {r7}
+  75              	.LCFI5:
+  76              	 .cfi_restore 7
+  77              	 .cfi_def_cfa_offset 0
+  78 0022 7047     	 bx lr
+  79              	 .cfi_endproc
+  80              	.LFE131:
+  82              	 .comm n,1,1
+  83              	 .section .bss.tTS,"aw",%nobits
+  84              	 .align 2
+  87              	tTS:
+  88 0000 00000000 	 .space 4
+  89              	 .text
+  90              	 .align 1
+  91              	 .global spi_enable_clock
+  92              	 .syntax unified
+  93              	 .thumb
+  94              	 .thumb_func
+  95              	 .fpu softvfp
+  97              	spi_enable_clock:
+  98              	.LFB213:
+  99              	 .file 2 "../../../platform/sam/drivers/spi/spi.c"
+   1:../../../platform/sam/drivers/spi/spi.c **** /**
+   2:../../../platform/sam/drivers/spi/spi.c ****  * \file
+   3:../../../platform/sam/drivers/spi/spi.c ****  *
+   4:../../../platform/sam/drivers/spi/spi.c ****  * \brief Serial Peripheral Interface (SPI) driver for SAM.
+   5:../../../platform/sam/drivers/spi/spi.c ****  *
+   6:../../../platform/sam/drivers/spi/spi.c ****  * Copyright (c) 2011-2014 Atmel Corporation. All rights reserved.
+   7:../../../platform/sam/drivers/spi/spi.c ****  *
+   8:../../../platform/sam/drivers/spi/spi.c ****  * \asf_license_start
+   9:../../../platform/sam/drivers/spi/spi.c ****  *
+  10:../../../platform/sam/drivers/spi/spi.c ****  * \page License
+  11:../../../platform/sam/drivers/spi/spi.c ****  *
+  12:../../../platform/sam/drivers/spi/spi.c ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/sam/drivers/spi/spi.c ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/sam/drivers/spi/spi.c ****  *
+  15:../../../platform/sam/drivers/spi/spi.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/sam/drivers/spi/spi.c ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/sam/drivers/spi/spi.c ****  *
+  18:../../../platform/sam/drivers/spi/spi.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/sam/drivers/spi/spi.c ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/sam/drivers/spi/spi.c ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/sam/drivers/spi/spi.c ****  *
+  22:../../../platform/sam/drivers/spi/spi.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/sam/drivers/spi/spi.c ****  *    from this software without specific prior written permission.
+  24:../../../platform/sam/drivers/spi/spi.c ****  *
+  25:../../../platform/sam/drivers/spi/spi.c ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/sam/drivers/spi/spi.c ****  *    Atmel microcontroller product.
+  27:../../../platform/sam/drivers/spi/spi.c ****  *
+  28:../../../platform/sam/drivers/spi/spi.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/sam/drivers/spi/spi.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/sam/drivers/spi/spi.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/sam/drivers/spi/spi.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/sam/drivers/spi/spi.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/sam/drivers/spi/spi.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/sam/drivers/spi/spi.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/sam/drivers/spi/spi.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/sam/drivers/spi/spi.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/sam/drivers/spi/spi.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/sam/drivers/spi/spi.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/sam/drivers/spi/spi.c ****  *
+  40:../../../platform/sam/drivers/spi/spi.c ****  * \asf_license_stop
+  41:../../../platform/sam/drivers/spi/spi.c ****  *
+  42:../../../platform/sam/drivers/spi/spi.c ****  */
+  43:../../../platform/sam/drivers/spi/spi.c **** 
+  44:../../../platform/sam/drivers/spi/spi.c **** #include "spi.h"
+  45:../../../platform/sam/drivers/spi/spi.c **** #include "sysclk.h"
+  46:../../../platform/sam/drivers/spi/spi.c **** 
+  47:../../../platform/sam/drivers/spi/spi.c **** /**
+  48:../../../platform/sam/drivers/spi/spi.c ****  * \defgroup sam_drivers_spi_group Serial Peripheral Interface (SPI)
+  49:../../../platform/sam/drivers/spi/spi.c ****  *
+  50:../../../platform/sam/drivers/spi/spi.c ****  * See \ref sam_spi_quickstart.
+  51:../../../platform/sam/drivers/spi/spi.c ****  *
+  52:../../../platform/sam/drivers/spi/spi.c ****  * The SPI circuit is a synchronous serial data link that provides communication
+  53:../../../platform/sam/drivers/spi/spi.c ****  * with external devices in Master or Slave mode. Connection to Peripheral DMA
+  54:../../../platform/sam/drivers/spi/spi.c ****  * Controller channel capabilities optimizes data transfers.
+  55:../../../platform/sam/drivers/spi/spi.c ****  *
+  56:../../../platform/sam/drivers/spi/spi.c ****  * @{
+  57:../../../platform/sam/drivers/spi/spi.c ****  */
+  58:../../../platform/sam/drivers/spi/spi.c **** #ifndef SPI_WPMR_WPKEY_PASSWD
+  59:../../../platform/sam/drivers/spi/spi.c **** #define SPI_WPMR_WPKEY_PASSWD SPI_WPMR_WPKEY((uint32_t) 0x535049)
+  60:../../../platform/sam/drivers/spi/spi.c **** #endif
+  61:../../../platform/sam/drivers/spi/spi.c **** 
+  62:../../../platform/sam/drivers/spi/spi.c **** /**
+  63:../../../platform/sam/drivers/spi/spi.c ****  * \brief Enable SPI clock.
+  64:../../../platform/sam/drivers/spi/spi.c ****  *
+  65:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+  66:../../../platform/sam/drivers/spi/spi.c ****  */
+  67:../../../platform/sam/drivers/spi/spi.c **** void spi_enable_clock(Spi *p_spi)
+  68:../../../platform/sam/drivers/spi/spi.c **** {
+ 100              	 .loc 2 68 0
+ 101              	 .cfi_startproc
+ 102              	 
+ 103              	 
+ 104 0024 80B5     	 push {r7,lr}
+ 105              	.LCFI6:
+ 106              	 .cfi_def_cfa_offset 8
+ 107              	 .cfi_offset 7,-8
+ 108              	 .cfi_offset 14,-4
+ 109 0026 82B0     	 sub sp,sp,#8
+ 110              	.LCFI7:
+ 111              	 .cfi_def_cfa_offset 16
+ 112 0028 00AF     	 add r7,sp,#0
+ 113              	.LCFI8:
+ 114              	 .cfi_def_cfa_register 7
+ 115 002a 7860     	 str r0,[r7,#4]
+  69:../../../platform/sam/drivers/spi/spi.c **** #if (SAM4S || SAM3S || SAM3N || SAM3U || SAM4E || SAM4N || SAMG)
+  70:../../../platform/sam/drivers/spi/spi.c **** 	UNUSED(p_spi);
+  71:../../../platform/sam/drivers/spi/spi.c **** 	sysclk_enable_peripheral_clock(ID_SPI);
+  72:../../../platform/sam/drivers/spi/spi.c **** #elif (SAM3XA || SAM4C || SAM4CP || SAM4CM)
+  73:../../../platform/sam/drivers/spi/spi.c **** 	if (p_spi == SPI0) {
+  74:../../../platform/sam/drivers/spi/spi.c **** 		sysclk_enable_peripheral_clock(ID_SPI0);
+  75:../../../platform/sam/drivers/spi/spi.c **** 	}
+  76:../../../platform/sam/drivers/spi/spi.c **** 	#ifdef SPI1
+  77:../../../platform/sam/drivers/spi/spi.c **** 	else if (p_spi == SPI1) {
+  78:../../../platform/sam/drivers/spi/spi.c **** 		sysclk_enable_peripheral_clock(ID_SPI1);
+  79:../../../platform/sam/drivers/spi/spi.c **** 	}
+  80:../../../platform/sam/drivers/spi/spi.c **** 	#endif
+  81:../../../platform/sam/drivers/spi/spi.c **** #elif SAM4L
+  82:../../../platform/sam/drivers/spi/spi.c **** 	sysclk_enable_peripheral_clock(p_spi);
+ 116              	 .loc 2 82 0
+ 117 002c 7868     	 ldr r0,[r7,#4]
+ 118 002e 034B     	 ldr r3,.L5
+ 119 0030 9847     	 blx r3
+ 120              	.LVL0:
+  83:../../../platform/sam/drivers/spi/spi.c **** #endif
+  84:../../../platform/sam/drivers/spi/spi.c **** }
+ 121              	 .loc 2 84 0
+ 122 0032 00BF     	 nop
+ 123 0034 0837     	 adds r7,r7,#8
+ 124              	.LCFI9:
+ 125              	 .cfi_def_cfa_offset 8
+ 126 0036 BD46     	 mov sp,r7
+ 127              	.LCFI10:
+ 128              	 .cfi_def_cfa_register 13
+ 129              	 
+ 130 0038 80BD     	 pop {r7,pc}
+ 131              	.L6:
+ 132 003a 00BF     	 .align 2
+ 133              	.L5:
+ 134 003c 00000000 	 .word sysclk_enable_peripheral_clock
+ 135              	 .cfi_endproc
+ 136              	.LFE213:
+ 138              	 .align 1
+ 139              	 .global spi_disable_clock
+ 140              	 .syntax unified
+ 141              	 .thumb
+ 142              	 .thumb_func
+ 143              	 .fpu softvfp
+ 145              	spi_disable_clock:
+ 146              	.LFB214:
+  85:../../../platform/sam/drivers/spi/spi.c **** 
+  86:../../../platform/sam/drivers/spi/spi.c **** /**
+  87:../../../platform/sam/drivers/spi/spi.c ****  * \brief Disable SPI clock.
+  88:../../../platform/sam/drivers/spi/spi.c ****  *
+  89:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+  90:../../../platform/sam/drivers/spi/spi.c ****  */
+  91:../../../platform/sam/drivers/spi/spi.c **** void spi_disable_clock(Spi *p_spi)
+  92:../../../platform/sam/drivers/spi/spi.c **** {
+ 147              	 .loc 2 92 0
+ 148              	 .cfi_startproc
+ 149              	 
+ 150              	 
+ 151 0040 80B5     	 push {r7,lr}
+ 152              	.LCFI11:
+ 153              	 .cfi_def_cfa_offset 8
+ 154              	 .cfi_offset 7,-8
+ 155              	 .cfi_offset 14,-4
+ 156 0042 82B0     	 sub sp,sp,#8
+ 157              	.LCFI12:
+ 158              	 .cfi_def_cfa_offset 16
+ 159 0044 00AF     	 add r7,sp,#0
+ 160              	.LCFI13:
+ 161              	 .cfi_def_cfa_register 7
+ 162 0046 7860     	 str r0,[r7,#4]
+  93:../../../platform/sam/drivers/spi/spi.c **** #if (SAM4S || SAM3S || SAM3N || SAM3U || SAM4E || SAM4N || SAMG)
+  94:../../../platform/sam/drivers/spi/spi.c **** 	UNUSED(p_spi);
+  95:../../../platform/sam/drivers/spi/spi.c **** 	sysclk_disable_peripheral_clock(ID_SPI);
+  96:../../../platform/sam/drivers/spi/spi.c **** #elif (SAM3XA || SAM4C || SAM4CP || SAM4CM)
+  97:../../../platform/sam/drivers/spi/spi.c **** 	if (p_spi == SPI0) {
+  98:../../../platform/sam/drivers/spi/spi.c **** 		sysclk_disable_peripheral_clock(ID_SPI0);
+  99:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 100:../../../platform/sam/drivers/spi/spi.c **** 	#ifdef SPI1
+ 101:../../../platform/sam/drivers/spi/spi.c **** 	else if (p_spi == SPI1) {
+ 102:../../../platform/sam/drivers/spi/spi.c **** 		sysclk_disable_peripheral_clock(ID_SPI1);
+ 103:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 104:../../../platform/sam/drivers/spi/spi.c **** 	#endif
+ 105:../../../platform/sam/drivers/spi/spi.c **** #elif SAM4L
+ 106:../../../platform/sam/drivers/spi/spi.c **** 	sysclk_disable_peripheral_clock(p_spi);
+ 163              	 .loc 2 106 0
+ 164 0048 7868     	 ldr r0,[r7,#4]
+ 165 004a 034B     	 ldr r3,.L8
+ 166 004c 9847     	 blx r3
+ 167              	.LVL1:
+ 107:../../../platform/sam/drivers/spi/spi.c **** #endif
+ 108:../../../platform/sam/drivers/spi/spi.c **** }
+ 168              	 .loc 2 108 0
+ 169 004e 00BF     	 nop
+ 170 0050 0837     	 adds r7,r7,#8
+ 171              	.LCFI14:
+ 172              	 .cfi_def_cfa_offset 8
+ 173 0052 BD46     	 mov sp,r7
+ 174              	.LCFI15:
+ 175              	 .cfi_def_cfa_register 13
+ 176              	 
+ 177 0054 80BD     	 pop {r7,pc}
+ 178              	.L9:
+ 179 0056 00BF     	 .align 2
+ 180              	.L8:
+ 181 0058 00000000 	 .word sysclk_disable_peripheral_clock
+ 182              	 .cfi_endproc
+ 183              	.LFE214:
+ 185              	 .align 1
+ 186              	 .global spi_set_peripheral_chip_select_value
+ 187              	 .syntax unified
+ 188              	 .thumb
+ 189              	 .thumb_func
+ 190              	 .fpu softvfp
+ 192              	spi_set_peripheral_chip_select_value:
+ 193              	.LFB215:
+ 109:../../../platform/sam/drivers/spi/spi.c **** 
+ 110:../../../platform/sam/drivers/spi/spi.c **** /**
+ 111:../../../platform/sam/drivers/spi/spi.c ****  * \brief Set Peripheral Chip Select (PCS) value.
+ 112:../../../platform/sam/drivers/spi/spi.c ****  *
+ 113:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+ 114:../../../platform/sam/drivers/spi/spi.c ****  * \param ul_value Peripheral Chip Select value.
+ 115:../../../platform/sam/drivers/spi/spi.c ****  *                 If PCS decode mode is not used, use \ref spi_get_pcs to build
+ 116:../../../platform/sam/drivers/spi/spi.c ****  *                 the value to use.
+ 117:../../../platform/sam/drivers/spi/spi.c ****  *                 On reset the decode mode is not enabled.
+ 118:../../../platform/sam/drivers/spi/spi.c ****  *                 The decode mode can be enabled/disabled by follow functions:
+ 119:../../../platform/sam/drivers/spi/spi.c ****  *                 \ref spi_enable_peripheral_select_decode,
+ 120:../../../platform/sam/drivers/spi/spi.c ****  *                 \ref spi_disable_peripheral_select_decode.
+ 121:../../../platform/sam/drivers/spi/spi.c ****  */
+ 122:../../../platform/sam/drivers/spi/spi.c **** void spi_set_peripheral_chip_select_value(Spi *p_spi, uint32_t ul_value)
+ 123:../../../platform/sam/drivers/spi/spi.c **** {
+ 194              	 .loc 2 123 0
+ 195              	 .cfi_startproc
+ 196              	 
+ 197              	 
+ 198              	 
+ 199 005c 80B4     	 push {r7}
+ 200              	.LCFI16:
+ 201              	 .cfi_def_cfa_offset 4
+ 202              	 .cfi_offset 7,-4
+ 203 005e 83B0     	 sub sp,sp,#12
+ 204              	.LCFI17:
+ 205              	 .cfi_def_cfa_offset 16
+ 206 0060 00AF     	 add r7,sp,#0
+ 207              	.LCFI18:
+ 208              	 .cfi_def_cfa_register 7
+ 209 0062 7860     	 str r0,[r7,#4]
+ 210 0064 3960     	 str r1,[r7]
+ 124:../../../platform/sam/drivers/spi/spi.c **** 	p_spi->SPI_MR &= (~SPI_MR_PCS_Msk);
+ 211              	 .loc 2 124 0
+ 212 0066 7B68     	 ldr r3,[r7,#4]
+ 213 0068 5B68     	 ldr r3,[r3,#4]
+ 214 006a 23F47022 	 bic r2,r3,#983040
+ 215 006e 7B68     	 ldr r3,[r7,#4]
+ 216 0070 5A60     	 str r2,[r3,#4]
+ 125:../../../platform/sam/drivers/spi/spi.c **** 	p_spi->SPI_MR |= SPI_MR_PCS(ul_value);
+ 217              	 .loc 2 125 0
+ 218 0072 7B68     	 ldr r3,[r7,#4]
+ 219 0074 5A68     	 ldr r2,[r3,#4]
+ 220 0076 3B68     	 ldr r3,[r7]
+ 221 0078 1B04     	 lsls r3,r3,#16
+ 222 007a 03F47023 	 and r3,r3,#983040
+ 223 007e 1A43     	 orrs r2,r2,r3
+ 224 0080 7B68     	 ldr r3,[r7,#4]
+ 225 0082 5A60     	 str r2,[r3,#4]
+ 126:../../../platform/sam/drivers/spi/spi.c **** }
+ 226              	 .loc 2 126 0
+ 227 0084 00BF     	 nop
+ 228 0086 0C37     	 adds r7,r7,#12
+ 229              	.LCFI19:
+ 230              	 .cfi_def_cfa_offset 4
+ 231 0088 BD46     	 mov sp,r7
+ 232              	.LCFI20:
+ 233              	 .cfi_def_cfa_register 13
+ 234              	 
+ 235 008a 80BC     	 pop {r7}
+ 236              	.LCFI21:
+ 237              	 .cfi_restore 7
+ 238              	 .cfi_def_cfa_offset 0
+ 239 008c 7047     	 bx lr
+ 240              	 .cfi_endproc
+ 241              	.LFE215:
+ 243              	 .align 1
+ 244              	 .global spi_set_delay_between_chip_select
+ 245              	 .syntax unified
+ 246              	 .thumb
+ 247              	 .thumb_func
+ 248              	 .fpu softvfp
+ 250              	spi_set_delay_between_chip_select:
+ 251              	.LFB216:
+ 127:../../../platform/sam/drivers/spi/spi.c **** 
+ 128:../../../platform/sam/drivers/spi/spi.c **** /**
+ 129:../../../platform/sam/drivers/spi/spi.c ****  * \brief Set delay between chip selects (in number of MCK clocks).
+ 130:../../../platform/sam/drivers/spi/spi.c ****  *  If DLYBCS <= 6, 6 MCK clocks will be inserted by default.
+ 131:../../../platform/sam/drivers/spi/spi.c ****  *
+ 132:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+ 133:../../../platform/sam/drivers/spi/spi.c ****  * \param ul_delay Delay between chip selects (in number of MCK clocks).
+ 134:../../../platform/sam/drivers/spi/spi.c ****  */
+ 135:../../../platform/sam/drivers/spi/spi.c **** void spi_set_delay_between_chip_select(Spi *p_spi, uint32_t ul_delay)
+ 136:../../../platform/sam/drivers/spi/spi.c **** {
+ 252              	 .loc 2 136 0
+ 253              	 .cfi_startproc
+ 254              	 
+ 255              	 
+ 256              	 
+ 257 008e 80B4     	 push {r7}
+ 258              	.LCFI22:
+ 259              	 .cfi_def_cfa_offset 4
+ 260              	 .cfi_offset 7,-4
+ 261 0090 83B0     	 sub sp,sp,#12
+ 262              	.LCFI23:
+ 263              	 .cfi_def_cfa_offset 16
+ 264 0092 00AF     	 add r7,sp,#0
+ 265              	.LCFI24:
+ 266              	 .cfi_def_cfa_register 7
+ 267 0094 7860     	 str r0,[r7,#4]
+ 268 0096 3960     	 str r1,[r7]
+ 137:../../../platform/sam/drivers/spi/spi.c **** 	p_spi->SPI_MR &= (~SPI_MR_DLYBCS_Msk);
+ 269              	 .loc 2 137 0
+ 270 0098 7B68     	 ldr r3,[r7,#4]
+ 271 009a 5B68     	 ldr r3,[r3,#4]
+ 272 009c 23F07F42 	 bic r2,r3,#-16777216
+ 273 00a0 7B68     	 ldr r3,[r7,#4]
+ 274 00a2 5A60     	 str r2,[r3,#4]
+ 138:../../../platform/sam/drivers/spi/spi.c **** 	p_spi->SPI_MR |= SPI_MR_DLYBCS(ul_delay);
+ 275              	 .loc 2 138 0
+ 276 00a4 7B68     	 ldr r3,[r7,#4]
+ 277 00a6 5A68     	 ldr r2,[r3,#4]
+ 278 00a8 3B68     	 ldr r3,[r7]
+ 279 00aa 1B06     	 lsls r3,r3,#24
+ 280 00ac 1A43     	 orrs r2,r2,r3
+ 281 00ae 7B68     	 ldr r3,[r7,#4]
+ 282 00b0 5A60     	 str r2,[r3,#4]
+ 139:../../../platform/sam/drivers/spi/spi.c **** }
+ 283              	 .loc 2 139 0
+ 284 00b2 00BF     	 nop
+ 285 00b4 0C37     	 adds r7,r7,#12
+ 286              	.LCFI25:
+ 287              	 .cfi_def_cfa_offset 4
+ 288 00b6 BD46     	 mov sp,r7
+ 289              	.LCFI26:
+ 290              	 .cfi_def_cfa_register 13
+ 291              	 
+ 292 00b8 80BC     	 pop {r7}
+ 293              	.LCFI27:
+ 294              	 .cfi_restore 7
+ 295              	 .cfi_def_cfa_offset 0
+ 296 00ba 7047     	 bx lr
+ 297              	 .cfi_endproc
+ 298              	.LFE216:
+ 300              	 .align 1
+ 301              	 .global spi_read
+ 302              	 .syntax unified
+ 303              	 .thumb
+ 304              	 .thumb_func
+ 305              	 .fpu softvfp
+ 307              	spi_read:
+ 308              	.LFB217:
+ 140:../../../platform/sam/drivers/spi/spi.c **** 
+ 141:../../../platform/sam/drivers/spi/spi.c **** /**
+ 142:../../../platform/sam/drivers/spi/spi.c ****  * \brief Read the received data and it's peripheral chip select value.
+ 143:../../../platform/sam/drivers/spi/spi.c ****  * While SPI works in fixed peripheral select mode, the peripheral chip select
+ 144:../../../platform/sam/drivers/spi/spi.c ****  * value is meaningless.
+ 145:../../../platform/sam/drivers/spi/spi.c ****  *
+ 146:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+ 147:../../../platform/sam/drivers/spi/spi.c ****  * \param data Pointer to the location where to store the received data word.
+ 148:../../../platform/sam/drivers/spi/spi.c ****  * \param p_pcs Pointer to fill Peripheral Chip Select Value.
+ 149:../../../platform/sam/drivers/spi/spi.c ****  *
+ 150:../../../platform/sam/drivers/spi/spi.c ****  * \retval SPI_OK on Success.
+ 151:../../../platform/sam/drivers/spi/spi.c ****  * \retval SPI_ERROR_TIMEOUT on Time-out.
+ 152:../../../platform/sam/drivers/spi/spi.c ****  */
+ 153:../../../platform/sam/drivers/spi/spi.c **** spi_status_t spi_read(Spi *p_spi, uint16_t *us_data, uint8_t *p_pcs)
+ 154:../../../platform/sam/drivers/spi/spi.c **** {
+ 309              	 .loc 2 154 0
+ 310              	 .cfi_startproc
+ 311              	 
+ 312              	 
+ 313 00bc 80B5     	 push {r7,lr}
+ 314              	.LCFI28:
+ 315              	 .cfi_def_cfa_offset 8
+ 316              	 .cfi_offset 7,-8
+ 317              	 .cfi_offset 14,-4
+ 318 00be 86B0     	 sub sp,sp,#24
+ 319              	.LCFI29:
+ 320              	 .cfi_def_cfa_offset 32
+ 321 00c0 00AF     	 add r7,sp,#0
+ 322              	.LCFI30:
+ 323              	 .cfi_def_cfa_register 7
+ 324 00c2 F860     	 str r0,[r7,#12]
+ 325 00c4 B960     	 str r1,[r7,#8]
+ 326 00c6 7A60     	 str r2,[r7,#4]
+ 155:../../../platform/sam/drivers/spi/spi.c **** 	uint32_t timeout = SPI_TIMEOUT;
+ 327              	 .loc 2 155 0
+ 328 00c8 43F69823 	 movw r3,#15000
+ 329 00cc 7B61     	 str r3,[r7,#20]
+ 156:../../../platform/sam/drivers/spi/spi.c **** 	static uint32_t reg_value;
+ 157:../../../platform/sam/drivers/spi/spi.c **** 
+ 158:../../../platform/sam/drivers/spi/spi.c **** 	while (!(p_spi->SPI_SR & SPI_SR_RDRF)) {
+ 330              	 .loc 2 158 0
+ 331 00ce 06E0     	 b .L13
+ 332              	.L15:
+ 159:../../../platform/sam/drivers/spi/spi.c **** 		if (!timeout--) {
+ 333              	 .loc 2 159 0
+ 334 00d0 7B69     	 ldr r3,[r7,#20]
+ 335 00d2 5A1E     	 subs r2,r3,#1
+ 336 00d4 7A61     	 str r2,[r7,#20]
+ 337 00d6 002B     	 cmp r3,#0
+ 338 00d8 01D1     	 bne .L13
+ 160:../../../platform/sam/drivers/spi/spi.c **** 			return SPI_ERROR_TIMEOUT;
+ 339              	 .loc 2 160 0
+ 340 00da 0123     	 movs r3,#1
+ 341 00dc 1EE0     	 b .L14
+ 342              	.L13:
+ 158:../../../platform/sam/drivers/spi/spi.c **** 		if (!timeout--) {
+ 343              	 .loc 2 158 0
+ 344 00de FB68     	 ldr r3,[r7,#12]
+ 345 00e0 1B69     	 ldr r3,[r3,#16]
+ 346 00e2 03F00103 	 and r3,r3,#1
+ 347 00e6 002B     	 cmp r3,#0
+ 348 00e8 F2D0     	 beq .L15
+ 161:../../../platform/sam/drivers/spi/spi.c **** 		}
+ 162:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 163:../../../platform/sam/drivers/spi/spi.c **** 
+ 164:../../../platform/sam/drivers/spi/spi.c **** 	reg_value = p_spi->SPI_RDR;
+ 349              	 .loc 2 164 0
+ 350 00ea FB68     	 ldr r3,[r7,#12]
+ 351 00ec 9B68     	 ldr r3,[r3,#8]
+ 352 00ee 0D4A     	 ldr r2,.L17
+ 353 00f0 1360     	 str r3,[r2]
+ 165:../../../platform/sam/drivers/spi/spi.c **** 	if (spi_get_peripheral_select_mode(p_spi)) {
+ 354              	 .loc 2 165 0
+ 355 00f2 F868     	 ldr r0,[r7,#12]
+ 356 00f4 FFF784FF 	 bl spi_get_peripheral_select_mode
+ 357 00f8 0346     	 mov r3,r0
+ 358 00fa 002B     	 cmp r3,#0
+ 359 00fc 08D0     	 beq .L16
+ 166:../../../platform/sam/drivers/spi/spi.c **** 		*p_pcs = (uint8_t) ((reg_value & SPI_RDR_PCS_Msk) >> SPI_RDR_PCS_Pos);
+ 360              	 .loc 2 166 0
+ 361 00fe 094B     	 ldr r3,.L17
+ 362 0100 1B68     	 ldr r3,[r3]
+ 363 0102 1B0C     	 lsrs r3,r3,#16
+ 364 0104 DBB2     	 uxtb r3,r3
+ 365 0106 03F00F03 	 and r3,r3,#15
+ 366 010a DAB2     	 uxtb r2,r3
+ 367 010c 7B68     	 ldr r3,[r7,#4]
+ 368 010e 1A70     	 strb r2,[r3]
+ 369              	.L16:
+ 167:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 168:../../../platform/sam/drivers/spi/spi.c **** 	*us_data = (uint16_t) (reg_value & SPI_RDR_RD_Msk);
+ 370              	 .loc 2 168 0
+ 371 0110 044B     	 ldr r3,.L17
+ 372 0112 1B68     	 ldr r3,[r3]
+ 373 0114 9AB2     	 uxth r2,r3
+ 374 0116 BB68     	 ldr r3,[r7,#8]
+ 375 0118 1A80     	 strh r2,[r3]
+ 169:../../../platform/sam/drivers/spi/spi.c **** 
+ 170:../../../platform/sam/drivers/spi/spi.c **** 	return SPI_OK;
+ 376              	 .loc 2 170 0
+ 377 011a 0023     	 movs r3,#0
+ 378              	.L14:
+ 171:../../../platform/sam/drivers/spi/spi.c **** }
+ 379              	 .loc 2 171 0
+ 380 011c 1846     	 mov r0,r3
+ 381 011e 1837     	 adds r7,r7,#24
+ 382              	.LCFI31:
+ 383              	 .cfi_def_cfa_offset 8
+ 384 0120 BD46     	 mov sp,r7
+ 385              	.LCFI32:
+ 386              	 .cfi_def_cfa_register 13
+ 387              	 
+ 388 0122 80BD     	 pop {r7,pc}
+ 389              	.L18:
+ 390              	 .align 2
+ 391              	.L17:
+ 392 0124 00000000 	 .word reg_value.8780
+ 393              	 .cfi_endproc
+ 394              	.LFE217:
+ 396              	 .align 1
+ 397              	 .global spi_write
+ 398              	 .syntax unified
+ 399              	 .thumb
+ 400              	 .thumb_func
+ 401              	 .fpu softvfp
+ 403              	spi_write:
+ 404              	.LFB218:
+ 172:../../../platform/sam/drivers/spi/spi.c **** 
+ 173:../../../platform/sam/drivers/spi/spi.c **** /**
+ 174:../../../platform/sam/drivers/spi/spi.c ****  * \brief Write the transmitted data with specified peripheral chip select value.
+ 175:../../../platform/sam/drivers/spi/spi.c ****  *
+ 176:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+ 177:../../../platform/sam/drivers/spi/spi.c ****  * \param us_data The data to transmit.
+ 178:../../../platform/sam/drivers/spi/spi.c ****  * \param uc_pcs Peripheral Chip Select Value while SPI works in peripheral select
+ 179:../../../platform/sam/drivers/spi/spi.c ****  * mode, otherwise it's meaningless.
+ 180:../../../platform/sam/drivers/spi/spi.c ****  * \param uc_last Indicate whether this data is the last one while SPI is working
+ 181:../../../platform/sam/drivers/spi/spi.c ****  * in variable peripheral select mode.
+ 182:../../../platform/sam/drivers/spi/spi.c ****  *
+ 183:../../../platform/sam/drivers/spi/spi.c ****  * \retval SPI_OK on Success.
+ 184:../../../platform/sam/drivers/spi/spi.c ****  * \retval SPI_ERROR_TIMEOUT on Time-out.
+ 185:../../../platform/sam/drivers/spi/spi.c ****  */
+ 186:../../../platform/sam/drivers/spi/spi.c **** spi_status_t spi_write(Spi *p_spi, uint16_t us_data,
+ 187:../../../platform/sam/drivers/spi/spi.c **** 		uint8_t uc_pcs, uint8_t uc_last)
+ 188:../../../platform/sam/drivers/spi/spi.c **** {
+ 405              	 .loc 2 188 0
+ 406              	 .cfi_startproc
+ 407              	 
+ 408              	 
+ 409 0128 80B5     	 push {r7,lr}
+ 410              	.LCFI33:
+ 411              	 .cfi_def_cfa_offset 8
+ 412              	 .cfi_offset 7,-8
+ 413              	 .cfi_offset 14,-4
+ 414 012a 84B0     	 sub sp,sp,#16
+ 415              	.LCFI34:
+ 416              	 .cfi_def_cfa_offset 24
+ 417 012c 00AF     	 add r7,sp,#0
+ 418              	.LCFI35:
+ 419              	 .cfi_def_cfa_register 7
+ 420 012e 7860     	 str r0,[r7,#4]
+ 421 0130 0846     	 mov r0,r1
+ 422 0132 1146     	 mov r1,r2
+ 423 0134 1A46     	 mov r2,r3
+ 424 0136 0346     	 mov r3,r0
+ 425 0138 7B80     	 strh r3,[r7,#2]
+ 426 013a 0B46     	 mov r3,r1
+ 427 013c 7B70     	 strb r3,[r7,#1]
+ 428 013e 1346     	 mov r3,r2
+ 429 0140 3B70     	 strb r3,[r7]
+ 189:../../../platform/sam/drivers/spi/spi.c **** 	uint32_t timeout = SPI_TIMEOUT;
+ 430              	 .loc 2 189 0
+ 431 0142 43F69823 	 movw r3,#15000
+ 432 0146 FB60     	 str r3,[r7,#12]
+ 190:../../../platform/sam/drivers/spi/spi.c **** 	uint32_t value;
+ 191:../../../platform/sam/drivers/spi/spi.c **** 
+ 192:../../../platform/sam/drivers/spi/spi.c **** 	while (!(p_spi->SPI_SR & SPI_SR_TDRE)) {
+ 433              	 .loc 2 192 0
+ 434 0148 06E0     	 b .L20
+ 435              	.L22:
+ 193:../../../platform/sam/drivers/spi/spi.c **** 		if (!timeout--) {
+ 436              	 .loc 2 193 0
+ 437 014a FB68     	 ldr r3,[r7,#12]
+ 438 014c 5A1E     	 subs r2,r3,#1
+ 439 014e FA60     	 str r2,[r7,#12]
+ 440 0150 002B     	 cmp r3,#0
+ 441 0152 01D1     	 bne .L20
+ 194:../../../platform/sam/drivers/spi/spi.c **** 			return SPI_ERROR_TIMEOUT;
+ 442              	 .loc 2 194 0
+ 443 0154 0123     	 movs r3,#1
+ 444 0156 20E0     	 b .L21
+ 445              	.L20:
+ 192:../../../platform/sam/drivers/spi/spi.c **** 		if (!timeout--) {
+ 446              	 .loc 2 192 0
+ 447 0158 7B68     	 ldr r3,[r7,#4]
+ 448 015a 1B69     	 ldr r3,[r3,#16]
+ 449 015c 03F00203 	 and r3,r3,#2
+ 450 0160 002B     	 cmp r3,#0
+ 451 0162 F2D0     	 beq .L22
+ 195:../../../platform/sam/drivers/spi/spi.c **** 		}
+ 196:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 197:../../../platform/sam/drivers/spi/spi.c **** 
+ 198:../../../platform/sam/drivers/spi/spi.c **** 	if (spi_get_peripheral_select_mode(p_spi)) {
+ 452              	 .loc 2 198 0
+ 453 0164 7868     	 ldr r0,[r7,#4]
+ 454 0166 FFF74BFF 	 bl spi_get_peripheral_select_mode
+ 455 016a 0346     	 mov r3,r0
+ 456 016c 002B     	 cmp r3,#0
+ 457 016e 0ED0     	 beq .L23
+ 199:../../../platform/sam/drivers/spi/spi.c **** 		value = SPI_TDR_TD(us_data) | SPI_TDR_PCS(uc_pcs);
+ 458              	 .loc 2 199 0
+ 459 0170 7A88     	 ldrh r2,[r7,#2]
+ 460 0172 7B78     	 ldrb r3,[r7,#1]
+ 461 0174 1B04     	 lsls r3,r3,#16
+ 462 0176 03F47023 	 and r3,r3,#983040
+ 463 017a 1343     	 orrs r3,r3,r2
+ 464 017c BB60     	 str r3,[r7,#8]
+ 200:../../../platform/sam/drivers/spi/spi.c **** 		if (uc_last) {
+ 465              	 .loc 2 200 0
+ 466 017e 3B78     	 ldrb r3,[r7]
+ 467 0180 002B     	 cmp r3,#0
+ 468 0182 06D0     	 beq .L25
+ 201:../../../platform/sam/drivers/spi/spi.c **** 			value |= SPI_TDR_LASTXFER;
+ 469              	 .loc 2 201 0
+ 470 0184 BB68     	 ldr r3,[r7,#8]
+ 471 0186 43F08073 	 orr r3,r3,#16777216
+ 472 018a BB60     	 str r3,[r7,#8]
+ 473 018c 01E0     	 b .L25
+ 474              	.L23:
+ 202:../../../platform/sam/drivers/spi/spi.c **** 		}
+ 203:../../../platform/sam/drivers/spi/spi.c **** 	} else {
+ 204:../../../platform/sam/drivers/spi/spi.c **** 		value = SPI_TDR_TD(us_data);
+ 475              	 .loc 2 204 0
+ 476 018e 7B88     	 ldrh r3,[r7,#2]
+ 477 0190 BB60     	 str r3,[r7,#8]
+ 478              	.L25:
+ 205:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 206:../../../platform/sam/drivers/spi/spi.c **** 
+ 207:../../../platform/sam/drivers/spi/spi.c **** 	p_spi->SPI_TDR = value;
+ 479              	 .loc 2 207 0
+ 480 0192 7B68     	 ldr r3,[r7,#4]
+ 481 0194 BA68     	 ldr r2,[r7,#8]
+ 482 0196 DA60     	 str r2,[r3,#12]
+ 208:../../../platform/sam/drivers/spi/spi.c **** 
+ 209:../../../platform/sam/drivers/spi/spi.c **** 	return SPI_OK;
+ 483              	 .loc 2 209 0
+ 484 0198 0023     	 movs r3,#0
+ 485              	.L21:
+ 210:../../../platform/sam/drivers/spi/spi.c **** }
+ 486              	 .loc 2 210 0
+ 487 019a 1846     	 mov r0,r3
+ 488 019c 1037     	 adds r7,r7,#16
+ 489              	.LCFI36:
+ 490              	 .cfi_def_cfa_offset 8
+ 491 019e BD46     	 mov sp,r7
+ 492              	.LCFI37:
+ 493              	 .cfi_def_cfa_register 13
+ 494              	 
+ 495 01a0 80BD     	 pop {r7,pc}
+ 496              	 .cfi_endproc
+ 497              	.LFE218:
+ 499              	 .align 1
+ 500              	 .global spi_set_clock_polarity
+ 501              	 .syntax unified
+ 502              	 .thumb
+ 503              	 .thumb_func
+ 504              	 .fpu softvfp
+ 506              	spi_set_clock_polarity:
+ 507              	.LFB219:
+ 211:../../../platform/sam/drivers/spi/spi.c **** 
+ 212:../../../platform/sam/drivers/spi/spi.c **** /**
+ 213:../../../platform/sam/drivers/spi/spi.c ****  * \brief Set clock default state.
+ 214:../../../platform/sam/drivers/spi/spi.c ****  *
+ 215:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+ 216:../../../platform/sam/drivers/spi/spi.c ****  * \param ul_pcs_ch Peripheral Chip Select channel (0~3).
+ 217:../../../platform/sam/drivers/spi/spi.c ****  * \param ul_polarity Default clock state is logical one(high)/zero(low).
+ 218:../../../platform/sam/drivers/spi/spi.c ****  */
+ 219:../../../platform/sam/drivers/spi/spi.c **** void spi_set_clock_polarity(Spi *p_spi, uint32_t ul_pcs_ch,
+ 220:../../../platform/sam/drivers/spi/spi.c **** 		uint32_t ul_polarity)
+ 221:../../../platform/sam/drivers/spi/spi.c **** {
+ 508              	 .loc 2 221 0
+ 509              	 .cfi_startproc
+ 510              	 
+ 511              	 
+ 512              	 
+ 513 01a2 80B4     	 push {r7}
+ 514              	.LCFI38:
+ 515              	 .cfi_def_cfa_offset 4
+ 516              	 .cfi_offset 7,-4
+ 517 01a4 85B0     	 sub sp,sp,#20
+ 518              	.LCFI39:
+ 519              	 .cfi_def_cfa_offset 24
+ 520 01a6 00AF     	 add r7,sp,#0
+ 521              	.LCFI40:
+ 522              	 .cfi_def_cfa_register 7
+ 523 01a8 F860     	 str r0,[r7,#12]
+ 524 01aa B960     	 str r1,[r7,#8]
+ 525 01ac 7A60     	 str r2,[r7,#4]
+ 222:../../../platform/sam/drivers/spi/spi.c **** 	if (ul_polarity) {
+ 526              	 .loc 2 222 0
+ 527 01ae 7B68     	 ldr r3,[r7,#4]
+ 528 01b0 002B     	 cmp r3,#0
+ 529 01b2 0CD0     	 beq .L27
+ 223:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_CSR[ul_pcs_ch] |= SPI_CSR_CPOL;
+ 530              	 .loc 2 223 0
+ 531 01b4 FB68     	 ldr r3,[r7,#12]
+ 532 01b6 BA68     	 ldr r2,[r7,#8]
+ 533 01b8 0C32     	 adds r2,r2,#12
+ 534 01ba 53F82230 	 ldr r3,[r3,r2,lsl#2]
+ 535 01be 43F00101 	 orr r1,r3,#1
+ 536 01c2 FB68     	 ldr r3,[r7,#12]
+ 537 01c4 BA68     	 ldr r2,[r7,#8]
+ 538 01c6 0C32     	 adds r2,r2,#12
+ 539 01c8 43F82210 	 str r1,[r3,r2,lsl#2]
+ 224:../../../platform/sam/drivers/spi/spi.c **** 	} else {
+ 225:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_CSR[ul_pcs_ch] &= (~SPI_CSR_CPOL);
+ 226:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 227:../../../platform/sam/drivers/spi/spi.c **** }
+ 540              	 .loc 2 227 0
+ 541 01cc 0BE0     	 b .L29
+ 542              	.L27:
+ 225:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 543              	 .loc 2 225 0
+ 544 01ce FB68     	 ldr r3,[r7,#12]
+ 545 01d0 BA68     	 ldr r2,[r7,#8]
+ 546 01d2 0C32     	 adds r2,r2,#12
+ 547 01d4 53F82230 	 ldr r3,[r3,r2,lsl#2]
+ 548 01d8 23F00101 	 bic r1,r3,#1
+ 549 01dc FB68     	 ldr r3,[r7,#12]
+ 550 01de BA68     	 ldr r2,[r7,#8]
+ 551 01e0 0C32     	 adds r2,r2,#12
+ 552 01e2 43F82210 	 str r1,[r3,r2,lsl#2]
+ 553              	.L29:
+ 554              	 .loc 2 227 0
+ 555 01e6 00BF     	 nop
+ 556 01e8 1437     	 adds r7,r7,#20
+ 557              	.LCFI41:
+ 558              	 .cfi_def_cfa_offset 4
+ 559 01ea BD46     	 mov sp,r7
+ 560              	.LCFI42:
+ 561              	 .cfi_def_cfa_register 13
+ 562              	 
+ 563 01ec 80BC     	 pop {r7}
+ 564              	.LCFI43:
+ 565              	 .cfi_restore 7
+ 566              	 .cfi_def_cfa_offset 0
+ 567 01ee 7047     	 bx lr
+ 568              	 .cfi_endproc
+ 569              	.LFE219:
+ 571              	 .align 1
+ 572              	 .global spi_set_clock_phase
+ 573              	 .syntax unified
+ 574              	 .thumb
+ 575              	 .thumb_func
+ 576              	 .fpu softvfp
+ 578              	spi_set_clock_phase:
+ 579              	.LFB220:
+ 228:../../../platform/sam/drivers/spi/spi.c **** 
+ 229:../../../platform/sam/drivers/spi/spi.c **** /**
+ 230:../../../platform/sam/drivers/spi/spi.c ****  * \brief Set Data Capture Phase.
+ 231:../../../platform/sam/drivers/spi/spi.c ****  *
+ 232:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+ 233:../../../platform/sam/drivers/spi/spi.c ****  *  \param ul_pcs_ch Peripheral Chip Select channel (0~3).
+ 234:../../../platform/sam/drivers/spi/spi.c ****  *  \param ul_phase Data capture on the rising/falling edge of clock.
+ 235:../../../platform/sam/drivers/spi/spi.c ****  */
+ 236:../../../platform/sam/drivers/spi/spi.c **** void spi_set_clock_phase(Spi *p_spi, uint32_t ul_pcs_ch, uint32_t ul_phase)
+ 237:../../../platform/sam/drivers/spi/spi.c **** {
+ 580              	 .loc 2 237 0
+ 581              	 .cfi_startproc
+ 582              	 
+ 583              	 
+ 584              	 
+ 585 01f0 80B4     	 push {r7}
+ 586              	.LCFI44:
+ 587              	 .cfi_def_cfa_offset 4
+ 588              	 .cfi_offset 7,-4
+ 589 01f2 85B0     	 sub sp,sp,#20
+ 590              	.LCFI45:
+ 591              	 .cfi_def_cfa_offset 24
+ 592 01f4 00AF     	 add r7,sp,#0
+ 593              	.LCFI46:
+ 594              	 .cfi_def_cfa_register 7
+ 595 01f6 F860     	 str r0,[r7,#12]
+ 596 01f8 B960     	 str r1,[r7,#8]
+ 597 01fa 7A60     	 str r2,[r7,#4]
+ 238:../../../platform/sam/drivers/spi/spi.c **** 	if (ul_phase) {
+ 598              	 .loc 2 238 0
+ 599 01fc 7B68     	 ldr r3,[r7,#4]
+ 600 01fe 002B     	 cmp r3,#0
+ 601 0200 0CD0     	 beq .L31
+ 239:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_CSR[ul_pcs_ch] |= SPI_CSR_NCPHA;
+ 602              	 .loc 2 239 0
+ 603 0202 FB68     	 ldr r3,[r7,#12]
+ 604 0204 BA68     	 ldr r2,[r7,#8]
+ 605 0206 0C32     	 adds r2,r2,#12
+ 606 0208 53F82230 	 ldr r3,[r3,r2,lsl#2]
+ 607 020c 43F00201 	 orr r1,r3,#2
+ 608 0210 FB68     	 ldr r3,[r7,#12]
+ 609 0212 BA68     	 ldr r2,[r7,#8]
+ 610 0214 0C32     	 adds r2,r2,#12
+ 611 0216 43F82210 	 str r1,[r3,r2,lsl#2]
+ 240:../../../platform/sam/drivers/spi/spi.c **** 	} else {
+ 241:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_CSR[ul_pcs_ch] &= (~SPI_CSR_NCPHA);
+ 242:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 243:../../../platform/sam/drivers/spi/spi.c **** }
+ 612              	 .loc 2 243 0
+ 613 021a 0BE0     	 b .L33
+ 614              	.L31:
+ 241:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 615              	 .loc 2 241 0
+ 616 021c FB68     	 ldr r3,[r7,#12]
+ 617 021e BA68     	 ldr r2,[r7,#8]
+ 618 0220 0C32     	 adds r2,r2,#12
+ 619 0222 53F82230 	 ldr r3,[r3,r2,lsl#2]
+ 620 0226 23F00201 	 bic r1,r3,#2
+ 621 022a FB68     	 ldr r3,[r7,#12]
+ 622 022c BA68     	 ldr r2,[r7,#8]
+ 623 022e 0C32     	 adds r2,r2,#12
+ 624 0230 43F82210 	 str r1,[r3,r2,lsl#2]
+ 625              	.L33:
+ 626              	 .loc 2 243 0
+ 627 0234 00BF     	 nop
+ 628 0236 1437     	 adds r7,r7,#20
+ 629              	.LCFI47:
+ 630              	 .cfi_def_cfa_offset 4
+ 631 0238 BD46     	 mov sp,r7
+ 632              	.LCFI48:
+ 633              	 .cfi_def_cfa_register 13
+ 634              	 
+ 635 023a 80BC     	 pop {r7}
+ 636              	.LCFI49:
+ 637              	 .cfi_restore 7
+ 638              	 .cfi_def_cfa_offset 0
+ 639 023c 7047     	 bx lr
+ 640              	 .cfi_endproc
+ 641              	.LFE220:
+ 643              	 .align 1
+ 644              	 .global spi_configure_cs_behavior
+ 645              	 .syntax unified
+ 646              	 .thumb
+ 647              	 .thumb_func
+ 648              	 .fpu softvfp
+ 650              	spi_configure_cs_behavior:
+ 651              	.LFB221:
+ 244:../../../platform/sam/drivers/spi/spi.c **** 
+ 245:../../../platform/sam/drivers/spi/spi.c **** /**
+ 246:../../../platform/sam/drivers/spi/spi.c ****  * \brief Configure CS behavior for SPI transfer (\ref spi_cs_behavior_t).
+ 247:../../../platform/sam/drivers/spi/spi.c ****  *
+ 248:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+ 249:../../../platform/sam/drivers/spi/spi.c ****  * \param ul_pcs_ch Peripheral Chip Select channel (0~3).
+ 250:../../../platform/sam/drivers/spi/spi.c ****  * \param ul_cs_behavior Behavior of the Chip Select after transfer.
+ 251:../../../platform/sam/drivers/spi/spi.c ****  */
+ 252:../../../platform/sam/drivers/spi/spi.c **** void spi_configure_cs_behavior(Spi *p_spi, uint32_t ul_pcs_ch,
+ 253:../../../platform/sam/drivers/spi/spi.c **** 		uint32_t ul_cs_behavior)
+ 254:../../../platform/sam/drivers/spi/spi.c **** {
+ 652              	 .loc 2 254 0
+ 653              	 .cfi_startproc
+ 654              	 
+ 655              	 
+ 656              	 
+ 657 023e 80B4     	 push {r7}
+ 658              	.LCFI50:
+ 659              	 .cfi_def_cfa_offset 4
+ 660              	 .cfi_offset 7,-4
+ 661 0240 85B0     	 sub sp,sp,#20
+ 662              	.LCFI51:
+ 663              	 .cfi_def_cfa_offset 24
+ 664 0242 00AF     	 add r7,sp,#0
+ 665              	.LCFI52:
+ 666              	 .cfi_def_cfa_register 7
+ 667 0244 F860     	 str r0,[r7,#12]
+ 668 0246 B960     	 str r1,[r7,#8]
+ 669 0248 7A60     	 str r2,[r7,#4]
+ 255:../../../platform/sam/drivers/spi/spi.c **** 	if (ul_cs_behavior == SPI_CS_RISE_FORCED) {
+ 670              	 .loc 2 255 0
+ 671 024a 7B68     	 ldr r3,[r7,#4]
+ 672 024c 042B     	 cmp r3,#4
+ 673 024e 18D1     	 bne .L35
+ 256:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_CSR[ul_pcs_ch] &= (~SPI_CSR_CSAAT);
+ 674              	 .loc 2 256 0
+ 675 0250 FB68     	 ldr r3,[r7,#12]
+ 676 0252 BA68     	 ldr r2,[r7,#8]
+ 677 0254 0C32     	 adds r2,r2,#12
+ 678 0256 53F82230 	 ldr r3,[r3,r2,lsl#2]
+ 679 025a 23F00801 	 bic r1,r3,#8
+ 680 025e FB68     	 ldr r3,[r7,#12]
+ 681 0260 BA68     	 ldr r2,[r7,#8]
+ 682 0262 0C32     	 adds r2,r2,#12
+ 683 0264 43F82210 	 str r1,[r3,r2,lsl#2]
+ 257:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_CSR[ul_pcs_ch] |= SPI_CSR_CSNAAT;
+ 684              	 .loc 2 257 0
+ 685 0268 FB68     	 ldr r3,[r7,#12]
+ 686 026a BA68     	 ldr r2,[r7,#8]
+ 687 026c 0C32     	 adds r2,r2,#12
+ 688 026e 53F82230 	 ldr r3,[r3,r2,lsl#2]
+ 689 0272 43F00401 	 orr r1,r3,#4
+ 690 0276 FB68     	 ldr r3,[r7,#12]
+ 691 0278 BA68     	 ldr r2,[r7,#8]
+ 692 027a 0C32     	 adds r2,r2,#12
+ 693 027c 43F82210 	 str r1,[r3,r2,lsl#2]
+ 258:../../../platform/sam/drivers/spi/spi.c **** 	} else if (ul_cs_behavior == SPI_CS_RISE_NO_TX) {
+ 259:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_CSR[ul_pcs_ch] &= (~SPI_CSR_CSAAT);
+ 260:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_CSR[ul_pcs_ch] &= (~SPI_CSR_CSNAAT);
+ 261:../../../platform/sam/drivers/spi/spi.c **** 	} else if (ul_cs_behavior == SPI_CS_KEEP_LOW) {
+ 262:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_CSR[ul_pcs_ch] |= SPI_CSR_CSAAT;
+ 263:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 264:../../../platform/sam/drivers/spi/spi.c **** }
+ 694              	 .loc 2 264 0
+ 695 0280 2AE0     	 b .L38
+ 696              	.L35:
+ 258:../../../platform/sam/drivers/spi/spi.c **** 	} else if (ul_cs_behavior == SPI_CS_RISE_NO_TX) {
+ 697              	 .loc 2 258 0
+ 698 0282 7B68     	 ldr r3,[r7,#4]
+ 699 0284 002B     	 cmp r3,#0
+ 700 0286 18D1     	 bne .L37
+ 259:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_CSR[ul_pcs_ch] &= (~SPI_CSR_CSNAAT);
+ 701              	 .loc 2 259 0
+ 702 0288 FB68     	 ldr r3,[r7,#12]
+ 703 028a BA68     	 ldr r2,[r7,#8]
+ 704 028c 0C32     	 adds r2,r2,#12
+ 705 028e 53F82230 	 ldr r3,[r3,r2,lsl#2]
+ 706 0292 23F00801 	 bic r1,r3,#8
+ 707 0296 FB68     	 ldr r3,[r7,#12]
+ 708 0298 BA68     	 ldr r2,[r7,#8]
+ 709 029a 0C32     	 adds r2,r2,#12
+ 710 029c 43F82210 	 str r1,[r3,r2,lsl#2]
+ 260:../../../platform/sam/drivers/spi/spi.c **** 	} else if (ul_cs_behavior == SPI_CS_KEEP_LOW) {
+ 711              	 .loc 2 260 0
+ 712 02a0 FB68     	 ldr r3,[r7,#12]
+ 713 02a2 BA68     	 ldr r2,[r7,#8]
+ 714 02a4 0C32     	 adds r2,r2,#12
+ 715 02a6 53F82230 	 ldr r3,[r3,r2,lsl#2]
+ 716 02aa 23F00401 	 bic r1,r3,#4
+ 717 02ae FB68     	 ldr r3,[r7,#12]
+ 718 02b0 BA68     	 ldr r2,[r7,#8]
+ 719 02b2 0C32     	 adds r2,r2,#12
+ 720 02b4 43F82210 	 str r1,[r3,r2,lsl#2]
+ 721              	 .loc 2 264 0
+ 722 02b8 0EE0     	 b .L38
+ 723              	.L37:
+ 261:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_CSR[ul_pcs_ch] |= SPI_CSR_CSAAT;
+ 724              	 .loc 2 261 0
+ 725 02ba 7B68     	 ldr r3,[r7,#4]
+ 726 02bc 082B     	 cmp r3,#8
+ 727 02be 0BD1     	 bne .L38
+ 262:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 728              	 .loc 2 262 0
+ 729 02c0 FB68     	 ldr r3,[r7,#12]
+ 730 02c2 BA68     	 ldr r2,[r7,#8]
+ 731 02c4 0C32     	 adds r2,r2,#12
+ 732 02c6 53F82230 	 ldr r3,[r3,r2,lsl#2]
+ 733 02ca 43F00801 	 orr r1,r3,#8
+ 734 02ce FB68     	 ldr r3,[r7,#12]
+ 735 02d0 BA68     	 ldr r2,[r7,#8]
+ 736 02d2 0C32     	 adds r2,r2,#12
+ 737 02d4 43F82210 	 str r1,[r3,r2,lsl#2]
+ 738              	.L38:
+ 739              	 .loc 2 264 0
+ 740 02d8 00BF     	 nop
+ 741 02da 1437     	 adds r7,r7,#20
+ 742              	.LCFI53:
+ 743              	 .cfi_def_cfa_offset 4
+ 744 02dc BD46     	 mov sp,r7
+ 745              	.LCFI54:
+ 746              	 .cfi_def_cfa_register 13
+ 747              	 
+ 748 02de 80BC     	 pop {r7}
+ 749              	.LCFI55:
+ 750              	 .cfi_restore 7
+ 751              	 .cfi_def_cfa_offset 0
+ 752 02e0 7047     	 bx lr
+ 753              	 .cfi_endproc
+ 754              	.LFE221:
+ 756              	 .align 1
+ 757              	 .global spi_set_bits_per_transfer
+ 758              	 .syntax unified
+ 759              	 .thumb
+ 760              	 .thumb_func
+ 761              	 .fpu softvfp
+ 763              	spi_set_bits_per_transfer:
+ 764              	.LFB222:
+ 265:../../../platform/sam/drivers/spi/spi.c **** 
+ 266:../../../platform/sam/drivers/spi/spi.c **** /**
+ 267:../../../platform/sam/drivers/spi/spi.c ****  * \brief Set number of bits per transfer.
+ 268:../../../platform/sam/drivers/spi/spi.c ****  *
+ 269:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+ 270:../../../platform/sam/drivers/spi/spi.c ****  * \param ul_pcs_ch Peripheral Chip Select channel (0~3).
+ 271:../../../platform/sam/drivers/spi/spi.c ****  * \param ul_bits Number of bits (8~16), use the pattern defined
+ 272:../../../platform/sam/drivers/spi/spi.c ****  *        in the device header file.
+ 273:../../../platform/sam/drivers/spi/spi.c ****  */
+ 274:../../../platform/sam/drivers/spi/spi.c **** void spi_set_bits_per_transfer(Spi *p_spi, uint32_t ul_pcs_ch,
+ 275:../../../platform/sam/drivers/spi/spi.c **** 		uint32_t ul_bits)
+ 276:../../../platform/sam/drivers/spi/spi.c **** {
+ 765              	 .loc 2 276 0
+ 766              	 .cfi_startproc
+ 767              	 
+ 768              	 
+ 769              	 
+ 770 02e2 80B4     	 push {r7}
+ 771              	.LCFI56:
+ 772              	 .cfi_def_cfa_offset 4
+ 773              	 .cfi_offset 7,-4
+ 774 02e4 85B0     	 sub sp,sp,#20
+ 775              	.LCFI57:
+ 776              	 .cfi_def_cfa_offset 24
+ 777 02e6 00AF     	 add r7,sp,#0
+ 778              	.LCFI58:
+ 779              	 .cfi_def_cfa_register 7
+ 780 02e8 F860     	 str r0,[r7,#12]
+ 781 02ea B960     	 str r1,[r7,#8]
+ 782 02ec 7A60     	 str r2,[r7,#4]
+ 277:../../../platform/sam/drivers/spi/spi.c **** 	p_spi->SPI_CSR[ul_pcs_ch] &= (~SPI_CSR_BITS_Msk);
+ 783              	 .loc 2 277 0
+ 784 02ee FB68     	 ldr r3,[r7,#12]
+ 785 02f0 BA68     	 ldr r2,[r7,#8]
+ 786 02f2 0C32     	 adds r2,r2,#12
+ 787 02f4 53F82230 	 ldr r3,[r3,r2,lsl#2]
+ 788 02f8 23F0F001 	 bic r1,r3,#240
+ 789 02fc FB68     	 ldr r3,[r7,#12]
+ 790 02fe BA68     	 ldr r2,[r7,#8]
+ 791 0300 0C32     	 adds r2,r2,#12
+ 792 0302 43F82210 	 str r1,[r3,r2,lsl#2]
+ 278:../../../platform/sam/drivers/spi/spi.c **** 	p_spi->SPI_CSR[ul_pcs_ch] |= ul_bits;
+ 793              	 .loc 2 278 0
+ 794 0306 FB68     	 ldr r3,[r7,#12]
+ 795 0308 BA68     	 ldr r2,[r7,#8]
+ 796 030a 0C32     	 adds r2,r2,#12
+ 797 030c 53F82220 	 ldr r2,[r3,r2,lsl#2]
+ 798 0310 7B68     	 ldr r3,[r7,#4]
+ 799 0312 42EA0301 	 orr r1,r2,r3
+ 800 0316 FB68     	 ldr r3,[r7,#12]
+ 801 0318 BA68     	 ldr r2,[r7,#8]
+ 802 031a 0C32     	 adds r2,r2,#12
+ 803 031c 43F82210 	 str r1,[r3,r2,lsl#2]
+ 279:../../../platform/sam/drivers/spi/spi.c **** }
+ 804              	 .loc 2 279 0
+ 805 0320 00BF     	 nop
+ 806 0322 1437     	 adds r7,r7,#20
+ 807              	.LCFI59:
+ 808              	 .cfi_def_cfa_offset 4
+ 809 0324 BD46     	 mov sp,r7
+ 810              	.LCFI60:
+ 811              	 .cfi_def_cfa_register 13
+ 812              	 
+ 813 0326 80BC     	 pop {r7}
+ 814              	.LCFI61:
+ 815              	 .cfi_restore 7
+ 816              	 .cfi_def_cfa_offset 0
+ 817 0328 7047     	 bx lr
+ 818              	 .cfi_endproc
+ 819              	.LFE222:
+ 821              	 .align 1
+ 822              	 .global spi_calc_baudrate_div
+ 823              	 .syntax unified
+ 824              	 .thumb
+ 825              	 .thumb_func
+ 826              	 .fpu softvfp
+ 828              	spi_calc_baudrate_div:
+ 829              	.LFB223:
+ 280:../../../platform/sam/drivers/spi/spi.c **** 
+ 281:../../../platform/sam/drivers/spi/spi.c **** /**
+ 282:../../../platform/sam/drivers/spi/spi.c ****  * \brief Calculate the baudrate divider.
+ 283:../../../platform/sam/drivers/spi/spi.c ****  *
+ 284:../../../platform/sam/drivers/spi/spi.c ****  * \param baudrate Baudrate value.
+ 285:../../../platform/sam/drivers/spi/spi.c ****  * \param mck      SPI module input clock frequency (MCK clock, Hz).
+ 286:../../../platform/sam/drivers/spi/spi.c ****  *
+ 287:../../../platform/sam/drivers/spi/spi.c ****  * \return Divider or error code.
+ 288:../../../platform/sam/drivers/spi/spi.c ****  *   \retval > 0  Success.
+ 289:../../../platform/sam/drivers/spi/spi.c ****  *   \retval < 0  Error.
+ 290:../../../platform/sam/drivers/spi/spi.c ****  */
+ 291:../../../platform/sam/drivers/spi/spi.c **** int16_t spi_calc_baudrate_div(const uint32_t baudrate, uint32_t mck)
+ 292:../../../platform/sam/drivers/spi/spi.c **** {
+ 830              	 .loc 2 292 0
+ 831              	 .cfi_startproc
+ 832              	 
+ 833              	 
+ 834              	 
+ 835 032a 80B4     	 push {r7}
+ 836              	.LCFI62:
+ 837              	 .cfi_def_cfa_offset 4
+ 838              	 .cfi_offset 7,-4
+ 839 032c 85B0     	 sub sp,sp,#20
+ 840              	.LCFI63:
+ 841              	 .cfi_def_cfa_offset 24
+ 842 032e 00AF     	 add r7,sp,#0
+ 843              	.LCFI64:
+ 844              	 .cfi_def_cfa_register 7
+ 845 0330 7860     	 str r0,[r7,#4]
+ 846 0332 3960     	 str r1,[r7]
+ 293:../../../platform/sam/drivers/spi/spi.c **** 	int baud_div = div_ceil(mck, baudrate);
+ 847              	 .loc 2 293 0
+ 848 0334 3A68     	 ldr r2,[r7]
+ 849 0336 7B68     	 ldr r3,[r7,#4]
+ 850 0338 1344     	 add r3,r3,r2
+ 851 033a 5A1E     	 subs r2,r3,#1
+ 852 033c 7B68     	 ldr r3,[r7,#4]
+ 853 033e B2FBF3F3 	 udiv r3,r2,r3
+ 854 0342 FB60     	 str r3,[r7,#12]
+ 294:../../../platform/sam/drivers/spi/spi.c **** 
+ 295:../../../platform/sam/drivers/spi/spi.c **** 	/* The value of baud_div is from 1 to 255 in the SCBR field. */
+ 296:../../../platform/sam/drivers/spi/spi.c **** 	if (baud_div <= 0 || baud_div > 255) {
+ 855              	 .loc 2 296 0
+ 856 0344 FB68     	 ldr r3,[r7,#12]
+ 857 0346 002B     	 cmp r3,#0
+ 858 0348 02DD     	 ble .L41
+ 859              	 .loc 2 296 0 is_stmt 0 discriminator 1
+ 860 034a FB68     	 ldr r3,[r7,#12]
+ 861 034c FF2B     	 cmp r3,#255
+ 862 034e 02DD     	 ble .L42
+ 863              	.L41:
+ 297:../../../platform/sam/drivers/spi/spi.c **** 		return -1;
+ 864              	 .loc 2 297 0 is_stmt 1
+ 865 0350 4FF0FF33 	 mov r3,#-1
+ 866 0354 01E0     	 b .L43
+ 867              	.L42:
+ 298:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 299:../../../platform/sam/drivers/spi/spi.c **** 
+ 300:../../../platform/sam/drivers/spi/spi.c **** 	return baud_div;
+ 868              	 .loc 2 300 0
+ 869 0356 FB68     	 ldr r3,[r7,#12]
+ 870 0358 1BB2     	 sxth r3,r3
+ 871              	.L43:
+ 301:../../../platform/sam/drivers/spi/spi.c **** }
+ 872              	 .loc 2 301 0
+ 873 035a 1846     	 mov r0,r3
+ 874 035c 1437     	 adds r7,r7,#20
+ 875              	.LCFI65:
+ 876              	 .cfi_def_cfa_offset 4
+ 877 035e BD46     	 mov sp,r7
+ 878              	.LCFI66:
+ 879              	 .cfi_def_cfa_register 13
+ 880              	 
+ 881 0360 80BC     	 pop {r7}
+ 882              	.LCFI67:
+ 883              	 .cfi_restore 7
+ 884              	 .cfi_def_cfa_offset 0
+ 885 0362 7047     	 bx lr
+ 886              	 .cfi_endproc
+ 887              	.LFE223:
+ 889              	 .align 1
+ 890              	 .global spi_set_baudrate_div
+ 891              	 .syntax unified
+ 892              	 .thumb
+ 893              	 .thumb_func
+ 894              	 .fpu softvfp
+ 896              	spi_set_baudrate_div:
+ 897              	.LFB224:
+ 302:../../../platform/sam/drivers/spi/spi.c **** 
+ 303:../../../platform/sam/drivers/spi/spi.c **** /**
+ 304:../../../platform/sam/drivers/spi/spi.c ****  * \brief Set Serial Clock Baud Rate divider value (SCBR).
+ 305:../../../platform/sam/drivers/spi/spi.c ****  *
+ 306:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+ 307:../../../platform/sam/drivers/spi/spi.c ****  * \param ul_pcs_ch Peripheral Chip Select channel (0~3).
+ 308:../../../platform/sam/drivers/spi/spi.c ****  * \param uc_baudrate_divider Baudrate divider from MCK.
+ 309:../../../platform/sam/drivers/spi/spi.c ****  */
+ 310:../../../platform/sam/drivers/spi/spi.c **** void spi_set_baudrate_div(Spi *p_spi, uint32_t ul_pcs_ch,
+ 311:../../../platform/sam/drivers/spi/spi.c **** 		uint8_t uc_baudrate_divider)
+ 312:../../../platform/sam/drivers/spi/spi.c **** {
+ 898              	 .loc 2 312 0
+ 899              	 .cfi_startproc
+ 900              	 
+ 901              	 
+ 902              	 
+ 903 0364 80B4     	 push {r7}
+ 904              	.LCFI68:
+ 905              	 .cfi_def_cfa_offset 4
+ 906              	 .cfi_offset 7,-4
+ 907 0366 85B0     	 sub sp,sp,#20
+ 908              	.LCFI69:
+ 909              	 .cfi_def_cfa_offset 24
+ 910 0368 00AF     	 add r7,sp,#0
+ 911              	.LCFI70:
+ 912              	 .cfi_def_cfa_register 7
+ 913 036a F860     	 str r0,[r7,#12]
+ 914 036c B960     	 str r1,[r7,#8]
+ 915 036e 1346     	 mov r3,r2
+ 916 0370 FB71     	 strb r3,[r7,#7]
+ 313:../../../platform/sam/drivers/spi/spi.c **** 	p_spi->SPI_CSR[ul_pcs_ch] &= (~SPI_CSR_SCBR_Msk);
+ 917              	 .loc 2 313 0
+ 918 0372 FB68     	 ldr r3,[r7,#12]
+ 919 0374 BA68     	 ldr r2,[r7,#8]
+ 920 0376 0C32     	 adds r2,r2,#12
+ 921 0378 53F82230 	 ldr r3,[r3,r2,lsl#2]
+ 922 037c 23F47F41 	 bic r1,r3,#65280
+ 923 0380 FB68     	 ldr r3,[r7,#12]
+ 924 0382 BA68     	 ldr r2,[r7,#8]
+ 925 0384 0C32     	 adds r2,r2,#12
+ 926 0386 43F82210 	 str r1,[r3,r2,lsl#2]
+ 314:../../../platform/sam/drivers/spi/spi.c **** 	p_spi->SPI_CSR[ul_pcs_ch] |= SPI_CSR_SCBR(uc_baudrate_divider);
+ 927              	 .loc 2 314 0
+ 928 038a FB68     	 ldr r3,[r7,#12]
+ 929 038c BA68     	 ldr r2,[r7,#8]
+ 930 038e 0C32     	 adds r2,r2,#12
+ 931 0390 53F82220 	 ldr r2,[r3,r2,lsl#2]
+ 932 0394 FB79     	 ldrb r3,[r7,#7]
+ 933 0396 1B02     	 lsls r3,r3,#8
+ 934 0398 9BB2     	 uxth r3,r3
+ 935 039a 42EA0301 	 orr r1,r2,r3
+ 936 039e FB68     	 ldr r3,[r7,#12]
+ 937 03a0 BA68     	 ldr r2,[r7,#8]
+ 938 03a2 0C32     	 adds r2,r2,#12
+ 939 03a4 43F82210 	 str r1,[r3,r2,lsl#2]
+ 315:../../../platform/sam/drivers/spi/spi.c **** }
+ 940              	 .loc 2 315 0
+ 941 03a8 00BF     	 nop
+ 942 03aa 1437     	 adds r7,r7,#20
+ 943              	.LCFI71:
+ 944              	 .cfi_def_cfa_offset 4
+ 945 03ac BD46     	 mov sp,r7
+ 946              	.LCFI72:
+ 947              	 .cfi_def_cfa_register 13
+ 948              	 
+ 949 03ae 80BC     	 pop {r7}
+ 950              	.LCFI73:
+ 951              	 .cfi_restore 7
+ 952              	 .cfi_def_cfa_offset 0
+ 953 03b0 7047     	 bx lr
+ 954              	 .cfi_endproc
+ 955              	.LFE224:
+ 957              	 .align 1
+ 958              	 .global spi_set_transfer_delay
+ 959              	 .syntax unified
+ 960              	 .thumb
+ 961              	 .thumb_func
+ 962              	 .fpu softvfp
+ 964              	spi_set_transfer_delay:
+ 965              	.LFB225:
+ 316:../../../platform/sam/drivers/spi/spi.c **** 
+ 317:../../../platform/sam/drivers/spi/spi.c **** /**
+ 318:../../../platform/sam/drivers/spi/spi.c ****  * \brief Configure timing for SPI transfer.
+ 319:../../../platform/sam/drivers/spi/spi.c ****  *
+ 320:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+ 321:../../../platform/sam/drivers/spi/spi.c ****  * \param ul_pcs_ch Peripheral Chip Select channel (0~3).
+ 322:../../../platform/sam/drivers/spi/spi.c ****  * \param uc_dlybs Delay before SPCK (in number of MCK clocks).
+ 323:../../../platform/sam/drivers/spi/spi.c ****  * \param uc_dlybct Delay between consecutive transfers (in number of MCK clocks).
+ 324:../../../platform/sam/drivers/spi/spi.c ****  */
+ 325:../../../platform/sam/drivers/spi/spi.c **** void spi_set_transfer_delay(Spi *p_spi, uint32_t ul_pcs_ch,
+ 326:../../../platform/sam/drivers/spi/spi.c **** 		uint8_t uc_dlybs, uint8_t uc_dlybct)
+ 327:../../../platform/sam/drivers/spi/spi.c **** {
+ 966              	 .loc 2 327 0
+ 967              	 .cfi_startproc
+ 968              	 
+ 969              	 
+ 970              	 
+ 971 03b2 80B4     	 push {r7}
+ 972              	.LCFI74:
+ 973              	 .cfi_def_cfa_offset 4
+ 974              	 .cfi_offset 7,-4
+ 975 03b4 85B0     	 sub sp,sp,#20
+ 976              	.LCFI75:
+ 977              	 .cfi_def_cfa_offset 24
+ 978 03b6 00AF     	 add r7,sp,#0
+ 979              	.LCFI76:
+ 980              	 .cfi_def_cfa_register 7
+ 981 03b8 F860     	 str r0,[r7,#12]
+ 982 03ba B960     	 str r1,[r7,#8]
+ 983 03bc 1146     	 mov r1,r2
+ 984 03be 1A46     	 mov r2,r3
+ 985 03c0 0B46     	 mov r3,r1
+ 986 03c2 FB71     	 strb r3,[r7,#7]
+ 987 03c4 1346     	 mov r3,r2
+ 988 03c6 BB71     	 strb r3,[r7,#6]
+ 328:../../../platform/sam/drivers/spi/spi.c **** 	p_spi->SPI_CSR[ul_pcs_ch] &= ~(SPI_CSR_DLYBS_Msk | SPI_CSR_DLYBCT_Msk);
+ 989              	 .loc 2 328 0
+ 990 03c8 FB68     	 ldr r3,[r7,#12]
+ 991 03ca BA68     	 ldr r2,[r7,#8]
+ 992 03cc 0C32     	 adds r2,r2,#12
+ 993 03ce 53F82230 	 ldr r3,[r3,r2,lsl#2]
+ 994 03d2 99B2     	 uxth r1,r3
+ 995 03d4 FB68     	 ldr r3,[r7,#12]
+ 996 03d6 BA68     	 ldr r2,[r7,#8]
+ 997 03d8 0C32     	 adds r2,r2,#12
+ 998 03da 43F82210 	 str r1,[r3,r2,lsl#2]
+ 329:../../../platform/sam/drivers/spi/spi.c **** 	p_spi->SPI_CSR[ul_pcs_ch] |= SPI_CSR_DLYBS(uc_dlybs)
+ 999              	 .loc 2 329 0
+ 1000 03de FB68     	 ldr r3,[r7,#12]
+ 1001 03e0 BA68     	 ldr r2,[r7,#8]
+ 1002 03e2 0C32     	 adds r2,r2,#12
+ 1003 03e4 53F82220 	 ldr r2,[r3,r2,lsl#2]
+ 1004 03e8 FB79     	 ldrb r3,[r7,#7]
+ 1005 03ea 1B04     	 lsls r3,r3,#16
+ 1006 03ec 03F47F03 	 and r3,r3,#16711680
+ 330:../../../platform/sam/drivers/spi/spi.c **** 			| SPI_CSR_DLYBCT(uc_dlybct);
+ 1007              	 .loc 2 330 0
+ 1008 03f0 B979     	 ldrb r1,[r7,#6]
+ 1009 03f2 0906     	 lsls r1,r1,#24
+ 1010 03f4 0B43     	 orrs r3,r3,r1
+ 329:../../../platform/sam/drivers/spi/spi.c **** 	p_spi->SPI_CSR[ul_pcs_ch] |= SPI_CSR_DLYBS(uc_dlybs)
+ 1011              	 .loc 2 329 0
+ 1012 03f6 42EA0301 	 orr r1,r2,r3
+ 1013 03fa FB68     	 ldr r3,[r7,#12]
+ 1014 03fc BA68     	 ldr r2,[r7,#8]
+ 1015 03fe 0C32     	 adds r2,r2,#12
+ 1016 0400 43F82210 	 str r1,[r3,r2,lsl#2]
+ 331:../../../platform/sam/drivers/spi/spi.c **** }
+ 1017              	 .loc 2 331 0
+ 1018 0404 00BF     	 nop
+ 1019 0406 1437     	 adds r7,r7,#20
+ 1020              	.LCFI77:
+ 1021              	 .cfi_def_cfa_offset 4
+ 1022 0408 BD46     	 mov sp,r7
+ 1023              	.LCFI78:
+ 1024              	 .cfi_def_cfa_register 13
+ 1025              	 
+ 1026 040a 80BC     	 pop {r7}
+ 1027              	.LCFI79:
+ 1028              	 .cfi_restore 7
+ 1029              	 .cfi_def_cfa_offset 0
+ 1030 040c 7047     	 bx lr
+ 1031              	 .cfi_endproc
+ 1032              	.LFE225:
+ 1034              	 .align 1
+ 1035              	 .global spi_set_writeprotect
+ 1036              	 .syntax unified
+ 1037              	 .thumb
+ 1038              	 .thumb_func
+ 1039              	 .fpu softvfp
+ 1041              	spi_set_writeprotect:
+ 1042              	.LFB226:
+ 332:../../../platform/sam/drivers/spi/spi.c **** 
+ 333:../../../platform/sam/drivers/spi/spi.c **** 
+ 334:../../../platform/sam/drivers/spi/spi.c **** /**
+ 335:../../../platform/sam/drivers/spi/spi.c ****  * \brief Enable or disable write protection of SPI registers.
+ 336:../../../platform/sam/drivers/spi/spi.c ****  *
+ 337:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+ 338:../../../platform/sam/drivers/spi/spi.c ****  * \param ul_enable 1 to enable, 0 to disable.
+ 339:../../../platform/sam/drivers/spi/spi.c ****  */
+ 340:../../../platform/sam/drivers/spi/spi.c **** void spi_set_writeprotect(Spi *p_spi, uint32_t ul_enable)
+ 341:../../../platform/sam/drivers/spi/spi.c **** {
+ 1043              	 .loc 2 341 0
+ 1044              	 .cfi_startproc
+ 1045              	 
+ 1046              	 
+ 1047              	 
+ 1048 040e 80B4     	 push {r7}
+ 1049              	.LCFI80:
+ 1050              	 .cfi_def_cfa_offset 4
+ 1051              	 .cfi_offset 7,-4
+ 1052 0410 83B0     	 sub sp,sp,#12
+ 1053              	.LCFI81:
+ 1054              	 .cfi_def_cfa_offset 16
+ 1055 0412 00AF     	 add r7,sp,#0
+ 1056              	.LCFI82:
+ 1057              	 .cfi_def_cfa_register 7
+ 1058 0414 7860     	 str r0,[r7,#4]
+ 1059 0416 3960     	 str r1,[r7]
+ 342:../../../platform/sam/drivers/spi/spi.c **** #if SAM4L
+ 343:../../../platform/sam/drivers/spi/spi.c **** 	if (ul_enable) {
+ 1060              	 .loc 2 343 0
+ 1061 0418 3B68     	 ldr r3,[r7]
+ 1062 041a 002B     	 cmp r3,#0
+ 1063 041c 04D0     	 beq .L47
+ 344:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_WPCR = SPI_WPCR_SPIWPKEY_VALUE | SPI_WPCR_SPIWPEN;
+ 1064              	 .loc 2 344 0
+ 1065 041e 7B68     	 ldr r3,[r7,#4]
+ 1066 0420 064A     	 ldr r2,.L50
+ 1067 0422 C3F8E420 	 str r2,[r3,#228]
+ 345:../../../platform/sam/drivers/spi/spi.c **** 	} else {
+ 346:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_WPCR = SPI_WPCR_SPIWPKEY_VALUE;
+ 347:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 348:../../../platform/sam/drivers/spi/spi.c **** #else
+ 349:../../../platform/sam/drivers/spi/spi.c **** 	if (ul_enable) {
+ 350:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_WPMR = SPI_WPMR_WPKEY_PASSWD | SPI_WPMR_WPEN;
+ 351:../../../platform/sam/drivers/spi/spi.c **** 	} else {
+ 352:../../../platform/sam/drivers/spi/spi.c **** 		p_spi->SPI_WPMR = SPI_WPMR_WPKEY_PASSWD;
+ 353:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 354:../../../platform/sam/drivers/spi/spi.c **** #endif
+ 355:../../../platform/sam/drivers/spi/spi.c **** }
+ 1068              	 .loc 2 355 0
+ 1069 0426 03E0     	 b .L49
+ 1070              	.L47:
+ 346:../../../platform/sam/drivers/spi/spi.c **** 	}
+ 1071              	 .loc 2 346 0
+ 1072 0428 7B68     	 ldr r3,[r7,#4]
+ 1073 042a 054A     	 ldr r2,.L50+4
+ 1074 042c C3F8E420 	 str r2,[r3,#228]
+ 1075              	.L49:
+ 1076              	 .loc 2 355 0
+ 1077 0430 00BF     	 nop
+ 1078 0432 0C37     	 adds r7,r7,#12
+ 1079              	.LCFI83:
+ 1080              	 .cfi_def_cfa_offset 4
+ 1081 0434 BD46     	 mov sp,r7
+ 1082              	.LCFI84:
+ 1083              	 .cfi_def_cfa_register 13
+ 1084              	 
+ 1085 0436 80BC     	 pop {r7}
+ 1086              	.LCFI85:
+ 1087              	 .cfi_restore 7
+ 1088              	 .cfi_def_cfa_offset 0
+ 1089 0438 7047     	 bx lr
+ 1090              	.L51:
+ 1091 043a 00BF     	 .align 2
+ 1092              	.L50:
+ 1093 043c 01495053 	 .word 1397770497
+ 1094 0440 00495053 	 .word 1397770496
+ 1095              	 .cfi_endproc
+ 1096              	.LFE226:
+ 1098              	 .align 1
+ 1099              	 .global spi_get_writeprotect_status
+ 1100              	 .syntax unified
+ 1101              	 .thumb
+ 1102              	 .thumb_func
+ 1103              	 .fpu softvfp
+ 1105              	spi_get_writeprotect_status:
+ 1106              	.LFB227:
+ 356:../../../platform/sam/drivers/spi/spi.c **** 
+ 357:../../../platform/sam/drivers/spi/spi.c **** /**
+ 358:../../../platform/sam/drivers/spi/spi.c ****  * \brief Indicate write protect status.
+ 359:../../../platform/sam/drivers/spi/spi.c ****  *
+ 360:../../../platform/sam/drivers/spi/spi.c ****  * \param p_spi Pointer to an SPI instance.
+ 361:../../../platform/sam/drivers/spi/spi.c ****  *
+ 362:../../../platform/sam/drivers/spi/spi.c ****  * \return SPI_WPSR value.
+ 363:../../../platform/sam/drivers/spi/spi.c ****  */
+ 364:../../../platform/sam/drivers/spi/spi.c **** uint32_t spi_get_writeprotect_status(Spi *p_spi)
+ 365:../../../platform/sam/drivers/spi/spi.c **** {
+ 1107              	 .loc 2 365 0
+ 1108              	 .cfi_startproc
+ 1109              	 
+ 1110              	 
+ 1111              	 
+ 1112 0444 80B4     	 push {r7}
+ 1113              	.LCFI86:
+ 1114              	 .cfi_def_cfa_offset 4
+ 1115              	 .cfi_offset 7,-4
+ 1116 0446 83B0     	 sub sp,sp,#12
+ 1117              	.LCFI87:
+ 1118              	 .cfi_def_cfa_offset 16
+ 1119 0448 00AF     	 add r7,sp,#0
+ 1120              	.LCFI88:
+ 1121              	 .cfi_def_cfa_register 7
+ 1122 044a 7860     	 str r0,[r7,#4]
+ 366:../../../platform/sam/drivers/spi/spi.c **** 	return p_spi->SPI_WPSR;
+ 1123              	 .loc 2 366 0
+ 1124 044c 7B68     	 ldr r3,[r7,#4]
+ 1125 044e D3F8E830 	 ldr r3,[r3,#232]
+ 367:../../../platform/sam/drivers/spi/spi.c **** }
+ 1126              	 .loc 2 367 0
+ 1127 0452 1846     	 mov r0,r3
+ 1128 0454 0C37     	 adds r7,r7,#12
+ 1129              	.LCFI89:
+ 1130              	 .cfi_def_cfa_offset 4
+ 1131 0456 BD46     	 mov sp,r7
+ 1132              	.LCFI90:
+ 1133              	 .cfi_def_cfa_register 13
+ 1134              	 
+ 1135 0458 80BC     	 pop {r7}
+ 1136              	.LCFI91:
+ 1137              	 .cfi_restore 7
+ 1138              	 .cfi_def_cfa_offset 0
+ 1139 045a 7047     	 bx lr
+ 1140              	 .cfi_endproc
+ 1141              	.LFE227:
+ 1143              	 .section .bss.reg_value.8780,"aw",%nobits
+ 1144              	 .align 2
+ 1147              	reg_value.8780:
+ 1148 0000 00000000 	 .space 4
+ 1149              	 .text
+ 1150              	.Letext0:
+ 1151              	 .file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 1152              	 .file 4 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 1153              	 .file 5 "../../../platform/sam/utils/cmsis/sam4l/include/sam4lc4b.h"
+ 1154              	 .file 6 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+ 1155              	 .file 7 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 1156              	 .file 8 "../../../platform/sam/utils/cmsis/sam4l/include/component/component_spi.h"
+ 1157              	 .file 9 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 1158              	 .file 10 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 1159              	 .file 11 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 1160              	 .file 12 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 1161              	 .file 13 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+ 1162              	 .file 14 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
+ 1163              	 .file 15 "../../../platform/sam/utils/compiler.h"
+ 1164              	 .file 16 "../../../platform/common/services/usb/usb_protocol.h"
+ 1165              	 .file 17 "../../../platform/common/services/usb/udc/udi.h"
+ 1166              	 .file 18 "../../../platform/common/services/usb/udc/udc_desc.h"
+ 1167              	 .file 19 "../../../platform/common/services/usb/udc/udd.h"
+ 1168              	 .file 20 "../../../platform/common/services/usb/class/cdc/device/udi_cdc.h"
+ 1169              	 .file 21 "../../../platform/common/utils/stdio/stdio_usb/stdio_usb.h"
+ 1170              	 .file 22 "../../../platform/common/services/clock/sam4l/sysclk.h"
+ 1171              	 .file 23 "config/config.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 spi.c
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
+    {standard input}:27     .text:00000000 $t
+    {standard input}:33     .text:00000000 spi_get_peripheral_select_mode
+                            *COM*:00000001 n
+    {standard input}:84     .bss.tTS:00000000 $d
+    {standard input}:87     .bss.tTS:00000000 tTS
+    {standard input}:97     .text:00000024 spi_enable_clock
+    {standard input}:134    .text:0000003c $d
+    {standard input}:138    .text:00000040 $t
+    {standard input}:145    .text:00000040 spi_disable_clock
+    {standard input}:181    .text:00000058 $d
+    {standard input}:185    .text:0000005c $t
+    {standard input}:192    .text:0000005c spi_set_peripheral_chip_select_value
+    {standard input}:250    .text:0000008e spi_set_delay_between_chip_select
+    {standard input}:307    .text:000000bc spi_read
+    {standard input}:392    .text:00000124 $d
+    {standard input}:1147   .bss.reg_value.8780:00000000 reg_value.8780
+    {standard input}:396    .text:00000128 $t
+    {standard input}:403    .text:00000128 spi_write
+    {standard input}:506    .text:000001a2 spi_set_clock_polarity
+    {standard input}:578    .text:000001f0 spi_set_clock_phase
+    {standard input}:650    .text:0000023e spi_configure_cs_behavior
+    {standard input}:763    .text:000002e2 spi_set_bits_per_transfer
+    {standard input}:828    .text:0000032a spi_calc_baudrate_div
+    {standard input}:896    .text:00000364 spi_set_baudrate_div
+    {standard input}:964    .text:000003b2 spi_set_transfer_delay
+    {standard input}:1041   .text:0000040e spi_set_writeprotect
+    {standard input}:1093   .text:0000043c $d
+    {standard input}:1098   .text:00000444 $t
+    {standard input}:1105   .text:00000444 spi_get_writeprotect_status
+    {standard input}:1144   .bss.reg_value.8780:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+sysclk_enable_peripheral_clock
+sysclk_disable_peripheral_clock

@@ -412,6 +412,7 @@ void nwkTxTaskHandler(void)
 							+ 1;
 					SYS_TimerStart(&nwkTxAckWaitTimer);
 				} else {
+					
 					frame->state = NWK_TX_STATE_CONFIRM;
 				}
 			} else {

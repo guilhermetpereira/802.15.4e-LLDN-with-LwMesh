@@ -1,0 +1,2946 @@
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "spi_master.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .comm n,1,1
+  27              	 .section .bss.tTS,"aw",%nobits
+  28              	 .align 2
+  31              	tTS:
+  32 0000 00000000 	 .space 4
+  33              	 .text
+  34              	 .align 1
+  35              	 .syntax unified
+  36              	 .thumb
+  37              	 .thumb_func
+  38              	 .fpu softvfp
+  40              	sysclk_get_main_hz:
+  41              	.LFB164:
+  42              	 .file 1 "../../../platform/common/services/clock/sam4l/sysclk.h"
+   1:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+   2:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \file
+   3:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+   4:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Chip-specific system clock management functions
+   5:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+   6:../../../platform/common/services/clock/sam4l/sysclk.h ****  * Copyright (c) 2012-2014 Atmel Corporation. All rights reserved.
+   7:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+   8:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \asf_license_start
+   9:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  10:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \page License
+  11:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  12:../../../platform/common/services/clock/sam4l/sysclk.h ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/common/services/clock/sam4l/sysclk.h ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  15:../../../platform/common/services/clock/sam4l/sysclk.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/common/services/clock/sam4l/sysclk.h ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  18:../../../platform/common/services/clock/sam4l/sysclk.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/common/services/clock/sam4l/sysclk.h ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/common/services/clock/sam4l/sysclk.h ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  22:../../../platform/common/services/clock/sam4l/sysclk.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/common/services/clock/sam4l/sysclk.h ****  *    from this software without specific prior written permission.
+  24:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  25:../../../platform/common/services/clock/sam4l/sysclk.h ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/common/services/clock/sam4l/sysclk.h ****  *    Atmel microcontroller product.
+  27:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  28:../../../platform/common/services/clock/sam4l/sysclk.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/common/services/clock/sam4l/sysclk.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/common/services/clock/sam4l/sysclk.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/common/services/clock/sam4l/sysclk.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/common/services/clock/sam4l/sysclk.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/common/services/clock/sam4l/sysclk.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/common/services/clock/sam4l/sysclk.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/common/services/clock/sam4l/sysclk.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/common/services/clock/sam4l/sysclk.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/common/services/clock/sam4l/sysclk.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/common/services/clock/sam4l/sysclk.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  40:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \asf_license_stop
+  41:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  42:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+  43:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifndef CHIP_SYSCLK_H_INCLUDED
+  44:../../../platform/common/services/clock/sam4l/sysclk.h **** #define CHIP_SYSCLK_H_INCLUDED
+  45:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+  46:../../../platform/common/services/clock/sam4l/sysclk.h **** #include <board.h>
+  47:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+  48:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifdef __cplusplus
+  49:../../../platform/common/services/clock/sam4l/sysclk.h **** extern "C" {
+  50:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+  51:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+  52:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+  53:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \page sysclk_quickstart Quick Start Guide for the System Clock Management service (SAM4L)
+  54:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  55:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This is the quick start guide for the \ref sysclk_group "System Clock Management"
+  56:../../../platform/common/services/clock/sam4l/sysclk.h ****  * service, with step-by-step instructions on how to configure and use the service for
+  57:../../../platform/common/services/clock/sam4l/sysclk.h ****  * specific use cases.
+  58:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  59:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \section sysclk_quickstart_usecases System Clock Management use cases
+  60:../../../platform/common/services/clock/sam4l/sysclk.h ****  * - \ref sysclk_quickstart_basic
+  61:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  62:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \section sysclk_quickstart_basic Basic usage of the System Clock Management service
+  63:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This section will present a basic use case for the System Clock Management service.
+  64:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This use case will configure the main system clock to 48MHz, using an internal DFLL
+  65:../../../platform/common/services/clock/sam4l/sysclk.h ****  * module to multiply the frequency of a crystal attached to the microcontroller. The
+  66:../../../platform/common/services/clock/sam4l/sysclk.h ****  * peripheral bus clocks are scaled down from the speed of the main system clock.
+  67:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  68:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \subsection sysclk_quickstart_use_case_1_prereq Prerequisites
+  69:../../../platform/common/services/clock/sam4l/sysclk.h ****  *  - None
+  70:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  71:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \subsection sysclk_quickstart_use_case_1_setup_steps Initialization code
+  72:../../../platform/common/services/clock/sam4l/sysclk.h ****  * Add to the application initialization code:
+  73:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \code
+  74:../../../platform/common/services/clock/sam4l/sysclk.h **** 	sysclk_init();
+  75:../../../platform/common/services/clock/sam4l/sysclk.h **** \endcode
+  76:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  77:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \subsection sysclk_quickstart_use_case_1_setup_steps_workflow Workflow
+  78:../../../platform/common/services/clock/sam4l/sysclk.h ****  * -# Configure the system clocks according to the settings in conf_clock.h:
+  79:../../../platform/common/services/clock/sam4l/sysclk.h ****  *    \code sysclk_init(); \endcode
+  80:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+  81:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \subsection sysclk_quickstart_use_case_1_example_code Example code
+  82:../../../platform/common/services/clock/sam4l/sysclk.h ****  *   Add or uncomment the following in your conf_clock.h header file, commenting out all other
+  83:../../../platform/common/services/clock/sam4l/sysclk.h ****  *   definitions of the same symbol(s):
+  84:../../../platform/common/services/clock/sam4l/sysclk.h ****  *   \code
+  85:../../../platform/common/services/clock/sam4l/sysclk.h **** 	   #define CONFIG_SYSCLK_SOURCE        SYSCLK_SRC_DFLL0
+  86:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+  87:../../../platform/common/services/clock/sam4l/sysclk.h **** 	   // Fdfll = (Fclk * DFLL_mul) / DFLL_div
+  88:../../../platform/common/services/clock/sam4l/sysclk.h **** 	   #define CONFIG_DFLL0_SOURCE         GENCLK_SRC_OSC32K
+  89:../../../platform/common/services/clock/sam4l/sysclk.h **** 	   #define CONFIG_DFLL0_FREQ           48000000UL
+  90:../../../platform/common/services/clock/sam4l/sysclk.h **** 	   #define CONFIG_DFLL0_MUL            (CONFIG_DFLL0_FREQ / BOARD_OSC32_HZ)
+  91:../../../platform/common/services/clock/sam4l/sysclk.h **** 	   #define CONFIG_DFLL0_DIV            1
+  92:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+  93:../../../platform/common/services/clock/sam4l/sysclk.h **** 	   // Fbus = Fsys / (2 ^ BUS_div)
+  94:../../../platform/common/services/clock/sam4l/sysclk.h **** 	   #define CONFIG_SYSCLK_CPU_DIV       0
+  95:../../../platform/common/services/clock/sam4l/sysclk.h **** 	   #define CONFIG_SYSCLK_PBA_DIV       1
+  96:../../../platform/common/services/clock/sam4l/sysclk.h **** 	   #define CONFIG_SYSCLK_PBB_DIV       1
+  97:../../../platform/common/services/clock/sam4l/sysclk.h **** 	   #define CONFIG_SYSCLK_PBC_DIV       1
+  98:../../../platform/common/services/clock/sam4l/sysclk.h **** 	   #define CONFIG_SYSCLK_PBD_DIV       1
+  99:../../../platform/common/services/clock/sam4l/sysclk.h **** \endcode
+ 100:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 101:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \subsection sysclk_quickstart_use_case_1_example_workflow Workflow
+ 102:../../../platform/common/services/clock/sam4l/sysclk.h ****  *  -# Configure the main system clock to use the output of the DFLL0 module as its source:
+ 103:../../../platform/common/services/clock/sam4l/sysclk.h ****  *   \code #define CONFIG_SYSCLK_SOURCE      SYSCLK_SRC_DFLL0 \endcode
+ 104:../../../platform/common/services/clock/sam4l/sysclk.h ****  *  -# Configure the DFLL0 module to use external crystal oscillator OSC0 as its source:
+ 105:../../../platform/common/services/clock/sam4l/sysclk.h ****  *   \code #define CONFIG_DFLL0_SOURCE       GENCLK_SRC_OSC32K \endcode
+ 106:../../../platform/common/services/clock/sam4l/sysclk.h ****  *  -# Configure the DFLL0 module to multiply the external oscillator OSC0 frequency up to 48MHz:
+ 107:../../../platform/common/services/clock/sam4l/sysclk.h ****  *   \code
+ 108:../../../platform/common/services/clock/sam4l/sysclk.h **** 	#define CONFIG_DFLL0_FREQ           48000000UL
+ 109:../../../platform/common/services/clock/sam4l/sysclk.h **** 	#define CONFIG_DFLL0_MUL            (CONFIG_DFLL0_FREQ / BOARD_OSC32_HZ)
+ 110:../../../platform/common/services/clock/sam4l/sysclk.h **** 	#define CONFIG_DFLL0_DIV            1
+ 111:../../../platform/common/services/clock/sam4l/sysclk.h **** \endcode
+ 112:../../../platform/common/services/clock/sam4l/sysclk.h ****  *   \note For user boards, \c BOARD_OSC0_HZ should be defined in the board \c conf_board.h configu
+ 113:../../../platform/common/services/clock/sam4l/sysclk.h ****  *         file as the frequency of the crystal attached to OSC0.
+ 114:../../../platform/common/services/clock/sam4l/sysclk.h ****  *  -# Configure the main clock to run at the full 48MHz, scale the peripheral busses to run at one
+ 115:../../../platform/common/services/clock/sam4l/sysclk.h ****  *     half (2 to the power of 1) of the system clock speed:
+ 116:../../../platform/common/services/clock/sam4l/sysclk.h ****  *    \code
+ 117:../../../platform/common/services/clock/sam4l/sysclk.h **** 	#define CONFIG_SYSCLK_CPU_DIV       0
+ 118:../../../platform/common/services/clock/sam4l/sysclk.h **** 	#define CONFIG_SYSCLK_PBA_DIV       1
+ 119:../../../platform/common/services/clock/sam4l/sysclk.h **** 	#define CONFIG_SYSCLK_PBB_DIV       1
+ 120:../../../platform/common/services/clock/sam4l/sysclk.h **** 	#define CONFIG_SYSCLK_PBC_DIV       1
+ 121:../../../platform/common/services/clock/sam4l/sysclk.h **** 	#define CONFIG_SYSCLK_PBD_DIV       1
+ 122:../../../platform/common/services/clock/sam4l/sysclk.h **** \endcode
+ 123:../../../platform/common/services/clock/sam4l/sysclk.h ****  *    \note Some dividers are powers of two, while others are integer division factors. Refer to th
+ 124:../../../platform/common/services/clock/sam4l/sysclk.h ****  *          formulas in the conf_clock.h template commented above each division define.
+ 125:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 126:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 127:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 128:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 129:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \weakgroup sysclk_group
+ 130:../../../platform/common/services/clock/sam4l/sysclk.h ****  * @{
+ 131:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 132:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 133:../../../platform/common/services/clock/sam4l/sysclk.h **** //! \name System clock source
+ 134:../../../platform/common/services/clock/sam4l/sysclk.h **** //@{
+ 135:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_SRC_RCSYS        0     //!< System RC oscillator
+ 136:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_SRC_OSC0         1     //!< Oscillator 0
+ 137:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_SRC_PLL0         2     //!< Phase Locked Loop 0
+ 138:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_SRC_DFLL         3     //!< Digital Frequency Locked Loop
+ 139:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_SRC_RC80M        4     //!< 80 MHz RC oscillator
+ 140:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_SRC_RCFAST       5     //!< 4-8-12 MHz RC oscillator
+ 141:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_SRC_RC1M         6     //!< 1 MHz RC oscillator
+ 142:../../../platform/common/services/clock/sam4l/sysclk.h **** //@}
+ 143:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 144:../../../platform/common/services/clock/sam4l/sysclk.h **** //! \name USB Clock Sources
+ 145:../../../platform/common/services/clock/sam4l/sysclk.h **** //@{
+ 146:../../../platform/common/services/clock/sam4l/sysclk.h **** #define USBCLK_SRC_OSC0         GENCLK_SRC_OSC0     //!< Use OSC0
+ 147:../../../platform/common/services/clock/sam4l/sysclk.h **** #define USBCLK_SRC_PLL0         GENCLK_SRC_PLL0     //!< Use PLL0
+ 148:../../../platform/common/services/clock/sam4l/sysclk.h **** #define USBCLK_SRC_DFLL         GENCLK_SRC_DFLL     //!< Use DFLL
+ 149:../../../platform/common/services/clock/sam4l/sysclk.h **** #define USBCLK_SRC_GCLKIN0      GENCLK_SRC_GCLKIN0  //!< Use GCLKIN0
+ 150:../../../platform/common/services/clock/sam4l/sysclk.h **** //@}
+ 151:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 152:../../../platform/common/services/clock/sam4l/sysclk.h **** //! \name Bus index of maskable module clocks
+ 153:../../../platform/common/services/clock/sam4l/sysclk.h **** //@{
+ 154:../../../platform/common/services/clock/sam4l/sysclk.h **** #define PM_CLK_GRP_CPU               0
+ 155:../../../platform/common/services/clock/sam4l/sysclk.h **** #define PM_CLK_GRP_HSB               1
+ 156:../../../platform/common/services/clock/sam4l/sysclk.h **** #define PM_CLK_GRP_PBA               2
+ 157:../../../platform/common/services/clock/sam4l/sysclk.h **** #define PM_CLK_GRP_PBB               3
+ 158:../../../platform/common/services/clock/sam4l/sysclk.h **** #define PM_CLK_GRP_PBC               4
+ 159:../../../platform/common/services/clock/sam4l/sysclk.h **** #define PM_CLK_GRP_PBD               5
+ 160:../../../platform/common/services/clock/sam4l/sysclk.h **** //@}
+ 161:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 162:../../../platform/common/services/clock/sam4l/sysclk.h **** //! \name Clocks derived from the CPU clock
+ 163:../../../platform/common/services/clock/sam4l/sysclk.h **** //@{
+ 164:../../../platform/common/services/clock/sam4l/sysclk.h **** //! On-Chip Debug system
+ 165:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_OCD              0
+ 166:../../../platform/common/services/clock/sam4l/sysclk.h **** //@}
+ 167:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 168:../../../platform/common/services/clock/sam4l/sysclk.h **** //! \name Clocks derived from the HSB clock
+ 169:../../../platform/common/services/clock/sam4l/sysclk.h **** //@{
+ 170:../../../platform/common/services/clock/sam4l/sysclk.h **** //! PDCA memory interface
+ 171:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_PDCA_HSB         0
+ 172:../../../platform/common/services/clock/sam4l/sysclk.h **** //! Flash data interface
+ 173:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_HFLASHC_DATA     1
+ 174:../../../platform/common/services/clock/sam4l/sysclk.h **** //! HRAMC data interface
+ 175:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_HRAMC1_DATA      2
+ 176:../../../platform/common/services/clock/sam4l/sysclk.h **** //! USBC DMA and FIFO interface
+ 177:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_USBC_DATA        3
+ 178:../../../platform/common/services/clock/sam4l/sysclk.h **** //! CRCCU data interface
+ 179:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_CRCCU_DATA       4
+ 180:../../../platform/common/services/clock/sam4l/sysclk.h **** //! HSB<->PBA bridge
+ 181:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_PBA_BRIDGE       5
+ 182:../../../platform/common/services/clock/sam4l/sysclk.h **** //! HSB<->PBB bridge
+ 183:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_PBB_BRIDGE       6
+ 184:../../../platform/common/services/clock/sam4l/sysclk.h **** //! HSB<->PBC bridge
+ 185:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_PBC_BRIDGE       7
+ 186:../../../platform/common/services/clock/sam4l/sysclk.h **** //! HSB<->PBD bridge
+ 187:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_PBD_BRIDGE       8
+ 188:../../../platform/common/services/clock/sam4l/sysclk.h **** //! Advanced Encryption Standard
+ 189:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_AESA_HSB         9
+ 190:../../../platform/common/services/clock/sam4l/sysclk.h **** //@}
+ 191:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 192:../../../platform/common/services/clock/sam4l/sysclk.h **** //! \name Clocks derived from the PBA clock
+ 193:../../../platform/common/services/clock/sam4l/sysclk.h **** //@{
+ 194:../../../platform/common/services/clock/sam4l/sysclk.h **** //! IISC Controller
+ 195:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_IISC             0
+ 196:../../../platform/common/services/clock/sam4l/sysclk.h **** //! SPI Controller
+ 197:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_SPI              1
+ 198:../../../platform/common/services/clock/sam4l/sysclk.h **** //! Timer/Counter 0
+ 199:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_TC0              2
+ 200:../../../platform/common/services/clock/sam4l/sysclk.h **** //! Timer/Counter 1
+ 201:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_TC1              3
+ 202:../../../platform/common/services/clock/sam4l/sysclk.h **** //! TWI Master 0
+ 203:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_TWIM0            4
+ 204:../../../platform/common/services/clock/sam4l/sysclk.h **** //! TWI Slave 0
+ 205:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_TWIS0            5
+ 206:../../../platform/common/services/clock/sam4l/sysclk.h **** //! TWI Master 1
+ 207:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_TWIM1            6
+ 208:../../../platform/common/services/clock/sam4l/sysclk.h **** //! TWI Slave 1
+ 209:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_TWIS1            7
+ 210:../../../platform/common/services/clock/sam4l/sysclk.h **** //! USART 0
+ 211:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_USART0           8
+ 212:../../../platform/common/services/clock/sam4l/sysclk.h **** //! USART 1
+ 213:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_USART1           9
+ 214:../../../platform/common/services/clock/sam4l/sysclk.h **** //! USART 2
+ 215:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_USART2           10
+ 216:../../../platform/common/services/clock/sam4l/sysclk.h **** //! USART 3
+ 217:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_USART3           11
+ 218:../../../platform/common/services/clock/sam4l/sysclk.h **** //! A/D Converter
+ 219:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_ADCIFE           12
+ 220:../../../platform/common/services/clock/sam4l/sysclk.h **** //! D/A Converter
+ 221:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_DACC             13
+ 222:../../../platform/common/services/clock/sam4l/sysclk.h **** //! Analog Comparator
+ 223:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_ACIFC            14
+ 224:../../../platform/common/services/clock/sam4l/sysclk.h **** //! Glue Logic Controller
+ 225:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_GLOC             15
+ 226:../../../platform/common/services/clock/sam4l/sysclk.h **** //! ABDACB Controller
+ 227:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_ABDACB           16
+ 228:../../../platform/common/services/clock/sam4l/sysclk.h **** //! TRNG Controller
+ 229:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_TRNG             17
+ 230:../../../platform/common/services/clock/sam4l/sysclk.h **** //! PARC Controller
+ 231:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_PARC             18
+ 232:../../../platform/common/services/clock/sam4l/sysclk.h **** //! Capacitive Touch
+ 233:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_CATB             19
+ 234:../../../platform/common/services/clock/sam4l/sysclk.h **** //! TWI Master 2
+ 235:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_TWIM2            21
+ 236:../../../platform/common/services/clock/sam4l/sysclk.h **** //! TWI Master 3
+ 237:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_TWIM3            22
+ 238:../../../platform/common/services/clock/sam4l/sysclk.h **** //! LCD Controller
+ 239:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_LCDCA            23
+ 240:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 241:../../../platform/common/services/clock/sam4l/sysclk.h **** //@}
+ 242:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 243:../../../platform/common/services/clock/sam4l/sysclk.h **** //! \name Clocks derived from the PBB clock
+ 244:../../../platform/common/services/clock/sam4l/sysclk.h **** //@{
+ 245:../../../platform/common/services/clock/sam4l/sysclk.h **** //! Flash Controller registers
+ 246:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_HFLASHC_REGS     0
+ 247:../../../platform/common/services/clock/sam4l/sysclk.h **** //! HRAMC Controller registers
+ 248:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_HRAMC1_REGS      1
+ 249:../../../platform/common/services/clock/sam4l/sysclk.h **** //! HSB Matrix configuration
+ 250:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_HMATRIX          2
+ 251:../../../platform/common/services/clock/sam4l/sysclk.h **** //! PDCA peripheral bus interface
+ 252:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_PDCA_PB          3
+ 253:../../../platform/common/services/clock/sam4l/sysclk.h **** //! CRCCU registers
+ 254:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_CRCCU_REGS       4
+ 255:../../../platform/common/services/clock/sam4l/sysclk.h **** //! USBC registers
+ 256:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_USBC_REGS        5
+ 257:../../../platform/common/services/clock/sam4l/sysclk.h **** //! PEVC Controller
+ 258:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_PEVC             6
+ 259:../../../platform/common/services/clock/sam4l/sysclk.h **** //@}
+ 260:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 261:../../../platform/common/services/clock/sam4l/sysclk.h **** //! \name Clocks derived from the PBC clock
+ 262:../../../platform/common/services/clock/sam4l/sysclk.h **** //@{
+ 263:../../../platform/common/services/clock/sam4l/sysclk.h **** //! PM configuration
+ 264:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_PM               0
+ 265:../../../platform/common/services/clock/sam4l/sysclk.h **** //! CHIPID Controller
+ 266:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_CHIPID           1
+ 267:../../../platform/common/services/clock/sam4l/sysclk.h **** //! System Control Interface
+ 268:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_SCIF             2
+ 269:../../../platform/common/services/clock/sam4l/sysclk.h **** //! Frequency Meter
+ 270:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_FREQM            3
+ 271:../../../platform/common/services/clock/sam4l/sysclk.h **** //! General-Purpose I/O
+ 272:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_GPIO             4
+ 273:../../../platform/common/services/clock/sam4l/sysclk.h **** //@}
+ 274:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 275:../../../platform/common/services/clock/sam4l/sysclk.h **** //! \name Clocks derived from the PBD clock
+ 276:../../../platform/common/services/clock/sam4l/sysclk.h **** //@{
+ 277:../../../platform/common/services/clock/sam4l/sysclk.h **** //! BPM configuration
+ 278:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_BPM              0
+ 279:../../../platform/common/services/clock/sam4l/sysclk.h **** //! BSCIF configuration
+ 280:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_BSCIF            1
+ 281:../../../platform/common/services/clock/sam4l/sysclk.h **** //! Asynchronous Timer
+ 282:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_AST              2
+ 283:../../../platform/common/services/clock/sam4l/sysclk.h **** //! Watchdog Timer
+ 284:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_WDT              3
+ 285:../../../platform/common/services/clock/sam4l/sysclk.h **** //! External Interrupt Controller
+ 286:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_EIC              4
+ 287:../../../platform/common/services/clock/sam4l/sysclk.h **** //! PICOUART
+ 288:../../../platform/common/services/clock/sam4l/sysclk.h **** #define SYSCLK_PICOUART         5
+ 289:../../../platform/common/services/clock/sam4l/sysclk.h **** //@}
+ 290:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 291:../../../platform/common/services/clock/sam4l/sysclk.h **** //! \name Divided clock mask derived from the PBA clock
+ 292:../../../platform/common/services/clock/sam4l/sysclk.h **** //@{
+ 293:../../../platform/common/services/clock/sam4l/sysclk.h **** //! TIMER_CLOCK2 mask
+ 294:../../../platform/common/services/clock/sam4l/sysclk.h **** #define PBA_DIVMASK_TIMER_CLOCK2     (1u << 0)
+ 295:../../../platform/common/services/clock/sam4l/sysclk.h **** //! TIMER_CLOCK3 mask
+ 296:../../../platform/common/services/clock/sam4l/sysclk.h **** #define PBA_DIVMASK_TIMER_CLOCK3     (1u << 2)
+ 297:../../../platform/common/services/clock/sam4l/sysclk.h **** //! CLK_USART/DIV mask
+ 298:../../../platform/common/services/clock/sam4l/sysclk.h **** #define PBA_DIVMASK_CLK_USART        (1u << 2)
+ 299:../../../platform/common/services/clock/sam4l/sysclk.h **** //! TIMER_CLOCK4 mask
+ 300:../../../platform/common/services/clock/sam4l/sysclk.h **** #define PBA_DIVMASK_TIMER_CLOCK4     (1u << 4)
+ 301:../../../platform/common/services/clock/sam4l/sysclk.h **** //! TIMER_CLOCK5 mask
+ 302:../../../platform/common/services/clock/sam4l/sysclk.h **** #define PBA_DIVMASK_TIMER_CLOCK5     (1u << 6)
+ 303:../../../platform/common/services/clock/sam4l/sysclk.h **** //! Bitfield mask
+ 304:../../../platform/common/services/clock/sam4l/sysclk.h **** #define PBA_DIVMASK_Msk              (0x7Fu << 0)
+ 305:../../../platform/common/services/clock/sam4l/sysclk.h **** //@}
+ 306:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 307:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifndef __ASSEMBLY__
+ 308:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 309:../../../platform/common/services/clock/sam4l/sysclk.h **** #include <compiler.h>
+ 310:../../../platform/common/services/clock/sam4l/sysclk.h **** #include <dfll.h>
+ 311:../../../platform/common/services/clock/sam4l/sysclk.h **** #include <osc.h>
+ 312:../../../platform/common/services/clock/sam4l/sysclk.h **** #include <pll.h>
+ 313:../../../platform/common/services/clock/sam4l/sysclk.h **** #include <genclk.h>
+ 314:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 315:../../../platform/common/services/clock/sam4l/sysclk.h **** // Use the slow clock (RCOSC) with no prescaling if config was empty.
+ 316:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifndef CONFIG_SYSCLK_SOURCE
+ 317:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_SYSCLK_SOURCE    SYSCLK_SRC_RCSYS
+ 318:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif /* CONFIG_SYSCLK_SOURCE */
+ 319:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 320:../../../platform/common/services/clock/sam4l/sysclk.h **** /*
+ 321:../../../platform/common/services/clock/sam4l/sysclk.h ****  * Enable PicoCache for flash access by default.
+ 322:../../../platform/common/services/clock/sam4l/sysclk.h ****  * 0: disable PicoCache, 1: enable PicoCache.
+ 323:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 324:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifndef CONFIG_HCACHE_ENABLE
+ 325:../../../platform/common/services/clock/sam4l/sysclk.h **** #define CONFIG_HCACHE_ENABLE          1
+ 326:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 327:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 328:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 329:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \def CONFIG_SYSCLK_CPU_DIV
+ 330:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Configuration symbol for dividing the CPU clock frequency by
+ 331:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \f$2^{CONFIG\_SYSCLK\_CPU\_DIV}\f$
+ 332:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 333:../../../platform/common/services/clock/sam4l/sysclk.h ****  * If this symbol is not defined, the CPU clock frequency is not divided.
+ 334:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 335:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This symbol may be defined in \ref conf_clock.h.
+ 336:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 337:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifndef CONFIG_SYSCLK_CPU_DIV
+ 338:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_SYSCLK_CPU_DIV   0
+ 339:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif /* CONFIG_SYSCLK_CPU_DIV */
+ 340:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 341:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 342:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \def CONFIG_SYSCLK_INIT_HSBMASK
+ 343:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Configuration symbol for the HSB clocks enabled at power-on after the
+ 344:../../../platform/common/services/clock/sam4l/sysclk.h ****  * sysclock module has been initialized. By default, all HSB clocks are left
+ 345:../../../platform/common/services/clock/sam4l/sysclk.h ****  * enabled, however to save power these can be automatically disabled by defining
+ 346:../../../platform/common/services/clock/sam4l/sysclk.h ****  * this value to a mask of \c SYSCLOCK_xxx settings.
+ 347:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 348:../../../platform/common/services/clock/sam4l/sysclk.h ****  * If this symbol is not defined, then all HSB clocks are left enabled.
+ 349:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 350:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This symbol may be defined in \ref conf_clock.h.
+ 351:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 352:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifdef __DOXYGEN__
+ 353:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_SYSCLK_INIT_HSBMASK
+ 354:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 355:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 356:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 357:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \def CONFIG_SYSCLK_PBA_DIV
+ 358:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Configuration symbol for dividing the PBA clock frequency by
+ 359:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \f$2^{CONFIG\_SYSCLK\_PBA\_DIV}\f$
+ 360:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 361:../../../platform/common/services/clock/sam4l/sysclk.h ****  * If this symbol is not defined, the PBA clock frequency is not divided.
+ 362:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 363:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This symbol may be defined in \ref conf_clock.h.
+ 364:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 365:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifndef CONFIG_SYSCLK_PBA_DIV
+ 366:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_SYSCLK_PBA_DIV   0
+ 367:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif /* CONFIG_SYSCLK_PBA_DIV */
+ 368:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 369:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 370:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \def CONFIG_SYSCLK_PBB_DIV
+ 371:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Configuration symbol for dividing the PBB clock frequency by
+ 372:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \f$2^{CONFIG\_SYSCLK\_PBB\_DIV}\f$
+ 373:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 374:../../../platform/common/services/clock/sam4l/sysclk.h ****  * If this symbol is not defined, the PBB clock frequency is not divided.
+ 375:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 376:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This symbol may be defined in \ref conf_clock.h.
+ 377:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 378:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifndef CONFIG_SYSCLK_PBB_DIV
+ 379:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_SYSCLK_PBB_DIV   0
+ 380:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif /* CONFIG_SYSCLK_PBB_DIV */
+ 381:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 382:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 383:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \def CONFIG_SYSCLK_PBC_DIV
+ 384:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Configuration symbol for dividing the PBC clock frequency by
+ 385:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \f$2^{CONFIG\_SYSCLK\_PBC\_DIV}\f$
+ 386:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 387:../../../platform/common/services/clock/sam4l/sysclk.h ****  * If this symbol is not defined, the PBC clock frequency is not divided.
+ 388:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 389:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This symbol may be defined in \ref conf_clock.h.
+ 390:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 391:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifndef CONFIG_SYSCLK_PBC_DIV
+ 392:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_SYSCLK_PBC_DIV   0
+ 393:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif /* CONFIG_SYSCLK_PBC_DIV */
+ 394:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 395:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 396:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \def CONFIG_SYSCLK_PBD_DIV
+ 397:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Configuration symbol for dividing the PBD clock frequency by
+ 398:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \f$2^{CONFIG\_SYSCLK\_PBD\_DIV}\f$
+ 399:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 400:../../../platform/common/services/clock/sam4l/sysclk.h ****  * If this symbol is not defined, the PBD clock frequency is not divided.
+ 401:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 402:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This symbol may be defined in \ref conf_clock.h.
+ 403:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 404:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifndef CONFIG_SYSCLK_PBD_DIV
+ 405:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_SYSCLK_PBD_DIV   0
+ 406:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif /* CONFIG_SYSCLK_PBD_DIV */
+ 407:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 408:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 409:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \def CONFIG_SYSCLK_INIT_CPUMASK
+ 410:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Configuration symbol for the CPU clocks enabled at power-on after the
+ 411:../../../platform/common/services/clock/sam4l/sysclk.h ****  * sysclock module has been initialized. By default, all CPU clocks are left
+ 412:../../../platform/common/services/clock/sam4l/sysclk.h ****  * enabled, however to save power these can be automatically disabled by defining
+ 413:../../../platform/common/services/clock/sam4l/sysclk.h ****  * this value to a mask of \c SYSCLOCK_xxx settings.
+ 414:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 415:../../../platform/common/services/clock/sam4l/sysclk.h ****  * If this symbol is not defined, then all CPU clocks are left enabled.
+ 416:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 417:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This symbol may be defined in \ref conf_clock.h.
+ 418:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 419:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifdef __DOXYGEN__
+ 420:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_SYSCLK_INIT_CPUMASK
+ 421:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 422:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 423:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 424:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \def CONFIG_SYSCLK_INIT_PBAMASK
+ 425:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Configuration symbol for the PBA clocks enabled at power-on after the
+ 426:../../../platform/common/services/clock/sam4l/sysclk.h ****  * sysclock module has been initialized. By default, all PBA clocks are left
+ 427:../../../platform/common/services/clock/sam4l/sysclk.h ****  * enabled, however to save power these can be automatically disabled by defining
+ 428:../../../platform/common/services/clock/sam4l/sysclk.h ****  * this value to a mask of \c SYSCLOCK_xxx settings.
+ 429:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 430:../../../platform/common/services/clock/sam4l/sysclk.h ****  * If this symbol is not defined, then all PBA clocks are left enabled.
+ 431:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 432:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This symbol may be defined in \ref conf_clock.h.
+ 433:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 434:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifdef __DOXYGEN__
+ 435:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_SYSCLK_INIT_PBAMASK
+ 436:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 437:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 438:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 439:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \def CONFIG_SYSCLK_INIT_PBBMASK
+ 440:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Configuration symbol for the PBB clocks enabled at power-on after the
+ 441:../../../platform/common/services/clock/sam4l/sysclk.h ****  * sysclock module has been initialized. By default, all PBB clocks are left
+ 442:../../../platform/common/services/clock/sam4l/sysclk.h ****  * enabled, however to save power these can be automatically disabled by defining
+ 443:../../../platform/common/services/clock/sam4l/sysclk.h ****  * this value to a mask of \c SYSCLOCK_xxx settings.
+ 444:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 445:../../../platform/common/services/clock/sam4l/sysclk.h ****  * If this symbol is not defined, then all PBB clocks are left enabled.
+ 446:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 447:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This symbol may be defined in \ref conf_clock.h.
+ 448:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 449:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifdef __DOXYGEN__
+ 450:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_SYSCLK_INIT_PBBMASK
+ 451:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 452:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 453:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 454:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \def CONFIG_SYSCLK_INIT_PBCMASK
+ 455:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Configuration symbol for the PBC clocks enabled at power-on after the
+ 456:../../../platform/common/services/clock/sam4l/sysclk.h ****  * sysclock module has been initialized. By default, all PBC clocks are left
+ 457:../../../platform/common/services/clock/sam4l/sysclk.h ****  * enabled, however to save power these can be automatically disabled by defining
+ 458:../../../platform/common/services/clock/sam4l/sysclk.h ****  * this value to a mask of \c SYSCLOCK_xxx settings.
+ 459:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 460:../../../platform/common/services/clock/sam4l/sysclk.h ****  * If this symbol is not defined, then all PBC clocks are left enabled.
+ 461:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 462:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This symbol may be defined in \ref conf_clock.h.
+ 463:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 464:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifdef __DOXYGEN__
+ 465:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_SYSCLK_INIT_PBCMASK
+ 466:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 467:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 468:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 469:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \def CONFIG_SYSCLK_INIT_PBDMASK
+ 470:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Configuration symbol for the PBD clocks enabled at power-on after the
+ 471:../../../platform/common/services/clock/sam4l/sysclk.h ****  * sysclock module has been initialized. By default, all PBD clocks are left
+ 472:../../../platform/common/services/clock/sam4l/sysclk.h ****  * enabled, however to save power these can be automatically disabled by defining
+ 473:../../../platform/common/services/clock/sam4l/sysclk.h ****  * this value to a mask of \c SYSCLOCK_xxx settings.
+ 474:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 475:../../../platform/common/services/clock/sam4l/sysclk.h ****  * If this symbol is not defined, then all PBD clocks are left enabled.
+ 476:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 477:../../../platform/common/services/clock/sam4l/sysclk.h ****  * This symbol may be defined in \ref conf_clock.h.
+ 478:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 479:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifdef __DOXYGEN__
+ 480:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_SYSCLK_INIT_PBDMASK
+ 481:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 482:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 483:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 484:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \def CONFIG_USBCLK_SOURCE
+ 485:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Configuration symbol for the USB generic clock source
+ 486:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 487:../../../platform/common/services/clock/sam4l/sysclk.h ****  * Sets the clock source to use for the USB. The source must also be properly
+ 488:../../../platform/common/services/clock/sam4l/sysclk.h ****  * configured.
+ 489:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 490:../../../platform/common/services/clock/sam4l/sysclk.h ****  * Define this to one of the \c USBCLK_SRC_xxx settings. Leave it undefined if
+ 491:../../../platform/common/services/clock/sam4l/sysclk.h ****  * USB is not required.
+ 492:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 493:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifdef __DOXYGEN__
+ 494:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_USBCLK_SOURCE
+ 495:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 496:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 497:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 498:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \def CONFIG_USBCLK_DIV
+ 499:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Configuration symbol for the USB generic clock divider setting
+ 500:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 501:../../../platform/common/services/clock/sam4l/sysclk.h ****  * Sets the clock division for the USB generic clock. If a USB clock source is
+ 502:../../../platform/common/services/clock/sam4l/sysclk.h ****  * selected with CONFIG_USBCLK_SOURCE, this configuration symbol must also be
+ 503:../../../platform/common/services/clock/sam4l/sysclk.h ****  * defined.
+ 504:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 505:../../../platform/common/services/clock/sam4l/sysclk.h ****  * Define this as any value that does not exceed \c GENCLK_DIV_MAX, and which
+ 506:../../../platform/common/services/clock/sam4l/sysclk.h ****  * will give a 48 MHz clock frequency from the selected source.
+ 507:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 508:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifdef __DOXYGEN__
+ 509:../../../platform/common/services/clock/sam4l/sysclk.h **** # define CONFIG_USBCLK_DIV
+ 510:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 511:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 512:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 513:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \name Querying the system clock and its derived clocks
+ 514:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 515:../../../platform/common/services/clock/sam4l/sysclk.h ****  * The following functions may be used to query the current frequency of
+ 516:../../../platform/common/services/clock/sam4l/sysclk.h ****  * the system clock and the CPU and bus clocks derived from it.
+ 517:../../../platform/common/services/clock/sam4l/sysclk.h ****  * sysclk_get_main_hz() and sysclk_get_cpu_hz() can be assumed to be
+ 518:../../../platform/common/services/clock/sam4l/sysclk.h ****  * available on all platforms, although some platforms may define
+ 519:../../../platform/common/services/clock/sam4l/sysclk.h ****  * additional accessors for various chip-internal bus clocks. These are
+ 520:../../../platform/common/services/clock/sam4l/sysclk.h ****  * usually not intended to be queried directly by generic code.
+ 521:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 522:../../../platform/common/services/clock/sam4l/sysclk.h **** //@{
+ 523:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 524:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 525:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Return the current rate in Hz of the main system clock
+ 526:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 527:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \todo This function assumes that the main clock source never changes
+ 528:../../../platform/common/services/clock/sam4l/sysclk.h ****  * once it's been set up, and that PLL0 always runs at the compile-time
+ 529:../../../platform/common/services/clock/sam4l/sysclk.h ****  * configured default rate. While this is probably the most common
+ 530:../../../platform/common/services/clock/sam4l/sysclk.h ****  * configuration, which we want to support as a special case for
+ 531:../../../platform/common/services/clock/sam4l/sysclk.h ****  * performance reasons, we will at some point need to support more
+ 532:../../../platform/common/services/clock/sam4l/sysclk.h ****  * dynamic setups as well.
+ 533:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 534:../../../platform/common/services/clock/sam4l/sysclk.h **** #if (defined CONFIG_SYSCLK_DEFAULT_RETURNS_SLOW_OSC)
+ 535:../../../platform/common/services/clock/sam4l/sysclk.h **** extern bool sysclk_initialized;
+ 536:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 537:../../../platform/common/services/clock/sam4l/sysclk.h **** static inline uint32_t sysclk_get_main_hz(void)
+ 538:../../../platform/common/services/clock/sam4l/sysclk.h **** {
+  43              	 .loc 1 538 0
+  44              	 .cfi_startproc
+  45              	 
+  46              	 
+  47              	 
+  48 0000 80B4     	 push {r7}
+  49              	.LCFI0:
+  50              	 .cfi_def_cfa_offset 4
+  51              	 .cfi_offset 7,-4
+  52 0002 00AF     	 add r7,sp,#0
+  53              	.LCFI1:
+  54              	 .cfi_def_cfa_register 7
+ 539:../../../platform/common/services/clock/sam4l/sysclk.h **** #if (defined CONFIG_SYSCLK_DEFAULT_RETURNS_SLOW_OSC)
+ 540:../../../platform/common/services/clock/sam4l/sysclk.h **** 	if (!sysclk_initialized ) {
+ 541:../../../platform/common/services/clock/sam4l/sysclk.h **** 		return OSC_RCSYS_NOMINAL_HZ;
+ 542:../../../platform/common/services/clock/sam4l/sysclk.h **** 	}
+ 543:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 544:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 545:../../../platform/common/services/clock/sam4l/sysclk.h **** 	if (CONFIG_SYSCLK_SOURCE == SYSCLK_SRC_RCSYS) {
+ 546:../../../platform/common/services/clock/sam4l/sysclk.h **** 		return OSC_RCSYS_NOMINAL_HZ;
+ 547:../../../platform/common/services/clock/sam4l/sysclk.h **** 	}
+ 548:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 549:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifdef BOARD_OSC0_HZ
+ 550:../../../platform/common/services/clock/sam4l/sysclk.h **** 	else if (CONFIG_SYSCLK_SOURCE == SYSCLK_SRC_OSC0) {
+ 551:../../../platform/common/services/clock/sam4l/sysclk.h **** 		return BOARD_OSC0_HZ;
+  55              	 .loc 1 551 0
+  56 0004 024B     	 ldr r3,.L3
+ 552:../../../platform/common/services/clock/sam4l/sysclk.h **** 	}
+ 553:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 554:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 555:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifdef CONFIG_PLL0_SOURCE
+ 556:../../../platform/common/services/clock/sam4l/sysclk.h **** 	else if (CONFIG_SYSCLK_SOURCE == SYSCLK_SRC_PLL0) {
+ 557:../../../platform/common/services/clock/sam4l/sysclk.h **** 		return pll_get_default_rate(0);
+ 558:../../../platform/common/services/clock/sam4l/sysclk.h **** 	}
+ 559:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 560:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 561:../../../platform/common/services/clock/sam4l/sysclk.h **** #ifdef CONFIG_DFLL0_SOURCE
+ 562:../../../platform/common/services/clock/sam4l/sysclk.h **** 	else if (CONFIG_SYSCLK_SOURCE == SYSCLK_SRC_DFLL) {
+ 563:../../../platform/common/services/clock/sam4l/sysclk.h **** 		return dfll_get_default_rate(0);
+ 564:../../../platform/common/services/clock/sam4l/sysclk.h **** 	}
+ 565:../../../platform/common/services/clock/sam4l/sysclk.h **** #endif
+ 566:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 567:../../../platform/common/services/clock/sam4l/sysclk.h **** 	else if (CONFIG_SYSCLK_SOURCE == SYSCLK_SRC_RC80M) {
+ 568:../../../platform/common/services/clock/sam4l/sysclk.h **** 		return OSC_RC80M_NOMINAL_HZ;
+ 569:../../../platform/common/services/clock/sam4l/sysclk.h **** 	}
+ 570:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 571:../../../platform/common/services/clock/sam4l/sysclk.h **** 	else if (CONFIG_SYSCLK_SOURCE == SYSCLK_SRC_RCFAST) {
+ 572:../../../platform/common/services/clock/sam4l/sysclk.h **** 		if (CONFIG_RCFAST_FRANGE == 2) {
+ 573:../../../platform/common/services/clock/sam4l/sysclk.h **** 			return OSC_RCFAST12M_NOMINAL_HZ;
+ 574:../../../platform/common/services/clock/sam4l/sysclk.h **** 		} else if (CONFIG_RCFAST_FRANGE == 1) {
+ 575:../../../platform/common/services/clock/sam4l/sysclk.h **** 			return OSC_RCFAST8M_NOMINAL_HZ;
+ 576:../../../platform/common/services/clock/sam4l/sysclk.h **** 		} else {
+ 577:../../../platform/common/services/clock/sam4l/sysclk.h **** 			return OSC_RCFAST4M_NOMINAL_HZ;
+ 578:../../../platform/common/services/clock/sam4l/sysclk.h **** 		}
+ 579:../../../platform/common/services/clock/sam4l/sysclk.h **** 	}
+ 580:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 581:../../../platform/common/services/clock/sam4l/sysclk.h **** 	else if (CONFIG_SYSCLK_SOURCE == SYSCLK_SRC_RC1M) {
+ 582:../../../platform/common/services/clock/sam4l/sysclk.h **** 		return OSC_RC1M_NOMINAL_HZ;
+ 583:../../../platform/common/services/clock/sam4l/sysclk.h **** 	}
+ 584:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 585:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 586:../../../platform/common/services/clock/sam4l/sysclk.h **** 	else {
+ 587:../../../platform/common/services/clock/sam4l/sysclk.h **** 		/* unhandled_case(CONFIG_SYSCLK_SOURCE); */
+ 588:../../../platform/common/services/clock/sam4l/sysclk.h **** 		return 0;
+ 589:../../../platform/common/services/clock/sam4l/sysclk.h **** 	}
+ 590:../../../platform/common/services/clock/sam4l/sysclk.h **** }
+  57              	 .loc 1 590 0
+  58 0006 1846     	 mov r0,r3
+  59 0008 BD46     	 mov sp,r7
+  60              	.LCFI2:
+  61              	 .cfi_def_cfa_register 13
+  62              	 
+  63 000a 80BC     	 pop {r7}
+  64              	.LCFI3:
+  65              	 .cfi_restore 7
+  66              	 .cfi_def_cfa_offset 0
+  67 000c 7047     	 bx lr
+  68              	.L4:
+  69 000e 00BF     	 .align 2
+  70              	.L3:
+  71 0010 001BB700 	 .word 12000000
+  72              	 .cfi_endproc
+  73              	.LFE164:
+  75              	 .align 1
+  76              	 .syntax unified
+  77              	 .thumb
+  78              	 .thumb_func
+  79              	 .fpu softvfp
+  81              	sysclk_get_cpu_hz:
+  82              	.LFB165:
+ 591:../../../platform/common/services/clock/sam4l/sysclk.h **** 
+ 592:../../../platform/common/services/clock/sam4l/sysclk.h **** /**
+ 593:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \brief Return the current rate in Hz of the CPU clock
+ 594:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 595:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \todo This function assumes that the CPU always runs at the system
+ 596:../../../platform/common/services/clock/sam4l/sysclk.h ****  * clock frequency. We want to support at least two more scenarios:
+ 597:../../../platform/common/services/clock/sam4l/sysclk.h ****  * Fixed CPU/bus clock dividers (config symbols) and dynamic CPU/bus
+ 598:../../../platform/common/services/clock/sam4l/sysclk.h ****  * clock dividers (which may change at run time). Ditto for all the bus
+ 599:../../../platform/common/services/clock/sam4l/sysclk.h ****  * clocks.
+ 600:../../../platform/common/services/clock/sam4l/sysclk.h ****  *
+ 601:../../../platform/common/services/clock/sam4l/sysclk.h ****  * \return Frequency of the CPU clock, in Hz.
+ 602:../../../platform/common/services/clock/sam4l/sysclk.h ****  */
+ 603:../../../platform/common/services/clock/sam4l/sysclk.h **** static inline uint32_t sysclk_get_cpu_hz(void)
+ 604:../../../platform/common/services/clock/sam4l/sysclk.h **** {
+  83              	 .loc 1 604 0
+  84              	 .cfi_startproc
+  85              	 
+  86              	 
+  87 0014 80B5     	 push {r7,lr}
+  88              	.LCFI4:
+  89              	 .cfi_def_cfa_offset 8
+  90              	 .cfi_offset 7,-8
+  91              	 .cfi_offset 14,-4
+  92 0016 00AF     	 add r7,sp,#0
+  93              	.LCFI5:
+  94              	 .cfi_def_cfa_register 7
+ 605:../../../platform/common/services/clock/sam4l/sysclk.h **** 	return sysclk_get_main_hz() >> CONFIG_SYSCLK_CPU_DIV;
+  95              	 .loc 1 605 0
+  96 0018 FFF7F2FF 	 bl sysclk_get_main_hz
+  97 001c 0346     	 mov r3,r0
+ 606:../../../platform/common/services/clock/sam4l/sysclk.h **** }
+  98              	 .loc 1 606 0
+  99 001e 1846     	 mov r0,r3
+ 100 0020 80BD     	 pop {r7,pc}
+ 101              	 .cfi_endproc
+ 102              	.LFE165:
+ 104              	 .align 1
+ 105              	 .syntax unified
+ 106              	 .thumb
+ 107              	 .thumb_func
+ 108              	 .fpu softvfp
+ 110              	spi_reset:
+ 111              	.LFB181:
+ 112              	 .file 2 "../../../platform/sam/drivers/spi/spi.h"
+   1:../../../platform/sam/drivers/spi/spi.h **** /**
+   2:../../../platform/sam/drivers/spi/spi.h ****  * \file
+   3:../../../platform/sam/drivers/spi/spi.h ****  *
+   4:../../../platform/sam/drivers/spi/spi.h ****  * \brief Serial Peripheral Interface (SPI) driver for SAM.
+   5:../../../platform/sam/drivers/spi/spi.h ****  *
+   6:../../../platform/sam/drivers/spi/spi.h ****  * Copyright (c) 2011-2014 Atmel Corporation. All rights reserved.
+   7:../../../platform/sam/drivers/spi/spi.h ****  *
+   8:../../../platform/sam/drivers/spi/spi.h ****  * \asf_license_start
+   9:../../../platform/sam/drivers/spi/spi.h ****  *
+  10:../../../platform/sam/drivers/spi/spi.h ****  * \page License
+  11:../../../platform/sam/drivers/spi/spi.h ****  *
+  12:../../../platform/sam/drivers/spi/spi.h ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/sam/drivers/spi/spi.h ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/sam/drivers/spi/spi.h ****  *
+  15:../../../platform/sam/drivers/spi/spi.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/sam/drivers/spi/spi.h ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/sam/drivers/spi/spi.h ****  *
+  18:../../../platform/sam/drivers/spi/spi.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/sam/drivers/spi/spi.h ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/sam/drivers/spi/spi.h ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/sam/drivers/spi/spi.h ****  *
+  22:../../../platform/sam/drivers/spi/spi.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/sam/drivers/spi/spi.h ****  *    from this software without specific prior written permission.
+  24:../../../platform/sam/drivers/spi/spi.h ****  *
+  25:../../../platform/sam/drivers/spi/spi.h ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/sam/drivers/spi/spi.h ****  *    Atmel microcontroller product.
+  27:../../../platform/sam/drivers/spi/spi.h ****  *
+  28:../../../platform/sam/drivers/spi/spi.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/sam/drivers/spi/spi.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/sam/drivers/spi/spi.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/sam/drivers/spi/spi.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/sam/drivers/spi/spi.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/sam/drivers/spi/spi.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/sam/drivers/spi/spi.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/sam/drivers/spi/spi.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/sam/drivers/spi/spi.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/sam/drivers/spi/spi.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/sam/drivers/spi/spi.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/sam/drivers/spi/spi.h ****  *
+  40:../../../platform/sam/drivers/spi/spi.h ****  * \asf_license_stop
+  41:../../../platform/sam/drivers/spi/spi.h ****  *
+  42:../../../platform/sam/drivers/spi/spi.h ****  */
+  43:../../../platform/sam/drivers/spi/spi.h **** 
+  44:../../../platform/sam/drivers/spi/spi.h **** #ifndef SPI_H_INCLUDED
+  45:../../../platform/sam/drivers/spi/spi.h **** #define SPI_H_INCLUDED
+  46:../../../platform/sam/drivers/spi/spi.h **** 
+  47:../../../platform/sam/drivers/spi/spi.h **** #include "compiler.h"
+  48:../../../platform/sam/drivers/spi/spi.h **** 
+  49:../../../platform/sam/drivers/spi/spi.h **** /// @cond 0
+  50:../../../platform/sam/drivers/spi/spi.h **** /**INDENT-OFF**/
+  51:../../../platform/sam/drivers/spi/spi.h **** #ifdef __cplusplus
+  52:../../../platform/sam/drivers/spi/spi.h **** extern "C" {
+  53:../../../platform/sam/drivers/spi/spi.h **** #endif
+  54:../../../platform/sam/drivers/spi/spi.h **** /**INDENT-ON**/
+  55:../../../platform/sam/drivers/spi/spi.h **** /// @endcond
+  56:../../../platform/sam/drivers/spi/spi.h **** 
+  57:../../../platform/sam/drivers/spi/spi.h **** /** Time-out value (number of attempts). */
+  58:../../../platform/sam/drivers/spi/spi.h **** #define SPI_TIMEOUT       15000
+  59:../../../platform/sam/drivers/spi/spi.h **** 
+  60:../../../platform/sam/drivers/spi/spi.h **** /** Status codes used by the SPI driver. */
+  61:../../../platform/sam/drivers/spi/spi.h **** typedef enum
+  62:../../../platform/sam/drivers/spi/spi.h **** {
+  63:../../../platform/sam/drivers/spi/spi.h **** 	SPI_ERROR = -1,
+  64:../../../platform/sam/drivers/spi/spi.h **** 	SPI_OK = 0,
+  65:../../../platform/sam/drivers/spi/spi.h **** 	SPI_ERROR_TIMEOUT = 1,
+  66:../../../platform/sam/drivers/spi/spi.h **** 	SPI_ERROR_ARGUMENT,
+  67:../../../platform/sam/drivers/spi/spi.h **** 	SPI_ERROR_OVERRUN,
+  68:../../../platform/sam/drivers/spi/spi.h **** 	SPI_ERROR_MODE_FAULT,
+  69:../../../platform/sam/drivers/spi/spi.h **** 	SPI_ERROR_OVERRUN_AND_MODE_FAULT
+  70:../../../platform/sam/drivers/spi/spi.h **** } spi_status_t;
+  71:../../../platform/sam/drivers/spi/spi.h **** 
+  72:../../../platform/sam/drivers/spi/spi.h **** /** SPI Chip Select behavior modes while transferring. */
+  73:../../../platform/sam/drivers/spi/spi.h **** typedef enum spi_cs_behavior {
+  74:../../../platform/sam/drivers/spi/spi.h **** 	/** CS does not rise until a new transfer is requested on different chip select. */
+  75:../../../platform/sam/drivers/spi/spi.h **** 	SPI_CS_KEEP_LOW = SPI_CSR_CSAAT,
+  76:../../../platform/sam/drivers/spi/spi.h **** 	/** CS rises if there is no more data to transfer. */
+  77:../../../platform/sam/drivers/spi/spi.h **** 	SPI_CS_RISE_NO_TX = 0,
+  78:../../../platform/sam/drivers/spi/spi.h **** 	/** CS is de-asserted systematically during a time DLYBCS. */
+  79:../../../platform/sam/drivers/spi/spi.h **** 	SPI_CS_RISE_FORCED = SPI_CSR_CSNAAT
+  80:../../../platform/sam/drivers/spi/spi.h **** } spi_cs_behavior_t;
+  81:../../../platform/sam/drivers/spi/spi.h **** 
+  82:../../../platform/sam/drivers/spi/spi.h **** /**
+  83:../../../platform/sam/drivers/spi/spi.h ****  * \brief Generate Peripheral Chip Select Value from Chip Select ID
+  84:../../../platform/sam/drivers/spi/spi.h ****  * \note When chip select n is working, PCS bit n is set to low level.
+  85:../../../platform/sam/drivers/spi/spi.h ****  *
+  86:../../../platform/sam/drivers/spi/spi.h ****  * \param chip_sel_id The chip select number used
+  87:../../../platform/sam/drivers/spi/spi.h ****  */
+  88:../../../platform/sam/drivers/spi/spi.h **** #define spi_get_pcs(chip_sel_id) ((~(1u<<(chip_sel_id)))&0xF)
+  89:../../../platform/sam/drivers/spi/spi.h **** 
+  90:../../../platform/sam/drivers/spi/spi.h **** /**
+  91:../../../platform/sam/drivers/spi/spi.h ****  * \brief Reset SPI and set it to Slave mode.
+  92:../../../platform/sam/drivers/spi/spi.h ****  *
+  93:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+  94:../../../platform/sam/drivers/spi/spi.h ****  */
+  95:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_reset(Spi *p_spi)
+  96:../../../platform/sam/drivers/spi/spi.h **** {
+ 113              	 .loc 2 96 0
+ 114              	 .cfi_startproc
+ 115              	 
+ 116              	 
+ 117              	 
+ 118 0022 80B4     	 push {r7}
+ 119              	.LCFI6:
+ 120              	 .cfi_def_cfa_offset 4
+ 121              	 .cfi_offset 7,-4
+ 122 0024 83B0     	 sub sp,sp,#12
+ 123              	.LCFI7:
+ 124              	 .cfi_def_cfa_offset 16
+ 125 0026 00AF     	 add r7,sp,#0
+ 126              	.LCFI8:
+ 127              	 .cfi_def_cfa_register 7
+ 128 0028 7860     	 str r0,[r7,#4]
+  97:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_CR = SPI_CR_SWRST;
+ 129              	 .loc 2 97 0
+ 130 002a 7B68     	 ldr r3,[r7,#4]
+ 131 002c 8022     	 movs r2,#128
+ 132 002e 1A60     	 str r2,[r3]
+  98:../../../platform/sam/drivers/spi/spi.h **** }
+ 133              	 .loc 2 98 0
+ 134 0030 00BF     	 nop
+ 135 0032 0C37     	 adds r7,r7,#12
+ 136              	.LCFI9:
+ 137              	 .cfi_def_cfa_offset 4
+ 138 0034 BD46     	 mov sp,r7
+ 139              	.LCFI10:
+ 140              	 .cfi_def_cfa_register 13
+ 141              	 
+ 142 0036 80BC     	 pop {r7}
+ 143              	.LCFI11:
+ 144              	 .cfi_restore 7
+ 145              	 .cfi_def_cfa_offset 0
+ 146 0038 7047     	 bx lr
+ 147              	 .cfi_endproc
+ 148              	.LFE181:
+ 150              	 .align 1
+ 151              	 .syntax unified
+ 152              	 .thumb
+ 153              	 .thumb_func
+ 154              	 .fpu softvfp
+ 156              	spi_set_lastxfer:
+ 157              	.LFB184:
+  99:../../../platform/sam/drivers/spi/spi.h **** 
+ 100:../../../platform/sam/drivers/spi/spi.h **** /**
+ 101:../../../platform/sam/drivers/spi/spi.h ****  * \brief Enable SPI.
+ 102:../../../platform/sam/drivers/spi/spi.h ****  *
+ 103:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 104:../../../platform/sam/drivers/spi/spi.h ****  */
+ 105:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_enable(Spi *p_spi)
+ 106:../../../platform/sam/drivers/spi/spi.h **** {
+ 107:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_CR = SPI_CR_SPIEN;
+ 108:../../../platform/sam/drivers/spi/spi.h **** }
+ 109:../../../platform/sam/drivers/spi/spi.h **** 
+ 110:../../../platform/sam/drivers/spi/spi.h **** /**
+ 111:../../../platform/sam/drivers/spi/spi.h ****  * \brief Disable SPI.
+ 112:../../../platform/sam/drivers/spi/spi.h ****  *
+ 113:../../../platform/sam/drivers/spi/spi.h ****  * \note CS is de-asserted, which indicates that the last data is done, and user
+ 114:../../../platform/sam/drivers/spi/spi.h ****  * should check TX_EMPTY before disabling SPI.
+ 115:../../../platform/sam/drivers/spi/spi.h ****  *
+ 116:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 117:../../../platform/sam/drivers/spi/spi.h ****  */
+ 118:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_disable(Spi *p_spi)
+ 119:../../../platform/sam/drivers/spi/spi.h **** {
+ 120:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_CR = SPI_CR_SPIDIS;
+ 121:../../../platform/sam/drivers/spi/spi.h **** }
+ 122:../../../platform/sam/drivers/spi/spi.h **** 
+ 123:../../../platform/sam/drivers/spi/spi.h **** /**
+ 124:../../../platform/sam/drivers/spi/spi.h ****  * \brief Issue a LASTXFER command.
+ 125:../../../platform/sam/drivers/spi/spi.h ****  *  The next transfer is the last transfer and after that CS is de-asserted.
+ 126:../../../platform/sam/drivers/spi/spi.h ****  *
+ 127:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 128:../../../platform/sam/drivers/spi/spi.h ****  */
+ 129:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_set_lastxfer(Spi *p_spi)
+ 130:../../../platform/sam/drivers/spi/spi.h **** {
+ 158              	 .loc 2 130 0
+ 159              	 .cfi_startproc
+ 160              	 
+ 161              	 
+ 162              	 
+ 163 003a 80B4     	 push {r7}
+ 164              	.LCFI12:
+ 165              	 .cfi_def_cfa_offset 4
+ 166              	 .cfi_offset 7,-4
+ 167 003c 83B0     	 sub sp,sp,#12
+ 168              	.LCFI13:
+ 169              	 .cfi_def_cfa_offset 16
+ 170 003e 00AF     	 add r7,sp,#0
+ 171              	.LCFI14:
+ 172              	 .cfi_def_cfa_register 7
+ 173 0040 7860     	 str r0,[r7,#4]
+ 131:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_CR = SPI_CR_LASTXFER;
+ 174              	 .loc 2 131 0
+ 175 0042 7B68     	 ldr r3,[r7,#4]
+ 176 0044 4FF08072 	 mov r2,#16777216
+ 177 0048 1A60     	 str r2,[r3]
+ 132:../../../platform/sam/drivers/spi/spi.h **** }
+ 178              	 .loc 2 132 0
+ 179 004a 00BF     	 nop
+ 180 004c 0C37     	 adds r7,r7,#12
+ 181              	.LCFI15:
+ 182              	 .cfi_def_cfa_offset 4
+ 183 004e BD46     	 mov sp,r7
+ 184              	.LCFI16:
+ 185              	 .cfi_def_cfa_register 13
+ 186              	 
+ 187 0050 80BC     	 pop {r7}
+ 188              	.LCFI17:
+ 189              	 .cfi_restore 7
+ 190              	 .cfi_def_cfa_offset 0
+ 191 0052 7047     	 bx lr
+ 192              	 .cfi_endproc
+ 193              	.LFE184:
+ 195              	 .align 1
+ 196              	 .syntax unified
+ 197              	 .thumb
+ 198              	 .thumb_func
+ 199              	 .fpu softvfp
+ 201              	spi_set_master_mode:
+ 202              	.LFB185:
+ 133:../../../platform/sam/drivers/spi/spi.h **** 
+ 134:../../../platform/sam/drivers/spi/spi.h **** /**
+ 135:../../../platform/sam/drivers/spi/spi.h ****  * \brief Set SPI to Master mode.
+ 136:../../../platform/sam/drivers/spi/spi.h ****  *
+ 137:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 138:../../../platform/sam/drivers/spi/spi.h ****  */
+ 139:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_set_master_mode(Spi *p_spi)
+ 140:../../../platform/sam/drivers/spi/spi.h **** {
+ 203              	 .loc 2 140 0
+ 204              	 .cfi_startproc
+ 205              	 
+ 206              	 
+ 207              	 
+ 208 0054 80B4     	 push {r7}
+ 209              	.LCFI18:
+ 210              	 .cfi_def_cfa_offset 4
+ 211              	 .cfi_offset 7,-4
+ 212 0056 83B0     	 sub sp,sp,#12
+ 213              	.LCFI19:
+ 214              	 .cfi_def_cfa_offset 16
+ 215 0058 00AF     	 add r7,sp,#0
+ 216              	.LCFI20:
+ 217              	 .cfi_def_cfa_register 7
+ 218 005a 7860     	 str r0,[r7,#4]
+ 141:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR |= SPI_MR_MSTR;
+ 219              	 .loc 2 141 0
+ 220 005c 7B68     	 ldr r3,[r7,#4]
+ 221 005e 5B68     	 ldr r3,[r3,#4]
+ 222 0060 43F00102 	 orr r2,r3,#1
+ 223 0064 7B68     	 ldr r3,[r7,#4]
+ 224 0066 5A60     	 str r2,[r3,#4]
+ 142:../../../platform/sam/drivers/spi/spi.h **** }
+ 225              	 .loc 2 142 0
+ 226 0068 00BF     	 nop
+ 227 006a 0C37     	 adds r7,r7,#12
+ 228              	.LCFI21:
+ 229              	 .cfi_def_cfa_offset 4
+ 230 006c BD46     	 mov sp,r7
+ 231              	.LCFI22:
+ 232              	 .cfi_def_cfa_register 13
+ 233              	 
+ 234 006e 80BC     	 pop {r7}
+ 235              	.LCFI23:
+ 236              	 .cfi_restore 7
+ 237              	 .cfi_def_cfa_offset 0
+ 238 0070 7047     	 bx lr
+ 239              	 .cfi_endproc
+ 240              	.LFE185:
+ 242              	 .align 1
+ 243              	 .syntax unified
+ 244              	 .thumb
+ 245              	 .thumb_func
+ 246              	 .fpu softvfp
+ 248              	spi_set_fixed_peripheral_select:
+ 249              	.LFB189:
+ 143:../../../platform/sam/drivers/spi/spi.h **** 
+ 144:../../../platform/sam/drivers/spi/spi.h **** /**
+ 145:../../../platform/sam/drivers/spi/spi.h ****  * \brief Set SPI to Slave mode.
+ 146:../../../platform/sam/drivers/spi/spi.h ****  *
+ 147:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 148:../../../platform/sam/drivers/spi/spi.h ****  */
+ 149:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_set_slave_mode(Spi *p_spi)
+ 150:../../../platform/sam/drivers/spi/spi.h **** {
+ 151:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR &= (~SPI_MR_MSTR);
+ 152:../../../platform/sam/drivers/spi/spi.h **** }
+ 153:../../../platform/sam/drivers/spi/spi.h **** 
+ 154:../../../platform/sam/drivers/spi/spi.h **** /**
+ 155:../../../platform/sam/drivers/spi/spi.h ****  * \brief Get SPI work mode.
+ 156:../../../platform/sam/drivers/spi/spi.h ****  *
+ 157:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 158:../../../platform/sam/drivers/spi/spi.h ****  *
+ 159:../../../platform/sam/drivers/spi/spi.h ****  * \return 1 for master mode, 0 for slave mode.
+ 160:../../../platform/sam/drivers/spi/spi.h ****  */
+ 161:../../../platform/sam/drivers/spi/spi.h **** static inline uint32_t spi_get_mode(Spi *p_spi)
+ 162:../../../platform/sam/drivers/spi/spi.h **** {
+ 163:../../../platform/sam/drivers/spi/spi.h **** 	if (p_spi->SPI_MR & SPI_MR_MSTR) {
+ 164:../../../platform/sam/drivers/spi/spi.h **** 		return 1;
+ 165:../../../platform/sam/drivers/spi/spi.h **** 	} else {
+ 166:../../../platform/sam/drivers/spi/spi.h **** 		return 0;
+ 167:../../../platform/sam/drivers/spi/spi.h **** 	}
+ 168:../../../platform/sam/drivers/spi/spi.h **** }
+ 169:../../../platform/sam/drivers/spi/spi.h **** 
+ 170:../../../platform/sam/drivers/spi/spi.h **** /**
+ 171:../../../platform/sam/drivers/spi/spi.h ****  * \brief Set Variable Peripheral Select.
+ 172:../../../platform/sam/drivers/spi/spi.h ****  * Peripheral Chip Select can be controlled by SPI_TDR.
+ 173:../../../platform/sam/drivers/spi/spi.h ****  *
+ 174:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 175:../../../platform/sam/drivers/spi/spi.h ****  */
+ 176:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_set_variable_peripheral_select(Spi *p_spi)
+ 177:../../../platform/sam/drivers/spi/spi.h **** {
+ 178:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR |= SPI_MR_PS;
+ 179:../../../platform/sam/drivers/spi/spi.h **** }
+ 180:../../../platform/sam/drivers/spi/spi.h **** 
+ 181:../../../platform/sam/drivers/spi/spi.h **** /**
+ 182:../../../platform/sam/drivers/spi/spi.h ****  * \brief Set Fixed Peripheral Select.
+ 183:../../../platform/sam/drivers/spi/spi.h ****  *  Peripheral Chip Select is controlled by SPI_MR.
+ 184:../../../platform/sam/drivers/spi/spi.h ****  *
+ 185:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 186:../../../platform/sam/drivers/spi/spi.h ****  */
+ 187:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_set_fixed_peripheral_select(Spi *p_spi)
+ 188:../../../platform/sam/drivers/spi/spi.h **** {
+ 250              	 .loc 2 188 0
+ 251              	 .cfi_startproc
+ 252              	 
+ 253              	 
+ 254              	 
+ 255 0072 80B4     	 push {r7}
+ 256              	.LCFI24:
+ 257              	 .cfi_def_cfa_offset 4
+ 258              	 .cfi_offset 7,-4
+ 259 0074 83B0     	 sub sp,sp,#12
+ 260              	.LCFI25:
+ 261              	 .cfi_def_cfa_offset 16
+ 262 0076 00AF     	 add r7,sp,#0
+ 263              	.LCFI26:
+ 264              	 .cfi_def_cfa_register 7
+ 265 0078 7860     	 str r0,[r7,#4]
+ 189:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR &= (~SPI_MR_PS);
+ 266              	 .loc 2 189 0
+ 267 007a 7B68     	 ldr r3,[r7,#4]
+ 268 007c 5B68     	 ldr r3,[r3,#4]
+ 269 007e 23F00202 	 bic r2,r3,#2
+ 270 0082 7B68     	 ldr r3,[r7,#4]
+ 271 0084 5A60     	 str r2,[r3,#4]
+ 190:../../../platform/sam/drivers/spi/spi.h **** }
+ 272              	 .loc 2 190 0
+ 273 0086 00BF     	 nop
+ 274 0088 0C37     	 adds r7,r7,#12
+ 275              	.LCFI27:
+ 276              	 .cfi_def_cfa_offset 4
+ 277 008a BD46     	 mov sp,r7
+ 278              	.LCFI28:
+ 279              	 .cfi_def_cfa_register 13
+ 280              	 
+ 281 008c 80BC     	 pop {r7}
+ 282              	.LCFI29:
+ 283              	 .cfi_restore 7
+ 284              	 .cfi_def_cfa_offset 0
+ 285 008e 7047     	 bx lr
+ 286              	 .cfi_endproc
+ 287              	.LFE189:
+ 289              	 .align 1
+ 290              	 .syntax unified
+ 291              	 .thumb
+ 292              	 .thumb_func
+ 293              	 .fpu softvfp
+ 295              	spi_disable_peripheral_select_decode:
+ 296              	.LFB192:
+ 191:../../../platform/sam/drivers/spi/spi.h **** 
+ 192:../../../platform/sam/drivers/spi/spi.h **** /**
+ 193:../../../platform/sam/drivers/spi/spi.h ****  * \brief Get Peripheral Select mode.
+ 194:../../../platform/sam/drivers/spi/spi.h ****  *
+ 195:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 196:../../../platform/sam/drivers/spi/spi.h ****  *
+ 197:../../../platform/sam/drivers/spi/spi.h ****  * \return 1 for Variable mode, 0 for fixed mode.
+ 198:../../../platform/sam/drivers/spi/spi.h ****  */
+ 199:../../../platform/sam/drivers/spi/spi.h **** static inline uint32_t spi_get_peripheral_select_mode(Spi *p_spi)
+ 200:../../../platform/sam/drivers/spi/spi.h **** {
+ 201:../../../platform/sam/drivers/spi/spi.h **** 	if (p_spi->SPI_MR & SPI_MR_PS) {
+ 202:../../../platform/sam/drivers/spi/spi.h **** 		return 1;
+ 203:../../../platform/sam/drivers/spi/spi.h **** 	} else {
+ 204:../../../platform/sam/drivers/spi/spi.h **** 		return 0;
+ 205:../../../platform/sam/drivers/spi/spi.h **** 	}
+ 206:../../../platform/sam/drivers/spi/spi.h **** }
+ 207:../../../platform/sam/drivers/spi/spi.h **** 
+ 208:../../../platform/sam/drivers/spi/spi.h **** /**
+ 209:../../../platform/sam/drivers/spi/spi.h ****  * \brief Enable Peripheral Select Decode.
+ 210:../../../platform/sam/drivers/spi/spi.h ****  *
+ 211:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 212:../../../platform/sam/drivers/spi/spi.h ****  */
+ 213:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_enable_peripheral_select_decode(Spi *p_spi)
+ 214:../../../platform/sam/drivers/spi/spi.h **** {
+ 215:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR |= SPI_MR_PCSDEC;
+ 216:../../../platform/sam/drivers/spi/spi.h **** }
+ 217:../../../platform/sam/drivers/spi/spi.h **** 
+ 218:../../../platform/sam/drivers/spi/spi.h **** /**
+ 219:../../../platform/sam/drivers/spi/spi.h ****  * \brief Disable Peripheral Select Decode.
+ 220:../../../platform/sam/drivers/spi/spi.h ****  *
+ 221:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 222:../../../platform/sam/drivers/spi/spi.h ****  */
+ 223:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_disable_peripheral_select_decode(Spi *p_spi)
+ 224:../../../platform/sam/drivers/spi/spi.h **** {
+ 297              	 .loc 2 224 0
+ 298              	 .cfi_startproc
+ 299              	 
+ 300              	 
+ 301              	 
+ 302 0090 80B4     	 push {r7}
+ 303              	.LCFI30:
+ 304              	 .cfi_def_cfa_offset 4
+ 305              	 .cfi_offset 7,-4
+ 306 0092 83B0     	 sub sp,sp,#12
+ 307              	.LCFI31:
+ 308              	 .cfi_def_cfa_offset 16
+ 309 0094 00AF     	 add r7,sp,#0
+ 310              	.LCFI32:
+ 311              	 .cfi_def_cfa_register 7
+ 312 0096 7860     	 str r0,[r7,#4]
+ 225:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR &= (~SPI_MR_PCSDEC);
+ 313              	 .loc 2 225 0
+ 314 0098 7B68     	 ldr r3,[r7,#4]
+ 315 009a 5B68     	 ldr r3,[r3,#4]
+ 316 009c 23F00402 	 bic r2,r3,#4
+ 317 00a0 7B68     	 ldr r3,[r7,#4]
+ 318 00a2 5A60     	 str r2,[r3,#4]
+ 226:../../../platform/sam/drivers/spi/spi.h **** }
+ 319              	 .loc 2 226 0
+ 320 00a4 00BF     	 nop
+ 321 00a6 0C37     	 adds r7,r7,#12
+ 322              	.LCFI33:
+ 323              	 .cfi_def_cfa_offset 4
+ 324 00a8 BD46     	 mov sp,r7
+ 325              	.LCFI34:
+ 326              	 .cfi_def_cfa_register 13
+ 327              	 
+ 328 00aa 80BC     	 pop {r7}
+ 329              	.LCFI35:
+ 330              	 .cfi_restore 7
+ 331              	 .cfi_def_cfa_offset 0
+ 332 00ac 7047     	 bx lr
+ 333              	 .cfi_endproc
+ 334              	.LFE192:
+ 336              	 .align 1
+ 337              	 .syntax unified
+ 338              	 .thumb
+ 339              	 .thumb_func
+ 340              	 .fpu softvfp
+ 342              	spi_get_peripheral_select_decode_setting:
+ 343              	.LFB193:
+ 227:../../../platform/sam/drivers/spi/spi.h **** 
+ 228:../../../platform/sam/drivers/spi/spi.h **** /**
+ 229:../../../platform/sam/drivers/spi/spi.h ****  * \brief Get Peripheral Select Decode mode.
+ 230:../../../platform/sam/drivers/spi/spi.h ****  *
+ 231:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 232:../../../platform/sam/drivers/spi/spi.h ****  *
+ 233:../../../platform/sam/drivers/spi/spi.h ****  * \return 1 for decode mode, 0 for direct mode.
+ 234:../../../platform/sam/drivers/spi/spi.h ****  */
+ 235:../../../platform/sam/drivers/spi/spi.h **** static inline uint32_t spi_get_peripheral_select_decode_setting(Spi *p_spi)
+ 236:../../../platform/sam/drivers/spi/spi.h **** {
+ 344              	 .loc 2 236 0
+ 345              	 .cfi_startproc
+ 346              	 
+ 347              	 
+ 348              	 
+ 349 00ae 80B4     	 push {r7}
+ 350              	.LCFI36:
+ 351              	 .cfi_def_cfa_offset 4
+ 352              	 .cfi_offset 7,-4
+ 353 00b0 83B0     	 sub sp,sp,#12
+ 354              	.LCFI37:
+ 355              	 .cfi_def_cfa_offset 16
+ 356 00b2 00AF     	 add r7,sp,#0
+ 357              	.LCFI38:
+ 358              	 .cfi_def_cfa_register 7
+ 359 00b4 7860     	 str r0,[r7,#4]
+ 237:../../../platform/sam/drivers/spi/spi.h **** 	if (p_spi->SPI_MR & SPI_MR_PCSDEC) {
+ 360              	 .loc 2 237 0
+ 361 00b6 7B68     	 ldr r3,[r7,#4]
+ 362 00b8 5B68     	 ldr r3,[r3,#4]
+ 363 00ba 03F00403 	 and r3,r3,#4
+ 364 00be 002B     	 cmp r3,#0
+ 365 00c0 01D0     	 beq .L13
+ 238:../../../platform/sam/drivers/spi/spi.h **** 		return 1;
+ 366              	 .loc 2 238 0
+ 367 00c2 0123     	 movs r3,#1
+ 368 00c4 00E0     	 b .L14
+ 369              	.L13:
+ 239:../../../platform/sam/drivers/spi/spi.h **** 	} else {
+ 240:../../../platform/sam/drivers/spi/spi.h **** 		return 0;
+ 370              	 .loc 2 240 0
+ 371 00c6 0023     	 movs r3,#0
+ 372              	.L14:
+ 241:../../../platform/sam/drivers/spi/spi.h **** 	}
+ 242:../../../platform/sam/drivers/spi/spi.h **** }
+ 373              	 .loc 2 242 0
+ 374 00c8 1846     	 mov r0,r3
+ 375 00ca 0C37     	 adds r7,r7,#12
+ 376              	.LCFI39:
+ 377              	 .cfi_def_cfa_offset 4
+ 378 00cc BD46     	 mov sp,r7
+ 379              	.LCFI40:
+ 380              	 .cfi_def_cfa_register 13
+ 381              	 
+ 382 00ce 80BC     	 pop {r7}
+ 383              	.LCFI41:
+ 384              	 .cfi_restore 7
+ 385              	 .cfi_def_cfa_offset 0
+ 386 00d0 7047     	 bx lr
+ 387              	 .cfi_endproc
+ 388              	.LFE193:
+ 390              	 .align 1
+ 391              	 .syntax unified
+ 392              	 .thumb
+ 393              	 .thumb_func
+ 394              	 .fpu softvfp
+ 396              	spi_disable_mode_fault_detect:
+ 397              	.LFB195:
+ 243:../../../platform/sam/drivers/spi/spi.h **** 
+ 244:../../../platform/sam/drivers/spi/spi.h **** /**
+ 245:../../../platform/sam/drivers/spi/spi.h ****  * \brief Enable Mode Fault Detection.
+ 246:../../../platform/sam/drivers/spi/spi.h ****  *
+ 247:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 248:../../../platform/sam/drivers/spi/spi.h ****  */
+ 249:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_enable_mode_fault_detect(Spi *p_spi)
+ 250:../../../platform/sam/drivers/spi/spi.h **** {
+ 251:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR &= (~SPI_MR_MODFDIS);
+ 252:../../../platform/sam/drivers/spi/spi.h **** }
+ 253:../../../platform/sam/drivers/spi/spi.h **** 
+ 254:../../../platform/sam/drivers/spi/spi.h **** /**
+ 255:../../../platform/sam/drivers/spi/spi.h ****  * \brief Disable Mode Fault Detection.
+ 256:../../../platform/sam/drivers/spi/spi.h ****  *
+ 257:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 258:../../../platform/sam/drivers/spi/spi.h ****  */
+ 259:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_disable_mode_fault_detect(Spi *p_spi)
+ 260:../../../platform/sam/drivers/spi/spi.h **** {
+ 398              	 .loc 2 260 0
+ 399              	 .cfi_startproc
+ 400              	 
+ 401              	 
+ 402              	 
+ 403 00d2 80B4     	 push {r7}
+ 404              	.LCFI42:
+ 405              	 .cfi_def_cfa_offset 4
+ 406              	 .cfi_offset 7,-4
+ 407 00d4 83B0     	 sub sp,sp,#12
+ 408              	.LCFI43:
+ 409              	 .cfi_def_cfa_offset 16
+ 410 00d6 00AF     	 add r7,sp,#0
+ 411              	.LCFI44:
+ 412              	 .cfi_def_cfa_register 7
+ 413 00d8 7860     	 str r0,[r7,#4]
+ 261:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR |= SPI_MR_MODFDIS;
+ 414              	 .loc 2 261 0
+ 415 00da 7B68     	 ldr r3,[r7,#4]
+ 416 00dc 5B68     	 ldr r3,[r3,#4]
+ 417 00de 43F01002 	 orr r2,r3,#16
+ 418 00e2 7B68     	 ldr r3,[r7,#4]
+ 419 00e4 5A60     	 str r2,[r3,#4]
+ 262:../../../platform/sam/drivers/spi/spi.h **** }
+ 420              	 .loc 2 262 0
+ 421 00e6 00BF     	 nop
+ 422 00e8 0C37     	 adds r7,r7,#12
+ 423              	.LCFI45:
+ 424              	 .cfi_def_cfa_offset 4
+ 425 00ea BD46     	 mov sp,r7
+ 426              	.LCFI46:
+ 427              	 .cfi_def_cfa_register 13
+ 428              	 
+ 429 00ec 80BC     	 pop {r7}
+ 430              	.LCFI47:
+ 431              	 .cfi_restore 7
+ 432              	 .cfi_def_cfa_offset 0
+ 433 00ee 7047     	 bx lr
+ 434              	 .cfi_endproc
+ 435              	.LFE195:
+ 437              	 .align 1
+ 438              	 .syntax unified
+ 439              	 .thumb
+ 440              	 .thumb_func
+ 441              	 .fpu softvfp
+ 443              	spi_disable_loopback:
+ 444              	.LFB201:
+ 263:../../../platform/sam/drivers/spi/spi.h **** 
+ 264:../../../platform/sam/drivers/spi/spi.h **** /**
+ 265:../../../platform/sam/drivers/spi/spi.h ****  * \brief Check if mode fault detection is enabled.
+ 266:../../../platform/sam/drivers/spi/spi.h ****  *
+ 267:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 268:../../../platform/sam/drivers/spi/spi.h ****  *
+ 269:../../../platform/sam/drivers/spi/spi.h ****  * \return 1 for disabled, 0 for enabled.
+ 270:../../../platform/sam/drivers/spi/spi.h ****  */
+ 271:../../../platform/sam/drivers/spi/spi.h **** static inline uint32_t spi_get_mode_fault_detect_setting(Spi *p_spi)
+ 272:../../../platform/sam/drivers/spi/spi.h **** {
+ 273:../../../platform/sam/drivers/spi/spi.h **** 	if (p_spi->SPI_MR & SPI_MR_MODFDIS) {
+ 274:../../../platform/sam/drivers/spi/spi.h **** 		return 1;
+ 275:../../../platform/sam/drivers/spi/spi.h **** 	} else {
+ 276:../../../platform/sam/drivers/spi/spi.h **** 		return 0;
+ 277:../../../platform/sam/drivers/spi/spi.h **** 	}
+ 278:../../../platform/sam/drivers/spi/spi.h **** }
+ 279:../../../platform/sam/drivers/spi/spi.h **** 
+ 280:../../../platform/sam/drivers/spi/spi.h **** /**
+ 281:../../../platform/sam/drivers/spi/spi.h ****  * \brief Enable waiting RX_EMPTY before transfer starts.
+ 282:../../../platform/sam/drivers/spi/spi.h ****  *
+ 283:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 284:../../../platform/sam/drivers/spi/spi.h ****  */
+ 285:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_enable_tx_on_rx_empty(Spi *p_spi)
+ 286:../../../platform/sam/drivers/spi/spi.h **** {
+ 287:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR |= SPI_MR_WDRBT;
+ 288:../../../platform/sam/drivers/spi/spi.h **** }
+ 289:../../../platform/sam/drivers/spi/spi.h **** 
+ 290:../../../platform/sam/drivers/spi/spi.h **** /**
+ 291:../../../platform/sam/drivers/spi/spi.h ****  * \brief Disable waiting RX_EMPTY before transfer starts.
+ 292:../../../platform/sam/drivers/spi/spi.h ****  *
+ 293:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 294:../../../platform/sam/drivers/spi/spi.h ****  */
+ 295:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_disable_tx_on_rx_empty(Spi *p_spi)
+ 296:../../../platform/sam/drivers/spi/spi.h **** {
+ 297:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR &= (~SPI_MR_WDRBT);
+ 298:../../../platform/sam/drivers/spi/spi.h **** }
+ 299:../../../platform/sam/drivers/spi/spi.h **** 
+ 300:../../../platform/sam/drivers/spi/spi.h **** /**
+ 301:../../../platform/sam/drivers/spi/spi.h ****  * \brief Check if SPI waits RX_EMPTY before transfer starts.
+ 302:../../../platform/sam/drivers/spi/spi.h ****  *
+ 303:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 304:../../../platform/sam/drivers/spi/spi.h ****  *
+ 305:../../../platform/sam/drivers/spi/spi.h ****  * \return 1 for SPI waits, 0 for no wait.
+ 306:../../../platform/sam/drivers/spi/spi.h ****  */
+ 307:../../../platform/sam/drivers/spi/spi.h **** static inline uint32_t spi_get_tx_on_rx_empty_setting(Spi *p_spi)
+ 308:../../../platform/sam/drivers/spi/spi.h **** {
+ 309:../../../platform/sam/drivers/spi/spi.h **** 	if (p_spi->SPI_MR & SPI_MR_WDRBT) {
+ 310:../../../platform/sam/drivers/spi/spi.h **** 		return 1;
+ 311:../../../platform/sam/drivers/spi/spi.h **** 	} else {
+ 312:../../../platform/sam/drivers/spi/spi.h **** 		return 0;
+ 313:../../../platform/sam/drivers/spi/spi.h **** 	}
+ 314:../../../platform/sam/drivers/spi/spi.h **** }
+ 315:../../../platform/sam/drivers/spi/spi.h **** 
+ 316:../../../platform/sam/drivers/spi/spi.h **** /**
+ 317:../../../platform/sam/drivers/spi/spi.h ****  * \brief Enable loopback mode.
+ 318:../../../platform/sam/drivers/spi/spi.h ****  *
+ 319:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 320:../../../platform/sam/drivers/spi/spi.h ****  */
+ 321:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_enable_loopback(Spi *p_spi)
+ 322:../../../platform/sam/drivers/spi/spi.h **** {
+ 323:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR |= SPI_MR_LLB;
+ 324:../../../platform/sam/drivers/spi/spi.h **** }
+ 325:../../../platform/sam/drivers/spi/spi.h **** 
+ 326:../../../platform/sam/drivers/spi/spi.h **** /**
+ 327:../../../platform/sam/drivers/spi/spi.h ****  * \brief Disable loopback mode.
+ 328:../../../platform/sam/drivers/spi/spi.h ****  *
+ 329:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 330:../../../platform/sam/drivers/spi/spi.h ****  */
+ 331:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_disable_loopback(Spi *p_spi)
+ 332:../../../platform/sam/drivers/spi/spi.h **** {
+ 445              	 .loc 2 332 0
+ 446              	 .cfi_startproc
+ 447              	 
+ 448              	 
+ 449              	 
+ 450 00f0 80B4     	 push {r7}
+ 451              	.LCFI48:
+ 452              	 .cfi_def_cfa_offset 4
+ 453              	 .cfi_offset 7,-4
+ 454 00f2 83B0     	 sub sp,sp,#12
+ 455              	.LCFI49:
+ 456              	 .cfi_def_cfa_offset 16
+ 457 00f4 00AF     	 add r7,sp,#0
+ 458              	.LCFI50:
+ 459              	 .cfi_def_cfa_register 7
+ 460 00f6 7860     	 str r0,[r7,#4]
+ 333:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_MR &= (~SPI_MR_LLB);
+ 461              	 .loc 2 333 0
+ 462 00f8 7B68     	 ldr r3,[r7,#4]
+ 463 00fa 5B68     	 ldr r3,[r3,#4]
+ 464 00fc 23F08002 	 bic r2,r3,#128
+ 465 0100 7B68     	 ldr r3,[r7,#4]
+ 466 0102 5A60     	 str r2,[r3,#4]
+ 334:../../../platform/sam/drivers/spi/spi.h **** }
+ 467              	 .loc 2 334 0
+ 468 0104 00BF     	 nop
+ 469 0106 0C37     	 adds r7,r7,#12
+ 470              	.LCFI51:
+ 471              	 .cfi_def_cfa_offset 4
+ 472 0108 BD46     	 mov sp,r7
+ 473              	.LCFI52:
+ 474              	 .cfi_def_cfa_register 13
+ 475              	 
+ 476 010a 80BC     	 pop {r7}
+ 477              	.LCFI53:
+ 478              	 .cfi_restore 7
+ 479              	 .cfi_def_cfa_offset 0
+ 480 010c 7047     	 bx lr
+ 481              	 .cfi_endproc
+ 482              	.LFE201:
+ 484              	 .align 1
+ 485              	 .syntax unified
+ 486              	 .thumb
+ 487              	 .thumb_func
+ 488              	 .fpu softvfp
+ 490              	spi_put:
+ 491              	.LFB204:
+ 335:../../../platform/sam/drivers/spi/spi.h **** 
+ 336:../../../platform/sam/drivers/spi/spi.h **** void spi_enable_clock(Spi *p_spi);
+ 337:../../../platform/sam/drivers/spi/spi.h **** void spi_disable_clock(Spi *p_spi);
+ 338:../../../platform/sam/drivers/spi/spi.h **** void spi_set_peripheral_chip_select_value(Spi *p_spi, uint32_t ul_value);
+ 339:../../../platform/sam/drivers/spi/spi.h **** void spi_set_delay_between_chip_select(Spi *p_spi, uint32_t ul_delay);
+ 340:../../../platform/sam/drivers/spi/spi.h **** spi_status_t spi_read(Spi *p_spi, uint16_t *us_data, uint8_t *p_pcs);
+ 341:../../../platform/sam/drivers/spi/spi.h **** spi_status_t spi_write(Spi *p_spi, uint16_t us_data, uint8_t uc_pcs,
+ 342:../../../platform/sam/drivers/spi/spi.h **** 		uint8_t uc_last);
+ 343:../../../platform/sam/drivers/spi/spi.h **** 
+ 344:../../../platform/sam/drivers/spi/spi.h **** /**
+ 345:../../../platform/sam/drivers/spi/spi.h ****  * \brief Read status register.
+ 346:../../../platform/sam/drivers/spi/spi.h ****  *
+ 347:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 348:../../../platform/sam/drivers/spi/spi.h ****  *
+ 349:../../../platform/sam/drivers/spi/spi.h ****  * \return SPI status register value.
+ 350:../../../platform/sam/drivers/spi/spi.h ****  */
+ 351:../../../platform/sam/drivers/spi/spi.h **** static inline uint32_t spi_read_status(Spi *p_spi)
+ 352:../../../platform/sam/drivers/spi/spi.h **** {
+ 353:../../../platform/sam/drivers/spi/spi.h **** 	return p_spi->SPI_SR;
+ 354:../../../platform/sam/drivers/spi/spi.h **** }
+ 355:../../../platform/sam/drivers/spi/spi.h **** 
+ 356:../../../platform/sam/drivers/spi/spi.h **** /**
+ 357:../../../platform/sam/drivers/spi/spi.h ****  * \brief Test if the SPI is enabled.
+ 358:../../../platform/sam/drivers/spi/spi.h ****  *
+ 359:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 360:../../../platform/sam/drivers/spi/spi.h ****  *
+ 361:../../../platform/sam/drivers/spi/spi.h ****  * \return 1 if the SPI is enabled, otherwise 0.
+ 362:../../../platform/sam/drivers/spi/spi.h ****  */
+ 363:../../../platform/sam/drivers/spi/spi.h **** static inline uint32_t spi_is_enabled(Spi *p_spi)
+ 364:../../../platform/sam/drivers/spi/spi.h **** {
+ 365:../../../platform/sam/drivers/spi/spi.h **** 	if (p_spi->SPI_SR & SPI_SR_SPIENS) {
+ 366:../../../platform/sam/drivers/spi/spi.h **** 		return 1;
+ 367:../../../platform/sam/drivers/spi/spi.h **** 	} else {
+ 368:../../../platform/sam/drivers/spi/spi.h **** 		return 0;
+ 369:../../../platform/sam/drivers/spi/spi.h **** 	}
+ 370:../../../platform/sam/drivers/spi/spi.h **** }
+ 371:../../../platform/sam/drivers/spi/spi.h **** 
+ 372:../../../platform/sam/drivers/spi/spi.h **** /**
+ 373:../../../platform/sam/drivers/spi/spi.h ****  * \brief Put one data to a SPI peripheral.
+ 374:../../../platform/sam/drivers/spi/spi.h ****  *
+ 375:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Base address of the SPI instance.
+ 376:../../../platform/sam/drivers/spi/spi.h ****  * \param data The data byte to be loaded
+ 377:../../../platform/sam/drivers/spi/spi.h ****  *
+ 378:../../../platform/sam/drivers/spi/spi.h ****  */
+ 379:../../../platform/sam/drivers/spi/spi.h **** static inline void spi_put(Spi *p_spi, uint16_t data)
+ 380:../../../platform/sam/drivers/spi/spi.h **** {
+ 492              	 .loc 2 380 0
+ 493              	 .cfi_startproc
+ 494              	 
+ 495              	 
+ 496              	 
+ 497 010e 80B4     	 push {r7}
+ 498              	.LCFI54:
+ 499              	 .cfi_def_cfa_offset 4
+ 500              	 .cfi_offset 7,-4
+ 501 0110 83B0     	 sub sp,sp,#12
+ 502              	.LCFI55:
+ 503              	 .cfi_def_cfa_offset 16
+ 504 0112 00AF     	 add r7,sp,#0
+ 505              	.LCFI56:
+ 506              	 .cfi_def_cfa_register 7
+ 507 0114 7860     	 str r0,[r7,#4]
+ 508 0116 0B46     	 mov r3,r1
+ 509 0118 7B80     	 strh r3,[r7,#2]
+ 381:../../../platform/sam/drivers/spi/spi.h **** 	p_spi->SPI_TDR = SPI_TDR_TD(data);
+ 510              	 .loc 2 381 0
+ 511 011a 7A88     	 ldrh r2,[r7,#2]
+ 512 011c 7B68     	 ldr r3,[r7,#4]
+ 513 011e DA60     	 str r2,[r3,#12]
+ 382:../../../platform/sam/drivers/spi/spi.h **** }
+ 514              	 .loc 2 382 0
+ 515 0120 00BF     	 nop
+ 516 0122 0C37     	 adds r7,r7,#12
+ 517              	.LCFI57:
+ 518              	 .cfi_def_cfa_offset 4
+ 519 0124 BD46     	 mov sp,r7
+ 520              	.LCFI58:
+ 521              	 .cfi_def_cfa_register 13
+ 522              	 
+ 523 0126 80BC     	 pop {r7}
+ 524              	.LCFI59:
+ 525              	 .cfi_restore 7
+ 526              	 .cfi_def_cfa_offset 0
+ 527 0128 7047     	 bx lr
+ 528              	 .cfi_endproc
+ 529              	.LFE204:
+ 531              	 .align 1
+ 532              	 .syntax unified
+ 533              	 .thumb
+ 534              	 .thumb_func
+ 535              	 .fpu softvfp
+ 537              	spi_get:
+ 538              	.LFB205:
+ 383:../../../platform/sam/drivers/spi/spi.h **** 
+ 384:../../../platform/sam/drivers/spi/spi.h **** /** \brief Get one data to a SPI peripheral.
+ 385:../../../platform/sam/drivers/spi/spi.h ****  *
+ 386:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Base address of the SPI instance.
+ 387:../../../platform/sam/drivers/spi/spi.h ****  * \return The data byte
+ 388:../../../platform/sam/drivers/spi/spi.h ****  *
+ 389:../../../platform/sam/drivers/spi/spi.h ****  */
+ 390:../../../platform/sam/drivers/spi/spi.h **** static inline uint16_t spi_get(Spi *p_spi)
+ 391:../../../platform/sam/drivers/spi/spi.h **** {
+ 539              	 .loc 2 391 0
+ 540              	 .cfi_startproc
+ 541              	 
+ 542              	 
+ 543              	 
+ 544 012a 80B4     	 push {r7}
+ 545              	.LCFI60:
+ 546              	 .cfi_def_cfa_offset 4
+ 547              	 .cfi_offset 7,-4
+ 548 012c 83B0     	 sub sp,sp,#12
+ 549              	.LCFI61:
+ 550              	 .cfi_def_cfa_offset 16
+ 551 012e 00AF     	 add r7,sp,#0
+ 552              	.LCFI62:
+ 553              	 .cfi_def_cfa_register 7
+ 554 0130 7860     	 str r0,[r7,#4]
+ 392:../../../platform/sam/drivers/spi/spi.h **** 	return (p_spi->SPI_RDR & SPI_RDR_RD_Msk);
+ 555              	 .loc 2 392 0
+ 556 0132 7B68     	 ldr r3,[r7,#4]
+ 557 0134 9B68     	 ldr r3,[r3,#8]
+ 558 0136 9BB2     	 uxth r3,r3
+ 393:../../../platform/sam/drivers/spi/spi.h **** }
+ 559              	 .loc 2 393 0
+ 560 0138 1846     	 mov r0,r3
+ 561 013a 0C37     	 adds r7,r7,#12
+ 562              	.LCFI63:
+ 563              	 .cfi_def_cfa_offset 4
+ 564 013c BD46     	 mov sp,r7
+ 565              	.LCFI64:
+ 566              	 .cfi_def_cfa_register 13
+ 567              	 
+ 568 013e 80BC     	 pop {r7}
+ 569              	.LCFI65:
+ 570              	 .cfi_restore 7
+ 571              	 .cfi_def_cfa_offset 0
+ 572 0140 7047     	 bx lr
+ 573              	 .cfi_endproc
+ 574              	.LFE205:
+ 576              	 .align 1
+ 577              	 .syntax unified
+ 578              	 .thumb
+ 579              	 .thumb_func
+ 580              	 .fpu softvfp
+ 582              	spi_is_tx_empty:
+ 583              	.LFB206:
+ 394:../../../platform/sam/drivers/spi/spi.h **** 
+ 395:../../../platform/sam/drivers/spi/spi.h **** /**
+ 396:../../../platform/sam/drivers/spi/spi.h ****  * \brief Check if all transmissions are complete.
+ 397:../../../platform/sam/drivers/spi/spi.h ****  *
+ 398:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 399:../../../platform/sam/drivers/spi/spi.h ****  *
+ 400:../../../platform/sam/drivers/spi/spi.h ****  * \retval 1 if transmissions are complete.
+ 401:../../../platform/sam/drivers/spi/spi.h ****  * \retval 0 if transmissions are not complete.
+ 402:../../../platform/sam/drivers/spi/spi.h ****  */
+ 403:../../../platform/sam/drivers/spi/spi.h **** static inline uint32_t spi_is_tx_empty(Spi *p_spi)
+ 404:../../../platform/sam/drivers/spi/spi.h **** {
+ 584              	 .loc 2 404 0
+ 585              	 .cfi_startproc
+ 586              	 
+ 587              	 
+ 588              	 
+ 589 0142 80B4     	 push {r7}
+ 590              	.LCFI66:
+ 591              	 .cfi_def_cfa_offset 4
+ 592              	 .cfi_offset 7,-4
+ 593 0144 83B0     	 sub sp,sp,#12
+ 594              	.LCFI67:
+ 595              	 .cfi_def_cfa_offset 16
+ 596 0146 00AF     	 add r7,sp,#0
+ 597              	.LCFI68:
+ 598              	 .cfi_def_cfa_register 7
+ 599 0148 7860     	 str r0,[r7,#4]
+ 405:../../../platform/sam/drivers/spi/spi.h **** 	if (p_spi->SPI_SR & SPI_SR_TXEMPTY) {
+ 600              	 .loc 2 405 0
+ 601 014a 7B68     	 ldr r3,[r7,#4]
+ 602 014c 1B69     	 ldr r3,[r3,#16]
+ 603 014e 03F40073 	 and r3,r3,#512
+ 604 0152 002B     	 cmp r3,#0
+ 605 0154 01D0     	 beq .L21
+ 406:../../../platform/sam/drivers/spi/spi.h **** 		return 1;
+ 606              	 .loc 2 406 0
+ 607 0156 0123     	 movs r3,#1
+ 608 0158 00E0     	 b .L22
+ 609              	.L21:
+ 407:../../../platform/sam/drivers/spi/spi.h **** 	} else {
+ 408:../../../platform/sam/drivers/spi/spi.h **** 		return 0;
+ 610              	 .loc 2 408 0
+ 611 015a 0023     	 movs r3,#0
+ 612              	.L22:
+ 409:../../../platform/sam/drivers/spi/spi.h **** 	}
+ 410:../../../platform/sam/drivers/spi/spi.h **** }
+ 613              	 .loc 2 410 0
+ 614 015c 1846     	 mov r0,r3
+ 615 015e 0C37     	 adds r7,r7,#12
+ 616              	.LCFI69:
+ 617              	 .cfi_def_cfa_offset 4
+ 618 0160 BD46     	 mov sp,r7
+ 619              	.LCFI70:
+ 620              	 .cfi_def_cfa_register 13
+ 621              	 
+ 622 0162 80BC     	 pop {r7}
+ 623              	.LCFI71:
+ 624              	 .cfi_restore 7
+ 625              	 .cfi_def_cfa_offset 0
+ 626 0164 7047     	 bx lr
+ 627              	 .cfi_endproc
+ 628              	.LFE206:
+ 630              	 .align 1
+ 631              	 .syntax unified
+ 632              	 .thumb
+ 633              	 .thumb_func
+ 634              	 .fpu softvfp
+ 636              	spi_is_tx_ready:
+ 637              	.LFB207:
+ 411:../../../platform/sam/drivers/spi/spi.h **** 
+ 412:../../../platform/sam/drivers/spi/spi.h **** /**
+ 413:../../../platform/sam/drivers/spi/spi.h ****  * \brief Check if all transmissions are ready.
+ 414:../../../platform/sam/drivers/spi/spi.h ****  *
+ 415:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 416:../../../platform/sam/drivers/spi/spi.h ****  *
+ 417:../../../platform/sam/drivers/spi/spi.h ****  * \retval 1 if transmissions are complete.
+ 418:../../../platform/sam/drivers/spi/spi.h ****  * \retval 0 if transmissions are not complete.
+ 419:../../../platform/sam/drivers/spi/spi.h ****  */
+ 420:../../../platform/sam/drivers/spi/spi.h **** static inline uint32_t spi_is_tx_ready(Spi *p_spi)
+ 421:../../../platform/sam/drivers/spi/spi.h **** {
+ 638              	 .loc 2 421 0
+ 639              	 .cfi_startproc
+ 640              	 
+ 641              	 
+ 642              	 
+ 643 0166 80B4     	 push {r7}
+ 644              	.LCFI72:
+ 645              	 .cfi_def_cfa_offset 4
+ 646              	 .cfi_offset 7,-4
+ 647 0168 83B0     	 sub sp,sp,#12
+ 648              	.LCFI73:
+ 649              	 .cfi_def_cfa_offset 16
+ 650 016a 00AF     	 add r7,sp,#0
+ 651              	.LCFI74:
+ 652              	 .cfi_def_cfa_register 7
+ 653 016c 7860     	 str r0,[r7,#4]
+ 422:../../../platform/sam/drivers/spi/spi.h **** 	if (p_spi->SPI_SR & SPI_SR_TDRE) {
+ 654              	 .loc 2 422 0
+ 655 016e 7B68     	 ldr r3,[r7,#4]
+ 656 0170 1B69     	 ldr r3,[r3,#16]
+ 657 0172 03F00203 	 and r3,r3,#2
+ 658 0176 002B     	 cmp r3,#0
+ 659 0178 01D0     	 beq .L24
+ 423:../../../platform/sam/drivers/spi/spi.h **** 		return 1;
+ 660              	 .loc 2 423 0
+ 661 017a 0123     	 movs r3,#1
+ 662 017c 00E0     	 b .L25
+ 663              	.L24:
+ 424:../../../platform/sam/drivers/spi/spi.h **** 	} else {
+ 425:../../../platform/sam/drivers/spi/spi.h **** 		return 0;
+ 664              	 .loc 2 425 0
+ 665 017e 0023     	 movs r3,#0
+ 666              	.L25:
+ 426:../../../platform/sam/drivers/spi/spi.h **** 	}
+ 427:../../../platform/sam/drivers/spi/spi.h **** }
+ 667              	 .loc 2 427 0
+ 668 0180 1846     	 mov r0,r3
+ 669 0182 0C37     	 adds r7,r7,#12
+ 670              	.LCFI75:
+ 671              	 .cfi_def_cfa_offset 4
+ 672 0184 BD46     	 mov sp,r7
+ 673              	.LCFI76:
+ 674              	 .cfi_def_cfa_register 13
+ 675              	 
+ 676 0186 80BC     	 pop {r7}
+ 677              	.LCFI77:
+ 678              	 .cfi_restore 7
+ 679              	 .cfi_def_cfa_offset 0
+ 680 0188 7047     	 bx lr
+ 681              	 .cfi_endproc
+ 682              	.LFE207:
+ 684              	 .align 1
+ 685              	 .syntax unified
+ 686              	 .thumb
+ 687              	 .thumb_func
+ 688              	 .fpu softvfp
+ 690              	spi_is_rx_ready:
+ 691              	.LFB209:
+ 428:../../../platform/sam/drivers/spi/spi.h **** 
+ 429:../../../platform/sam/drivers/spi/spi.h **** /**
+ 430:../../../platform/sam/drivers/spi/spi.h ****  * \brief Check if the SPI contains a received character.
+ 431:../../../platform/sam/drivers/spi/spi.h ****  *
+ 432:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 433:../../../platform/sam/drivers/spi/spi.h ****  *
+ 434:../../../platform/sam/drivers/spi/spi.h ****  * \return 1 if the SPI Receive Holding Register is full, otherwise 0.
+ 435:../../../platform/sam/drivers/spi/spi.h ****  */
+ 436:../../../platform/sam/drivers/spi/spi.h **** static inline uint32_t spi_is_rx_full(Spi *p_spi)
+ 437:../../../platform/sam/drivers/spi/spi.h **** {
+ 438:../../../platform/sam/drivers/spi/spi.h **** 	if (p_spi->SPI_SR & SPI_SR_RDRF) {
+ 439:../../../platform/sam/drivers/spi/spi.h **** 		return 1;
+ 440:../../../platform/sam/drivers/spi/spi.h **** 	} else {
+ 441:../../../platform/sam/drivers/spi/spi.h **** 		return 0;
+ 442:../../../platform/sam/drivers/spi/spi.h **** 	}
+ 443:../../../platform/sam/drivers/spi/spi.h **** }
+ 444:../../../platform/sam/drivers/spi/spi.h **** 
+ 445:../../../platform/sam/drivers/spi/spi.h **** /**
+ 446:../../../platform/sam/drivers/spi/spi.h ****  * \brief Check if all receptions are ready.
+ 447:../../../platform/sam/drivers/spi/spi.h ****  *
+ 448:../../../platform/sam/drivers/spi/spi.h ****  * \param p_spi Pointer to an SPI instance.
+ 449:../../../platform/sam/drivers/spi/spi.h ****  *
+ 450:../../../platform/sam/drivers/spi/spi.h ****  * \return 1 if the SPI Receiver is ready, otherwise 0.
+ 451:../../../platform/sam/drivers/spi/spi.h ****  */
+ 452:../../../platform/sam/drivers/spi/spi.h **** static inline uint32_t spi_is_rx_ready(Spi *p_spi)
+ 453:../../../platform/sam/drivers/spi/spi.h **** {
+ 692              	 .loc 2 453 0
+ 693              	 .cfi_startproc
+ 694              	 
+ 695              	 
+ 696              	 
+ 697 018a 80B4     	 push {r7}
+ 698              	.LCFI78:
+ 699              	 .cfi_def_cfa_offset 4
+ 700              	 .cfi_offset 7,-4
+ 701 018c 83B0     	 sub sp,sp,#12
+ 702              	.LCFI79:
+ 703              	 .cfi_def_cfa_offset 16
+ 704 018e 00AF     	 add r7,sp,#0
+ 705              	.LCFI80:
+ 706              	 .cfi_def_cfa_register 7
+ 707 0190 7860     	 str r0,[r7,#4]
+ 454:../../../platform/sam/drivers/spi/spi.h **** 	if ((p_spi->SPI_SR & (SPI_SR_RDRF | SPI_SR_TXEMPTY))
+ 708              	 .loc 2 454 0
+ 709 0192 7B68     	 ldr r3,[r7,#4]
+ 710 0194 1A69     	 ldr r2,[r3,#16]
+ 711 0196 40F20123 	 movw r3,#513
+ 712 019a 1340     	 ands r3,r3,r2
+ 713 019c 40F20122 	 movw r2,#513
+ 714 01a0 9342     	 cmp r3,r2
+ 715 01a2 01D1     	 bne .L27
+ 455:../../../platform/sam/drivers/spi/spi.h **** 			== (SPI_SR_RDRF | SPI_SR_TXEMPTY)) {
+ 456:../../../platform/sam/drivers/spi/spi.h **** 		return 1;
+ 716              	 .loc 2 456 0
+ 717 01a4 0123     	 movs r3,#1
+ 718 01a6 00E0     	 b .L28
+ 719              	.L27:
+ 457:../../../platform/sam/drivers/spi/spi.h **** 	} else {
+ 458:../../../platform/sam/drivers/spi/spi.h **** 		return 0;
+ 720              	 .loc 2 458 0
+ 721 01a8 0023     	 movs r3,#0
+ 722              	.L28:
+ 459:../../../platform/sam/drivers/spi/spi.h **** 	}
+ 460:../../../platform/sam/drivers/spi/spi.h **** }
+ 723              	 .loc 2 460 0
+ 724 01aa 1846     	 mov r0,r3
+ 725 01ac 0C37     	 adds r7,r7,#12
+ 726              	.LCFI81:
+ 727              	 .cfi_def_cfa_offset 4
+ 728 01ae BD46     	 mov sp,r7
+ 729              	.LCFI82:
+ 730              	 .cfi_def_cfa_register 13
+ 731              	 
+ 732 01b0 80BC     	 pop {r7}
+ 733              	.LCFI83:
+ 734              	 .cfi_restore 7
+ 735              	 .cfi_def_cfa_offset 0
+ 736 01b2 7047     	 bx lr
+ 737              	 .cfi_endproc
+ 738              	.LFE209:
+ 740              	 .align 1
+ 741              	 .syntax unified
+ 742              	 .thumb
+ 743              	 .thumb_func
+ 744              	 .fpu softvfp
+ 746              	spi_write_single:
+ 747              	.LFB213:
+ 748              	 .file 3 "../../../platform/common/services/spi/sam_spi/spi_master.h"
+   1:../../../platform/common/services/spi/sam_spi/spi_master.h **** /**
+   2:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \file
+   3:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+   4:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \brief SPI master common service for SAM.
+   5:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+   6:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * Copyright (c) 2011-2012 Atmel Corporation. All rights reserved.
+   7:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+   8:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \asf_license_start
+   9:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+  10:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \page License
+  11:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+  12:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+  15:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+  18:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+  22:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *    from this software without specific prior written permission.
+  24:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+  25:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *    Atmel microcontroller product.
+  27:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+  28:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+  40:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \asf_license_stop
+  41:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+  42:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+  43:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+  44:../../../platform/common/services/spi/sam_spi/spi_master.h **** #ifndef _SPI_MASTER_H_
+  45:../../../platform/common/services/spi/sam_spi/spi_master.h **** #define _SPI_MASTER_H_
+  46:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+  47:../../../platform/common/services/spi/sam_spi/spi_master.h **** #include "compiler.h"
+  48:../../../platform/common/services/spi/sam_spi/spi_master.h **** #include "sysclk.h"
+  49:../../../platform/common/services/spi/sam_spi/spi_master.h **** #include "status_codes.h"
+  50:../../../platform/common/services/spi/sam_spi/spi_master.h **** #include "spi.h"
+  51:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+  52:../../../platform/common/services/spi/sam_spi/spi_master.h **** /*! \name SPI Master Management Configuration */
+  53:../../../platform/common/services/spi/sam_spi/spi_master.h **** //! @{
+  54:../../../platform/common/services/spi/sam_spi/spi_master.h **** #include "conf_spi_master.h"
+  55:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+  56:../../../platform/common/services/spi/sam_spi/spi_master.h **** //! Default Configuration of SPI Master Delay BCS
+  57:../../../platform/common/services/spi/sam_spi/spi_master.h **** #ifndef CONFIG_SPI_MASTER_DELAY_BCS
+  58:../../../platform/common/services/spi/sam_spi/spi_master.h **** #define CONFIG_SPI_MASTER_DELAY_BCS          0
+  59:../../../platform/common/services/spi/sam_spi/spi_master.h **** #endif
+  60:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+  61:../../../platform/common/services/spi/sam_spi/spi_master.h **** //! Default Configuration of SPI Master Bits per Transfer Definition
+  62:../../../platform/common/services/spi/sam_spi/spi_master.h **** #ifndef CONFIG_SPI_MASTER_BITS_PER_TRANSFER
+  63:../../../platform/common/services/spi/sam_spi/spi_master.h **** #define CONFIG_SPI_MASTER_BITS_PER_TRANSFER  SPI_CSR_BITS_8_BIT
+  64:../../../platform/common/services/spi/sam_spi/spi_master.h **** #endif
+  65:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+  66:../../../platform/common/services/spi/sam_spi/spi_master.h **** //! Default Configuration of SPI Master Delay BCT
+  67:../../../platform/common/services/spi/sam_spi/spi_master.h **** #ifndef CONFIG_SPI_MASTER_DELAY_BCT
+  68:../../../platform/common/services/spi/sam_spi/spi_master.h **** #define CONFIG_SPI_MASTER_DELAY_BCT          0
+  69:../../../platform/common/services/spi/sam_spi/spi_master.h **** #endif
+  70:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+  71:../../../platform/common/services/spi/sam_spi/spi_master.h **** //! Default Configuration of SPI Master Delay BS
+  72:../../../platform/common/services/spi/sam_spi/spi_master.h **** #ifndef CONFIG_SPI_MASTER_DELAY_BS
+  73:../../../platform/common/services/spi/sam_spi/spi_master.h **** #define CONFIG_SPI_MASTER_DELAY_BS           0
+  74:../../../platform/common/services/spi/sam_spi/spi_master.h **** #endif
+  75:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+  76:../../../platform/common/services/spi/sam_spi/spi_master.h **** //! Default Configuration of SPI Master Dummy Field
+  77:../../../platform/common/services/spi/sam_spi/spi_master.h **** #ifndef CONFIG_SPI_MASTER_DUMMY
+  78:../../../platform/common/services/spi/sam_spi/spi_master.h **** #define CONFIG_SPI_MASTER_DUMMY              0xFF
+  79:../../../platform/common/services/spi/sam_spi/spi_master.h **** #endif
+  80:../../../platform/common/services/spi/sam_spi/spi_master.h **** //! @}
+  81:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+  82:../../../platform/common/services/spi/sam_spi/spi_master.h **** /**
+  83:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \brief Clock phase.
+  84:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+  85:../../../platform/common/services/spi/sam_spi/spi_master.h **** #define SPI_CPHA  (1 << 0)
+  86:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+  87:../../../platform/common/services/spi/sam_spi/spi_master.h **** /**
+  88:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \brief Clock polarity.
+  89:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+  90:../../../platform/common/services/spi/sam_spi/spi_master.h **** #define SPI_CPOL  (1 << 1)
+  91:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+  92:../../../platform/common/services/spi/sam_spi/spi_master.h **** /**
+  93:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \brief SPI mode 0.
+  94:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+  95:../../../platform/common/services/spi/sam_spi/spi_master.h **** #define SPI_MODE_0  0
+  96:../../../platform/common/services/spi/sam_spi/spi_master.h **** /**
+  97:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \brief SPI mode 1.
+  98:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+  99:../../../platform/common/services/spi/sam_spi/spi_master.h **** #define SPI_MODE_1  (SPI_CPHA)
+ 100:../../../platform/common/services/spi/sam_spi/spi_master.h **** /**
+ 101:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \brief SPI mode 2.
+ 102:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+ 103:../../../platform/common/services/spi/sam_spi/spi_master.h **** #define SPI_MODE_2  (SPI_CPOL)
+ 104:../../../platform/common/services/spi/sam_spi/spi_master.h **** /**
+ 105:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \brief SPI mode 3.
+ 106:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+ 107:../../../platform/common/services/spi/sam_spi/spi_master.h **** #define SPI_MODE_3  (SPI_CPOL | SPI_CPHA)
+ 108:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+ 109:../../../platform/common/services/spi/sam_spi/spi_master.h **** #ifndef SPI_TYPE_DEFS
+ 110:../../../platform/common/services/spi/sam_spi/spi_master.h **** #define SPI_TYPE_DEFS
+ 111:../../../platform/common/services/spi/sam_spi/spi_master.h **** //! SPI Flags Definition
+ 112:../../../platform/common/services/spi/sam_spi/spi_master.h **** typedef uint8_t spi_flags_t;
+ 113:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+ 114:../../../platform/common/services/spi/sam_spi/spi_master.h **** //! Board SPI Select Id Definition
+ 115:../../../platform/common/services/spi/sam_spi/spi_master.h **** typedef uint32_t board_spi_select_id_t;
+ 116:../../../platform/common/services/spi/sam_spi/spi_master.h **** #endif
+ 117:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+ 118:../../../platform/common/services/spi/sam_spi/spi_master.h **** //! \brief Polled SPI device definition.
+ 119:../../../platform/common/services/spi/sam_spi/spi_master.h **** struct spi_device {
+ 120:../../../platform/common/services/spi/sam_spi/spi_master.h **** 	//! Board specific select id
+ 121:../../../platform/common/services/spi/sam_spi/spi_master.h **** 	board_spi_select_id_t id;
+ 122:../../../platform/common/services/spi/sam_spi/spi_master.h **** };
+ 123:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+ 124:../../../platform/common/services/spi/sam_spi/spi_master.h **** /** \brief Initialize the SPI in master mode.
+ 125:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 126:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param p_spi Base address of the SPI instance.
+ 127:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 128:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+ 129:../../../platform/common/services/spi/sam_spi/spi_master.h **** extern void spi_master_init(Spi *p_spi);
+ 130:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+ 131:../../../platform/common/services/spi/sam_spi/spi_master.h **** /**
+ 132:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \brief Set up an SPI device.
+ 133:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 134:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * The returned device descriptor structure must be passed to the driver
+ 135:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * whenever that device should be used as current slave device.
+ 136:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 137:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param p_spi     Base address of the SPI instance.
+ 138:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param device    Pointer to SPI device struct that should be initialized.
+ 139:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param flags     SPI configuration flags. Common flags for all
+ 140:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *                  implementations are the SPI modes SPI_MODE_0 ...
+ 141:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *                  SPI_MODE_3.
+ 142:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param baud_rate Baud rate for communication with slave device in Hz.
+ 143:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param sel_id    Board specific select id.
+ 144:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+ 145:../../../platform/common/services/spi/sam_spi/spi_master.h **** extern void spi_master_setup_device(Spi *p_spi, struct spi_device *device,
+ 146:../../../platform/common/services/spi/sam_spi/spi_master.h **** 		spi_flags_t flags, uint32_t baud_rate, board_spi_select_id_t sel_id);
+ 147:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+ 148:../../../platform/common/services/spi/sam_spi/spi_master.h **** /**
+ 149:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \brief Select the given device on the SPI bus.
+ 150:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 151:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * Set device specific setting and call board chip select.
+ 152:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 153:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param p_spi  Base address of the SPI instance.
+ 154:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param device SPI device.
+ 155:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 156:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+ 157:../../../platform/common/services/spi/sam_spi/spi_master.h **** extern void spi_select_device(Spi *p_spi, struct spi_device *device);
+ 158:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+ 159:../../../platform/common/services/spi/sam_spi/spi_master.h **** /**
+ 160:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \brief Deselect the given device on the SPI bus.
+ 161:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 162:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * Call board chip deselect.
+ 163:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 164:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param p_spi  Base address of the SPI instance.
+ 165:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param device SPI device.
+ 166:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 167:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \pre SPI device must be selected with spi_select_device() first.
+ 168:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+ 169:../../../platform/common/services/spi/sam_spi/spi_master.h **** extern void spi_deselect_device(Spi *p_spi, struct spi_device *device);
+ 170:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+ 171:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+ 172:../../../platform/common/services/spi/sam_spi/spi_master.h **** /** \brief Write one byte to an SPI device.
+ 173:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 174:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param p_spi     Base address of the SPI instance.
+ 175:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param data      Data to write.
+ 176:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 177:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+ 178:../../../platform/common/services/spi/sam_spi/spi_master.h **** static inline void spi_write_single(Spi *p_spi, uint8_t data)
+ 179:../../../platform/common/services/spi/sam_spi/spi_master.h **** {
+ 749              	 .loc 3 179 0
+ 750              	 .cfi_startproc
+ 751              	 
+ 752              	 
+ 753 01b4 80B5     	 push {r7,lr}
+ 754              	.LCFI84:
+ 755              	 .cfi_def_cfa_offset 8
+ 756              	 .cfi_offset 7,-8
+ 757              	 .cfi_offset 14,-4
+ 758 01b6 82B0     	 sub sp,sp,#8
+ 759              	.LCFI85:
+ 760              	 .cfi_def_cfa_offset 16
+ 761 01b8 00AF     	 add r7,sp,#0
+ 762              	.LCFI86:
+ 763              	 .cfi_def_cfa_register 7
+ 764 01ba 7860     	 str r0,[r7,#4]
+ 765 01bc 0B46     	 mov r3,r1
+ 766 01be FB70     	 strb r3,[r7,#3]
+ 180:../../../platform/common/services/spi/sam_spi/spi_master.h **** 	spi_put(p_spi, (uint16_t)data);
+ 767              	 .loc 3 180 0
+ 768 01c0 FB78     	 ldrb r3,[r7,#3]
+ 769 01c2 9BB2     	 uxth r3,r3
+ 770 01c4 1946     	 mov r1,r3
+ 771 01c6 7868     	 ldr r0,[r7,#4]
+ 772 01c8 FFF7A1FF 	 bl spi_put
+ 181:../../../platform/common/services/spi/sam_spi/spi_master.h **** }
+ 773              	 .loc 3 181 0
+ 774 01cc 00BF     	 nop
+ 775 01ce 0837     	 adds r7,r7,#8
+ 776              	.LCFI87:
+ 777              	 .cfi_def_cfa_offset 8
+ 778 01d0 BD46     	 mov sp,r7
+ 779              	.LCFI88:
+ 780              	 .cfi_def_cfa_register 13
+ 781              	 
+ 782 01d2 80BD     	 pop {r7,pc}
+ 783              	 .cfi_endproc
+ 784              	.LFE213:
+ 786              	 .align 1
+ 787              	 .syntax unified
+ 788              	 .thumb
+ 789              	 .thumb_func
+ 790              	 .fpu softvfp
+ 792              	spi_read_single:
+ 793              	.LFB214:
+ 182:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+ 183:../../../platform/common/services/spi/sam_spi/spi_master.h **** /**
+ 184:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \brief Send a sequence of bytes to an SPI device.
+ 185:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 186:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * Received bytes on the SPI bus are discarded.
+ 187:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 188:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param p_spi     Base address of the SPI instance.
+ 189:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param data      Data buffer to write.
+ 190:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param len       Length of data to be written.
+ 191:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 192:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \pre SPI device must be selected with spi_select_device() first.
+ 193:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+ 194:../../../platform/common/services/spi/sam_spi/spi_master.h **** extern status_code_t spi_write_packet(Spi *p_spi,
+ 195:../../../platform/common/services/spi/sam_spi/spi_master.h **** 		const uint8_t *data, size_t len);
+ 196:../../../platform/common/services/spi/sam_spi/spi_master.h **** 
+ 197:../../../platform/common/services/spi/sam_spi/spi_master.h **** /** \brief Receive one byte from an SPI device.
+ 198:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 199:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param p_spi     Base address of the SPI instance.
+ 200:../../../platform/common/services/spi/sam_spi/spi_master.h ****  * \param data      Data to read.
+ 201:../../../platform/common/services/spi/sam_spi/spi_master.h ****  *
+ 202:../../../platform/common/services/spi/sam_spi/spi_master.h ****  */
+ 203:../../../platform/common/services/spi/sam_spi/spi_master.h **** static inline void spi_read_single(Spi *p_spi, uint8_t *data)
+ 204:../../../platform/common/services/spi/sam_spi/spi_master.h **** {
+ 794              	 .loc 3 204 0
+ 795              	 .cfi_startproc
+ 796              	 
+ 797              	 
+ 798 01d4 80B5     	 push {r7,lr}
+ 799              	.LCFI89:
+ 800              	 .cfi_def_cfa_offset 8
+ 801              	 .cfi_offset 7,-8
+ 802              	 .cfi_offset 14,-4
+ 803 01d6 82B0     	 sub sp,sp,#8
+ 804              	.LCFI90:
+ 805              	 .cfi_def_cfa_offset 16
+ 806 01d8 00AF     	 add r7,sp,#0
+ 807              	.LCFI91:
+ 808              	 .cfi_def_cfa_register 7
+ 809 01da 7860     	 str r0,[r7,#4]
+ 810 01dc 3960     	 str r1,[r7]
+ 205:../../../platform/common/services/spi/sam_spi/spi_master.h **** 	*data = (uint8_t)spi_get(p_spi);
+ 811              	 .loc 3 205 0
+ 812 01de 7868     	 ldr r0,[r7,#4]
+ 813 01e0 FFF7A3FF 	 bl spi_get
+ 814 01e4 0346     	 mov r3,r0
+ 815 01e6 DAB2     	 uxtb r2,r3
+ 816 01e8 3B68     	 ldr r3,[r7]
+ 817 01ea 1A70     	 strb r2,[r3]
+ 206:../../../platform/common/services/spi/sam_spi/spi_master.h **** }
+ 818              	 .loc 3 206 0
+ 819 01ec 00BF     	 nop
+ 820 01ee 0837     	 adds r7,r7,#8
+ 821              	.LCFI92:
+ 822              	 .cfi_def_cfa_offset 8
+ 823 01f0 BD46     	 mov sp,r7
+ 824              	.LCFI93:
+ 825              	 .cfi_def_cfa_register 13
+ 826              	 
+ 827 01f2 80BD     	 pop {r7,pc}
+ 828              	 .cfi_endproc
+ 829              	.LFE214:
+ 831              	 .align 1
+ 832              	 .global spi_master_init
+ 833              	 .syntax unified
+ 834              	 .thumb
+ 835              	 .thumb_func
+ 836              	 .fpu softvfp
+ 838              	spi_master_init:
+ 839              	.LFB215:
+ 840              	 .file 4 "../../../platform/common/services/spi/sam_spi/spi_master.c"
+   1:../../../platform/common/services/spi/sam_spi/spi_master.c **** /**
+   2:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \file
+   3:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+   4:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \brief SPI master common service for SAM.
+   5:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+   6:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * Copyright (c) 2011-2013 Atmel Corporation. All rights reserved.
+   7:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+   8:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \asf_license_start
+   9:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+  10:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \page License
+  11:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+  12:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+  15:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+  18:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+  22:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *    from this software without specific prior written permission.
+  24:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+  25:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *    Atmel microcontroller product.
+  27:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+  28:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+  40:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \asf_license_stop
+  41:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+  42:../../../platform/common/services/spi/sam_spi/spi_master.c ****  */
+  43:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+  44:../../../platform/common/services/spi/sam_spi/spi_master.c **** #include "spi_master.h"
+  45:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+  46:../../../platform/common/services/spi/sam_spi/spi_master.c **** /**
+  47:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \brief Max number when the chip selects are connected to a 4- to 16-bit decoder.
+  48:../../../platform/common/services/spi/sam_spi/spi_master.c ****  */
+  49:../../../platform/common/services/spi/sam_spi/spi_master.c **** #define MAX_NUM_WITH_DECODER 0x10
+  50:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+  51:../../../platform/common/services/spi/sam_spi/spi_master.c **** /**
+  52:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \brief Max number when the chip selects are directly connected to peripheral device.
+  53:../../../platform/common/services/spi/sam_spi/spi_master.c ****  */
+  54:../../../platform/common/services/spi/sam_spi/spi_master.c **** #define MAX_NUM_WITHOUT_DECODER 0x04
+  55:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+  56:../../../platform/common/services/spi/sam_spi/spi_master.c **** /**
+  57:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \brief Max number when the chip selects are directly connected to peripheral device.
+  58:../../../platform/common/services/spi/sam_spi/spi_master.c ****  */
+  59:../../../platform/common/services/spi/sam_spi/spi_master.c **** #define NONE_CHIP_SELECT_ID 0x0f
+  60:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+  61:../../../platform/common/services/spi/sam_spi/spi_master.c **** /**
+  62:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \brief The default chip select id.
+  63:../../../platform/common/services/spi/sam_spi/spi_master.c ****  */
+  64:../../../platform/common/services/spi/sam_spi/spi_master.c **** #define DEFAULT_CHIP_ID 0
+  65:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+  66:../../../platform/common/services/spi/sam_spi/spi_master.c **** /** \brief Initialize the SPI in master mode.
+  67:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+  68:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param p_spi  Base address of the SPI instance.
+  69:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+  70:../../../platform/common/services/spi/sam_spi/spi_master.c ****  */
+  71:../../../platform/common/services/spi/sam_spi/spi_master.c **** void spi_master_init(Spi *p_spi)
+  72:../../../platform/common/services/spi/sam_spi/spi_master.c **** {
+ 841              	 .loc 4 72 0
+ 842              	 .cfi_startproc
+ 843              	 
+ 844              	 
+ 845 01f4 80B5     	 push {r7,lr}
+ 846              	.LCFI94:
+ 847              	 .cfi_def_cfa_offset 8
+ 848              	 .cfi_offset 7,-8
+ 849              	 .cfi_offset 14,-4
+ 850 01f6 82B0     	 sub sp,sp,#8
+ 851              	.LCFI95:
+ 852              	 .cfi_def_cfa_offset 16
+ 853 01f8 00AF     	 add r7,sp,#0
+ 854              	.LCFI96:
+ 855              	 .cfi_def_cfa_register 7
+ 856 01fa 7860     	 str r0,[r7,#4]
+  73:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_enable_clock(p_spi);
+ 857              	 .loc 4 73 0
+ 858 01fc 7868     	 ldr r0,[r7,#4]
+ 859 01fe 104B     	 ldr r3,.L32
+ 860 0200 9847     	 blx r3
+ 861              	.LVL0:
+  74:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_reset(p_spi);
+ 862              	 .loc 4 74 0
+ 863 0202 7868     	 ldr r0,[r7,#4]
+ 864 0204 FFF70DFF 	 bl spi_reset
+  75:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_set_master_mode(p_spi);
+ 865              	 .loc 4 75 0
+ 866 0208 7868     	 ldr r0,[r7,#4]
+ 867 020a FFF723FF 	 bl spi_set_master_mode
+  76:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_disable_mode_fault_detect(p_spi);
+ 868              	 .loc 4 76 0
+ 869 020e 7868     	 ldr r0,[r7,#4]
+ 870 0210 FFF75FFF 	 bl spi_disable_mode_fault_detect
+  77:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_disable_loopback(p_spi);
+ 871              	 .loc 4 77 0
+ 872 0214 7868     	 ldr r0,[r7,#4]
+ 873 0216 FFF76BFF 	 bl spi_disable_loopback
+  78:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_set_peripheral_chip_select_value(p_spi, DEFAULT_CHIP_ID);
+ 874              	 .loc 4 78 0
+ 875 021a 0021     	 movs r1,#0
+ 876 021c 7868     	 ldr r0,[r7,#4]
+ 877 021e 094B     	 ldr r3,.L32+4
+ 878 0220 9847     	 blx r3
+ 879              	.LVL1:
+  79:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_set_fixed_peripheral_select(p_spi);
+ 880              	 .loc 4 79 0
+ 881 0222 7868     	 ldr r0,[r7,#4]
+ 882 0224 FFF725FF 	 bl spi_set_fixed_peripheral_select
+  80:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_disable_peripheral_select_decode(p_spi);
+ 883              	 .loc 4 80 0
+ 884 0228 7868     	 ldr r0,[r7,#4]
+ 885 022a FFF731FF 	 bl spi_disable_peripheral_select_decode
+  81:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_set_delay_between_chip_select(p_spi, CONFIG_SPI_MASTER_DELAY_BCS);
+ 886              	 .loc 4 81 0
+ 887 022e 0021     	 movs r1,#0
+ 888 0230 7868     	 ldr r0,[r7,#4]
+ 889 0232 054B     	 ldr r3,.L32+8
+ 890 0234 9847     	 blx r3
+ 891              	.LVL2:
+  82:../../../platform/common/services/spi/sam_spi/spi_master.c **** }
+ 892              	 .loc 4 82 0
+ 893 0236 00BF     	 nop
+ 894 0238 0837     	 adds r7,r7,#8
+ 895              	.LCFI97:
+ 896              	 .cfi_def_cfa_offset 8
+ 897 023a BD46     	 mov sp,r7
+ 898              	.LCFI98:
+ 899              	 .cfi_def_cfa_register 13
+ 900              	 
+ 901 023c 80BD     	 pop {r7,pc}
+ 902              	.L33:
+ 903 023e 00BF     	 .align 2
+ 904              	.L32:
+ 905 0240 00000000 	 .word spi_enable_clock
+ 906 0244 00000000 	 .word spi_set_peripheral_chip_select_value
+ 907 0248 00000000 	 .word spi_set_delay_between_chip_select
+ 908              	 .cfi_endproc
+ 909              	.LFE215:
+ 911              	 .align 1
+ 912              	 .global spi_master_setup_device
+ 913              	 .syntax unified
+ 914              	 .thumb
+ 915              	 .thumb_func
+ 916              	 .fpu softvfp
+ 918              	spi_master_setup_device:
+ 919              	.LFB216:
+  83:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+  84:../../../platform/common/services/spi/sam_spi/spi_master.c **** /**
+  85:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \brief Set up an SPI device.
+  86:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+  87:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * The returned device descriptor structure must be passed to the driver
+  88:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * whenever that device should be used as current slave device.
+  89:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+  90:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param p_spi     Base address of the SPI instance.
+  91:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param device    Pointer to SPI device struct that should be initialized.
+  92:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param flags     SPI configuration flags. Common flags for all
+  93:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *                  implementations are the SPI modes SPI_MODE_0 ...
+  94:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *                  SPI_MODE_3.
+  95:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param baud_rate Baud rate for communication with slave device in Hz.
+  96:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param sel_id    Board specific select id.
+  97:../../../platform/common/services/spi/sam_spi/spi_master.c ****  */
+  98:../../../platform/common/services/spi/sam_spi/spi_master.c **** void spi_master_setup_device(Spi *p_spi, struct spi_device *device,
+  99:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		spi_flags_t flags, uint32_t baud_rate, board_spi_select_id_t sel_id)
+ 100:../../../platform/common/services/spi/sam_spi/spi_master.c **** {
+ 920              	 .loc 4 100 0
+ 921              	 .cfi_startproc
+ 922              	 
+ 923              	 
+ 924 024c 90B5     	 push {r4,r7,lr}
+ 925              	.LCFI99:
+ 926              	 .cfi_def_cfa_offset 12
+ 927              	 .cfi_offset 4,-12
+ 928              	 .cfi_offset 7,-8
+ 929              	 .cfi_offset 14,-4
+ 930 024e 87B0     	 sub sp,sp,#28
+ 931              	.LCFI100:
+ 932              	 .cfi_def_cfa_offset 40
+ 933 0250 00AF     	 add r7,sp,#0
+ 934              	.LCFI101:
+ 935              	 .cfi_def_cfa_register 7
+ 936 0252 F860     	 str r0,[r7,#12]
+ 937 0254 B960     	 str r1,[r7,#8]
+ 938 0256 3B60     	 str r3,[r7]
+ 939 0258 1346     	 mov r3,r2
+ 940 025a FB71     	 strb r3,[r7,#7]
+ 101:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	int16_t baud_div = spi_calc_baudrate_div(baud_rate, sysclk_get_cpu_hz());
+ 941              	 .loc 4 101 0
+ 942 025c FFF7DAFE 	 bl sysclk_get_cpu_hz
+ 943 0260 0346     	 mov r3,r0
+ 944 0262 1946     	 mov r1,r3
+ 945 0264 3868     	 ldr r0,[r7]
+ 946 0266 1E4B     	 ldr r3,.L35
+ 947 0268 9847     	 blx r3
+ 948              	.LVL3:
+ 949 026a 0346     	 mov r3,r0
+ 950 026c FB82     	 strh r3,[r7,#22]
+ 102:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	/* avoid Cppcheck Warning */
+ 103:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	UNUSED(sel_id);
+ 104:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	if (-1 == baud_div) {
+ 105:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		Assert(0 == "Failed to find baudrate divider");
+ 106:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	}
+ 107:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_set_transfer_delay(p_spi, device->id, CONFIG_SPI_MASTER_DELAY_BS,
+ 951              	 .loc 4 107 0
+ 952 026e BB68     	 ldr r3,[r7,#8]
+ 953 0270 1968     	 ldr r1,[r3]
+ 954 0272 0023     	 movs r3,#0
+ 955 0274 0022     	 movs r2,#0
+ 956 0276 F868     	 ldr r0,[r7,#12]
+ 957 0278 1A4C     	 ldr r4,.L35+4
+ 958 027a A047     	 blx r4
+ 959              	.LVL4:
+ 108:../../../platform/common/services/spi/sam_spi/spi_master.c **** 			CONFIG_SPI_MASTER_DELAY_BCT);
+ 109:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_set_bits_per_transfer(p_spi, device->id,
+ 960              	 .loc 4 109 0
+ 961 027c BB68     	 ldr r3,[r7,#8]
+ 962 027e 1B68     	 ldr r3,[r3]
+ 963 0280 0022     	 movs r2,#0
+ 964 0282 1946     	 mov r1,r3
+ 965 0284 F868     	 ldr r0,[r7,#12]
+ 966 0286 184B     	 ldr r3,.L35+8
+ 967 0288 9847     	 blx r3
+ 968              	.LVL5:
+ 110:../../../platform/common/services/spi/sam_spi/spi_master.c **** 			CONFIG_SPI_MASTER_BITS_PER_TRANSFER);
+ 111:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_set_baudrate_div(p_spi, device->id, baud_div);
+ 969              	 .loc 4 111 0
+ 970 028a BB68     	 ldr r3,[r7,#8]
+ 971 028c 1B68     	 ldr r3,[r3]
+ 972 028e FA8A     	 ldrh r2,[r7,#22]
+ 973 0290 D2B2     	 uxtb r2,r2
+ 974 0292 1946     	 mov r1,r3
+ 975 0294 F868     	 ldr r0,[r7,#12]
+ 976 0296 154B     	 ldr r3,.L35+12
+ 977 0298 9847     	 blx r3
+ 978              	.LVL6:
+ 112:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_configure_cs_behavior(p_spi, device->id, SPI_CS_KEEP_LOW);
+ 979              	 .loc 4 112 0
+ 980 029a BB68     	 ldr r3,[r7,#8]
+ 981 029c 1B68     	 ldr r3,[r3]
+ 982 029e 0822     	 movs r2,#8
+ 983 02a0 1946     	 mov r1,r3
+ 984 02a2 F868     	 ldr r0,[r7,#12]
+ 985 02a4 124B     	 ldr r3,.L35+16
+ 986 02a6 9847     	 blx r3
+ 987              	.LVL7:
+ 113:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_set_clock_polarity(p_spi, device->id, flags >> 1);
+ 988              	 .loc 4 113 0
+ 989 02a8 BB68     	 ldr r3,[r7,#8]
+ 990 02aa 1968     	 ldr r1,[r3]
+ 991 02ac FB79     	 ldrb r3,[r7,#7]
+ 992 02ae 5B08     	 lsrs r3,r3,#1
+ 993 02b0 DBB2     	 uxtb r3,r3
+ 994 02b2 1A46     	 mov r2,r3
+ 995 02b4 F868     	 ldr r0,[r7,#12]
+ 996 02b6 0F4B     	 ldr r3,.L35+20
+ 997 02b8 9847     	 blx r3
+ 998              	.LVL8:
+ 114:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_set_clock_phase(p_spi, device->id, ((flags & 0x1) ^ 0x1));
+ 999              	 .loc 4 114 0
+ 1000 02ba BB68     	 ldr r3,[r7,#8]
+ 1001 02bc 1968     	 ldr r1,[r3]
+ 1002 02be FB79     	 ldrb r3,[r7,#7]
+ 1003 02c0 03F00103 	 and r3,r3,#1
+ 1004 02c4 002B     	 cmp r3,#0
+ 1005 02c6 0CBF     	 ite eq
+ 1006 02c8 0123     	 moveq r3,#1
+ 1007 02ca 0023     	 movne r3,#0
+ 1008 02cc DBB2     	 uxtb r3,r3
+ 1009 02ce 1A46     	 mov r2,r3
+ 1010 02d0 F868     	 ldr r0,[r7,#12]
+ 1011 02d2 094B     	 ldr r3,.L35+24
+ 1012 02d4 9847     	 blx r3
+ 1013              	.LVL9:
+ 115:../../../platform/common/services/spi/sam_spi/spi_master.c **** }
+ 1014              	 .loc 4 115 0
+ 1015 02d6 00BF     	 nop
+ 1016 02d8 1C37     	 adds r7,r7,#28
+ 1017              	.LCFI102:
+ 1018              	 .cfi_def_cfa_offset 12
+ 1019 02da BD46     	 mov sp,r7
+ 1020              	.LCFI103:
+ 1021              	 .cfi_def_cfa_register 13
+ 1022              	 
+ 1023 02dc 90BD     	 pop {r4,r7,pc}
+ 1024              	.L36:
+ 1025 02de 00BF     	 .align 2
+ 1026              	.L35:
+ 1027 02e0 00000000 	 .word spi_calc_baudrate_div
+ 1028 02e4 00000000 	 .word spi_set_transfer_delay
+ 1029 02e8 00000000 	 .word spi_set_bits_per_transfer
+ 1030 02ec 00000000 	 .word spi_set_baudrate_div
+ 1031 02f0 00000000 	 .word spi_configure_cs_behavior
+ 1032 02f4 00000000 	 .word spi_set_clock_polarity
+ 1033 02f8 00000000 	 .word spi_set_clock_phase
+ 1034              	 .cfi_endproc
+ 1035              	.LFE216:
+ 1037              	 .align 1
+ 1038              	 .global spi_select_device
+ 1039              	 .syntax unified
+ 1040              	 .thumb
+ 1041              	 .thumb_func
+ 1042              	 .fpu softvfp
+ 1044              	spi_select_device:
+ 1045              	.LFB217:
+ 116:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+ 117:../../../platform/common/services/spi/sam_spi/spi_master.c **** /**
+ 118:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \brief Select the given device on the SPI bus.
+ 119:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+ 120:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * Set device specific setting and call board chip select.
+ 121:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+ 122:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param p_spi   Base address of the SPI instance.
+ 123:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param device  SPI device.
+ 124:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+ 125:../../../platform/common/services/spi/sam_spi/spi_master.c ****  */
+ 126:../../../platform/common/services/spi/sam_spi/spi_master.c **** void spi_select_device(Spi *p_spi, struct spi_device *device)
+ 127:../../../platform/common/services/spi/sam_spi/spi_master.c **** {
+ 1046              	 .loc 4 127 0
+ 1047              	 .cfi_startproc
+ 1048              	 
+ 1049              	 
+ 1050 02fc 80B5     	 push {r7,lr}
+ 1051              	.LCFI104:
+ 1052              	 .cfi_def_cfa_offset 8
+ 1053              	 .cfi_offset 7,-8
+ 1054              	 .cfi_offset 14,-4
+ 1055 02fe 82B0     	 sub sp,sp,#8
+ 1056              	.LCFI105:
+ 1057              	 .cfi_def_cfa_offset 16
+ 1058 0300 00AF     	 add r7,sp,#0
+ 1059              	.LCFI106:
+ 1060              	 .cfi_def_cfa_register 7
+ 1061 0302 7860     	 str r0,[r7,#4]
+ 1062 0304 3960     	 str r1,[r7]
+ 128:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	if (spi_get_peripheral_select_decode_setting(p_spi)) {
+ 1063              	 .loc 4 128 0
+ 1064 0306 7868     	 ldr r0,[r7,#4]
+ 1065 0308 FFF7D1FE 	 bl spi_get_peripheral_select_decode_setting
+ 1066 030c 0346     	 mov r3,r0
+ 1067 030e 002B     	 cmp r3,#0
+ 1068 0310 0AD0     	 beq .L38
+ 129:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		if (device->id < MAX_NUM_WITH_DECODER) {
+ 1069              	 .loc 4 129 0
+ 1070 0312 3B68     	 ldr r3,[r7]
+ 1071 0314 1B68     	 ldr r3,[r3]
+ 1072 0316 0F2B     	 cmp r3,#15
+ 1073 0318 14D8     	 bhi .L41
+ 130:../../../platform/common/services/spi/sam_spi/spi_master.c **** 			spi_set_peripheral_chip_select_value(p_spi, device->id);
+ 1074              	 .loc 4 130 0
+ 1075 031a 3B68     	 ldr r3,[r7]
+ 1076 031c 1B68     	 ldr r3,[r3]
+ 1077 031e 1946     	 mov r1,r3
+ 1078 0320 7868     	 ldr r0,[r7,#4]
+ 1079 0322 0A4B     	 ldr r3,.L42
+ 1080 0324 9847     	 blx r3
+ 1081              	.LVL10:
+ 131:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		}
+ 132:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	} else {
+ 133:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		if (device->id < MAX_NUM_WITHOUT_DECODER) {
+ 134:../../../platform/common/services/spi/sam_spi/spi_master.c **** 			spi_set_peripheral_chip_select_value(p_spi, (~(1 << device->id)));
+ 135:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		}
+ 136:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	}
+ 137:../../../platform/common/services/spi/sam_spi/spi_master.c **** }
+ 1082              	 .loc 4 137 0
+ 1083 0326 0DE0     	 b .L41
+ 1084              	.L38:
+ 133:../../../platform/common/services/spi/sam_spi/spi_master.c **** 			spi_set_peripheral_chip_select_value(p_spi, (~(1 << device->id)));
+ 1085              	 .loc 4 133 0
+ 1086 0328 3B68     	 ldr r3,[r7]
+ 1087 032a 1B68     	 ldr r3,[r3]
+ 1088 032c 032B     	 cmp r3,#3
+ 1089 032e 09D8     	 bhi .L41
+ 134:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		}
+ 1090              	 .loc 4 134 0
+ 1091 0330 3B68     	 ldr r3,[r7]
+ 1092 0332 1B68     	 ldr r3,[r3]
+ 1093 0334 0122     	 movs r2,#1
+ 1094 0336 02FA03F3 	 lsl r3,r2,r3
+ 1095 033a DB43     	 mvns r3,r3
+ 1096 033c 1946     	 mov r1,r3
+ 1097 033e 7868     	 ldr r0,[r7,#4]
+ 1098 0340 024B     	 ldr r3,.L42
+ 1099 0342 9847     	 blx r3
+ 1100              	.LVL11:
+ 1101              	.L41:
+ 1102              	 .loc 4 137 0
+ 1103 0344 00BF     	 nop
+ 1104 0346 0837     	 adds r7,r7,#8
+ 1105              	.LCFI107:
+ 1106              	 .cfi_def_cfa_offset 8
+ 1107 0348 BD46     	 mov sp,r7
+ 1108              	.LCFI108:
+ 1109              	 .cfi_def_cfa_register 13
+ 1110              	 
+ 1111 034a 80BD     	 pop {r7,pc}
+ 1112              	.L43:
+ 1113              	 .align 2
+ 1114              	.L42:
+ 1115 034c 00000000 	 .word spi_set_peripheral_chip_select_value
+ 1116              	 .cfi_endproc
+ 1117              	.LFE217:
+ 1119              	 .align 1
+ 1120              	 .global spi_deselect_device
+ 1121              	 .syntax unified
+ 1122              	 .thumb
+ 1123              	 .thumb_func
+ 1124              	 .fpu softvfp
+ 1126              	spi_deselect_device:
+ 1127              	.LFB218:
+ 138:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+ 139:../../../platform/common/services/spi/sam_spi/spi_master.c **** /**
+ 140:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \brief Deselect the given device on the SPI bus.
+ 141:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+ 142:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * Call board chip deselect.
+ 143:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+ 144:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param p_spi   Base address of the SPI instance.
+ 145:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param device  SPI device.
+ 146:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+ 147:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \pre SPI device must be selected with spi_select_device() first.
+ 148:../../../platform/common/services/spi/sam_spi/spi_master.c ****  */
+ 149:../../../platform/common/services/spi/sam_spi/spi_master.c **** void spi_deselect_device(Spi *p_spi, struct spi_device *device)
+ 150:../../../platform/common/services/spi/sam_spi/spi_master.c **** {
+ 1128              	 .loc 4 150 0
+ 1129              	 .cfi_startproc
+ 1130              	 
+ 1131              	 
+ 1132 0350 80B5     	 push {r7,lr}
+ 1133              	.LCFI109:
+ 1134              	 .cfi_def_cfa_offset 8
+ 1135              	 .cfi_offset 7,-8
+ 1136              	 .cfi_offset 14,-4
+ 1137 0352 82B0     	 sub sp,sp,#8
+ 1138              	.LCFI110:
+ 1139              	 .cfi_def_cfa_offset 16
+ 1140 0354 00AF     	 add r7,sp,#0
+ 1141              	.LCFI111:
+ 1142              	 .cfi_def_cfa_register 7
+ 1143 0356 7860     	 str r0,[r7,#4]
+ 1144 0358 3960     	 str r1,[r7]
+ 151:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	/* avoid Cppcheck Warning */
+ 152:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	UNUSED(device);
+ 153:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	while (!spi_is_tx_empty(p_spi)) {
+ 1145              	 .loc 4 153 0
+ 1146 035a 00BF     	 nop
+ 1147              	.L45:
+ 1148              	 .loc 4 153 0 is_stmt 0 discriminator 1
+ 1149 035c 7868     	 ldr r0,[r7,#4]
+ 1150 035e FFF7F0FE 	 bl spi_is_tx_empty
+ 1151 0362 0346     	 mov r3,r0
+ 1152 0364 002B     	 cmp r3,#0
+ 1153 0366 F9D0     	 beq .L45
+ 154:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	}
+ 155:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+ 156:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	// Assert all lines; no peripheral is selected.
+ 157:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_set_peripheral_chip_select_value(p_spi, NONE_CHIP_SELECT_ID);
+ 1154              	 .loc 4 157 0 is_stmt 1
+ 1155 0368 0F21     	 movs r1,#15
+ 1156 036a 7868     	 ldr r0,[r7,#4]
+ 1157 036c 044B     	 ldr r3,.L46
+ 1158 036e 9847     	 blx r3
+ 1159              	.LVL12:
+ 158:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+ 159:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	// Last transfer, so de-assert the current NPCS if CSAAT is set.
+ 160:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	spi_set_lastxfer(p_spi);
+ 1160              	 .loc 4 160 0
+ 1161 0370 7868     	 ldr r0,[r7,#4]
+ 1162 0372 FFF762FE 	 bl spi_set_lastxfer
+ 161:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+ 162:../../../platform/common/services/spi/sam_spi/spi_master.c **** }
+ 1163              	 .loc 4 162 0
+ 1164 0376 00BF     	 nop
+ 1165 0378 0837     	 adds r7,r7,#8
+ 1166              	.LCFI112:
+ 1167              	 .cfi_def_cfa_offset 8
+ 1168 037a BD46     	 mov sp,r7
+ 1169              	.LCFI113:
+ 1170              	 .cfi_def_cfa_register 13
+ 1171              	 
+ 1172 037c 80BD     	 pop {r7,pc}
+ 1173              	.L47:
+ 1174 037e 00BF     	 .align 2
+ 1175              	.L46:
+ 1176 0380 00000000 	 .word spi_set_peripheral_chip_select_value
+ 1177              	 .cfi_endproc
+ 1178              	.LFE218:
+ 1180              	 .align 1
+ 1181              	 .global spi_write_packet
+ 1182              	 .syntax unified
+ 1183              	 .thumb
+ 1184              	 .thumb_func
+ 1185              	 .fpu softvfp
+ 1187              	spi_write_packet:
+ 1188              	.LFB219:
+ 163:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+ 164:../../../platform/common/services/spi/sam_spi/spi_master.c **** /**
+ 165:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \brief Send a sequence of bytes to an SPI device.
+ 166:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+ 167:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * Received bytes on the SPI bus are discarded.
+ 168:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+ 169:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param p_spi     Base address of the SPI instance.
+ 170:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param data      Data buffer to write.
+ 171:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param len       Length of data to be written.
+ 172:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+ 173:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \pre SPI device must be selected with spi_select_device() first.
+ 174:../../../platform/common/services/spi/sam_spi/spi_master.c ****  */
+ 175:../../../platform/common/services/spi/sam_spi/spi_master.c **** status_code_t spi_write_packet(Spi *p_spi, const uint8_t *data,
+ 176:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		size_t len)
+ 177:../../../platform/common/services/spi/sam_spi/spi_master.c **** {
+ 1189              	 .loc 4 177 0
+ 1190              	 .cfi_startproc
+ 1191              	 
+ 1192              	 
+ 1193 0384 80B5     	 push {r7,lr}
+ 1194              	.LCFI114:
+ 1195              	 .cfi_def_cfa_offset 8
+ 1196              	 .cfi_offset 7,-8
+ 1197              	 .cfi_offset 14,-4
+ 1198 0386 88B0     	 sub sp,sp,#32
+ 1199              	.LCFI115:
+ 1200              	 .cfi_def_cfa_offset 40
+ 1201 0388 00AF     	 add r7,sp,#0
+ 1202              	.LCFI116:
+ 1203              	 .cfi_def_cfa_register 7
+ 1204 038a F860     	 str r0,[r7,#12]
+ 1205 038c B960     	 str r1,[r7,#8]
+ 1206 038e 7A60     	 str r2,[r7,#4]
+ 178:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	uint32_t timeout = SPI_TIMEOUT;
+ 1207              	 .loc 4 178 0
+ 1208 0390 43F69823 	 movw r3,#15000
+ 1209 0394 FB61     	 str r3,[r7,#28]
+ 179:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	uint32_t i = 0;
+ 1210              	 .loc 4 179 0
+ 1211 0396 0023     	 movs r3,#0
+ 1212 0398 BB61     	 str r3,[r7,#24]
+ 180:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	uint8_t val;
+ 181:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+ 182:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	while (len) {
+ 1213              	 .loc 4 182 0
+ 1214 039a 21E0     	 b .L49
+ 1215              	.L53:
+ 183:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		timeout = SPI_TIMEOUT;
+ 1216              	 .loc 4 183 0
+ 1217 039c 43F69823 	 movw r3,#15000
+ 1218 03a0 FB61     	 str r3,[r7,#28]
+ 184:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		while (!spi_is_tx_ready(p_spi)) {
+ 1219              	 .loc 4 184 0
+ 1220 03a2 07E0     	 b .L50
+ 1221              	.L52:
+ 185:../../../platform/common/services/spi/sam_spi/spi_master.c **** 			if (!timeout--) {
+ 1222              	 .loc 4 185 0
+ 1223 03a4 FB69     	 ldr r3,[r7,#28]
+ 1224 03a6 5A1E     	 subs r2,r3,#1
+ 1225 03a8 FA61     	 str r2,[r7,#28]
+ 1226 03aa 002B     	 cmp r3,#0
+ 1227 03ac 02D1     	 bne .L50
+ 186:../../../platform/common/services/spi/sam_spi/spi_master.c **** 				return ERR_TIMEOUT;
+ 1228              	 .loc 4 186 0
+ 1229 03ae 6FF00203 	 mvn r3,#2
+ 1230 03b2 19E0     	 b .L51
+ 1231              	.L50:
+ 184:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		while (!spi_is_tx_ready(p_spi)) {
+ 1232              	 .loc 4 184 0
+ 1233 03b4 F868     	 ldr r0,[r7,#12]
+ 1234 03b6 FFF7D6FE 	 bl spi_is_tx_ready
+ 1235 03ba 0346     	 mov r3,r0
+ 1236 03bc 002B     	 cmp r3,#0
+ 1237 03be F1D0     	 beq .L52
+ 187:../../../platform/common/services/spi/sam_spi/spi_master.c **** 			}
+ 188:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		}
+ 189:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		val = data[i];
+ 1238              	 .loc 4 189 0
+ 1239 03c0 BA68     	 ldr r2,[r7,#8]
+ 1240 03c2 BB69     	 ldr r3,[r7,#24]
+ 1241 03c4 1344     	 add r3,r3,r2
+ 1242 03c6 1B78     	 ldrb r3,[r3]
+ 1243 03c8 FB75     	 strb r3,[r7,#23]
+ 190:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		spi_write_single(p_spi, val);
+ 1244              	 .loc 4 190 0
+ 1245 03ca FB7D     	 ldrb r3,[r7,#23]
+ 1246 03cc 1946     	 mov r1,r3
+ 1247 03ce F868     	 ldr r0,[r7,#12]
+ 1248 03d0 FFF7F0FE 	 bl spi_write_single
+ 191:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		i++;
+ 1249              	 .loc 4 191 0
+ 1250 03d4 BB69     	 ldr r3,[r7,#24]
+ 1251 03d6 0133     	 adds r3,r3,#1
+ 1252 03d8 BB61     	 str r3,[r7,#24]
+ 192:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		len--;
+ 1253              	 .loc 4 192 0
+ 1254 03da 7B68     	 ldr r3,[r7,#4]
+ 1255 03dc 013B     	 subs r3,r3,#1
+ 1256 03de 7B60     	 str r3,[r7,#4]
+ 1257              	.L49:
+ 182:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		timeout = SPI_TIMEOUT;
+ 1258              	 .loc 4 182 0
+ 1259 03e0 7B68     	 ldr r3,[r7,#4]
+ 1260 03e2 002B     	 cmp r3,#0
+ 1261 03e4 DAD1     	 bne .L53
+ 193:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	}
+ 194:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+ 195:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	return STATUS_OK;
+ 1262              	 .loc 4 195 0
+ 1263 03e6 0023     	 movs r3,#0
+ 1264              	.L51:
+ 196:../../../platform/common/services/spi/sam_spi/spi_master.c **** }
+ 1265              	 .loc 4 196 0
+ 1266 03e8 1846     	 mov r0,r3
+ 1267 03ea 2037     	 adds r7,r7,#32
+ 1268              	.LCFI117:
+ 1269              	 .cfi_def_cfa_offset 8
+ 1270 03ec BD46     	 mov sp,r7
+ 1271              	.LCFI118:
+ 1272              	 .cfi_def_cfa_register 13
+ 1273              	 
+ 1274 03ee 80BD     	 pop {r7,pc}
+ 1275              	 .cfi_endproc
+ 1276              	.LFE219:
+ 1278              	 .align 1
+ 1279              	 .global spi_read_packet
+ 1280              	 .syntax unified
+ 1281              	 .thumb
+ 1282              	 .thumb_func
+ 1283              	 .fpu softvfp
+ 1285              	spi_read_packet:
+ 1286              	.LFB220:
+ 197:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+ 198:../../../platform/common/services/spi/sam_spi/spi_master.c **** /**
+ 199:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \brief Receive a sequence of bytes from an SPI device.
+ 200:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+ 201:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * All bytes sent out on SPI bus are sent as value 0.
+ 202:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+ 203:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param p_spi     Base address of the SPI instance.
+ 204:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param data      Data buffer to read.
+ 205:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \param len       Length of data to be read.
+ 206:../../../platform/common/services/spi/sam_spi/spi_master.c ****  *
+ 207:../../../platform/common/services/spi/sam_spi/spi_master.c ****  * \pre SPI device must be selected with spi_select_device() first.
+ 208:../../../platform/common/services/spi/sam_spi/spi_master.c ****  */
+ 209:../../../platform/common/services/spi/sam_spi/spi_master.c **** status_code_t spi_read_packet(Spi *p_spi, uint8_t *data, size_t len)
+ 210:../../../platform/common/services/spi/sam_spi/spi_master.c **** {
+ 1287              	 .loc 4 210 0
+ 1288              	 .cfi_startproc
+ 1289              	 
+ 1290              	 
+ 1291 03f0 80B5     	 push {r7,lr}
+ 1292              	.LCFI119:
+ 1293              	 .cfi_def_cfa_offset 8
+ 1294              	 .cfi_offset 7,-8
+ 1295              	 .cfi_offset 14,-4
+ 1296 03f2 88B0     	 sub sp,sp,#32
+ 1297              	.LCFI120:
+ 1298              	 .cfi_def_cfa_offset 40
+ 1299 03f4 00AF     	 add r7,sp,#0
+ 1300              	.LCFI121:
+ 1301              	 .cfi_def_cfa_register 7
+ 1302 03f6 F860     	 str r0,[r7,#12]
+ 1303 03f8 B960     	 str r1,[r7,#8]
+ 1304 03fa 7A60     	 str r2,[r7,#4]
+ 211:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	uint32_t timeout = SPI_TIMEOUT;
+ 1305              	 .loc 4 211 0
+ 1306 03fc 43F69823 	 movw r3,#15000
+ 1307 0400 FB61     	 str r3,[r7,#28]
+ 212:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	uint8_t val;
+ 213:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	uint32_t i = 0;
+ 1308              	 .loc 4 213 0
+ 1309 0402 0023     	 movs r3,#0
+ 1310 0404 BB61     	 str r3,[r7,#24]
+ 214:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+ 215:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	while (len) {
+ 1311              	 .loc 4 215 0
+ 1312 0406 38E0     	 b .L55
+ 1313              	.L61:
+ 216:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		timeout = SPI_TIMEOUT;
+ 1314              	 .loc 4 216 0
+ 1315 0408 43F69823 	 movw r3,#15000
+ 1316 040c FB61     	 str r3,[r7,#28]
+ 217:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		while (!spi_is_tx_ready(p_spi)) {
+ 1317              	 .loc 4 217 0
+ 1318 040e 07E0     	 b .L56
+ 1319              	.L58:
+ 218:../../../platform/common/services/spi/sam_spi/spi_master.c **** 			if (!timeout--) {
+ 1320              	 .loc 4 218 0
+ 1321 0410 FB69     	 ldr r3,[r7,#28]
+ 1322 0412 5A1E     	 subs r2,r3,#1
+ 1323 0414 FA61     	 str r2,[r7,#28]
+ 1324 0416 002B     	 cmp r3,#0
+ 1325 0418 02D1     	 bne .L56
+ 219:../../../platform/common/services/spi/sam_spi/spi_master.c **** 				return ERR_TIMEOUT;
+ 1326              	 .loc 4 219 0
+ 1327 041a 6FF00203 	 mvn r3,#2
+ 1328 041e 30E0     	 b .L62
+ 1329              	.L56:
+ 217:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		while (!spi_is_tx_ready(p_spi)) {
+ 1330              	 .loc 4 217 0
+ 1331 0420 F868     	 ldr r0,[r7,#12]
+ 1332 0422 FFF7A0FE 	 bl spi_is_tx_ready
+ 1333 0426 0346     	 mov r3,r0
+ 1334 0428 002B     	 cmp r3,#0
+ 1335 042a F1D0     	 beq .L58
+ 220:../../../platform/common/services/spi/sam_spi/spi_master.c **** 			}
+ 221:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		}
+ 222:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		spi_write_single(p_spi, CONFIG_SPI_MASTER_DUMMY);
+ 1336              	 .loc 4 222 0
+ 1337 042c FF21     	 movs r1,#255
+ 1338 042e F868     	 ldr r0,[r7,#12]
+ 1339 0430 FFF7C0FE 	 bl spi_write_single
+ 223:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+ 224:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		timeout = SPI_TIMEOUT;
+ 1340              	 .loc 4 224 0
+ 1341 0434 43F69823 	 movw r3,#15000
+ 1342 0438 FB61     	 str r3,[r7,#28]
+ 225:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		while (!spi_is_rx_ready(p_spi)) {
+ 1343              	 .loc 4 225 0
+ 1344 043a 07E0     	 b .L59
+ 1345              	.L60:
+ 226:../../../platform/common/services/spi/sam_spi/spi_master.c **** 			if (!timeout--) {
+ 1346              	 .loc 4 226 0
+ 1347 043c FB69     	 ldr r3,[r7,#28]
+ 1348 043e 5A1E     	 subs r2,r3,#1
+ 1349 0440 FA61     	 str r2,[r7,#28]
+ 1350 0442 002B     	 cmp r3,#0
+ 1351 0444 02D1     	 bne .L59
+ 227:../../../platform/common/services/spi/sam_spi/spi_master.c **** 				return ERR_TIMEOUT;
+ 1352              	 .loc 4 227 0
+ 1353 0446 6FF00203 	 mvn r3,#2
+ 1354 044a 1AE0     	 b .L62
+ 1355              	.L59:
+ 225:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		while (!spi_is_rx_ready(p_spi)) {
+ 1356              	 .loc 4 225 0
+ 1357 044c F868     	 ldr r0,[r7,#12]
+ 1358 044e FFF79CFE 	 bl spi_is_rx_ready
+ 1359 0452 0346     	 mov r3,r0
+ 1360 0454 002B     	 cmp r3,#0
+ 1361 0456 F1D0     	 beq .L60
+ 228:../../../platform/common/services/spi/sam_spi/spi_master.c **** 			}
+ 229:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		}
+ 230:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		spi_read_single(p_spi, &val);
+ 1362              	 .loc 4 230 0
+ 1363 0458 07F11703 	 add r3,r7,#23
+ 1364 045c 1946     	 mov r1,r3
+ 1365 045e F868     	 ldr r0,[r7,#12]
+ 1366 0460 FFF7B8FE 	 bl spi_read_single
+ 231:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+ 232:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		data[i] = val;
+ 1367              	 .loc 4 232 0
+ 1368 0464 BA68     	 ldr r2,[r7,#8]
+ 1369 0466 BB69     	 ldr r3,[r7,#24]
+ 1370 0468 1344     	 add r3,r3,r2
+ 1371 046a FA7D     	 ldrb r2,[r7,#23]
+ 1372 046c 1A70     	 strb r2,[r3]
+ 233:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		i++;
+ 1373              	 .loc 4 233 0
+ 1374 046e BB69     	 ldr r3,[r7,#24]
+ 1375 0470 0133     	 adds r3,r3,#1
+ 1376 0472 BB61     	 str r3,[r7,#24]
+ 234:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		len--;
+ 1377              	 .loc 4 234 0
+ 1378 0474 7B68     	 ldr r3,[r7,#4]
+ 1379 0476 013B     	 subs r3,r3,#1
+ 1380 0478 7B60     	 str r3,[r7,#4]
+ 1381              	.L55:
+ 215:../../../platform/common/services/spi/sam_spi/spi_master.c **** 		timeout = SPI_TIMEOUT;
+ 1382              	 .loc 4 215 0
+ 1383 047a 7B68     	 ldr r3,[r7,#4]
+ 1384 047c 002B     	 cmp r3,#0
+ 1385 047e C3D1     	 bne .L61
+ 235:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	}
+ 236:../../../platform/common/services/spi/sam_spi/spi_master.c **** 
+ 237:../../../platform/common/services/spi/sam_spi/spi_master.c **** 	return STATUS_OK;
+ 1386              	 .loc 4 237 0
+ 1387 0480 0023     	 movs r3,#0
+ 1388              	.L62:
+ 238:../../../platform/common/services/spi/sam_spi/spi_master.c **** }
+ 1389              	 .loc 4 238 0 discriminator 1
+ 1390 0482 1846     	 mov r0,r3
+ 1391 0484 2037     	 adds r7,r7,#32
+ 1392              	.LCFI122:
+ 1393              	 .cfi_def_cfa_offset 8
+ 1394 0486 BD46     	 mov sp,r7
+ 1395              	.LCFI123:
+ 1396              	 .cfi_def_cfa_register 13
+ 1397              	 
+ 1398 0488 80BD     	 pop {r7,pc}
+ 1399              	 .cfi_endproc
+ 1400              	.LFE220:
+ 1402              	.Letext0:
+ 1403              	 .file 5 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 1404              	 .file 6 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 1405              	 .file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 1406              	 .file 8 "../../../platform/sam/utils/cmsis/sam4l/include/sam4lc4b.h"
+ 1407              	 .file 9 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+ 1408              	 .file 10 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 1409              	 .file 11 "../../../platform/sam/utils/cmsis/sam4l/include/component/component_spi.h"
+ 1410              	 .file 12 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 1411              	 .file 13 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 1412              	 .file 14 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 1413              	 .file 15 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+ 1414              	 .file 16 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
+ 1415              	 .file 17 "../../../platform/sam/utils/compiler.h"
+ 1416              	 .file 18 "../../../platform/common/services/usb/usb_protocol.h"
+ 1417              	 .file 19 "../../../platform/common/services/usb/udc/udi.h"
+ 1418              	 .file 20 "../../../platform/common/services/usb/udc/udc_desc.h"
+ 1419              	 .file 21 "../../../platform/common/services/usb/udc/udd.h"
+ 1420              	 .file 22 "../../../platform/common/services/usb/class/cdc/device/udi_cdc.h"
+ 1421              	 .file 23 "../../../platform/common/utils/stdio/stdio_usb/stdio_usb.h"
+ 1422              	 .file 24 "../../../platform/common/services/clock/sam4l/pll.h"
+ 1423              	 .file 25 "../../../platform/common/services/clock/sam4l/genclk.h"
+ 1424              	 .file 26 "../../../platform/sam/utils/status_codes.h"
+ 1425              	 .file 27 "config/config.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 spi_master.c
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
+                            *COM*:00000001 n
+    {standard input}:28     .bss.tTS:00000000 $d
+    {standard input}:31     .bss.tTS:00000000 tTS
+    {standard input}:34     .text:00000000 $t
+    {standard input}:40     .text:00000000 sysclk_get_main_hz
+    {standard input}:71     .text:00000010 $d
+    {standard input}:75     .text:00000014 $t
+    {standard input}:81     .text:00000014 sysclk_get_cpu_hz
+    {standard input}:110    .text:00000022 spi_reset
+    {standard input}:156    .text:0000003a spi_set_lastxfer
+    {standard input}:201    .text:00000054 spi_set_master_mode
+    {standard input}:248    .text:00000072 spi_set_fixed_peripheral_select
+    {standard input}:295    .text:00000090 spi_disable_peripheral_select_decode
+    {standard input}:342    .text:000000ae spi_get_peripheral_select_decode_setting
+    {standard input}:396    .text:000000d2 spi_disable_mode_fault_detect
+    {standard input}:443    .text:000000f0 spi_disable_loopback
+    {standard input}:490    .text:0000010e spi_put
+    {standard input}:537    .text:0000012a spi_get
+    {standard input}:582    .text:00000142 spi_is_tx_empty
+    {standard input}:636    .text:00000166 spi_is_tx_ready
+    {standard input}:690    .text:0000018a spi_is_rx_ready
+    {standard input}:746    .text:000001b4 spi_write_single
+    {standard input}:792    .text:000001d4 spi_read_single
+    {standard input}:838    .text:000001f4 spi_master_init
+    {standard input}:905    .text:00000240 $d
+    {standard input}:911    .text:0000024c $t
+    {standard input}:918    .text:0000024c spi_master_setup_device
+    {standard input}:1027   .text:000002e0 $d
+    {standard input}:1037   .text:000002fc $t
+    {standard input}:1044   .text:000002fc spi_select_device
+    {standard input}:1115   .text:0000034c $d
+    {standard input}:1119   .text:00000350 $t
+    {standard input}:1126   .text:00000350 spi_deselect_device
+    {standard input}:1176   .text:00000380 $d
+    {standard input}:1180   .text:00000384 $t
+    {standard input}:1187   .text:00000384 spi_write_packet
+    {standard input}:1285   .text:000003f0 spi_read_packet
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+spi_enable_clock
+spi_set_peripheral_chip_select_value
+spi_set_delay_between_chip_select
+spi_calc_baudrate_div
+spi_set_transfer_delay
+spi_set_bits_per_transfer
+spi_set_baudrate_div
+spi_configure_cs_behavior
+spi_set_clock_polarity
+spi_set_clock_phase

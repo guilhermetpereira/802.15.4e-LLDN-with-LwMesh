@@ -248,7 +248,7 @@ static void nwkDataReqTxConf(NwkFrame_t *frame)
 			break;
 		}
 	}
-
+	
 	nwkFrameFree(frame);
 }
 
@@ -296,6 +296,7 @@ void nwkDataReqTaskHandler(void)
 		case NWK_DATA_REQ_STATE_CONFIRM:
 		{
 			nwkDataReqConfirm(req);
+			
 			return;
 		}
 		break;

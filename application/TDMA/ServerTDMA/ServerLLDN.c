@@ -35,7 +35,7 @@
 		/* Only megarf series */
 		#include "conf_sio2host.h" // necessary for prints
 		#define MASTER_MACSC	1
-		#define TIMESLOT_TIMER	1
+		#define TIMESLOT_TIMER	0
 	#endif
 #else
 	/* Only megarf series */
@@ -52,7 +52,7 @@
 #endif
 	
 // equation for tTS gives time in seconds, the division by SYMBOL_TIME changes to symbols for counter usage
-static volatile AppState_t	appState = APP_STATE_INITIAL;
+AppState_t	appState = APP_STATE_INITIAL;
 static NWK_DataReq_t msgReq;
 static uint8_t PanId;
 
@@ -60,8 +60,8 @@ static void appSendData(void)
 {
 	if(msgReq.options != 0)
 	{
-		NWK_DataReq(&msgReq);
 		printf("\nMSG REQ SENT %d",msgReq.options);
+		NWK_DataReq(&msgReq);
 	#if !APP_COORDINATOR
 	#endif
 	}
@@ -69,23 +69,24 @@ static void appSendData(void)
 
 #if APP_COORDINATOR
 
-	#define NODOS_ASSOCIADOS_ESPERADOS 1
+	#define NODOS_ASSOCIADOS_ESPERADOS 3
 
-	static float beaconInterval;
-	static volatile AppPanState_t appPanState = APP_PAN_STATE_RESET;	// estado inicial do coordenador
-	static NWK_ACKFormat_t ACKFrame;									// payload do ACK Frame
-	static int ACKFrame_size = 0;										// tamanho do vetor do ACK Frame
-	static uint8_t cycles_counter = macLLDNdiscoveryModeTimeout;		// quantidade máxima de repetições das etapas discovery + configuration
-	static int counter_associados = 0;									// contador número de nodos associados
-	static NWK_ConfigRequest_t msgsConfRequest[254];					// array para mensagens de configure_request, uma posição por nodo, 254 limitado pela topoligia estrela 
-	static int macLLDNnumUplinkTS = 0;									// número de uplink timeslots, também é o controle de nodos associados
-	static int biggest_timeslot_duration  = 0;							
-	static int index_ConfRequest = -1;
+	float beaconInterval;
+	AppPanState_t appPanState = APP_PAN_STATE_RESET;	// estado inicial do coordenador
+	NWK_ACKFormat_t ACKFrame;									// payload do ACK Frame
+	int ACKFrame_size = 0;										// tamanho do vetor do ACK Frame
+	uint8_t cycles_counter = macLLDNdiscoveryModeTimeout;		// quantidade máxima de repetições das etapas discovery + configuration
+	int counter_associados = 0;									// contador número de nodos associados
+	NWK_ConfigRequest_t msgsConfRequest[254];					// array para mensagens de configure_request, uma posição por nodo, 254 limitado pela topoligia estrela 
+	NWK_ConfigRequest_t ConfigRequest;
+	int macLLDNnumUplinkTS = 0;									// número de uplink timeslots, também é o controle de nodos associados
+	int biggest_timeslot_duration  = 0;							
+	int index_ConfRequest = 0;
+	int max_index;
+	SYS_Timer_t tmrDiscoveryMode; // timer para reinciar a rede, utilizado somente em testes
+	SYS_Timer_t tmrDelay_Discovery; // timer para delay entre mensagens
+	SYS_Timer_t tmrDelay_Configuration;
 	
-	static SYS_Timer_t tmrDiscoveryMode; // timer para reinciar a rede, utilizado somente em testes
-	static SYS_Timer_t tmrDelay; // timer para delay entre mensagens
-
-
 
 	static void tmrDiscoveryModeHandler(SYS_Timer_t *timer)
 	{
@@ -95,6 +96,7 @@ static void appSendData(void)
 	
 	static void tmrDelayHandler(SYS_Timer_t *timer)
 	{
+		printf("\nTimer_Software");
 		appState = APP_STATE_SEND;
 		// appPanState = APP_PAN_STATE_RESET;
 	}
@@ -132,18 +134,31 @@ static void appSendData(void)
 	
 	static void addConfRequestArray(NWK_ConfigStatus_t *node)
 	{
+		//printf("index_confRequest : %d", index_confRequest);
 		index_ConfRequest++;
 		if(node->ts_dir.tsDuration > biggest_timeslot_duration)
 			biggest_timeslot_duration = node->ts_dir.tsDuration;
 		// tem que atualizar o tamanho final
 		msgsConfRequest[index_ConfRequest].id = LL_CONFIGURATION_REQUEST;
-		msgsConfRequest[index_ConfRequest].s_macAddr = node->s_macAddr;
-		msgsConfRequest[index_ConfRequest].macAddr = node->macAddr;
-		msgsConfRequest[index_ConfRequest].tx_channel = APP_CHANNEL;
-		msgsConfRequest[index_ConfRequest].assTimeSlot = (uint8_t)index_ConfRequest;
-		msgsConfRequest[index_ConfRequest].conf.mgmtFrames = 0x01;
+ 		msgsConfRequest[index_ConfRequest].macAddr = node->macAddr;
+ 		msgsConfRequest[index_ConfRequest].s_macAddr = APP_ADDR;
+ 		msgsConfRequest[index_ConfRequest].tx_channel = APP_CHANNEL;
+ 		msgsConfRequest[index_ConfRequest].assTimeSlot = (uint8_t)index_ConfRequest;
+ 		msgsConfRequest[index_ConfRequest].conf.mgmtFrames = 0x01;
+ 		max_index = index_ConfRequest;
+
 	}
 		
+	static void CopyToConfigRequest(int i)
+	{
+		ConfigRequest.id = msgsConfRequest[i].id;
+		ConfigRequest.s_macAddr = msgsConfRequest[i].s_macAddr;
+		ConfigRequest.tx_channel = msgsConfRequest[i].tx_channel;
+		ConfigRequest.assTimeSlot = msgsConfRequest[i].assTimeSlot;
+		ConfigRequest.macAddr = msgsConfRequest[i].macAddr;
+		ConfigRequest.conf.tsDuration = msgsConfRequest[i].conf.tsDuration;
+		ConfigRequest.conf.mgmtFrames = msgsConfRequest[i].conf.mgmtFrames;
+	}
 	
 	static bool appCommandInd(NWK_DataInd_t *ind)
 	{
@@ -184,17 +199,19 @@ static void appSendData(void)
 		msgReq.size			= 0;
 		
 		// preencher o vetor com zeros para impedir lixo de memória
-		for(int i = 0; i < ACKFrame_size; i++)
-		{
-			ACKFrame.ackFlags[i] = 0;
-		}
+
 		ACKFrame_size = 0;
-		index_ConfRequest = -1;
+		index_ConfRequest = 0;
 		counter_associados = 0;
 	}
 
 	static void appPanDiscInit(void)
-	{		
+	{	
+		for(int i = 0; i < 32; i++)
+		{
+			ACKFrame.ackFlags[i] = 0;
+		}
+		
 		/* Prepare Beacon Message as first beacon in discovery state */		
 		msgReq.dstAddr				= 0;
 		msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
@@ -209,6 +226,7 @@ static void appSendData(void)
 		// quer que seja associado
 		if(cycles_counter == 0 /*macLLDNdiscoveryModeTimeout*/) 
 		{
+			
 		/* Calculates Beacon Intervals according to 802.15.4e - 2012 p. 70 */
 		n = 127; // 180 -safe octets
 		tTS =  ((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var); // 0.009088 seconds with n = 255 
@@ -253,6 +271,7 @@ static void appSendData(void)
 	static uint8_t payloadSize = 0x01;
 	static uint8_t assTimeSlot = 0xFF;
 	static bool ack_received;
+	bool associated = 0;
 	
 	static void send_message_timeHandler(void)
 	{
@@ -289,6 +308,7 @@ static void appSendData(void)
 		{
 			
 			ack_received = 0;
+			associated = 0;
 			printf("ack = %d" ,ack_received);
 		}
 			
@@ -310,6 +330,20 @@ static void appSendData(void)
 		}
 		return true;
 	}
+	
+	static bool appCommandInd(NWK_DataInd_t *ind)
+	{
+		if(ind->data[0] == LL_CONFIGURATION_REQUEST)
+		{
+			NWK_ConfigRequest_t *msg = (NWK_ConfigRequest_t*)ind->data;
+			if(msg->macAddr == APP_ADDR)
+			{
+				associated = 1;
+			}
+		}
+		return true;
+	}
+
 	void appPrepareDiscoverResponse()
 	{
 		msgDiscResponse.id					= LL_DISCOVER_RESPONSE;
@@ -360,11 +394,15 @@ static void appInit(void)
 	  tmrDiscoveryMode.handler = tmrDiscoveryModeHandler;
 	  //SYS_TimerStart(&tmrDiscoveryMode);
 	  
-	  tmrDelay.interval = 1;
-	  tmrDelay.mode = SYS_TIMER_INTERVAL_MODE;
-	  tmrDelay.handler = tmrDelayHandler;
+	  tmrDelay_Discovery.interval = 2;
+	  tmrDelay_Discovery.mode = SYS_TIMER_INTERVAL_MODE;
+	  tmrDelay_Discovery.handler = tmrDelayHandler;
 	  //SYS_TimerStart(&tmrDelay);
 	  
+	  tmrDelay_Configuration.interval = 3;
+	  tmrDelay_Configuration.mode = SYS_TIMER_INTERVAL_MODE;
+	  tmrDelay_Configuration.handler = tmrDelayHandler;
+	  //SYS_TimerStart(&tmrDelay);
 	  
 		/* 
 		* Disable CSMA/CA
@@ -376,12 +414,14 @@ static void appInit(void)
 		PHY_SetTdmaMode(true);
 		NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appCommandInd);
 	#else
+		printf("\nLIGOU");
 		PHY_SetTdmaMode(false);
 		PHY_SetOptimizedCSMAValues();
 		
 		payloadSize = 0x01;
 		NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);
 		NWK_OpenEndpoint(APP_ACK_ENDPOINT, appAckInd);
+		NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appCommandInd);
 		/*
 		* Configure interrupts callback functions
 		*/
@@ -429,16 +469,22 @@ static void APP_TaskHandler(void)
 				}
 				case APP_PAN_STATE_DISC_INITIAL:
 				{
+					printf("\n\n");
+					index_ConfRequest = 0;
 					// cyclies counter precisa ser mudado para quando for fazer os testes
 					// precisa ser em função do número de nodos que queremos associar
-					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS) // este if é se já terminou todos os ciclos
+					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter > NODOS_ASSOCIADOS_ESPERADOS) // este if é se já terminou todos os ciclos
 					{	
-						printf("\n%d", cycles_counter);
+						// if(counter_associados >= NODOS_ASSOCIADOS_ESPERADOS)
+							printf("\n%d", cycles_counter);
 						counter_associados = 0;
 						macsc_disable_cmp_int(MACSC_CC1);
+						macsc_disable_cmp_int(MACSC_CC2);
+						macsc_disable_cmp_int(MACSC_CC3);
 						msgReq.options = 0;
-						appState = APP_PAN_STATE_RESET;
+						appState = APP_PAN_STATE_IDLE;
 						appPanState = APP_PAN_STATE_IDLE;
+						
 					}
 					else // este if é se não terminou todos os ciclos, ainda existem nodos a serem associados
 					{
@@ -458,7 +504,7 @@ static void APP_TaskHandler(void)
 				}
 				case APP_PAN_STATE_DISC_PREPARE_ACK:
 				{
-					SYS_TimerStart(&tmrDelay);
+					SYS_TimerStart(&tmrDelay_Discovery);
 					appPanPrepareACK();
 					// precisa mudar para o novo estado, mas precisa esperar o beacon interval acabar
 					// aqui ele vai mudar para preparar pro primeiro beacon do configuration
@@ -484,36 +530,34 @@ static void APP_TaskHandler(void)
 				}
 				case APP_PAN_STATE_SEND_CONF_REQUEST:
 				{
-					if(index_ConfRequest >= 0)
+					//if(not_sent_yet = 1)
+					//{
+					if(index_ConfRequest > 0)
 					{
-						SYS_TimerStart(&tmrDelay);
-						msgsConfRequest[index_ConfRequest].conf.tsDuration = biggest_timeslot_duration;
-			
-						msgReq.dstAddr		= 0;
-						msgReq.dstEndpoint	= APP_COMMAND_ENDPOINT;
-						msgReq.srcEndpoint	= APP_COMMAND_ENDPOINT;
+						CopyToConfigRequest(index_ConfRequest);
 						msgReq.options		= NWK_OPT_MAC_COMMAND;
-						msgReq.data			= (uint8_t*)&msgsConfRequest[index_ConfRequest];
+						msgReq.data			= (uint8_t*)&ConfigRequest;
 						msgReq.size			= sizeof(NWK_ConfigRequest_t);
-						index_ConfRequest--;
-						counter_associados++;
 						appState	= APP_STATE_IDLE;
 						appPanState = APP_PAN_STATE_SEND_CONF_REQUEST;
+						index_ConfRequest--;
+						counter_associados++;
+						SYS_TimerStart(&tmrDelay_Configuration);
 					}
 					else
 					{
-						appState	= APP_STATE_ATT_PAN_STATE;
 						appPanState = APP_PAN_STATE_CONFIG_THIRD_BEACON;
-		
 					}
 					break;
 				}
 				case APP_PAN_STATE_CONFIG_THIRD_BEACON:
 				{
+					printf("\nTHIRD BEACON");
 					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_CONFIG_STATE | NWK_OPT_THIRD_BEACON;
 					appState	= APP_STATE_IDLE;
 					appPanState = APP_PAN_STATE_DISC_INITIAL;
 					cycles_counter++;	
+					
 					break;
 				}
 				case APP_PAN_STATE_IDLE:
@@ -541,7 +585,7 @@ static void APP_TaskHandler(void)
 		case APP_STATE_PREP_CONFIG_STATUS:
 		{
 			// se o nodo recebeu ack na fase do discovery prepara a mensagem de configuration status
-			if(ack_received && rec_beacon->confSeqNumber == 0) {
+			if(ack_received && rec_beacon->confSeqNumber == 0 && associated == 0) {
 				appPrepareConfigurationStatus();
 			}
 			// se o nodo não recebeu desativa o timer e fica em idle
@@ -553,7 +597,9 @@ static void APP_TaskHandler(void)
 		}
 		#endif
 		default:
-		break;
+		{
+			break;
+		}
 	}
 }
 

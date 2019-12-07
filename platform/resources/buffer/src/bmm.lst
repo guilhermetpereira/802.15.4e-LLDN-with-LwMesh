@@ -1,0 +1,639 @@
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "bmm.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .section .bss.buf_pool,"aw",%nobits
+  27              	 .align 2
+  30              	buf_pool:
+  31 0000 00000000 	 .space 8192
+  31      00000000 
+  31      00000000 
+  31      00000000 
+  31      00000000 
+  32              	 .section .bss.buf_header,"aw",%nobits
+  33              	 .align 2
+  36              	buf_header:
+  37 0000 00000000 	 .space 640
+  37      00000000 
+  37      00000000 
+  37      00000000 
+  37      00000000 
+  38              	 .section .bss.free_large_buffer_q,"aw",%nobits
+  39              	 .align 2
+  42              	free_large_buffer_q:
+  43 0000 00000000 	 .space 12
+  43      00000000 
+  43      00000000 
+  44              	 .section .bss.free_small_buffer_q,"aw",%nobits
+  45              	 .align 2
+  48              	free_small_buffer_q:
+  49 0000 00000000 	 .space 12
+  49      00000000 
+  49      00000000 
+  50              	 .text
+  51              	 .align 1
+  52              	 .global bmm_buffer_init
+  53              	 .syntax unified
+  54              	 .thumb
+  55              	 .thumb_func
+  56              	 .fpu softvfp
+  58              	bmm_buffer_init:
+  59              	.LFB122:
+  60              	 .file 1 "../../../platform/resources/buffer/src/bmm.c"
+   1:../../../platform/resources/buffer/src/bmm.c **** /**
+   2:../../../platform/resources/buffer/src/bmm.c ****  * @file bmm.c
+   3:../../../platform/resources/buffer/src/bmm.c ****  *
+   4:../../../platform/resources/buffer/src/bmm.c ****  * @brief This file implements the functions for initializing buffer module,
+   5:../../../platform/resources/buffer/src/bmm.c ****  *  allocating and freeing up buffers.
+   6:../../../platform/resources/buffer/src/bmm.c ****  *
+   7:../../../platform/resources/buffer/src/bmm.c ****  * Copyright (c) 2013 Atmel Corporation. All rights reserved.
+   8:../../../platform/resources/buffer/src/bmm.c ****  *
+   9:../../../platform/resources/buffer/src/bmm.c ****  * \asf_license_start
+  10:../../../platform/resources/buffer/src/bmm.c ****  *
+  11:../../../platform/resources/buffer/src/bmm.c ****  * \page License
+  12:../../../platform/resources/buffer/src/bmm.c ****  *
+  13:../../../platform/resources/buffer/src/bmm.c ****  * Redistribution and use in source and binary forms, with or without
+  14:../../../platform/resources/buffer/src/bmm.c ****  * modification, are permitted provided that the following conditions are met:
+  15:../../../platform/resources/buffer/src/bmm.c ****  *
+  16:../../../platform/resources/buffer/src/bmm.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  17:../../../platform/resources/buffer/src/bmm.c ****  *    this list of conditions and the following disclaimer.
+  18:../../../platform/resources/buffer/src/bmm.c ****  *
+  19:../../../platform/resources/buffer/src/bmm.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  20:../../../platform/resources/buffer/src/bmm.c ****  *    this list of conditions and the following disclaimer in the documentation
+  21:../../../platform/resources/buffer/src/bmm.c ****  *    and/or other materials provided with the distribution.
+  22:../../../platform/resources/buffer/src/bmm.c ****  *
+  23:../../../platform/resources/buffer/src/bmm.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  24:../../../platform/resources/buffer/src/bmm.c ****  *    from this software without specific prior written permission.
+  25:../../../platform/resources/buffer/src/bmm.c ****  *
+  26:../../../platform/resources/buffer/src/bmm.c ****  * 4. This software may only be redistributed and used in connection with an
+  27:../../../platform/resources/buffer/src/bmm.c ****  *    Atmel microcontroller product.
+  28:../../../platform/resources/buffer/src/bmm.c ****  *
+  29:../../../platform/resources/buffer/src/bmm.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  30:../../../platform/resources/buffer/src/bmm.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  31:../../../platform/resources/buffer/src/bmm.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  32:../../../platform/resources/buffer/src/bmm.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  33:../../../platform/resources/buffer/src/bmm.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  34:../../../platform/resources/buffer/src/bmm.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  35:../../../platform/resources/buffer/src/bmm.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  36:../../../platform/resources/buffer/src/bmm.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  37:../../../platform/resources/buffer/src/bmm.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  38:../../../platform/resources/buffer/src/bmm.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  39:../../../platform/resources/buffer/src/bmm.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  40:../../../platform/resources/buffer/src/bmm.c ****  *
+  41:../../../platform/resources/buffer/src/bmm.c ****  * \asf_license_stop
+  42:../../../platform/resources/buffer/src/bmm.c ****  */
+  43:../../../platform/resources/buffer/src/bmm.c **** 
+  44:../../../platform/resources/buffer/src/bmm.c **** /*
+  45:../../../platform/resources/buffer/src/bmm.c ****  * Copyright (c) 2013, Atmel Corporation All rights reserved.
+  46:../../../platform/resources/buffer/src/bmm.c ****  *
+  47:../../../platform/resources/buffer/src/bmm.c ****  * Licensed under Atmel's Limited License Agreement --> EULA.txt
+  48:../../../platform/resources/buffer/src/bmm.c ****  */
+  49:../../../platform/resources/buffer/src/bmm.c **** /* === Includes ============================================================ */
+  50:../../../platform/resources/buffer/src/bmm.c **** 
+  51:../../../platform/resources/buffer/src/bmm.c **** #include <stdint.h>
+  52:../../../platform/resources/buffer/src/bmm.c **** #include <stdlib.h>
+  53:../../../platform/resources/buffer/src/bmm.c **** #include <stdbool.h>
+  54:../../../platform/resources/buffer/src/bmm.c **** #include "return_val.h"
+  55:../../../platform/resources/buffer/src/bmm.c **** #include "bmm.h"
+  56:../../../platform/resources/buffer/src/bmm.c **** #include "qmm.h"
+  57:../../../platform/resources/buffer/src/bmm.c **** #include "conf_resources.h"
+  58:../../../platform/resources/buffer/src/bmm.c **** 
+  59:../../../platform/resources/buffer/src/bmm.c **** #if (TOTAL_NUMBER_OF_BUFS > 0)
+  60:../../../platform/resources/buffer/src/bmm.c **** 
+  61:../../../platform/resources/buffer/src/bmm.c **** /*
+  62:../../../platform/resources/buffer/src/bmm.c ****  * Check if the buffer configuration does not exceed the queue limits.
+  63:../../../platform/resources/buffer/src/bmm.c ****  * Note: The queue's size parameter is a 8bit value.
+  64:../../../platform/resources/buffer/src/bmm.c ****  */
+  65:../../../platform/resources/buffer/src/bmm.c **** #if (TOTAL_NUMBER_OF_BUFS > 255)
+  66:../../../platform/resources/buffer/src/bmm.c **** #error "Number of buffer exceeds its limit"
+  67:../../../platform/resources/buffer/src/bmm.c **** #endif
+  68:../../../platform/resources/buffer/src/bmm.c **** 
+  69:../../../platform/resources/buffer/src/bmm.c **** /* === Types =============================================================== */
+  70:../../../platform/resources/buffer/src/bmm.c **** 
+  71:../../../platform/resources/buffer/src/bmm.c **** /* === Macros ============================================================== */
+  72:../../../platform/resources/buffer/src/bmm.c **** 
+  73:../../../platform/resources/buffer/src/bmm.c **** #if (TOTAL_NUMBER_OF_SMALL_BUFS > 0)
+  74:../../../platform/resources/buffer/src/bmm.c **** 
+  75:../../../platform/resources/buffer/src/bmm.c **** /**
+  76:../../../platform/resources/buffer/src/bmm.c ****  * Checks whether the buffer pointer provided is of small buffer or of a large
+  77:../../../platform/resources/buffer/src/bmm.c ****  * buffer
+  78:../../../platform/resources/buffer/src/bmm.c ****  */
+  79:../../../platform/resources/buffer/src/bmm.c **** #define IS_SMALL_BUF(p) ((p)->body >= (buf_pool + \
+  80:../../../platform/resources/buffer/src/bmm.c **** 	LARGE_BUFFER_SIZE * TOTAL_NUMBER_OF_LARGE_BUFS))
+  81:../../../platform/resources/buffer/src/bmm.c **** #endif
+  82:../../../platform/resources/buffer/src/bmm.c **** 
+  83:../../../platform/resources/buffer/src/bmm.c **** /* === Globals ============================================================= */
+  84:../../../platform/resources/buffer/src/bmm.c **** 
+  85:../../../platform/resources/buffer/src/bmm.c **** /**
+  86:../../../platform/resources/buffer/src/bmm.c ****  * Common Buffer pool holding the buffer user area
+  87:../../../platform/resources/buffer/src/bmm.c ****  */
+  88:../../../platform/resources/buffer/src/bmm.c **** #if (TOTAL_NUMBER_OF_SMALL_BUFS > 0)
+  89:../../../platform/resources/buffer/src/bmm.c **** static uint8_t buf_pool[(TOTAL_NUMBER_OF_LARGE_BUFS * LARGE_BUFFER_SIZE) +
+  90:../../../platform/resources/buffer/src/bmm.c **** (TOTAL_NUMBER_OF_SMALL_BUFS * SMALL_BUFFER_SIZE)];
+  91:../../../platform/resources/buffer/src/bmm.c **** #else
+  92:../../../platform/resources/buffer/src/bmm.c **** static uint8_t buf_pool[(TOTAL_NUMBER_OF_LARGE_BUFS * LARGE_BUFFER_SIZE)];
+  93:../../../platform/resources/buffer/src/bmm.c **** #endif
+  94:../../../platform/resources/buffer/src/bmm.c **** 
+  95:../../../platform/resources/buffer/src/bmm.c **** /*
+  96:../../../platform/resources/buffer/src/bmm.c ****  * Array of buffer headers
+  97:../../../platform/resources/buffer/src/bmm.c ****  */
+  98:../../../platform/resources/buffer/src/bmm.c **** static buffer_t buf_header[TOTAL_NUMBER_OF_LARGE_BUFS +
+  99:../../../platform/resources/buffer/src/bmm.c **** TOTAL_NUMBER_OF_SMALL_BUFS];
+ 100:../../../platform/resources/buffer/src/bmm.c **** 
+ 101:../../../platform/resources/buffer/src/bmm.c **** /*
+ 102:../../../platform/resources/buffer/src/bmm.c ****  * Queue of free large buffers
+ 103:../../../platform/resources/buffer/src/bmm.c ****  */
+ 104:../../../platform/resources/buffer/src/bmm.c **** #if (TOTAL_NUMBER_OF_LARGE_BUFS > 0)
+ 105:../../../platform/resources/buffer/src/bmm.c **** static queue_t free_large_buffer_q;
+ 106:../../../platform/resources/buffer/src/bmm.c **** #endif
+ 107:../../../platform/resources/buffer/src/bmm.c **** 
+ 108:../../../platform/resources/buffer/src/bmm.c **** /*
+ 109:../../../platform/resources/buffer/src/bmm.c ****  * Queue of free small buffers
+ 110:../../../platform/resources/buffer/src/bmm.c ****  */
+ 111:../../../platform/resources/buffer/src/bmm.c **** #if (TOTAL_NUMBER_OF_SMALL_BUFS > 0)
+ 112:../../../platform/resources/buffer/src/bmm.c **** static queue_t free_small_buffer_q;
+ 113:../../../platform/resources/buffer/src/bmm.c **** #endif
+ 114:../../../platform/resources/buffer/src/bmm.c **** 
+ 115:../../../platform/resources/buffer/src/bmm.c **** /* === Prototypes ========================================================== */
+ 116:../../../platform/resources/buffer/src/bmm.c **** 
+ 117:../../../platform/resources/buffer/src/bmm.c **** /* === Implementation ====================================================== */
+ 118:../../../platform/resources/buffer/src/bmm.c **** 
+ 119:../../../platform/resources/buffer/src/bmm.c **** /**
+ 120:../../../platform/resources/buffer/src/bmm.c ****  * @brief Initializes the buffer module.
+ 121:../../../platform/resources/buffer/src/bmm.c ****  *
+ 122:../../../platform/resources/buffer/src/bmm.c ****  * This function initializes the buffer module.
+ 123:../../../platform/resources/buffer/src/bmm.c ****  * This function should be called before using any other functionality
+ 124:../../../platform/resources/buffer/src/bmm.c ****  * of buffer module.
+ 125:../../../platform/resources/buffer/src/bmm.c ****  */
+ 126:../../../platform/resources/buffer/src/bmm.c **** void bmm_buffer_init(void)
+ 127:../../../platform/resources/buffer/src/bmm.c **** {
+  61              	 .loc 1 127 0
+  62              	 .cfi_startproc
+  63              	 
+  64              	 
+  65 0000 80B5     	 push {r7,lr}
+  66              	.LCFI0:
+  67              	 .cfi_def_cfa_offset 8
+  68              	 .cfi_offset 7,-8
+  69              	 .cfi_offset 14,-4
+  70 0002 82B0     	 sub sp,sp,#8
+  71              	.LCFI1:
+  72              	 .cfi_def_cfa_offset 16
+  73 0004 00AF     	 add r7,sp,#0
+  74              	.LCFI2:
+  75              	 .cfi_def_cfa_register 7
+ 128:../../../platform/resources/buffer/src/bmm.c **** 	uint8_t index;
+ 129:../../../platform/resources/buffer/src/bmm.c **** 
+ 130:../../../platform/resources/buffer/src/bmm.c **** 	/* Initialize free buffer queue for large buffers */
+ 131:../../../platform/resources/buffer/src/bmm.c **** #if (TOTAL_NUMBER_OF_LARGE_BUFS > 0)
+ 132:../../../platform/resources/buffer/src/bmm.c ****     #ifdef ENABLE_QUEUE_CAPACITY
+ 133:../../../platform/resources/buffer/src/bmm.c **** 	qmm_queue_init(&free_large_buffer_q, TOTAL_NUMBER_OF_LARGE_BUFS);
+ 134:../../../platform/resources/buffer/src/bmm.c ****     #else
+ 135:../../../platform/resources/buffer/src/bmm.c **** 	qmm_queue_init(&free_large_buffer_q);
+  76              	 .loc 1 135 0
+  77 0006 2048     	 ldr r0,.L6
+  78 0008 204B     	 ldr r3,.L6+4
+  79 000a 9847     	 blx r3
+  80              	.LVL0:
+ 136:../../../platform/resources/buffer/src/bmm.c ****     #endif  /* ENABLE_QUEUE_CAPACITY */
+ 137:../../../platform/resources/buffer/src/bmm.c **** #endif
+ 138:../../../platform/resources/buffer/src/bmm.c **** 
+ 139:../../../platform/resources/buffer/src/bmm.c **** 	/* Initialize free buffer queue for small buffers */
+ 140:../../../platform/resources/buffer/src/bmm.c **** #if (TOTAL_NUMBER_OF_SMALL_BUFS > 0)
+ 141:../../../platform/resources/buffer/src/bmm.c ****     #ifdef ENABLE_QUEUE_CAPACITY
+ 142:../../../platform/resources/buffer/src/bmm.c **** 	qmm_queue_init(&free_small_buffer_q, TOTAL_NUMBER_OF_SMALL_BUFS);
+ 143:../../../platform/resources/buffer/src/bmm.c ****     #else
+ 144:../../../platform/resources/buffer/src/bmm.c **** 	qmm_queue_init(&free_small_buffer_q);
+  81              	 .loc 1 144 0
+  82 000c 2048     	 ldr r0,.L6+8
+  83 000e 1F4B     	 ldr r3,.L6+4
+  84 0010 9847     	 blx r3
+  85              	.LVL1:
+ 145:../../../platform/resources/buffer/src/bmm.c ****     #endif  /* ENABLE_QUEUE_CAPACITY */
+ 146:../../../platform/resources/buffer/src/bmm.c **** #endif
+ 147:../../../platform/resources/buffer/src/bmm.c **** 
+ 148:../../../platform/resources/buffer/src/bmm.c **** #if (TOTAL_NUMBER_OF_LARGE_BUFS > 0)
+ 149:../../../platform/resources/buffer/src/bmm.c **** 	for (index = 0; index < TOTAL_NUMBER_OF_LARGE_BUFS; index++) {
+  86              	 .loc 1 149 0
+  87 0012 0023     	 movs r3,#0
+  88 0014 FB71     	 strb r3,[r7,#7]
+  89 0016 13E0     	 b .L2
+  90              	.L3:
+ 150:../../../platform/resources/buffer/src/bmm.c **** 		/*
+ 151:../../../platform/resources/buffer/src/bmm.c **** 		 * Initialize the buffer body pointer with address of the
+ 152:../../../platform/resources/buffer/src/bmm.c **** 		 * buffer body
+ 153:../../../platform/resources/buffer/src/bmm.c **** 		 */
+ 154:../../../platform/resources/buffer/src/bmm.c **** 		buf_header[index].body = buf_pool + (index * LARGE_BUFFER_SIZE);
+  91              	 .loc 1 154 0 discriminator 3
+  92 0018 FB79     	 ldrb r3,[r7,#7]
+  93 001a FA79     	 ldrb r2,[r7,#7]
+  94 001c 1202     	 lsls r2,r2,#8
+  95 001e 1146     	 mov r1,r2
+  96 0020 1C4A     	 ldr r2,.L6+12
+  97 0022 0A44     	 add r2,r2,r1
+  98 0024 1C49     	 ldr r1,.L6+16
+  99 0026 41F83320 	 str r2,[r1,r3,lsl#3]
+ 155:../../../platform/resources/buffer/src/bmm.c **** 
+ 156:../../../platform/resources/buffer/src/bmm.c **** 		/* Append the buffer to free large buffer queue */
+ 157:../../../platform/resources/buffer/src/bmm.c **** 		qmm_queue_append(&free_large_buffer_q, &buf_header[index]);
+ 100              	 .loc 1 157 0 discriminator 3
+ 101 002a FB79     	 ldrb r3,[r7,#7]
+ 102 002c DB00     	 lsls r3,r3,#3
+ 103 002e 1A4A     	 ldr r2,.L6+16
+ 104 0030 1344     	 add r3,r3,r2
+ 105 0032 1946     	 mov r1,r3
+ 106 0034 1448     	 ldr r0,.L6
+ 107 0036 194B     	 ldr r3,.L6+20
+ 108 0038 9847     	 blx r3
+ 109              	.LVL2:
+ 149:../../../platform/resources/buffer/src/bmm.c **** 		/*
+ 110              	 .loc 1 149 0 discriminator 3
+ 111 003a FB79     	 ldrb r3,[r7,#7]
+ 112 003c 0133     	 adds r3,r3,#1
+ 113 003e FB71     	 strb r3,[r7,#7]
+ 114              	.L2:
+ 149:../../../platform/resources/buffer/src/bmm.c **** 		/*
+ 115              	 .loc 1 149 0 is_stmt 0 discriminator 1
+ 116 0040 FB79     	 ldrb r3,[r7,#7]
+ 117 0042 0F2B     	 cmp r3,#15
+ 118 0044 E8D9     	 bls .L3
+ 158:../../../platform/resources/buffer/src/bmm.c **** 	}
+ 159:../../../platform/resources/buffer/src/bmm.c **** #endif
+ 160:../../../platform/resources/buffer/src/bmm.c **** 
+ 161:../../../platform/resources/buffer/src/bmm.c **** #if (TOTAL_NUMBER_OF_SMALL_BUFS > 0)
+ 162:../../../platform/resources/buffer/src/bmm.c **** 	for (index = 0; index < TOTAL_NUMBER_OF_SMALL_BUFS; index++) {
+ 119              	 .loc 1 162 0 is_stmt 1
+ 120 0046 0023     	 movs r3,#0
+ 121 0048 FB71     	 strb r3,[r7,#7]
+ 122 004a 16E0     	 b .L4
+ 123              	.L5:
+ 163:../../../platform/resources/buffer/src/bmm.c **** 		/*
+ 164:../../../platform/resources/buffer/src/bmm.c **** 		 * Initialize the buffer body pointer with address of the
+ 165:../../../platform/resources/buffer/src/bmm.c **** 		 * buffer body
+ 166:../../../platform/resources/buffer/src/bmm.c **** 		 */
+ 167:../../../platform/resources/buffer/src/bmm.c **** 		buf_header[index + TOTAL_NUMBER_OF_LARGE_BUFS].body \
+ 124              	 .loc 1 167 0 discriminator 3
+ 125 004c FB79     	 ldrb r3,[r7,#7]
+ 126 004e 1033     	 adds r3,r3,#16
+ 168:../../../platform/resources/buffer/src/bmm.c **** 			= buf_pool +
+ 169:../../../platform/resources/buffer/src/bmm.c **** 				(TOTAL_NUMBER_OF_LARGE_BUFS *
+ 170:../../../platform/resources/buffer/src/bmm.c **** 				LARGE_BUFFER_SIZE) + \
+ 171:../../../platform/resources/buffer/src/bmm.c **** 				(index * SMALL_BUFFER_SIZE);
+ 127              	 .loc 1 171 0 discriminator 3
+ 128 0050 FA79     	 ldrb r2,[r7,#7]
+ 129 0052 9201     	 lsls r2,r2,#6
+ 170:../../../platform/resources/buffer/src/bmm.c **** 				(index * SMALL_BUFFER_SIZE);
+ 130              	 .loc 1 170 0 discriminator 3
+ 131 0054 02F58052 	 add r2,r2,#4096
+ 132 0058 0E49     	 ldr r1,.L6+12
+ 133 005a 0A44     	 add r2,r2,r1
+ 168:../../../platform/resources/buffer/src/bmm.c **** 			= buf_pool +
+ 134              	 .loc 1 168 0 discriminator 3
+ 135 005c 0E49     	 ldr r1,.L6+16
+ 136 005e 41F83320 	 str r2,[r1,r3,lsl#3]
+ 172:../../../platform/resources/buffer/src/bmm.c **** 
+ 173:../../../platform/resources/buffer/src/bmm.c **** 		/* Append the buffer to free small buffer queue */
+ 174:../../../platform/resources/buffer/src/bmm.c **** 		qmm_queue_append(&free_small_buffer_q, &buf_header[index + \
+ 137              	 .loc 1 174 0 discriminator 3
+ 138 0062 FB79     	 ldrb r3,[r7,#7]
+ 139 0064 1033     	 adds r3,r3,#16
+ 140 0066 DB00     	 lsls r3,r3,#3
+ 141 0068 0B4A     	 ldr r2,.L6+16
+ 142 006a 1344     	 add r3,r3,r2
+ 143 006c 1946     	 mov r1,r3
+ 144 006e 0848     	 ldr r0,.L6+8
+ 145 0070 0A4B     	 ldr r3,.L6+20
+ 146 0072 9847     	 blx r3
+ 147              	.LVL3:
+ 162:../../../platform/resources/buffer/src/bmm.c **** 		/*
+ 148              	 .loc 1 162 0 discriminator 3
+ 149 0074 FB79     	 ldrb r3,[r7,#7]
+ 150 0076 0133     	 adds r3,r3,#1
+ 151 0078 FB71     	 strb r3,[r7,#7]
+ 152              	.L4:
+ 162:../../../platform/resources/buffer/src/bmm.c **** 		/*
+ 153              	 .loc 1 162 0 is_stmt 0 discriminator 1
+ 154 007a FB79     	 ldrb r3,[r7,#7]
+ 155 007c 3F2B     	 cmp r3,#63
+ 156 007e E5D9     	 bls .L5
+ 175:../../../platform/resources/buffer/src/bmm.c **** 				TOTAL_NUMBER_OF_LARGE_BUFS]);
+ 176:../../../platform/resources/buffer/src/bmm.c **** 	}
+ 177:../../../platform/resources/buffer/src/bmm.c **** #endif
+ 178:../../../platform/resources/buffer/src/bmm.c **** }
+ 157              	 .loc 1 178 0 is_stmt 1
+ 158 0080 00BF     	 nop
+ 159 0082 0837     	 adds r7,r7,#8
+ 160              	.LCFI3:
+ 161              	 .cfi_def_cfa_offset 8
+ 162 0084 BD46     	 mov sp,r7
+ 163              	.LCFI4:
+ 164              	 .cfi_def_cfa_register 13
+ 165              	 
+ 166 0086 80BD     	 pop {r7,pc}
+ 167              	.L7:
+ 168              	 .align 2
+ 169              	.L6:
+ 170 0088 00000000 	 .word free_large_buffer_q
+ 171 008c 00000000 	 .word qmm_queue_init
+ 172 0090 00000000 	 .word free_small_buffer_q
+ 173 0094 00000000 	 .word buf_pool
+ 174 0098 00000000 	 .word buf_header
+ 175 009c 00000000 	 .word qmm_queue_append
+ 176              	 .cfi_endproc
+ 177              	.LFE122:
+ 179              	 .align 1
+ 180              	 .global bmm_buffer_alloc
+ 181              	 .syntax unified
+ 182              	 .thumb
+ 183              	 .thumb_func
+ 184              	 .fpu softvfp
+ 186              	bmm_buffer_alloc:
+ 187              	.LFB123:
+ 179:../../../platform/resources/buffer/src/bmm.c **** 
+ 180:../../../platform/resources/buffer/src/bmm.c **** /**
+ 181:../../../platform/resources/buffer/src/bmm.c ****  * @brief Allocates a buffer
+ 182:../../../platform/resources/buffer/src/bmm.c ****  *
+ 183:../../../platform/resources/buffer/src/bmm.c ****  * This function allocates a buffer and returns a pointer to the buffer.
+ 184:../../../platform/resources/buffer/src/bmm.c ****  * The same pointer should be used while freeing the buffer.User should
+ 185:../../../platform/resources/buffer/src/bmm.c ****  * call BMM_BUFFER_POINTER(buf) to get the pointer to buffer user area.
+ 186:../../../platform/resources/buffer/src/bmm.c ****  *
+ 187:../../../platform/resources/buffer/src/bmm.c ****  * @param size size of buffer to be allocated.
+ 188:../../../platform/resources/buffer/src/bmm.c ****  *
+ 189:../../../platform/resources/buffer/src/bmm.c ****  * @return pointer to the buffer allocated,
+ 190:../../../platform/resources/buffer/src/bmm.c ****  *  NULL if buffer not available.
+ 191:../../../platform/resources/buffer/src/bmm.c ****  */
+ 192:../../../platform/resources/buffer/src/bmm.c **** buffer_t *bmm_buffer_alloc(uint16_t size)
+ 193:../../../platform/resources/buffer/src/bmm.c **** {
+ 188              	 .loc 1 193 0
+ 189              	 .cfi_startproc
+ 190              	 
+ 191              	 
+ 192 00a0 80B5     	 push {r7,lr}
+ 193              	.LCFI5:
+ 194              	 .cfi_def_cfa_offset 8
+ 195              	 .cfi_offset 7,-8
+ 196              	 .cfi_offset 14,-4
+ 197 00a2 84B0     	 sub sp,sp,#16
+ 198              	.LCFI6:
+ 199              	 .cfi_def_cfa_offset 24
+ 200 00a4 00AF     	 add r7,sp,#0
+ 201              	.LCFI7:
+ 202              	 .cfi_def_cfa_register 7
+ 203 00a6 0346     	 mov r3,r0
+ 204 00a8 FB80     	 strh r3,[r7,#6]
+ 194:../../../platform/resources/buffer/src/bmm.c **** 	buffer_t *pfree_buffer = NULL;
+ 205              	 .loc 1 194 0
+ 206 00aa 0023     	 movs r3,#0
+ 207 00ac FB60     	 str r3,[r7,#12]
+ 195:../../../platform/resources/buffer/src/bmm.c **** 
+ 196:../../../platform/resources/buffer/src/bmm.c **** #if (TOTAL_NUMBER_OF_SMALL_BUFS > 0)
+ 197:../../../platform/resources/buffer/src/bmm.c **** 
+ 198:../../../platform/resources/buffer/src/bmm.c **** 	/*
+ 199:../../../platform/resources/buffer/src/bmm.c **** 	 * Allocate buffer only if size requested is less than or equal to
+ 200:../../../platform/resources/buffer/src/bmm.c **** 	 * maximum
+ 201:../../../platform/resources/buffer/src/bmm.c **** 	 * size that can be allocated.
+ 202:../../../platform/resources/buffer/src/bmm.c **** 	 */
+ 203:../../../platform/resources/buffer/src/bmm.c **** 	if (size <= LARGE_BUFFER_SIZE) {
+ 208              	 .loc 1 203 0
+ 209 00ae FB88     	 ldrh r3,[r7,#6]
+ 210 00b0 B3F5807F 	 cmp r3,#256
+ 211 00b4 0FD8     	 bhi .L9
+ 204:../../../platform/resources/buffer/src/bmm.c **** 		/*
+ 205:../../../platform/resources/buffer/src/bmm.c **** 		 * Allocate small buffer if size is less than small buffer size
+ 206:../../../platform/resources/buffer/src/bmm.c **** 		 *and if
+ 207:../../../platform/resources/buffer/src/bmm.c **** 		 * small buffer is available allocate from small buffer pool.
+ 208:../../../platform/resources/buffer/src/bmm.c **** 		 */
+ 209:../../../platform/resources/buffer/src/bmm.c **** 		if ((size <= SMALL_BUFFER_SIZE)) {
+ 212              	 .loc 1 209 0
+ 213 00b6 FB88     	 ldrh r3,[r7,#6]
+ 214 00b8 402B     	 cmp r3,#64
+ 215 00ba 04D8     	 bhi .L10
+ 210:../../../platform/resources/buffer/src/bmm.c **** 			/* Allocate buffer from free small buffer queue */
+ 211:../../../platform/resources/buffer/src/bmm.c **** 			pfree_buffer = qmm_queue_remove(&free_small_buffer_q,
+ 216              	 .loc 1 211 0
+ 217 00bc 0021     	 movs r1,#0
+ 218 00be 0848     	 ldr r0,.L12
+ 219 00c0 084B     	 ldr r3,.L12+4
+ 220 00c2 9847     	 blx r3
+ 221              	.LVL4:
+ 222 00c4 F860     	 str r0,[r7,#12]
+ 223              	.L10:
+ 212:../../../platform/resources/buffer/src/bmm.c **** 					NULL);
+ 213:../../../platform/resources/buffer/src/bmm.c **** 		}
+ 214:../../../platform/resources/buffer/src/bmm.c **** 
+ 215:../../../platform/resources/buffer/src/bmm.c **** 		/*
+ 216:../../../platform/resources/buffer/src/bmm.c **** 		 * If size is greater than small buffer size or no free small
+ 217:../../../platform/resources/buffer/src/bmm.c **** 		 *buffer is
+ 218:../../../platform/resources/buffer/src/bmm.c **** 		 * available, allocate a buffer from large buffer pool if
+ 219:../../../platform/resources/buffer/src/bmm.c **** 		 *avialable
+ 220:../../../platform/resources/buffer/src/bmm.c **** 		 */
+ 221:../../../platform/resources/buffer/src/bmm.c **** 		if (NULL == pfree_buffer) {
+ 224              	 .loc 1 221 0
+ 225 00c6 FB68     	 ldr r3,[r7,#12]
+ 226 00c8 002B     	 cmp r3,#0
+ 227 00ca 04D1     	 bne .L9
+ 222:../../../platform/resources/buffer/src/bmm.c **** 			/* Allocate buffer from free large buffer queue */
+ 223:../../../platform/resources/buffer/src/bmm.c **** 			pfree_buffer = qmm_queue_remove(&free_large_buffer_q,
+ 228              	 .loc 1 223 0
+ 229 00cc 0021     	 movs r1,#0
+ 230 00ce 0648     	 ldr r0,.L12+8
+ 231 00d0 044B     	 ldr r3,.L12+4
+ 232 00d2 9847     	 blx r3
+ 233              	.LVL5:
+ 234 00d4 F860     	 str r0,[r7,#12]
+ 235              	.L9:
+ 224:../../../platform/resources/buffer/src/bmm.c **** 					NULL);
+ 225:../../../platform/resources/buffer/src/bmm.c **** 		}
+ 226:../../../platform/resources/buffer/src/bmm.c **** 	}
+ 227:../../../platform/resources/buffer/src/bmm.c **** 
+ 228:../../../platform/resources/buffer/src/bmm.c **** #else /* no small buffers available at all */
+ 229:../../../platform/resources/buffer/src/bmm.c **** 	/* Allocate buffer from free large buffer queue */
+ 230:../../../platform/resources/buffer/src/bmm.c **** 	pfree_buffer = qmm_queue_remove(&free_large_buffer_q, NULL);
+ 231:../../../platform/resources/buffer/src/bmm.c **** 
+ 232:../../../platform/resources/buffer/src/bmm.c **** 	size = size; /* Keep compiler happy. */
+ 233:../../../platform/resources/buffer/src/bmm.c **** #endif
+ 234:../../../platform/resources/buffer/src/bmm.c **** 
+ 235:../../../platform/resources/buffer/src/bmm.c **** 	return pfree_buffer;
+ 236              	 .loc 1 235 0
+ 237 00d6 FB68     	 ldr r3,[r7,#12]
+ 236:../../../platform/resources/buffer/src/bmm.c **** }
+ 238              	 .loc 1 236 0
+ 239 00d8 1846     	 mov r0,r3
+ 240 00da 1037     	 adds r7,r7,#16
+ 241              	.LCFI8:
+ 242              	 .cfi_def_cfa_offset 8
+ 243 00dc BD46     	 mov sp,r7
+ 244              	.LCFI9:
+ 245              	 .cfi_def_cfa_register 13
+ 246              	 
+ 247 00de 80BD     	 pop {r7,pc}
+ 248              	.L13:
+ 249              	 .align 2
+ 250              	.L12:
+ 251 00e0 00000000 	 .word free_small_buffer_q
+ 252 00e4 00000000 	 .word qmm_queue_remove
+ 253 00e8 00000000 	 .word free_large_buffer_q
+ 254              	 .cfi_endproc
+ 255              	.LFE123:
+ 257              	 .align 1
+ 258              	 .global bmm_buffer_free
+ 259              	 .syntax unified
+ 260              	 .thumb
+ 261              	 .thumb_func
+ 262              	 .fpu softvfp
+ 264              	bmm_buffer_free:
+ 265              	.LFB124:
+ 237:../../../platform/resources/buffer/src/bmm.c **** 
+ 238:../../../platform/resources/buffer/src/bmm.c **** /**
+ 239:../../../platform/resources/buffer/src/bmm.c ****  * @brief Frees up a buffer.
+ 240:../../../platform/resources/buffer/src/bmm.c ****  *
+ 241:../../../platform/resources/buffer/src/bmm.c ****  * This function frees up a buffer. The pointer passed to this function
+ 242:../../../platform/resources/buffer/src/bmm.c ****  * should be the pointer returned during buffer allocation. The result is
+ 243:../../../platform/resources/buffer/src/bmm.c ****  * unpredictable if an incorrect pointer is passed.
+ 244:../../../platform/resources/buffer/src/bmm.c ****  *
+ 245:../../../platform/resources/buffer/src/bmm.c ****  * @param pbuffer Pointer to buffer that has to be freed.
+ 246:../../../platform/resources/buffer/src/bmm.c ****  */
+ 247:../../../platform/resources/buffer/src/bmm.c **** void bmm_buffer_free(buffer_t *pbuffer)
+ 248:../../../platform/resources/buffer/src/bmm.c **** {
+ 266              	 .loc 1 248 0
+ 267              	 .cfi_startproc
+ 268              	 
+ 269              	 
+ 270 00ec 80B5     	 push {r7,lr}
+ 271              	.LCFI10:
+ 272              	 .cfi_def_cfa_offset 8
+ 273              	 .cfi_offset 7,-8
+ 274              	 .cfi_offset 14,-4
+ 275 00ee 82B0     	 sub sp,sp,#8
+ 276              	.LCFI11:
+ 277              	 .cfi_def_cfa_offset 16
+ 278 00f0 00AF     	 add r7,sp,#0
+ 279              	.LCFI12:
+ 280              	 .cfi_def_cfa_register 7
+ 281 00f2 7860     	 str r0,[r7,#4]
+ 249:../../../platform/resources/buffer/src/bmm.c **** 	if (NULL == pbuffer) {
+ 282              	 .loc 1 249 0
+ 283 00f4 7B68     	 ldr r3,[r7,#4]
+ 284 00f6 002B     	 cmp r3,#0
+ 285 00f8 0ED0     	 beq .L18
+ 250:../../../platform/resources/buffer/src/bmm.c **** 		/* If the buffer pointer is NULL abort free operation */
+ 251:../../../platform/resources/buffer/src/bmm.c **** 		return;
+ 252:../../../platform/resources/buffer/src/bmm.c **** 	}
+ 253:../../../platform/resources/buffer/src/bmm.c **** 
+ 254:../../../platform/resources/buffer/src/bmm.c **** #if (TOTAL_NUMBER_OF_SMALL_BUFS > 0)
+ 255:../../../platform/resources/buffer/src/bmm.c **** 	if (IS_SMALL_BUF(pbuffer)) {
+ 286              	 .loc 1 255 0
+ 287 00fa 7B68     	 ldr r3,[r7,#4]
+ 288 00fc 1B68     	 ldr r3,[r3]
+ 289 00fe 084A     	 ldr r2,.L19
+ 290 0100 9342     	 cmp r3,r2
+ 291 0102 04D3     	 bcc .L17
+ 256:../../../platform/resources/buffer/src/bmm.c **** 		/* Append the buffer into free small buffer queue */
+ 257:../../../platform/resources/buffer/src/bmm.c **** 		qmm_queue_append(&free_small_buffer_q, pbuffer);
+ 292              	 .loc 1 257 0
+ 293 0104 7968     	 ldr r1,[r7,#4]
+ 294 0106 0748     	 ldr r0,.L19+4
+ 295 0108 074B     	 ldr r3,.L19+8
+ 296 010a 9847     	 blx r3
+ 297              	.LVL6:
+ 298 010c 05E0     	 b .L14
+ 299              	.L17:
+ 258:../../../platform/resources/buffer/src/bmm.c **** 	} else {
+ 259:../../../platform/resources/buffer/src/bmm.c **** 		/* Append the buffer into free large buffer queue */
+ 260:../../../platform/resources/buffer/src/bmm.c **** 		qmm_queue_append(&free_large_buffer_q, pbuffer);
+ 300              	 .loc 1 260 0
+ 301 010e 7968     	 ldr r1,[r7,#4]
+ 302 0110 0648     	 ldr r0,.L19+12
+ 303 0112 054B     	 ldr r3,.L19+8
+ 304 0114 9847     	 blx r3
+ 305              	.LVL7:
+ 306 0116 00E0     	 b .L14
+ 307              	.L18:
+ 251:../../../platform/resources/buffer/src/bmm.c **** 	}
+ 308              	 .loc 1 251 0
+ 309 0118 00BF     	 nop
+ 310              	.L14:
+ 261:../../../platform/resources/buffer/src/bmm.c **** 	}
+ 262:../../../platform/resources/buffer/src/bmm.c **** 
+ 263:../../../platform/resources/buffer/src/bmm.c **** #else /* no small buffers available at all */
+ 264:../../../platform/resources/buffer/src/bmm.c **** 	/* Append the buffer into free large buffer queue */
+ 265:../../../platform/resources/buffer/src/bmm.c **** 	qmm_queue_append(&free_large_buffer_q, pbuffer);
+ 266:../../../platform/resources/buffer/src/bmm.c **** #endif
+ 267:../../../platform/resources/buffer/src/bmm.c **** }
+ 311              	 .loc 1 267 0
+ 312 011a 0837     	 adds r7,r7,#8
+ 313              	.LCFI13:
+ 314              	 .cfi_def_cfa_offset 8
+ 315 011c BD46     	 mov sp,r7
+ 316              	.LCFI14:
+ 317              	 .cfi_def_cfa_register 13
+ 318              	 
+ 319 011e 80BD     	 pop {r7,pc}
+ 320              	.L20:
+ 321              	 .align 2
+ 322              	.L19:
+ 323 0120 00100000 	 .word buf_pool+4096
+ 324 0124 00000000 	 .word free_small_buffer_q
+ 325 0128 00000000 	 .word qmm_queue_append
+ 326 012c 00000000 	 .word free_large_buffer_q
+ 327              	 .cfi_endproc
+ 328              	.LFE124:
+ 330              	.Letext0:
+ 331              	 .file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 332              	 .file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 333              	 .file 4 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 334              	 .file 5 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 335              	 .file 6 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 336              	 .file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 337              	 .file 8 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+ 338              	 .file 9 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+ 339              	 .file 10 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 340              	 .file 11 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
+ 341              	 .file 12 "../../../platform/resources/buffer/inc/bmm.h"
+ 342              	 .file 13 "../../../platform/resources/queue/inc/qmm.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 bmm.c
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
+    {standard input}:27     .bss.buf_pool:00000000 $d
+    {standard input}:30     .bss.buf_pool:00000000 buf_pool
+    {standard input}:33     .bss.buf_header:00000000 $d
+    {standard input}:36     .bss.buf_header:00000000 buf_header
+    {standard input}:39     .bss.free_large_buffer_q:00000000 $d
+    {standard input}:42     .bss.free_large_buffer_q:00000000 free_large_buffer_q
+    {standard input}:45     .bss.free_small_buffer_q:00000000 $d
+    {standard input}:48     .bss.free_small_buffer_q:00000000 free_small_buffer_q
+    {standard input}:51     .text:00000000 $t
+    {standard input}:58     .text:00000000 bmm_buffer_init
+    {standard input}:170    .text:00000088 $d
+    {standard input}:179    .text:000000a0 $t
+    {standard input}:186    .text:000000a0 bmm_buffer_alloc
+    {standard input}:251    .text:000000e0 $d
+    {standard input}:257    .text:000000ec $t
+    {standard input}:264    .text:000000ec bmm_buffer_free
+    {standard input}:323    .text:00000120 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+qmm_queue_init
+qmm_queue_append
+qmm_queue_remove

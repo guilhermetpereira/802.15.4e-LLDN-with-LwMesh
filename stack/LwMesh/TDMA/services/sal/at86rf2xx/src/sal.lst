@@ -1,0 +1,1086 @@
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "sal.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .comm n,1,1
+  27              	 .section .bss.tTS,"aw",%nobits
+  28              	 .align 2
+  31              	tTS:
+  32 0000 00000000 	 .space 4
+  33              	 .section .bss.setup_flag,"aw",%nobits
+  36              	setup_flag:
+  37 0000 00       	 .space 1
+  38              	 .section .bss.dec_initialized,"aw",%nobits
+  41              	dec_initialized:
+  42 0000 00       	 .space 1
+  43              	 .section .bss.aes_buf,"aw",%nobits
+  44              	 .align 2
+  47              	aes_buf:
+  48 0000 00000000 	 .space 18
+  48      00000000 
+  48      00000000 
+  48      00000000 
+  48      0000
+  49              	 .section .data.last_dir,"aw",%progbits
+  52              	last_dir:
+  53 0000 02       	 .byte 2
+  54              	 .section .bss.enc_key,"aw",%nobits
+  55              	 .align 2
+  58              	enc_key:
+  59 0000 00000000 	 .space 16
+  59      00000000 
+  59      00000000 
+  59      00000000 
+  60              	 .section .bss.dec_key,"aw",%nobits
+  61              	 .align 2
+  64              	dec_key:
+  65 0000 00000000 	 .space 16
+  65      00000000 
+  65      00000000 
+  65      00000000 
+  66              	 .text
+  67              	 .align 1
+  68              	 .global sal_init
+  69              	 .syntax unified
+  70              	 .thumb
+  71              	 .thumb_func
+  72              	 .fpu softvfp
+  74              	sal_init:
+  75              	.LFB223:
+  76              	 .file 1 "../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c"
+   1:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /**
+   2:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @file sal.c
+   3:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+   4:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @brief Low-level crypto API for an AES unit implemented in AT86RF2xx
+   5:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+   6:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * Copyright (c) 2013-2014 Atmel Corporation. All rights reserved.
+   7:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+   8:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * \asf_license_start
+   9:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+  10:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * \page License
+  11:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+  12:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+  15:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *    this list of conditions and the following disclaimer.
+  17:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+  18:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *    and/or other materials provided with the distribution.
+  21:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+  22:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *    from this software without specific prior written permission.
+  24:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+  25:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *    Atmel microcontroller product.
+  27:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+  28:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+  40:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * \asf_license_stop
+  41:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  */
+  42:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+  43:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /**
+  44:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @author
+  45:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *      Atmel Corporation: http://www.atmel.com
+  46:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *      Support email: avr@atmel.com
+  47:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  */
+  48:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+  49:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /*
+  50:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * Copyright (c) 2013-2014, Atmel Corporation All rights reserved.
+  51:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+  52:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * Licensed under Atmel's Limited License Agreement --> EULA.txt
+  53:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  */
+  54:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+  55:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /* === Includes ============================================================ */
+  56:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+  57:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** #include "trx_access.h"
+  58:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** #include "sal_types.h"
+  59:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** #if (SAL_TYPE == AT86RF2xx)
+  60:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** #include <string.h>
+  61:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** #include "sal.h"
+  62:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** # include "delay.h"
+  63:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+  64:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /* === Macros ============================================================== */
+  65:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+  66:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** #define AES_RY_BIT                  (1)     /* AES_RY: poll on finished op */
+  67:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** #define AES_DIR_VOID                (AES_DIR_ENCRYPT + AES_DIR_DECRYPT + 1)
+  68:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /* Must be different from both summands */
+  69:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+  70:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** #define _SR_MASK(addr, mask, pos, val)     (((uint8_t)val << pos) & mask)
+  71:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** #define SR_MASK(SR, val)                   _SR_MASK(SR, val)
+  72:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+  73:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /* === Types =============================================================== */
+  74:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+  75:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /* === Globals ============================================================= */
+  76:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+  77:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /* True after sal_aes_setup(). */
+  78:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** static bool setup_flag;
+  79:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /* True if decryption key is actual and was computed. */
+  80:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** static bool dec_initialized = false;
+  81:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /* Buffer written over SPI to AES unit. */
+  82:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** static uint8_t aes_buf[AES_BLOCKSIZE + 2];
+  83:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /* Last value of "dir" parameter in sal_aes_setup(). */
+  84:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** static uint8_t last_dir = AES_DIR_VOID;
+  85:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /* Actual encryption key. */
+  86:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** static uint8_t enc_key[AES_KEYSIZE];
+  87:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /* Actual decryption key (valid if last_dir == AES_DIR_DECRYPT). */
+  88:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** static uint8_t dec_key[AES_KEYSIZE];
+  89:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+  90:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /* === Implementation ====================================================== */
+  91:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+  92:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /**
+  93:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @brief Initialization of SAL.
+  94:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+  95:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * This functions initializes the SAL.
+  96:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  */
+  97:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** void sal_init(void)
+  98:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** {
+  77              	 .loc 1 98 0
+  78              	 .cfi_startproc
+  79              	 
+  80              	 
+  81              	 
+  82 0000 80B4     	 push {r7}
+  83              	.LCFI0:
+  84              	 .cfi_def_cfa_offset 4
+  85              	 .cfi_offset 7,-4
+  86 0002 00AF     	 add r7,sp,#0
+  87              	.LCFI1:
+  88              	 .cfi_def_cfa_register 7
+  99:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** }
+  89              	 .loc 1 99 0
+  90 0004 00BF     	 nop
+  91 0006 BD46     	 mov sp,r7
+  92              	.LCFI2:
+  93              	 .cfi_def_cfa_register 13
+  94              	 
+  95 0008 80BC     	 pop {r7}
+  96              	.LCFI3:
+  97              	 .cfi_restore 7
+  98              	 .cfi_def_cfa_offset 0
+  99 000a 7047     	 bx lr
+ 100              	 .cfi_endproc
+ 101              	.LFE223:
+ 103              	 .align 1
+ 104              	 .global sal_aes_setup
+ 105              	 .syntax unified
+ 106              	 .thumb
+ 107              	 .thumb_func
+ 108              	 .fpu softvfp
+ 110              	sal_aes_setup:
+ 111              	.LFB224:
+ 100:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 101:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /**
+ 102:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @brief Setup AES unit
+ 103:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+ 104:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * This function perform the following tasks as part of the setup of the
+ 105:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * AES unit: key initialization, set encryption direction and encryption mode.
+ 106:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+ 107:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * In general, the contents of SRAM buffer is destroyed. When using
+ 108:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * sal_aes_wrrd(), sal_aes_read() needs to be called in order to get the result
+ 109:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * of the last AES operation before you may call sal_aes_setup() again.
+ 110:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+ 111:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @param[in] key AES key or NULL (NULL: use last key)
+ 112:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @param[in] enc_mode  AES_MODE_ECB or AES_MODE_CBC
+ 113:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @param[in] dir AES_DIR_ENCRYPT or AES_DIR_DECRYPT
+ 114:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+ 115:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @return  False if some parameter was illegal, true else
+ 116:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  */
+ 117:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** bool sal_aes_setup(uint8_t *key,
+ 118:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		uint8_t enc_mode,
+ 119:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		uint8_t dir)
+ 120:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** {
+ 112              	 .loc 1 120 0
+ 113              	 .cfi_startproc
+ 114              	 
+ 115              	 
+ 116 000c B0B5     	 push {r4,r5,r7,lr}
+ 117              	.LCFI4:
+ 118              	 .cfi_def_cfa_offset 16
+ 119              	 .cfi_offset 4,-16
+ 120              	 .cfi_offset 5,-12
+ 121              	 .cfi_offset 7,-8
+ 122              	 .cfi_offset 14,-4
+ 123 000e 86B0     	 sub sp,sp,#24
+ 124              	.LCFI5:
+ 125              	 .cfi_def_cfa_offset 40
+ 126 0010 00AF     	 add r7,sp,#0
+ 127              	.LCFI6:
+ 128              	 .cfi_def_cfa_register 7
+ 129 0012 7860     	 str r0,[r7,#4]
+ 130 0014 0B46     	 mov r3,r1
+ 131 0016 FB70     	 strb r3,[r7,#3]
+ 132 0018 1346     	 mov r3,r2
+ 133 001a BB70     	 strb r3,[r7,#2]
+ 121:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	if (key != NULL) {
+ 134              	 .loc 1 121 0
+ 135 001c 7B68     	 ldr r3,[r7,#4]
+ 136 001e 002B     	 cmp r3,#0
+ 137 0020 1BD0     	 beq .L3
+ 122:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		/* Setup key. */
+ 123:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		dec_initialized = false;
+ 138              	 .loc 1 123 0
+ 139 0022 584B     	 ldr r3,.L19
+ 140 0024 0022     	 movs r2,#0
+ 141 0026 1A70     	 strb r2,[r3]
+ 124:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 125:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		last_dir = AES_DIR_VOID;
+ 142              	 .loc 1 125 0
+ 143 0028 574B     	 ldr r3,.L19+4
+ 144 002a 0222     	 movs r2,#2
+ 145 002c 1A70     	 strb r2,[r3]
+ 126:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 127:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		/* Save key for later use after decryption or sleep. */
+ 128:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		memcpy(enc_key, key, AES_KEYSIZE);
+ 146              	 .loc 1 128 0
+ 147 002e 574A     	 ldr r2,.L19+8
+ 148 0030 7B68     	 ldr r3,[r7,#4]
+ 149 0032 1446     	 mov r4,r2
+ 150 0034 1868     	 ldr r0,[r3]
+ 151 0036 5968     	 ldr r1,[r3,#4]
+ 152 0038 9A68     	 ldr r2,[r3,#8]
+ 153 003a DB68     	 ldr r3,[r3,#12]
+ 154 003c 0FC4     	 stmia r4!,{r0,r1,r2,r3}
+ 129:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 130:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		/* Set subregister AES_MODE (Bits 4:6 in AES_CON) to 1: KEY
+ 131:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		 * SETUP. */
+ 132:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		aes_buf[0] = SR_MASK(SR_AES_MODE, AES_MODE_KEY);
+ 155              	 .loc 1 132 0
+ 156 003e 544B     	 ldr r3,.L19+12
+ 157 0040 1022     	 movs r2,#16
+ 158 0042 1A70     	 strb r2,[r3]
+ 133:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 134:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		/* Fill in key. */
+ 135:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		memcpy(aes_buf + 1, key, AES_KEYSIZE);
+ 159              	 .loc 1 135 0
+ 160 0044 534B     	 ldr r3,.L19+16
+ 161 0046 1022     	 movs r2,#16
+ 162 0048 7968     	 ldr r1,[r7,#4]
+ 163 004a 1846     	 mov r0,r3
+ 164 004c 524B     	 ldr r3,.L19+20
+ 165 004e 9847     	 blx r3
+ 166              	.LVL0:
+ 136:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 137:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		/* Write to SRAM in one step. */
+ 138:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		trx_sram_write((AES_BASE_ADDR + RG_AES_CTRL), aes_buf,
+ 167              	 .loc 1 138 0
+ 168 0050 1122     	 movs r2,#17
+ 169 0052 4F49     	 ldr r1,.L19+12
+ 170 0054 8320     	 movs r0,#131
+ 171 0056 514B     	 ldr r3,.L19+24
+ 172 0058 9847     	 blx r3
+ 173              	.LVL1:
+ 174              	.L3:
+ 139:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				AES_BLOCKSIZE + 1);
+ 140:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	}
+ 141:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 142:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	/* Set encryption direction. */
+ 143:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	switch (dir) {
+ 175              	 .loc 1 143 0
+ 176 005a BB78     	 ldrb r3,[r7,#2]
+ 177 005c 002B     	 cmp r3,#0
+ 178 005e 02D0     	 beq .L5
+ 179 0060 012B     	 cmp r3,#1
+ 180 0062 16D0     	 beq .L6
+ 181 0064 51E0     	 b .L15
+ 182              	.L5:
+ 144:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	case AES_DIR_ENCRYPT:
+ 145:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		if (last_dir == AES_DIR_DECRYPT) {
+ 183              	 .loc 1 145 0
+ 184 0066 484B     	 ldr r3,.L19+4
+ 185 0068 1B78     	 ldrb r3,[r3]
+ 186 006a 012B     	 cmp r3,#1
+ 187 006c 4FD1     	 bne .L17
+ 146:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			/*
+ 147:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			 * If the last operation was decryption, the encryption
+ 148:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			 * key must be stored in enc_key, so re-initialize it.
+ 149:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			 */
+ 150:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			aes_buf[0] = SR_MASK(SR_AES_MODE, AES_MODE_KEY);
+ 188              	 .loc 1 150 0
+ 189 006e 484B     	 ldr r3,.L19+12
+ 190 0070 1022     	 movs r2,#16
+ 191 0072 1A70     	 strb r2,[r3]
+ 151:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 152:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			/* Fill in key. */
+ 153:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			memcpy(aes_buf + 1, enc_key, AES_KEYSIZE);
+ 192              	 .loc 1 153 0
+ 193 0074 474A     	 ldr r2,.L19+16
+ 194 0076 454B     	 ldr r3,.L19+8
+ 195 0078 1446     	 mov r4,r2
+ 196 007a 1D46     	 mov r5,r3
+ 197 007c 0FCD     	 ldmia r5!,{r0,r1,r2,r3}
+ 198 007e 2060     	 str r0,[r4]
+ 199 0080 6160     	 str r1,[r4,#4]
+ 200 0082 A260     	 str r2,[r4,#8]
+ 201 0084 E360     	 str r3,[r4,#12]
+ 154:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 155:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			/* Write to SRAM in one step. */
+ 156:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			trx_sram_write((AES_BASE_ADDR + RG_AES_CTRL),
+ 202              	 .loc 1 156 0
+ 203 0086 1122     	 movs r2,#17
+ 204 0088 4149     	 ldr r1,.L19+12
+ 205 008a 8320     	 movs r0,#131
+ 206 008c 434B     	 ldr r3,.L19+24
+ 207 008e 9847     	 blx r3
+ 208              	.LVL2:
+ 157:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 					aes_buf, AES_BLOCKSIZE + 1);
+ 158:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		}
+ 159:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 160:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		break;
+ 209              	 .loc 1 160 0
+ 210 0090 3DE0     	 b .L17
+ 211              	.L6:
+ 161:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 162:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	case AES_DIR_DECRYPT:
+ 163:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		if (last_dir != AES_DIR_DECRYPT) {
+ 212              	 .loc 1 163 0
+ 213 0092 3D4B     	 ldr r3,.L19+4
+ 214 0094 1B78     	 ldrb r3,[r3]
+ 215 0096 012B     	 cmp r3,#1
+ 216 0098 3BD0     	 beq .L18
+ 164:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			aes_buf[0] = SR_MASK(SR_AES_MODE, AES_MODE_KEY);
+ 217              	 .loc 1 164 0
+ 218 009a 3D4B     	 ldr r3,.L19+12
+ 219 009c 1022     	 movs r2,#16
+ 220 009e 1A70     	 strb r2,[r3]
+ 165:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 166:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			if (!dec_initialized) {
+ 221              	 .loc 1 166 0
+ 222 00a0 384B     	 ldr r3,.L19
+ 223 00a2 1B78     	 ldrb r3,[r3]
+ 224 00a4 83F00103 	 eor r3,r3,#1
+ 225 00a8 DBB2     	 uxtb r3,r3
+ 226 00aa 002B     	 cmp r3,#0
+ 227 00ac 1BD0     	 beq .L10
+ 228              	.LBB2:
+ 167:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				uint8_t dummy[AES_BLOCKSIZE];
+ 168:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 169:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				/* Compute decryption key and initialize unit
+ 170:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				 * with it. */
+ 171:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 172:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				/* Dummy ECB encryption. */
+ 173:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				aes_buf[0] = SR_MASK(SR_AES_MODE, AES_MODE_ECB);
+ 229              	 .loc 1 173 0
+ 230 00ae 384B     	 ldr r3,.L19+12
+ 231 00b0 0022     	 movs r2,#0
+ 232 00b2 1A70     	 strb r2,[r3]
+ 174:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				aes_buf[AES_BLOCKSIZE + 1] = SR_MASK(
+ 233              	 .loc 1 174 0
+ 234 00b4 364B     	 ldr r3,.L19+12
+ 235 00b6 8022     	 movs r2,#128
+ 236 00b8 5A74     	 strb r2,[r3,#17]
+ 175:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 						SR_AES_MODE, AES_MODE_ECB) |
+ 176:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 						SR_MASK(SR_AES_REQUEST,
+ 177:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 						AES_REQUEST);
+ 178:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 179:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				setup_flag = true; /* Needed in sal_aes_wrrd().
+ 237              	 .loc 1 179 0
+ 238 00ba 394B     	 ldr r3,.L19+28
+ 239 00bc 0122     	 movs r2,#1
+ 240 00be 1A70     	 strb r2,[r3]
+ 180:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				                   **/
+ 181:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				sal_aes_wrrd(dummy, NULL);
+ 241              	 .loc 1 181 0
+ 242 00c0 07F10803 	 add r3,r7,#8
+ 243 00c4 0021     	 movs r1,#0
+ 244 00c6 1846     	 mov r0,r3
+ 245 00c8 FFF7FEFF 	 bl sal_aes_wrrd
+ 182:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 183:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				/* Read last round key: */
+ 184:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 185:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				/* Set to key mode. */
+ 186:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				aes_buf[0] = SR_MASK(SR_AES_MODE, AES_MODE_KEY);
+ 246              	 .loc 1 186 0
+ 247 00cc 304B     	 ldr r3,.L19+12
+ 248 00ce 1022     	 movs r2,#16
+ 249 00d0 1A70     	 strb r2,[r3]
+ 187:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				trx_sram_write(
+ 250              	 .loc 1 187 0
+ 251 00d2 0122     	 movs r2,#1
+ 252 00d4 2E49     	 ldr r1,.L19+12
+ 253 00d6 8320     	 movs r0,#131
+ 254 00d8 304B     	 ldr r3,.L19+24
+ 255 00da 9847     	 blx r3
+ 256              	.LVL3:
+ 188:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 						(AES_BASE_ADDR + RG_AES_CTRL),
+ 189:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 						aes_buf, 1);
+ 190:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 191:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				/* Read the key. */
+ 192:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				trx_sram_read((AES_BASE_ADDR +
+ 257              	 .loc 1 192 0
+ 258 00dc 1022     	 movs r2,#16
+ 259 00de 3149     	 ldr r1,.L19+32
+ 260 00e0 8420     	 movs r0,#132
+ 261 00e2 314B     	 ldr r3,.L19+36
+ 262 00e4 9847     	 blx r3
+ 263              	.LVL4:
+ 264              	.L10:
+ 265              	.LBE2:
+ 193:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 						RG_AES_STATE_KEY_0), dec_key,
+ 194:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 						AES_KEYSIZE);
+ 195:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			}
+ 196:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 197:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			/*
+ 198:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			 * Now the decryption key is computed resp. known,
+ 199:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			 * simply re-initialize the unit;
+ 200:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			 * aes_buf[0] is AES_MODE_KEY
+ 201:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			 */
+ 202:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 203:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			/* Fill in key. */
+ 204:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			memcpy(aes_buf + 1, dec_key, AES_KEYSIZE);
+ 266              	 .loc 1 204 0
+ 267 00e6 2B4A     	 ldr r2,.L19+16
+ 268 00e8 2E4B     	 ldr r3,.L19+32
+ 269 00ea 1446     	 mov r4,r2
+ 270 00ec 1D46     	 mov r5,r3
+ 271 00ee 0FCD     	 ldmia r5!,{r0,r1,r2,r3}
+ 272 00f0 2060     	 str r0,[r4]
+ 273 00f2 6160     	 str r1,[r4,#4]
+ 274 00f4 A260     	 str r2,[r4,#8]
+ 275 00f6 E360     	 str r3,[r4,#12]
+ 205:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 206:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			/* Write to SRAM in one step. */
+ 207:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			trx_sram_write((AES_BASE_ADDR + RG_AES_CTRL),
+ 276              	 .loc 1 207 0
+ 277 00f8 1122     	 movs r2,#17
+ 278 00fa 2549     	 ldr r1,.L19+12
+ 279 00fc 8320     	 movs r0,#131
+ 280 00fe 274B     	 ldr r3,.L19+24
+ 281 0100 9847     	 blx r3
+ 282              	.LVL5:
+ 208:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 					aes_buf, AES_BLOCKSIZE + 1);
+ 209:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 210:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			dec_initialized = true;
+ 283              	 .loc 1 210 0
+ 284 0102 204B     	 ldr r3,.L19
+ 285 0104 0122     	 movs r2,#1
+ 286 0106 1A70     	 strb r2,[r3]
+ 211:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		}
+ 212:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 213:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		break;
+ 287              	 .loc 1 213 0
+ 288 0108 03E0     	 b .L18
+ 289              	.L15:
+ 214:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 215:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	default:
+ 216:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		return false;
+ 290              	 .loc 1 216 0
+ 291 010a 0023     	 movs r3,#0
+ 292 010c 36E0     	 b .L11
+ 293              	.L17:
+ 160:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 294              	 .loc 1 160 0
+ 295 010e 00BF     	 nop
+ 296 0110 00E0     	 b .L8
+ 297              	.L18:
+ 213:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 298              	 .loc 1 213 0
+ 299 0112 00BF     	 nop
+ 300              	.L8:
+ 217:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	}
+ 218:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 219:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	last_dir = dir;
+ 301              	 .loc 1 219 0
+ 302 0114 1C4A     	 ldr r2,.L19+4
+ 303 0116 BB78     	 ldrb r3,[r7,#2]
+ 304 0118 1370     	 strb r3,[r2]
+ 220:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 221:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	/* Set encryption mode. */
+ 222:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	switch (enc_mode) {
+ 305              	 .loc 1 222 0
+ 306 011a FB78     	 ldrb r3,[r7,#3]
+ 307 011c 002B     	 cmp r3,#0
+ 308 011e 01D0     	 beq .L13
+ 309 0120 022B     	 cmp r3,#2
+ 310 0122 2AD1     	 bne .L16
+ 311              	.L13:
+ 223:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	case AES_MODE_ECB:
+ 224:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	case AES_MODE_CBC:
+ 225:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	{
+ 226:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		aes_buf[0] = SR_MASK(SR_AES_MODE, enc_mode) |
+ 312              	 .loc 1 226 0
+ 313 0124 FB78     	 ldrb r3,[r7,#3]
+ 314 0126 1B01     	 lsls r3,r3,#4
+ 315 0128 5BB2     	 sxtb r3,r3
+ 316 012a 03F07003 	 and r3,r3,#112
+ 317 012e 5AB2     	 sxtb r2,r3
+ 227:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				SR_MASK(SR_AES_DIR, dir);
+ 318              	 .loc 1 227 0
+ 319 0130 BB78     	 ldrb r3,[r7,#2]
+ 320 0132 DB00     	 lsls r3,r3,#3
+ 321 0134 5BB2     	 sxtb r3,r3
+ 322 0136 03F00803 	 and r3,r3,#8
+ 323 013a 5BB2     	 sxtb r3,r3
+ 226:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				SR_MASK(SR_AES_DIR, dir);
+ 324              	 .loc 1 226 0
+ 325 013c 1343     	 orrs r3,r3,r2
+ 326 013e 5BB2     	 sxtb r3,r3
+ 327 0140 DAB2     	 uxtb r2,r3
+ 328 0142 134B     	 ldr r3,.L19+12
+ 329 0144 1A70     	 strb r2,[r3]
+ 228:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		aes_buf[AES_BLOCKSIZE + 1] = SR_MASK(SR_AES_MODE, enc_mode) |
+ 330              	 .loc 1 228 0
+ 331 0146 FB78     	 ldrb r3,[r7,#3]
+ 332 0148 1B01     	 lsls r3,r3,#4
+ 333 014a 5BB2     	 sxtb r3,r3
+ 334 014c 03F07003 	 and r3,r3,#112
+ 335 0150 5AB2     	 sxtb r2,r3
+ 229:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				SR_MASK(SR_AES_DIR, dir) |
+ 336              	 .loc 1 229 0
+ 337 0152 BB78     	 ldrb r3,[r7,#2]
+ 338 0154 DB00     	 lsls r3,r3,#3
+ 339 0156 5BB2     	 sxtb r3,r3
+ 340 0158 03F00803 	 and r3,r3,#8
+ 341 015c 5BB2     	 sxtb r3,r3
+ 228:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		aes_buf[AES_BLOCKSIZE + 1] = SR_MASK(SR_AES_MODE, enc_mode) |
+ 342              	 .loc 1 228 0
+ 343 015e 1343     	 orrs r3,r3,r2
+ 344 0160 5BB2     	 sxtb r3,r3
+ 345              	 .loc 1 229 0
+ 346 0162 63F07F03 	 orn r3,r3,#127
+ 347 0166 5BB2     	 sxtb r3,r3
+ 348 0168 DAB2     	 uxtb r2,r3
+ 228:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		aes_buf[AES_BLOCKSIZE + 1] = SR_MASK(SR_AES_MODE, enc_mode) |
+ 349              	 .loc 1 228 0
+ 350 016a 094B     	 ldr r3,.L19+12
+ 351 016c 5A74     	 strb r2,[r3,#17]
+ 230:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				SR_MASK(SR_AES_REQUEST, AES_REQUEST);
+ 231:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	}
+ 232:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	break;
+ 352              	 .loc 1 232 0
+ 353 016e 00BF     	 nop
+ 233:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 234:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	default:
+ 235:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		return (false);
+ 236:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	}
+ 237:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 238:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	setup_flag = true;
+ 354              	 .loc 1 238 0
+ 355 0170 0B4B     	 ldr r3,.L19+28
+ 356 0172 0122     	 movs r2,#1
+ 357 0174 1A70     	 strb r2,[r3]
+ 239:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 240:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	return (true);
+ 358              	 .loc 1 240 0
+ 359 0176 0123     	 movs r3,#1
+ 360 0178 00E0     	 b .L11
+ 361              	.L16:
+ 235:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	}
+ 362              	 .loc 1 235 0
+ 363 017a 0023     	 movs r3,#0
+ 364              	.L11:
+ 241:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** }
+ 365              	 .loc 1 241 0
+ 366 017c 1846     	 mov r0,r3
+ 367 017e 1837     	 adds r7,r7,#24
+ 368              	.LCFI7:
+ 369              	 .cfi_def_cfa_offset 16
+ 370 0180 BD46     	 mov sp,r7
+ 371              	.LCFI8:
+ 372              	 .cfi_def_cfa_register 13
+ 373              	 
+ 374 0182 B0BD     	 pop {r4,r5,r7,pc}
+ 375              	.L20:
+ 376              	 .align 2
+ 377              	.L19:
+ 378 0184 00000000 	 .word dec_initialized
+ 379 0188 00000000 	 .word last_dir
+ 380 018c 00000000 	 .word enc_key
+ 381 0190 00000000 	 .word aes_buf
+ 382 0194 01000000 	 .word aes_buf+1
+ 383 0198 00000000 	 .word memcpy
+ 384 019c 00000000 	 .word trx_sram_write
+ 385 01a0 00000000 	 .word setup_flag
+ 386 01a4 00000000 	 .word dec_key
+ 387 01a8 00000000 	 .word trx_sram_read
+ 388              	 .cfi_endproc
+ 389              	.LFE224:
+ 391              	 .align 1
+ 392              	 .global sal_aes_restart
+ 393              	 .syntax unified
+ 394              	 .thumb
+ 395              	 .thumb_func
+ 396              	 .fpu softvfp
+ 398              	sal_aes_restart:
+ 399              	.LFB225:
+ 242:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 243:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /**
+ 244:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @brief Re-inits key and state after a sleep or TRX reset
+ 245:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+ 246:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * This function re-initializes the AES key and the state of the
+ 247:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * AES engine after TRX sleep or reset.
+ 248:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * The contents of AES registers AES_CON and AES_CON_MIRROR
+ 249:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * are restored, the next AES operation started with sal_aes_wrrd()
+ 250:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * will be executed correctly.
+ 251:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * However, the contents of SRAM buffers is destroyed, in general.
+ 252:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * When using sal_aes_wrrd(), call sal_aes_read() to get the result
+ 253:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * of the last AES operation BEFORE you put the transceiver unit to
+ 254:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * sleep state!
+ 255:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  */
+ 256:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** void sal_aes_restart(void)
+ 257:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** {
+ 400              	 .loc 1 257 0
+ 401              	 .cfi_startproc
+ 402              	 
+ 403              	 
+ 404 01ac 80B5     	 push {r7,lr}
+ 405              	.LCFI9:
+ 406              	 .cfi_def_cfa_offset 8
+ 407              	 .cfi_offset 7,-8
+ 408              	 .cfi_offset 14,-4
+ 409 01ae 82B0     	 sub sp,sp,#8
+ 410              	.LCFI10:
+ 411              	 .cfi_def_cfa_offset 16
+ 412 01b0 00AF     	 add r7,sp,#0
+ 413              	.LCFI11:
+ 414              	 .cfi_def_cfa_register 7
+ 258:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	/*
+ 259:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	 * AT86RF212 & AT86RF231 loose the key information after a sleep
+ 260:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	 * cycle, so the security information needs to be re-written
+ 261:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	 * to the transceiver.
+ 262:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	 * This is not required anymore for SPI transceivers beyond
+ 263:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	 * these two mentioned transceivers.
+ 264:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	 */
+ 265:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	uint8_t *keyp;
+ 266:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	uint8_t save_cmd;
+ 267:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	if (last_dir == AES_DIR_ENCRYPT) {
+ 415              	 .loc 1 267 0
+ 416 01b2 124B     	 ldr r3,.L24
+ 417 01b4 1B78     	 ldrb r3,[r3]
+ 418 01b6 002B     	 cmp r3,#0
+ 419 01b8 02D1     	 bne .L22
+ 268:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		keyp = enc_key;
+ 420              	 .loc 1 268 0
+ 421 01ba 114B     	 ldr r3,.L24+4
+ 422 01bc 7B60     	 str r3,[r7,#4]
+ 423 01be 01E0     	 b .L23
+ 424              	.L22:
+ 269:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	} else {
+ 270:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		keyp = dec_key;
+ 425              	 .loc 1 270 0
+ 426 01c0 104B     	 ldr r3,.L24+8
+ 427 01c2 7B60     	 str r3,[r7,#4]
+ 428              	.L23:
+ 271:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	}
+ 272:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 273:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	save_cmd = aes_buf[0];
+ 429              	 .loc 1 273 0
+ 430 01c4 104B     	 ldr r3,.L24+12
+ 431 01c6 1B78     	 ldrb r3,[r3]
+ 432 01c8 FB70     	 strb r3,[r7,#3]
+ 274:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	aes_buf[0] = SR_MASK(SR_AES_MODE, AES_MODE_KEY);
+ 433              	 .loc 1 274 0
+ 434 01ca 0F4B     	 ldr r3,.L24+12
+ 435 01cc 1022     	 movs r2,#16
+ 436 01ce 1A70     	 strb r2,[r3]
+ 275:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 276:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	/* Fill in key. */
+ 277:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	memcpy(aes_buf + 1, keyp, AES_KEYSIZE);
+ 437              	 .loc 1 277 0
+ 438 01d0 0E4B     	 ldr r3,.L24+16
+ 439 01d2 1022     	 movs r2,#16
+ 440 01d4 7968     	 ldr r1,[r7,#4]
+ 441 01d6 1846     	 mov r0,r3
+ 442 01d8 0D4B     	 ldr r3,.L24+20
+ 443 01da 9847     	 blx r3
+ 444              	.LVL6:
+ 278:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 279:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	/* Write to SRAM in one step. */
+ 280:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	trx_sram_write((AES_BASE_ADDR + RG_AES_CTRL), aes_buf,
+ 445              	 .loc 1 280 0
+ 446 01dc 1122     	 movs r2,#17
+ 447 01de 0A49     	 ldr r1,.L24+12
+ 448 01e0 8320     	 movs r0,#131
+ 449 01e2 0C4B     	 ldr r3,.L24+24
+ 450 01e4 9847     	 blx r3
+ 451              	.LVL7:
+ 281:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			AES_BLOCKSIZE + 1);
+ 282:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 283:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	aes_buf[0] = save_cmd;
+ 452              	 .loc 1 283 0
+ 453 01e6 084A     	 ldr r2,.L24+12
+ 454 01e8 FB78     	 ldrb r3,[r7,#3]
+ 455 01ea 1370     	 strb r3,[r2]
+ 284:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	setup_flag = true;
+ 456              	 .loc 1 284 0
+ 457 01ec 0A4B     	 ldr r3,.L24+28
+ 458 01ee 0122     	 movs r2,#1
+ 459 01f0 1A70     	 strb r2,[r3]
+ 285:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** }
+ 460              	 .loc 1 285 0
+ 461 01f2 00BF     	 nop
+ 462 01f4 0837     	 adds r7,r7,#8
+ 463              	.LCFI12:
+ 464              	 .cfi_def_cfa_offset 8
+ 465 01f6 BD46     	 mov sp,r7
+ 466              	.LCFI13:
+ 467              	 .cfi_def_cfa_register 13
+ 468              	 
+ 469 01f8 80BD     	 pop {r7,pc}
+ 470              	.L25:
+ 471 01fa 00BF     	 .align 2
+ 472              	.L24:
+ 473 01fc 00000000 	 .word last_dir
+ 474 0200 00000000 	 .word enc_key
+ 475 0204 00000000 	 .word dec_key
+ 476 0208 00000000 	 .word aes_buf
+ 477 020c 01000000 	 .word aes_buf+1
+ 478 0210 00000000 	 .word memcpy
+ 479 0214 00000000 	 .word trx_sram_write
+ 480 0218 00000000 	 .word setup_flag
+ 481              	 .cfi_endproc
+ 482              	.LFE225:
+ 484              	 .align 1
+ 485              	 .global _sal_aes_clean_up
+ 486              	 .syntax unified
+ 487              	 .thumb
+ 488              	 .thumb_func
+ 489              	 .fpu softvfp
+ 491              	_sal_aes_clean_up:
+ 492              	.LFB226:
+ 286:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 287:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /**
+ 288:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @brief Cleans up the SAL/AES after STB has been finished
+ 289:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  */
+ 290:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** void _sal_aes_clean_up(void)
+ 291:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** {
+ 493              	 .loc 1 291 0
+ 494              	 .cfi_startproc
+ 495              	 
+ 496              	 
+ 497              	 
+ 498 021c 80B4     	 push {r7}
+ 499              	.LCFI14:
+ 500              	 .cfi_def_cfa_offset 4
+ 501              	 .cfi_offset 7,-4
+ 502 021e 00AF     	 add r7,sp,#0
+ 503              	.LCFI15:
+ 504              	 .cfi_def_cfa_register 7
+ 292:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** }
+ 505              	 .loc 1 292 0
+ 506 0220 00BF     	 nop
+ 507 0222 BD46     	 mov sp,r7
+ 508              	.LCFI16:
+ 509              	 .cfi_def_cfa_register 13
+ 510              	 
+ 511 0224 80BC     	 pop {r7}
+ 512              	.LCFI17:
+ 513              	 .cfi_restore 7
+ 514              	 .cfi_def_cfa_offset 0
+ 515 0226 7047     	 bx lr
+ 516              	 .cfi_endproc
+ 517              	.LFE226:
+ 519              	 .align 1
+ 520              	 .global sal_aes_wrrd
+ 521              	 .syntax unified
+ 522              	 .thumb
+ 523              	 .thumb_func
+ 524              	 .fpu softvfp
+ 526              	sal_aes_wrrd:
+ 527              	.LFB227:
+ 293:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 294:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /**
+ 295:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @brief Writes data, reads previous result and does the AES en/decryption
+ 296:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+ 297:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * The function returns after the AES operation is finished.
+ 298:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+ 299:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * When sal_aes_wrrd() is called several times in sequence, from the
+ 300:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * second call onwards, odata contains the result of the previous operation.
+ 301:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * To obtain the last result, you must call sal_aes_read() at the end.
+ 302:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * Please note that any call of sal_aes_setup() as well as putting
+ 303:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * the transceiver to sleep state destroys the SRAM contents,
+ 304:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * i.e. the next call of sal_aes_wrrd() yields no meaningful result.
+ 305:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+ 306:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @param[in]  idata  AES block to be en/decrypted
+ 307:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @param[out] odata  Result of previous operation
+ 308:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *                    (odata may be NULL or equal to idata)
+ 309:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  */
+ 310:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** void sal_aes_wrrd(uint8_t *idata, uint8_t *odata)
+ 311:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** {
+ 528              	 .loc 1 311 0
+ 529              	 .cfi_startproc
+ 530              	 
+ 531              	 
+ 532 0228 80B5     	 push {r7,lr}
+ 533              	.LCFI18:
+ 534              	 .cfi_def_cfa_offset 8
+ 535              	 .cfi_offset 7,-8
+ 536              	 .cfi_offset 14,-4
+ 537 022a 84B0     	 sub sp,sp,#16
+ 538              	.LCFI19:
+ 539              	 .cfi_def_cfa_offset 24
+ 540 022c 00AF     	 add r7,sp,#0
+ 541              	.LCFI20:
+ 542              	 .cfi_def_cfa_register 7
+ 543 022e 7860     	 str r0,[r7,#4]
+ 544 0230 3960     	 str r1,[r7]
+ 312:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	uint8_t save_cmd;
+ 313:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 314:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	/*
+ 315:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	 * Write data and start the operation.
+ 316:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	 * AES_MODE in aes_buf[0] and aes_buf[AES_BLOCKSIZE+1] as well as
+ 317:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	 * AES_REQUEST in aes_buf[AES_BLOCKSIZE+1]
+ 318:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	 * were set before in sal_aes_setup()
+ 319:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	 */
+ 320:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	memcpy(aes_buf + 1, idata, AES_BLOCKSIZE);
+ 545              	 .loc 1 320 0
+ 546 0232 174B     	 ldr r3,.L31
+ 547 0234 1022     	 movs r2,#16
+ 548 0236 7968     	 ldr r1,[r7,#4]
+ 549 0238 1846     	 mov r0,r3
+ 550 023a 164B     	 ldr r3,.L31+4
+ 551 023c 9847     	 blx r3
+ 552              	.LVL8:
+ 321:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 322:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	/* trx_aes_wrrd() overwrites aes_buf, the last byte must be saved.
+ 323:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	**/
+ 324:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	save_cmd = aes_buf[AES_BLOCKSIZE + 1];
+ 553              	 .loc 1 324 0
+ 554 023e 164B     	 ldr r3,.L31+8
+ 555 0240 5B7C     	 ldrb r3,[r3,#17]
+ 556 0242 FB73     	 strb r3,[r7,#15]
+ 325:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 326:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	if (setup_flag) {
+ 557              	 .loc 1 326 0
+ 558 0244 154B     	 ldr r3,.L31+12
+ 559 0246 1B78     	 ldrb r3,[r3]
+ 560 0248 002B     	 cmp r3,#0
+ 561 024a 08D0     	 beq .L28
+ 327:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		trx_aes_wrrd((AES_BASE_ADDR + RG_AES_CTRL), aes_buf,
+ 562              	 .loc 1 327 0
+ 563 024c 1222     	 movs r2,#18
+ 564 024e 1249     	 ldr r1,.L31+8
+ 565 0250 8320     	 movs r0,#131
+ 566 0252 134B     	 ldr r3,.L31+16
+ 567 0254 9847     	 blx r3
+ 568              	.LVL9:
+ 328:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				AES_BLOCKSIZE + 2);
+ 329:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 330:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		setup_flag = false;
+ 569              	 .loc 1 330 0
+ 570 0256 114B     	 ldr r3,.L31+12
+ 571 0258 0022     	 movs r2,#0
+ 572 025a 1A70     	 strb r2,[r3]
+ 573 025c 05E0     	 b .L29
+ 574              	.L28:
+ 331:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	} else {
+ 332:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		trx_aes_wrrd((AES_BASE_ADDR + RG_AES_STATE_KEY_0),
+ 575              	 .loc 1 332 0
+ 576 025e 0C4B     	 ldr r3,.L31
+ 577 0260 1122     	 movs r2,#17
+ 578 0262 1946     	 mov r1,r3
+ 579 0264 8420     	 movs r0,#132
+ 580 0266 0E4B     	 ldr r3,.L31+16
+ 581 0268 9847     	 blx r3
+ 582              	.LVL10:
+ 583              	.L29:
+ 333:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 				aes_buf + 1, AES_BLOCKSIZE + 1);
+ 334:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	}
+ 335:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 336:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	/* Restore the result. */
+ 337:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	if (odata != NULL) {
+ 584              	 .loc 1 337 0
+ 585 026a 3B68     	 ldr r3,[r7]
+ 586 026c 002B     	 cmp r3,#0
+ 587 026e 05D0     	 beq .L30
+ 338:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 		memcpy(odata, aes_buf + 1, AES_BLOCKSIZE);
+ 588              	 .loc 1 338 0
+ 589 0270 074B     	 ldr r3,.L31
+ 590 0272 1022     	 movs r2,#16
+ 591 0274 1946     	 mov r1,r3
+ 592 0276 3868     	 ldr r0,[r7]
+ 593 0278 064B     	 ldr r3,.L31+4
+ 594 027a 9847     	 blx r3
+ 595              	.LVL11:
+ 596              	.L30:
+ 339:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	}
+ 340:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 341:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	aes_buf[AES_BLOCKSIZE + 1] = save_cmd;
+ 597              	 .loc 1 341 0
+ 598 027c 064A     	 ldr r2,.L31+8
+ 599 027e FB7B     	 ldrb r3,[r7,#15]
+ 600 0280 5374     	 strb r3,[r2,#17]
+ 342:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 343:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	/* Wait for the operation to finish for 24 us. */
+ 344:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	delay_us(24);
+ 601              	 .loc 1 344 0
+ 602 0282 5320     	 movs r0,#83
+ 603 0284 074B     	 ldr r3,.L31+20
+ 604 0286 9847     	 blx r3
+ 605              	.LVL12:
+ 345:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** }
+ 606              	 .loc 1 345 0
+ 607 0288 00BF     	 nop
+ 608 028a 1037     	 adds r7,r7,#16
+ 609              	.LCFI21:
+ 610              	 .cfi_def_cfa_offset 8
+ 611 028c BD46     	 mov sp,r7
+ 612              	.LCFI22:
+ 613              	 .cfi_def_cfa_register 13
+ 614              	 
+ 615 028e 80BD     	 pop {r7,pc}
+ 616              	.L32:
+ 617              	 .align 2
+ 618              	.L31:
+ 619 0290 01000000 	 .word aes_buf+1
+ 620 0294 00000000 	 .word memcpy
+ 621 0298 00000000 	 .word aes_buf
+ 622 029c 00000000 	 .word setup_flag
+ 623 02a0 00000000 	 .word trx_aes_wrrd
+ 624 02a4 00000000 	 .word portable_delay_cycles
+ 625              	 .cfi_endproc
+ 626              	.LFE227:
+ 628              	 .align 1
+ 629              	 .global sal_aes_read
+ 630              	 .syntax unified
+ 631              	 .thumb
+ 632              	 .thumb_func
+ 633              	 .fpu softvfp
+ 635              	sal_aes_read:
+ 636              	.LFB228:
+ 346:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 
+ 347:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** /**
+ 348:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @brief Reads the result of previous AES en/decryption
+ 349:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+ 350:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * This function returns the result of the previous AES operation,
+ 351:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * so this function is needed in order to get the last result
+ 352:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * of a series of sal_aes_wrrd() calls.
+ 353:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  *
+ 354:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  * @param[out] data     - result of previous operation
+ 355:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c ****  */
+ 356:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** void sal_aes_read(uint8_t *data)
+ 357:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** {
+ 637              	 .loc 1 357 0
+ 638              	 .cfi_startproc
+ 639              	 
+ 640              	 
+ 641 02a8 80B5     	 push {r7,lr}
+ 642              	.LCFI23:
+ 643              	 .cfi_def_cfa_offset 8
+ 644              	 .cfi_offset 7,-8
+ 645              	 .cfi_offset 14,-4
+ 646 02aa 82B0     	 sub sp,sp,#8
+ 647              	.LCFI24:
+ 648              	 .cfi_def_cfa_offset 16
+ 649 02ac 00AF     	 add r7,sp,#0
+ 650              	.LCFI25:
+ 651              	 .cfi_def_cfa_register 7
+ 652 02ae 7860     	 str r0,[r7,#4]
+ 358:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 	trx_sram_read((AES_BASE_ADDR + RG_AES_STATE_KEY_0), data,
+ 653              	 .loc 1 358 0
+ 654 02b0 1022     	 movs r2,#16
+ 655 02b2 7968     	 ldr r1,[r7,#4]
+ 656 02b4 8420     	 movs r0,#132
+ 657 02b6 034B     	 ldr r3,.L34
+ 658 02b8 9847     	 blx r3
+ 659              	.LVL13:
+ 359:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** 			AES_BLOCKSIZE);
+ 360:../../../stack/LwMesh/TDMA/services/sal/at86rf2xx/src/sal.c **** }
+ 660              	 .loc 1 360 0
+ 661 02ba 00BF     	 nop
+ 662 02bc 0837     	 adds r7,r7,#8
+ 663              	.LCFI26:
+ 664              	 .cfi_def_cfa_offset 8
+ 665 02be BD46     	 mov sp,r7
+ 666              	.LCFI27:
+ 667              	 .cfi_def_cfa_register 13
+ 668              	 
+ 669 02c0 80BD     	 pop {r7,pc}
+ 670              	.L35:
+ 671 02c2 00BF     	 .align 2
+ 672              	.L34:
+ 673 02c4 00000000 	 .word trx_sram_read
+ 674              	 .cfi_endproc
+ 675              	.LFE228:
+ 677              	.Letext0:
+ 678              	 .file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 679              	 .file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 680              	 .file 4 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+ 681              	 .file 5 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 682              	 .file 6 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 683              	 .file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 684              	 .file 8 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 685              	 .file 9 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 686              	 .file 10 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+ 687              	 .file 11 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
+ 688              	 .file 12 "../../../platform/sam/utils/compiler.h"
+ 689              	 .file 13 "../../../platform/common/services/usb/usb_protocol.h"
+ 690              	 .file 14 "../../../platform/common/services/usb/udc/udi.h"
+ 691              	 .file 15 "../../../platform/common/services/usb/udc/udc_desc.h"
+ 692              	 .file 16 "../../../platform/common/services/usb/udc/udd.h"
+ 693              	 .file 17 "../../../platform/common/services/usb/class/cdc/device/udi_cdc.h"
+ 694              	 .file 18 "../../../platform/common/utils/stdio/stdio_usb/stdio_usb.h"
+ 695              	 .file 19 "../../../stack/LwMesh/TDMA/services/trx_access/trx_access.h"
+ 696              	 .file 20 "../../../platform/common/services/delay/sam/cycle_counter.h"
+ 697              	 .file 21 "config/config.h"
+ 698              	 .file 22 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:00000000 sal.c
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
+                            *COM*:00000001 n
+    {standard input}:28     .bss.tTS:00000000 $d
+    {standard input}:31     .bss.tTS:00000000 tTS
+    {standard input}:36     .bss.setup_flag:00000000 setup_flag
+    {standard input}:37     .bss.setup_flag:00000000 $d
+    {standard input}:41     .bss.dec_initialized:00000000 dec_initialized
+    {standard input}:42     .bss.dec_initialized:00000000 $d
+    {standard input}:44     .bss.aes_buf:00000000 $d
+    {standard input}:47     .bss.aes_buf:00000000 aes_buf
+    {standard input}:52     .data.last_dir:00000000 last_dir
+    {standard input}:55     .bss.enc_key:00000000 $d
+    {standard input}:58     .bss.enc_key:00000000 enc_key
+    {standard input}:61     .bss.dec_key:00000000 $d
+    {standard input}:64     .bss.dec_key:00000000 dec_key
+    {standard input}:67     .text:00000000 $t
+    {standard input}:74     .text:00000000 sal_init
+    {standard input}:110    .text:0000000c sal_aes_setup
+    {standard input}:526    .text:00000228 sal_aes_wrrd
+    {standard input}:378    .text:00000184 $d
+    {standard input}:391    .text:000001ac $t
+    {standard input}:398    .text:000001ac sal_aes_restart
+    {standard input}:473    .text:000001fc $d
+    {standard input}:484    .text:0000021c $t
+    {standard input}:491    .text:0000021c _sal_aes_clean_up
+    {standard input}:619    .text:00000290 $d
+    {standard input}:628    .text:000002a8 $t
+    {standard input}:635    .text:000002a8 sal_aes_read
+    {standard input}:673    .text:000002c4 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+memcpy
+trx_sram_write
+trx_sram_read
+trx_aes_wrrd
+portable_delay_cycles
