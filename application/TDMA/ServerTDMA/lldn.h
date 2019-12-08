@@ -22,6 +22,7 @@ typedef enum AppState_t {
 
 #if APP_COORDINATOR
 	#define DELAY 100 // symbols
+	#define MacLLDNMgmtTS 0x01
 
 	typedef enum AppPanState_t {
 		APP_PAN_STATE_IDLE,
@@ -85,7 +86,7 @@ typedef struct NWK_ConfigRequest_t {
 	uint16_t macAddr;
 	struct{
 		uint8_t tsDuration	: 7;
-		uint8_t mgmtFrames 	: 1;
+		uint8_t macLLDNmgmtTS 	: 1;
 	} conf;
 } NWK_ConfigRequest_t;
 
