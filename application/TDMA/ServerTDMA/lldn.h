@@ -21,7 +21,7 @@ typedef enum AppState_t {
 } AppState_t;
 
 #if APP_COORDINATOR
-	#define DELAY 100 // symbols
+	#define DELAY 200 // symbols
 	#define MacLLDNMgmtTS 0x01
 
 	typedef enum AppPanState_t {
