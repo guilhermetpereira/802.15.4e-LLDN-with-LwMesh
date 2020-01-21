@@ -12,6 +12,26 @@
 #include "genclk.h"
 #include "TC_lldn_conf.h"
 #include "stdio_usb.h"
+	
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <inttypes.h>
+#include "config.h"
+#include "sys.h"
+#include "phy.h"
+#include "sys.h"
+#include "nwk.h"
+#include "sysclk.h"
+#include "sysTimer.h"
+#include "sleep_mgr.h"
+#include "sleepmgr.h"
+#include "led.h"
+#include "ioport.h"
+#include "conf_sleepmgr.h"
+#include "board.h"
+
+#include "platform.h"	
 		
 tmr_callback_t tmr_callback;
 
@@ -24,12 +44,12 @@ void tc_compare_stop(void);
 
 void hw_expiry_cb(void)
 {
-	// printf("\nRC Compare Interrupt");
+	printf("\nRC Compare Interrupt");
 }
 
 void hw_overflow_cb(void)
 {
-	// printf("\nRC Ovf Interrupt");
+	printf("\nRC Ovf Interrupt");
 }
 
 void timer_stop(void)
@@ -52,7 +72,7 @@ void timer_init(void)
 	uint8_t tmr_mul;
 	/* Configure clock service. */
 	#if SAM4L
-	genclk_enable_config(8, GENCLK_SRC_RC1M, 4);
+	genclk_enable_config(8, GENCLK_SRC_RC1M, 30);
 	sysclk_enable_peripheral_clock(TIMER);
 	#else
 	sysclk_enable_peripheral_clock(ID_TC);
@@ -223,5 +243,38 @@ void TC3_Handler(void)
 
 int main (void)
 {
+	sysclk_init();
+	board_init();
+
+	SYS_Init();
+	// Disable CSMA/CA
+	// Disable auto ACK
+	PHY_SetTdmaMode(true);
+	sm_init();
+
+	// Initialize interrupt vector table support.
+	#if (SIO2HOST_CHANNEL == SIO_USB)
+	irq_initialize_vectors();
+	#endif
+	cpu_irq_enable();
+
+	#if APP_COORDINATOR
+	#if (SIO2HOST_CHANNEL == SIO_USB)
+	stdio_usb_init();
+	#else
+	const usart_serial_options_t usart_serial_options =
+	{
+		.baudrate     = USART_HOST_BAUDRATE,
+		.charlength   = USART_HOST_CHAR_LENGTH,
+		.paritytype   = USART_HOST_PARITY,
+		.stopbits     = USART_HOST_STOP_BITS
+	};
+
+	stdio_serial_init(USART_HOST, &usart_serial_options);
+	usart_double_baud_enable(USART_HOST);
+	usart_set_baudrate_precalculated(USART_HOST, USART_HOST_BAUDRATE, sysclk_get_source_clock_hz());
+
+	#endif
+	#endif
 	return 0;
 }
