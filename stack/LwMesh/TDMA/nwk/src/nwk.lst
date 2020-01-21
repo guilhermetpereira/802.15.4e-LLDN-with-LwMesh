@@ -1,23 +1,40 @@
-   1               		.file	"nwk.c"
-   2               	__SP_H__ = 0x3e
-   3               	__SP_L__ = 0x3d
-   4               	__SREG__ = 0x3f
-   5               	__RAMPZ__ = 0x3b
-   6               	__tmp_reg__ = 0
-   7               	__zero_reg__ = 1
-   8               		.text
-   9               	.Ltext0:
-  10               		.cfi_sections	.debug_frame
-  11               		.comm	n,1,1
-  12               		.section	.bss.tTS,"aw",@nobits
-  15               	tTS:
-  16 0000 0000 0000 		.zero	4
-  17               		.comm	nwkIb,40,1
-  18               		.text
-  19               	.global	NWK_Init
-  21               	NWK_Init:
-  22               	.LFB66:
-  23               		.file 1 "../../../stack/LwMesh/TDMA/nwk/src/nwk.c"
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "nwk.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .comm n,1,1
+  27              	 .section .bss.tTS,"aw",%nobits
+  28              	 .align 2
+  31              	tTS:
+  32 0000 00000000 	 .space 4
+  33              	 .comm nwkIb,76,4
+  34              	 .text
+  35              	 .align 1
+  36              	 .global NWK_Init
+  37              	 .syntax unified
+  38              	 .thumb
+  39              	 .thumb_func
+  40              	 .fpu softvfp
+  42              	NWK_Init:
+  43              	.LFB127:
+  44              	 .file 1 "../../../stack/LwMesh/TDMA/nwk/src/nwk.c"
    1:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /**
    2:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  * \file nwk.c
    3:../../../stack/LwMesh/TDMA/nwk/src/nwk.c ****  *
@@ -91,87 +108,90 @@
   71:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
   72:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_Init(void)
   73:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
-  24               		.loc 1 73 0
-  25               		.cfi_startproc
-  26 0000 CF93      		push r28
-  27               	.LCFI0:
-  28               		.cfi_def_cfa_offset 3
-  29               		.cfi_offset 28, -2
-  30 0002 DF93      		push r29
-  31               	.LCFI1:
-  32               		.cfi_def_cfa_offset 4
-  33               		.cfi_offset 29, -3
-  34 0004 1F92      		push __zero_reg__
-  35               	.LCFI2:
-  36               		.cfi_def_cfa_offset 5
-  37 0006 CDB7      		in r28,__SP_L__
-  38 0008 DEB7      		in r29,__SP_H__
-  39               	.LCFI3:
-  40               		.cfi_def_cfa_register 28
-  41               	/* prologue: function */
-  42               	/* frame size = 1 */
-  43               	/* stack size = 3 */
-  44               	.L__stack_usage = 3
+  45              	 .loc 1 73 0
+  46              	 .cfi_startproc
+  47              	 
+  48              	 
+  49 0000 80B5     	 push {r7,lr}
+  50              	.LCFI0:
+  51              	 .cfi_def_cfa_offset 8
+  52              	 .cfi_offset 7,-8
+  53              	 .cfi_offset 14,-4
+  54 0002 82B0     	 sub sp,sp,#8
+  55              	.LCFI1:
+  56              	 .cfi_def_cfa_offset 16
+  57 0004 00AF     	 add r7,sp,#0
+  58              	.LCFI2:
+  59              	 .cfi_def_cfa_register 7
   74:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.nwkSeqNum = 0;
-  45               		.loc 1 74 0
-  46 000a 1092 0000 		sts nwkIb+4,__zero_reg__
+  60              	 .loc 1 74 0
+  61 0006 154B     	 ldr r3,.L4
+  62 0008 0022     	 movs r2,#0
+  63 000a 1A71     	 strb r2,[r3,#4]
   75:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.macSeqNum = 0;
-  47               		.loc 1 75 0
-  48 000e 1092 0000 		sts nwkIb+5,__zero_reg__
+  64              	 .loc 1 75 0
+  65 000c 134B     	 ldr r3,.L4
+  66 000e 0022     	 movs r2,#0
+  67 0010 5A71     	 strb r2,[r3,#5]
   76:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.addr = 0;
-  49               		.loc 1 76 0
-  50 0012 1092 0000 		sts nwkIb+1,__zero_reg__
-  51 0016 1092 0000 		sts nwkIb,__zero_reg__
+  68              	 .loc 1 76 0
+  69 0012 124B     	 ldr r3,.L4
+  70 0014 0022     	 movs r2,#0
+  71 0016 1A80     	 strh r2,[r3]
   77:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.lock = 0;
-  52               		.loc 1 77 0
-  53 001a 1092 0000 		sts nwkIb+38+1,__zero_reg__
-  54 001e 1092 0000 		sts nwkIb+38,__zero_reg__
-  55               	.LBB2:
+  72              	 .loc 1 77 0
+  73 0018 104B     	 ldr r3,.L4
+  74 001a 0022     	 movs r2,#0
+  75 001c A3F84820 	 strh r2,[r3,#72]
+  76              	.LBB2:
   78:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
   79:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	for (uint8_t i = 0; i < NWK_ENDPOINTS_AMOUNT; i++) {
-  56               		.loc 1 79 0
-  57 0022 1982      		std Y+1,__zero_reg__
-  58 0024 00C0      		rjmp .L2
-  59               	.L3:
+  77              	 .loc 1 79 0
+  78 0020 0023     	 movs r3,#0
+  79 0022 FB71     	 strb r3,[r7,#7]
+  80 0024 08E0     	 b .L2
+  81              	.L3:
   80:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		nwkIb.endpoint[i] = NULL;
-  60               		.loc 1 80 0 discriminator 3
-  61 0026 8981      		ldd r24,Y+1
-  62 0028 882F      		mov r24,r24
-  63 002a 90E0      		ldi r25,0
-  64 002c 0396      		adiw r24,3
-  65 002e 880F      		lsl r24
-  66 0030 991F      		rol r25
-  67 0032 8050      		subi r24,lo8(-(nwkIb))
-  68 0034 9040      		sbci r25,hi8(-(nwkIb))
-  69 0036 FC01      		movw r30,r24
-  70 0038 1182      		std Z+1,__zero_reg__
-  71 003a 1082      		st Z,__zero_reg__
+  82              	 .loc 1 80 0 discriminator 3
+  83 0026 FB79     	 ldrb r3,[r7,#7]
+  84 0028 0C4A     	 ldr r2,.L4
+  85 002a 0233     	 adds r3,r3,#2
+  86 002c 0021     	 movs r1,#0
+  87 002e 42F82310 	 str r1,[r2,r3,lsl#2]
   79:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		nwkIb.endpoint[i] = NULL;
-  72               		.loc 1 79 0 discriminator 3
-  73 003c 8981      		ldd r24,Y+1
-  74 003e 8F5F      		subi r24,lo8(-(1))
-  75 0040 8983      		std Y+1,r24
-  76               	.L2:
+  88              	 .loc 1 79 0 discriminator 3
+  89 0032 FB79     	 ldrb r3,[r7,#7]
+  90 0034 0133     	 adds r3,r3,#1
+  91 0036 FB71     	 strb r3,[r7,#7]
+  92              	.L2:
   79:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		nwkIb.endpoint[i] = NULL;
-  77               		.loc 1 79 0 is_stmt 0 discriminator 1
-  78 0042 8981      		ldd r24,Y+1
-  79 0044 8031      		cpi r24,lo8(16)
-  80 0046 00F0      		brlo .L3
-  81               	.LBE2:
+  93              	 .loc 1 79 0 is_stmt 0 discriminator 1
+  94 0038 FB79     	 ldrb r3,[r7,#7]
+  95 003a 0F2B     	 cmp r3,#15
+  96 003c F3D9     	 bls .L3
+  97              	.LBE2:
   81:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	}
   82:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
   83:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkTxInit();
-  82               		.loc 1 83 0 is_stmt 1
-  83 0048 0E94 0000 		call nwkTxInit
+  98              	 .loc 1 83 0 is_stmt 1
+  99 003e 084B     	 ldr r3,.L4+4
+ 100 0040 9847     	 blx r3
+ 101              	.LVL0:
   84:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkRxInit();
-  84               		.loc 1 84 0
-  85 004c 0E94 0000 		call nwkRxInit
+ 102              	 .loc 1 84 0
+ 103 0042 084B     	 ldr r3,.L4+8
+ 104 0044 9847     	 blx r3
+ 105              	.LVL1:
   85:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkFrameInit();
-  86               		.loc 1 85 0
-  87 0050 0E94 0000 		call nwkFrameInit
+ 106              	 .loc 1 85 0
+ 107 0046 084B     	 ldr r3,.L4+12
+ 108 0048 9847     	 blx r3
+ 109              	.LVL2:
   86:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkDataReqInit();
-  88               		.loc 1 86 0
-  89 0054 0E94 0000 		call nwkDataReqInit
+ 110              	 .loc 1 86 0
+ 111 004a 084B     	 ldr r3,.L4+16
+ 112 004c 9847     	 blx r3
+ 113              	.LVL3:
   87:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
   88:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #ifdef NWK_ENABLE_ROUTING
   89:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkRouteInit();
@@ -183,26 +203,45 @@
   95:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
   96:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #ifdef NWK_ENABLE_MULTICAST
   97:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkGroupInit();
-  90               		.loc 1 97 0
-  91 0058 0E94 0000 		call nwkGroupInit
+ 114              	 .loc 1 97 0
+ 115 004e 084B     	 ldr r3,.L4+20
+ 116 0050 9847     	 blx r3
+ 117              	.LVL4:
   98:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #endif
   99:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  100:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #ifdef NWK_ENABLE_ROUTE_DISCOVERY
  101:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkRouteDiscoveryInit();
  102:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #endif
  103:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
-  92               		.loc 1 103 0
-  93 005c 0000      		nop
-  94               	/* epilogue start */
-  95 005e 0F90      		pop __tmp_reg__
-  96 0060 DF91      		pop r29
-  97 0062 CF91      		pop r28
-  98 0064 0895      		ret
-  99               		.cfi_endproc
- 100               	.LFE66:
- 102               	.global	NWK_SetAddr
- 104               	NWK_SetAddr:
- 105               	.LFB67:
+ 118              	 .loc 1 103 0
+ 119 0052 00BF     	 nop
+ 120 0054 0837     	 adds r7,r7,#8
+ 121              	.LCFI3:
+ 122              	 .cfi_def_cfa_offset 8
+ 123 0056 BD46     	 mov sp,r7
+ 124              	.LCFI4:
+ 125              	 .cfi_def_cfa_register 13
+ 126              	 
+ 127 0058 80BD     	 pop {r7,pc}
+ 128              	.L5:
+ 129 005a 00BF     	 .align 2
+ 130              	.L4:
+ 131 005c 00000000 	 .word nwkIb
+ 132 0060 00000000 	 .word nwkTxInit
+ 133 0064 00000000 	 .word nwkRxInit
+ 134 0068 00000000 	 .word nwkFrameInit
+ 135 006c 00000000 	 .word nwkDataReqInit
+ 136 0070 00000000 	 .word nwkGroupInit
+ 137              	 .cfi_endproc
+ 138              	.LFE127:
+ 140              	 .align 1
+ 141              	 .global NWK_SetAddr
+ 142              	 .syntax unified
+ 143              	 .thumb
+ 144              	 .thumb_func
+ 145              	 .fpu softvfp
+ 147              	NWK_SetAddr:
+ 148              	.LFB128:
  104:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  105:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
  106:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Sets network address of the node
@@ -210,54 +249,61 @@
  108:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
  109:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_SetAddr(uint16_t addr)
  110:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
- 106               		.loc 1 110 0
- 107               		.cfi_startproc
- 108 0066 CF93      		push r28
- 109               	.LCFI4:
- 110               		.cfi_def_cfa_offset 3
- 111               		.cfi_offset 28, -2
- 112 0068 DF93      		push r29
- 113               	.LCFI5:
- 114               		.cfi_def_cfa_offset 4
- 115               		.cfi_offset 29, -3
- 116 006a 00D0      		rcall .
- 117               	.LCFI6:
- 118               		.cfi_def_cfa_offset 6
- 119 006c CDB7      		in r28,__SP_L__
- 120 006e DEB7      		in r29,__SP_H__
- 121               	.LCFI7:
- 122               		.cfi_def_cfa_register 28
- 123               	/* prologue: function */
- 124               	/* frame size = 2 */
- 125               	/* stack size = 4 */
- 126               	.L__stack_usage = 4
- 127 0070 9A83      		std Y+2,r25
- 128 0072 8983      		std Y+1,r24
+ 149              	 .loc 1 110 0
+ 150              	 .cfi_startproc
+ 151              	 
+ 152              	 
+ 153 0074 80B5     	 push {r7,lr}
+ 154              	.LCFI5:
+ 155              	 .cfi_def_cfa_offset 8
+ 156              	 .cfi_offset 7,-8
+ 157              	 .cfi_offset 14,-4
+ 158 0076 82B0     	 sub sp,sp,#8
+ 159              	.LCFI6:
+ 160              	 .cfi_def_cfa_offset 16
+ 161 0078 00AF     	 add r7,sp,#0
+ 162              	.LCFI7:
+ 163              	 .cfi_def_cfa_register 7
+ 164 007a 0346     	 mov r3,r0
+ 165 007c FB80     	 strh r3,[r7,#6]
  111:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.addr = addr;
- 129               		.loc 1 111 0
- 130 0074 8981      		ldd r24,Y+1
- 131 0076 9A81      		ldd r25,Y+2
- 132 0078 9093 0000 		sts nwkIb+1,r25
- 133 007c 8093 0000 		sts nwkIb,r24
+ 166              	 .loc 1 111 0
+ 167 007e 054A     	 ldr r2,.L7
+ 168 0080 FB88     	 ldrh r3,[r7,#6]
+ 169 0082 1380     	 strh r3,[r2]
  112:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	PHY_SetShortAddr(addr);
- 134               		.loc 1 112 0
- 135 0080 8981      		ldd r24,Y+1
- 136 0082 9A81      		ldd r25,Y+2
- 137 0084 0E94 0000 		call PHY_SetShortAddr
+ 170              	 .loc 1 112 0
+ 171 0084 FB88     	 ldrh r3,[r7,#6]
+ 172 0086 1846     	 mov r0,r3
+ 173 0088 034B     	 ldr r3,.L7+4
+ 174 008a 9847     	 blx r3
+ 175              	.LVL5:
  113:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
- 138               		.loc 1 113 0
- 139 0088 0000      		nop
- 140               	/* epilogue start */
- 141 008a 0F90      		pop __tmp_reg__
- 142 008c 0F90      		pop __tmp_reg__
- 143 008e DF91      		pop r29
- 144 0090 CF91      		pop r28
- 145 0092 0895      		ret
- 146               		.cfi_endproc
- 147               	.LFE67:
- 149               	.global	NWK_SetPanId
- 151               	NWK_SetPanId:
- 152               	.LFB68:
+ 176              	 .loc 1 113 0
+ 177 008c 00BF     	 nop
+ 178 008e 0837     	 adds r7,r7,#8
+ 179              	.LCFI8:
+ 180              	 .cfi_def_cfa_offset 8
+ 181 0090 BD46     	 mov sp,r7
+ 182              	.LCFI9:
+ 183              	 .cfi_def_cfa_register 13
+ 184              	 
+ 185 0092 80BD     	 pop {r7,pc}
+ 186              	.L8:
+ 187              	 .align 2
+ 188              	.L7:
+ 189 0094 00000000 	 .word nwkIb
+ 190 0098 00000000 	 .word PHY_SetShortAddr
+ 191              	 .cfi_endproc
+ 192              	.LFE128:
+ 194              	 .align 1
+ 195              	 .global NWK_SetPanId
+ 196              	 .syntax unified
+ 197              	 .thumb
+ 198              	 .thumb_func
+ 199              	 .fpu softvfp
+ 201              	NWK_SetPanId:
+ 202              	.LFB129:
  114:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  115:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
  116:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Sets network identifier (PAN) of the node
@@ -265,54 +311,61 @@
  118:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
  119:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_SetPanId(uint16_t panId)
  120:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
- 153               		.loc 1 120 0
- 154               		.cfi_startproc
- 155 0094 CF93      		push r28
- 156               	.LCFI8:
- 157               		.cfi_def_cfa_offset 3
- 158               		.cfi_offset 28, -2
- 159 0096 DF93      		push r29
- 160               	.LCFI9:
- 161               		.cfi_def_cfa_offset 4
- 162               		.cfi_offset 29, -3
- 163 0098 00D0      		rcall .
- 164               	.LCFI10:
- 165               		.cfi_def_cfa_offset 6
- 166 009a CDB7      		in r28,__SP_L__
- 167 009c DEB7      		in r29,__SP_H__
- 168               	.LCFI11:
- 169               		.cfi_def_cfa_register 28
- 170               	/* prologue: function */
- 171               	/* frame size = 2 */
- 172               	/* stack size = 4 */
- 173               	.L__stack_usage = 4
- 174 009e 9A83      		std Y+2,r25
- 175 00a0 8983      		std Y+1,r24
+ 203              	 .loc 1 120 0
+ 204              	 .cfi_startproc
+ 205              	 
+ 206              	 
+ 207 009c 80B5     	 push {r7,lr}
+ 208              	.LCFI10:
+ 209              	 .cfi_def_cfa_offset 8
+ 210              	 .cfi_offset 7,-8
+ 211              	 .cfi_offset 14,-4
+ 212 009e 82B0     	 sub sp,sp,#8
+ 213              	.LCFI11:
+ 214              	 .cfi_def_cfa_offset 16
+ 215 00a0 00AF     	 add r7,sp,#0
+ 216              	.LCFI12:
+ 217              	 .cfi_def_cfa_register 7
+ 218 00a2 0346     	 mov r3,r0
+ 219 00a4 FB80     	 strh r3,[r7,#6]
  121:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.panId = panId;
- 176               		.loc 1 121 0
- 177 00a2 8981      		ldd r24,Y+1
- 178 00a4 9A81      		ldd r25,Y+2
- 179 00a6 9093 0000 		sts nwkIb+2+1,r25
- 180 00aa 8093 0000 		sts nwkIb+2,r24
+ 220              	 .loc 1 121 0
+ 221 00a6 054A     	 ldr r2,.L10
+ 222 00a8 FB88     	 ldrh r3,[r7,#6]
+ 223 00aa 5380     	 strh r3,[r2,#2]
  122:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	PHY_SetPanId(panId);
- 181               		.loc 1 122 0
- 182 00ae 8981      		ldd r24,Y+1
- 183 00b0 9A81      		ldd r25,Y+2
- 184 00b2 0E94 0000 		call PHY_SetPanId
+ 224              	 .loc 1 122 0
+ 225 00ac FB88     	 ldrh r3,[r7,#6]
+ 226 00ae 1846     	 mov r0,r3
+ 227 00b0 034B     	 ldr r3,.L10+4
+ 228 00b2 9847     	 blx r3
+ 229              	.LVL6:
  123:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
- 185               		.loc 1 123 0
- 186 00b6 0000      		nop
- 187               	/* epilogue start */
- 188 00b8 0F90      		pop __tmp_reg__
- 189 00ba 0F90      		pop __tmp_reg__
- 190 00bc DF91      		pop r29
- 191 00be CF91      		pop r28
- 192 00c0 0895      		ret
- 193               		.cfi_endproc
- 194               	.LFE68:
- 196               	.global	NWK_OpenEndpoint
- 198               	NWK_OpenEndpoint:
- 199               	.LFB69:
+ 230              	 .loc 1 123 0
+ 231 00b4 00BF     	 nop
+ 232 00b6 0837     	 adds r7,r7,#8
+ 233              	.LCFI13:
+ 234              	 .cfi_def_cfa_offset 8
+ 235 00b8 BD46     	 mov sp,r7
+ 236              	.LCFI14:
+ 237              	 .cfi_def_cfa_register 13
+ 238              	 
+ 239 00ba 80BD     	 pop {r7,pc}
+ 240              	.L11:
+ 241              	 .align 2
+ 242              	.L10:
+ 243 00bc 00000000 	 .word nwkIb
+ 244 00c0 00000000 	 .word PHY_SetPanId
+ 245              	 .cfi_endproc
+ 246              	.LFE129:
+ 248              	 .align 1
+ 249              	 .global NWK_OpenEndpoint
+ 250              	 .syntax unified
+ 251              	 .thumb
+ 252              	 .thumb_func
+ 253              	 .fpu softvfp
+ 255              	NWK_OpenEndpoint:
+ 256              	.LFB130:
  124:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  125:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
  126:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Registers callback @a ind for the endpoint @a endpoint
@@ -321,61 +374,60 @@
  129:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
  130:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_OpenEndpoint(uint8_t id, bool (*handler)(NWK_DataInd_t *ind))
  131:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
- 200               		.loc 1 131 0
- 201               		.cfi_startproc
- 202 00c2 CF93      		push r28
- 203               	.LCFI12:
- 204               		.cfi_def_cfa_offset 3
- 205               		.cfi_offset 28, -2
- 206 00c4 DF93      		push r29
- 207               	.LCFI13:
- 208               		.cfi_def_cfa_offset 4
- 209               		.cfi_offset 29, -3
- 210 00c6 00D0      		rcall .
- 211 00c8 1F92      		push __zero_reg__
- 212               	.LCFI14:
- 213               		.cfi_def_cfa_offset 7
- 214 00ca CDB7      		in r28,__SP_L__
- 215 00cc DEB7      		in r29,__SP_H__
- 216               	.LCFI15:
- 217               		.cfi_def_cfa_register 28
- 218               	/* prologue: function */
- 219               	/* frame size = 3 */
- 220               	/* stack size = 5 */
- 221               	.L__stack_usage = 5
- 222 00ce 8983      		std Y+1,r24
- 223 00d0 7B83      		std Y+3,r23
- 224 00d2 6A83      		std Y+2,r22
+ 257              	 .loc 1 131 0
+ 258              	 .cfi_startproc
+ 259              	 
+ 260              	 
+ 261              	 
+ 262 00c4 80B4     	 push {r7}
+ 263              	.LCFI15:
+ 264              	 .cfi_def_cfa_offset 4
+ 265              	 .cfi_offset 7,-4
+ 266 00c6 83B0     	 sub sp,sp,#12
+ 267              	.LCFI16:
+ 268              	 .cfi_def_cfa_offset 16
+ 269 00c8 00AF     	 add r7,sp,#0
+ 270              	.LCFI17:
+ 271              	 .cfi_def_cfa_register 7
+ 272 00ca 0346     	 mov r3,r0
+ 273 00cc 3960     	 str r1,[r7]
+ 274 00ce FB71     	 strb r3,[r7,#7]
  132:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.endpoint[id] = handler;
- 225               		.loc 1 132 0
- 226 00d4 8981      		ldd r24,Y+1
- 227 00d6 882F      		mov r24,r24
- 228 00d8 90E0      		ldi r25,0
- 229 00da 0396      		adiw r24,3
- 230 00dc 880F      		lsl r24
- 231 00de 991F      		rol r25
- 232 00e0 8050      		subi r24,lo8(-(nwkIb))
- 233 00e2 9040      		sbci r25,hi8(-(nwkIb))
- 234 00e4 2A81      		ldd r18,Y+2
- 235 00e6 3B81      		ldd r19,Y+3
- 236 00e8 FC01      		movw r30,r24
- 237 00ea 3183      		std Z+1,r19
- 238 00ec 2083      		st Z,r18
+ 275              	 .loc 1 132 0
+ 276 00d0 FB79     	 ldrb r3,[r7,#7]
+ 277 00d2 0549     	 ldr r1,.L13
+ 278 00d4 0233     	 adds r3,r3,#2
+ 279 00d6 3A68     	 ldr r2,[r7]
+ 280 00d8 41F82320 	 str r2,[r1,r3,lsl#2]
  133:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
- 239               		.loc 1 133 0
- 240 00ee 0000      		nop
- 241               	/* epilogue start */
- 242 00f0 0F90      		pop __tmp_reg__
- 243 00f2 0F90      		pop __tmp_reg__
- 244 00f4 0F90      		pop __tmp_reg__
- 245 00f6 DF91      		pop r29
- 246 00f8 CF91      		pop r28
- 247 00fa 0895      		ret
- 248               		.cfi_endproc
- 249               	.LFE69:
- 251               	.global	NWK_Busy
- 253               	NWK_Busy:
- 254               	.LFB70:
+ 281              	 .loc 1 133 0
+ 282 00dc 00BF     	 nop
+ 283 00de 0C37     	 adds r7,r7,#12
+ 284              	.LCFI18:
+ 285              	 .cfi_def_cfa_offset 4
+ 286 00e0 BD46     	 mov sp,r7
+ 287              	.LCFI19:
+ 288              	 .cfi_def_cfa_register 13
+ 289              	 
+ 290 00e2 80BC     	 pop {r7}
+ 291              	.LCFI20:
+ 292              	 .cfi_restore 7
+ 293              	 .cfi_def_cfa_offset 0
+ 294 00e4 7047     	 bx lr
+ 295              	.L14:
+ 296 00e6 00BF     	 .align 2
+ 297              	.L13:
+ 298 00e8 00000000 	 .word nwkIb
+ 299              	 .cfi_endproc
+ 300              	.LFE130:
+ 302              	 .align 1
+ 303              	 .global NWK_Busy
+ 304              	 .syntax unified
+ 305              	 .thumb
+ 306              	 .thumb_func
+ 307              	 .fpu softvfp
+ 309              	NWK_Busy:
+ 310              	.LFB131:
  134:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  135:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
  136:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Checks if network layer is ready for sleep
@@ -383,222 +435,252 @@
  138:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
  139:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** bool NWK_Busy(void)
  140:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
- 255               		.loc 1 140 0
- 256               		.cfi_startproc
- 257 00fc CF93      		push r28
- 258               	.LCFI16:
- 259               		.cfi_def_cfa_offset 3
- 260               		.cfi_offset 28, -2
- 261 00fe DF93      		push r29
- 262               	.LCFI17:
- 263               		.cfi_def_cfa_offset 4
- 264               		.cfi_offset 29, -3
- 265 0100 CDB7      		in r28,__SP_L__
- 266 0102 DEB7      		in r29,__SP_H__
- 267               	.LCFI18:
- 268               		.cfi_def_cfa_register 28
- 269               	/* prologue: function */
- 270               	/* frame size = 0 */
- 271               	/* stack size = 2 */
- 272               	.L__stack_usage = 2
+ 311              	 .loc 1 140 0
+ 312              	 .cfi_startproc
+ 313              	 
+ 314              	 
+ 315              	 
+ 316 00ec 80B4     	 push {r7}
+ 317              	.LCFI21:
+ 318              	 .cfi_def_cfa_offset 4
+ 319              	 .cfi_offset 7,-4
+ 320 00ee 00AF     	 add r7,sp,#0
+ 321              	.LCFI22:
+ 322              	 .cfi_def_cfa_register 7
  141:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	return nwkIb.lock > 0;
- 273               		.loc 1 141 0
- 274 0104 8091 0000 		lds r24,nwkIb+38
- 275 0108 9091 0000 		lds r25,nwkIb+38+1
- 276 010c 21E0      		ldi r18,lo8(1)
- 277 010e 892B      		or r24,r25
- 278 0110 01F4      		brne .L9
- 279 0112 20E0      		ldi r18,0
- 280               	.L9:
- 281               		.loc 1 141 0 is_stmt 0 discriminator 1
- 282 0114 822F      		mov r24,r18
- 283               	/* epilogue start */
+ 323              	 .loc 1 141 0
+ 324 00f0 054B     	 ldr r3,.L17
+ 325 00f2 B3F84830 	 ldrh r3,[r3,#72]
+ 326 00f6 002B     	 cmp r3,#0
+ 327 00f8 14BF     	 ite ne
+ 328 00fa 0123     	 movne r3,#1
+ 329 00fc 0023     	 moveq r3,#0
+ 330 00fe DBB2     	 uxtb r3,r3
  142:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
- 284               		.loc 1 142 0 is_stmt 1 discriminator 1
- 285 0116 DF91      		pop r29
- 286 0118 CF91      		pop r28
- 287 011a 0895      		ret
- 288               		.cfi_endproc
- 289               	.LFE70:
- 291               	.global	NWK_Lock
- 293               	NWK_Lock:
- 294               	.LFB71:
+ 331              	 .loc 1 142 0
+ 332 0100 1846     	 mov r0,r3
+ 333 0102 BD46     	 mov sp,r7
+ 334              	.LCFI23:
+ 335              	 .cfi_def_cfa_register 13
+ 336              	 
+ 337 0104 80BC     	 pop {r7}
+ 338              	.LCFI24:
+ 339              	 .cfi_restore 7
+ 340              	 .cfi_def_cfa_offset 0
+ 341 0106 7047     	 bx lr
+ 342              	.L18:
+ 343              	 .align 2
+ 344              	.L17:
+ 345 0108 00000000 	 .word nwkIb
+ 346              	 .cfi_endproc
+ 347              	.LFE131:
+ 349              	 .align 1
+ 350              	 .global NWK_Lock
+ 351              	 .syntax unified
+ 352              	 .thumb
+ 353              	 .thumb_func
+ 354              	 .fpu softvfp
+ 356              	NWK_Lock:
+ 357              	.LFB132:
  143:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  144:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
  145:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Increases the lock counter and sets a busy state
  146:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
  147:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_Lock(void)
  148:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
- 295               		.loc 1 148 0
- 296               		.cfi_startproc
- 297 011c CF93      		push r28
- 298               	.LCFI19:
- 299               		.cfi_def_cfa_offset 3
- 300               		.cfi_offset 28, -2
- 301 011e DF93      		push r29
- 302               	.LCFI20:
- 303               		.cfi_def_cfa_offset 4
- 304               		.cfi_offset 29, -3
- 305 0120 CDB7      		in r28,__SP_L__
- 306 0122 DEB7      		in r29,__SP_H__
- 307               	.LCFI21:
- 308               		.cfi_def_cfa_register 28
- 309               	/* prologue: function */
- 310               	/* frame size = 0 */
- 311               	/* stack size = 2 */
- 312               	.L__stack_usage = 2
+ 358              	 .loc 1 148 0
+ 359              	 .cfi_startproc
+ 360              	 
+ 361              	 
+ 362              	 
+ 363 010c 80B4     	 push {r7}
+ 364              	.LCFI25:
+ 365              	 .cfi_def_cfa_offset 4
+ 366              	 .cfi_offset 7,-4
+ 367 010e 00AF     	 add r7,sp,#0
+ 368              	.LCFI26:
+ 369              	 .cfi_def_cfa_register 7
  149:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.lock++;
- 313               		.loc 1 149 0
- 314 0124 8091 0000 		lds r24,nwkIb+38
- 315 0128 9091 0000 		lds r25,nwkIb+38+1
- 316 012c 0196      		adiw r24,1
- 317 012e 9093 0000 		sts nwkIb+38+1,r25
- 318 0132 8093 0000 		sts nwkIb+38,r24
+ 370              	 .loc 1 149 0
+ 371 0110 054B     	 ldr r3,.L20
+ 372 0112 B3F84830 	 ldrh r3,[r3,#72]
+ 373 0116 0133     	 adds r3,r3,#1
+ 374 0118 9AB2     	 uxth r2,r3
+ 375 011a 034B     	 ldr r3,.L20
+ 376 011c A3F84820 	 strh r2,[r3,#72]
  150:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
- 319               		.loc 1 150 0
- 320 0136 0000      		nop
- 321               	/* epilogue start */
- 322 0138 DF91      		pop r29
- 323 013a CF91      		pop r28
- 324 013c 0895      		ret
- 325               		.cfi_endproc
- 326               	.LFE71:
- 328               	.global	NWK_Unlock
- 330               	NWK_Unlock:
- 331               	.LFB72:
+ 377              	 .loc 1 150 0
+ 378 0120 00BF     	 nop
+ 379 0122 BD46     	 mov sp,r7
+ 380              	.LCFI27:
+ 381              	 .cfi_def_cfa_register 13
+ 382              	 
+ 383 0124 80BC     	 pop {r7}
+ 384              	.LCFI28:
+ 385              	 .cfi_restore 7
+ 386              	 .cfi_def_cfa_offset 0
+ 387 0126 7047     	 bx lr
+ 388              	.L21:
+ 389              	 .align 2
+ 390              	.L20:
+ 391 0128 00000000 	 .word nwkIb
+ 392              	 .cfi_endproc
+ 393              	.LFE132:
+ 395              	 .align 1
+ 396              	 .global NWK_Unlock
+ 397              	 .syntax unified
+ 398              	 .thumb
+ 399              	 .thumb_func
+ 400              	 .fpu softvfp
+ 402              	NWK_Unlock:
+ 403              	.LFB133:
  151:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  152:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
  153:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Decreases the lock counter and sets a free state if counter reaches 0
  154:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
  155:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_Unlock(void)
  156:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
- 332               		.loc 1 156 0
- 333               		.cfi_startproc
- 334 013e CF93      		push r28
- 335               	.LCFI22:
- 336               		.cfi_def_cfa_offset 3
- 337               		.cfi_offset 28, -2
- 338 0140 DF93      		push r29
- 339               	.LCFI23:
- 340               		.cfi_def_cfa_offset 4
- 341               		.cfi_offset 29, -3
- 342 0142 CDB7      		in r28,__SP_L__
- 343 0144 DEB7      		in r29,__SP_H__
- 344               	.LCFI24:
- 345               		.cfi_def_cfa_register 28
- 346               	/* prologue: function */
- 347               	/* frame size = 0 */
- 348               	/* stack size = 2 */
- 349               	.L__stack_usage = 2
+ 404              	 .loc 1 156 0
+ 405              	 .cfi_startproc
+ 406              	 
+ 407              	 
+ 408              	 
+ 409 012c 80B4     	 push {r7}
+ 410              	.LCFI29:
+ 411              	 .cfi_def_cfa_offset 4
+ 412              	 .cfi_offset 7,-4
+ 413 012e 00AF     	 add r7,sp,#0
+ 414              	.LCFI30:
+ 415              	 .cfi_def_cfa_register 7
  157:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkIb.lock--;
- 350               		.loc 1 157 0
- 351 0146 8091 0000 		lds r24,nwkIb+38
- 352 014a 9091 0000 		lds r25,nwkIb+38+1
- 353 014e 0197      		sbiw r24,1
- 354 0150 9093 0000 		sts nwkIb+38+1,r25
- 355 0154 8093 0000 		sts nwkIb+38,r24
+ 416              	 .loc 1 157 0
+ 417 0130 054B     	 ldr r3,.L23
+ 418 0132 B3F84830 	 ldrh r3,[r3,#72]
+ 419 0136 013B     	 subs r3,r3,#1
+ 420 0138 9AB2     	 uxth r2,r3
+ 421 013a 034B     	 ldr r3,.L23
+ 422 013c A3F84820 	 strh r2,[r3,#72]
  158:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
- 356               		.loc 1 158 0
- 357 0158 0000      		nop
- 358               	/* epilogue start */
- 359 015a DF91      		pop r29
- 360 015c CF91      		pop r28
- 361 015e 0895      		ret
- 362               		.cfi_endproc
- 363               	.LFE72:
- 365               	.global	NWK_SleepReq
- 367               	NWK_SleepReq:
- 368               	.LFB73:
+ 423              	 .loc 1 158 0
+ 424 0140 00BF     	 nop
+ 425 0142 BD46     	 mov sp,r7
+ 426              	.LCFI31:
+ 427              	 .cfi_def_cfa_register 13
+ 428              	 
+ 429 0144 80BC     	 pop {r7}
+ 430              	.LCFI32:
+ 431              	 .cfi_restore 7
+ 432              	 .cfi_def_cfa_offset 0
+ 433 0146 7047     	 bx lr
+ 434              	.L24:
+ 435              	 .align 2
+ 436              	.L23:
+ 437 0148 00000000 	 .word nwkIb
+ 438              	 .cfi_endproc
+ 439              	.LFE133:
+ 441              	 .align 1
+ 442              	 .global NWK_SleepReq
+ 443              	 .syntax unified
+ 444              	 .thumb
+ 445              	 .thumb_func
+ 446              	 .fpu softvfp
+ 448              	NWK_SleepReq:
+ 449              	.LFB134:
  159:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  160:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
  161:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Puts network layer to a sleeping state
  162:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
  163:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_SleepReq(void)
  164:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
- 369               		.loc 1 164 0
- 370               		.cfi_startproc
- 371 0160 CF93      		push r28
- 372               	.LCFI25:
- 373               		.cfi_def_cfa_offset 3
- 374               		.cfi_offset 28, -2
- 375 0162 DF93      		push r29
- 376               	.LCFI26:
- 377               		.cfi_def_cfa_offset 4
- 378               		.cfi_offset 29, -3
- 379 0164 CDB7      		in r28,__SP_L__
- 380 0166 DEB7      		in r29,__SP_H__
- 381               	.LCFI27:
- 382               		.cfi_def_cfa_register 28
- 383               	/* prologue: function */
- 384               	/* frame size = 0 */
- 385               	/* stack size = 2 */
- 386               	.L__stack_usage = 2
+ 450              	 .loc 1 164 0
+ 451              	 .cfi_startproc
+ 452              	 
+ 453              	 
+ 454 014c 80B5     	 push {r7,lr}
+ 455              	.LCFI33:
+ 456              	 .cfi_def_cfa_offset 8
+ 457              	 .cfi_offset 7,-8
+ 458              	 .cfi_offset 14,-4
+ 459 014e 00AF     	 add r7,sp,#0
+ 460              	.LCFI34:
+ 461              	 .cfi_def_cfa_register 7
  165:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	PHY_Sleep();
- 387               		.loc 1 165 0
- 388 0168 0E94 0000 		call PHY_Sleep
+ 462              	 .loc 1 165 0
+ 463 0150 014B     	 ldr r3,.L26
+ 464 0152 9847     	 blx r3
+ 465              	.LVL7:
  166:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
- 389               		.loc 1 166 0
- 390 016c 0000      		nop
- 391               	/* epilogue start */
- 392 016e DF91      		pop r29
- 393 0170 CF91      		pop r28
- 394 0172 0895      		ret
- 395               		.cfi_endproc
- 396               	.LFE73:
- 398               	.global	NWK_WakeupReq
- 400               	NWK_WakeupReq:
- 401               	.LFB74:
+ 466              	 .loc 1 166 0
+ 467 0154 00BF     	 nop
+ 468 0156 80BD     	 pop {r7,pc}
+ 469              	.L27:
+ 470              	 .align 2
+ 471              	.L26:
+ 472 0158 00000000 	 .word PHY_Sleep
+ 473              	 .cfi_endproc
+ 474              	.LFE134:
+ 476              	 .align 1
+ 477              	 .global NWK_WakeupReq
+ 478              	 .syntax unified
+ 479              	 .thumb
+ 480              	 .thumb_func
+ 481              	 .fpu softvfp
+ 483              	NWK_WakeupReq:
+ 484              	.LFB135:
  167:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  168:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
  169:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Puts network layer to an active state
  170:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
  171:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_WakeupReq(void)
  172:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
- 402               		.loc 1 172 0
- 403               		.cfi_startproc
- 404 0174 CF93      		push r28
- 405               	.LCFI28:
- 406               		.cfi_def_cfa_offset 3
- 407               		.cfi_offset 28, -2
- 408 0176 DF93      		push r29
- 409               	.LCFI29:
- 410               		.cfi_def_cfa_offset 4
- 411               		.cfi_offset 29, -3
- 412 0178 CDB7      		in r28,__SP_L__
- 413 017a DEB7      		in r29,__SP_H__
- 414               	.LCFI30:
- 415               		.cfi_def_cfa_register 28
- 416               	/* prologue: function */
- 417               	/* frame size = 0 */
- 418               	/* stack size = 2 */
- 419               	.L__stack_usage = 2
+ 485              	 .loc 1 172 0
+ 486              	 .cfi_startproc
+ 487              	 
+ 488              	 
+ 489 015c 80B5     	 push {r7,lr}
+ 490              	.LCFI35:
+ 491              	 .cfi_def_cfa_offset 8
+ 492              	 .cfi_offset 7,-8
+ 493              	 .cfi_offset 14,-4
+ 494 015e 00AF     	 add r7,sp,#0
+ 495              	.LCFI36:
+ 496              	 .cfi_def_cfa_register 7
  173:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	PHY_Wakeup();
- 420               		.loc 1 173 0
- 421 017c 0E94 0000 		call PHY_Wakeup
+ 497              	 .loc 1 173 0
+ 498 0160 014B     	 ldr r3,.L29
+ 499 0162 9847     	 blx r3
+ 500              	.LVL8:
  174:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
- 422               		.loc 1 174 0
- 423 0180 0000      		nop
- 424               	/* epilogue start */
- 425 0182 DF91      		pop r29
- 426 0184 CF91      		pop r28
- 427 0186 0895      		ret
- 428               		.cfi_endproc
- 429               	.LFE74:
- 431               		.section	.rodata
- 432               	.LC0:
- 433 0000 03        		.byte	3
- 434 0001 08        		.byte	8
- 435 0002 1A        		.byte	26
- 436 0003 40        		.byte	64
- 437 0004 80        		.byte	-128
- 438 0005 BE        		.byte	-66
- 439 0006 E6        		.byte	-26
- 440 0007 F7        		.byte	-9
- 441 0008 FC        		.byte	-4
- 442               		.text
- 443               	.global	NWK_LinearizeLqi
- 445               	NWK_LinearizeLqi:
- 446               	.LFB75:
+ 501              	 .loc 1 174 0
+ 502 0164 00BF     	 nop
+ 503 0166 80BD     	 pop {r7,pc}
+ 504              	.L30:
+ 505              	 .align 2
+ 506              	.L29:
+ 507 0168 00000000 	 .word PHY_Wakeup
+ 508              	 .cfi_endproc
+ 509              	.LFE135:
+ 511              	 .section .rodata
+ 512              	 .align 2
+ 513              	.LC0:
+ 514 0000 03       	 .byte 3
+ 515 0001 08       	 .byte 8
+ 516 0002 1A       	 .byte 26
+ 517 0003 40       	 .byte 64
+ 518 0004 80       	 .byte -128
+ 519 0005 BE       	 .byte -66
+ 520 0006 E6       	 .byte -26
+ 521 0007 F7       	 .byte -9
+ 522 0008 FC       	 .byte -4
+ 523              	 .text
+ 524              	 .align 1
+ 525              	 .global NWK_LinearizeLqi
+ 526              	 .syntax unified
+ 527              	 .thumb
+ 528              	 .thumb_func
+ 529              	 .fpu softvfp
+ 531              	NWK_LinearizeLqi:
+ 532              	.LFB136:
  175:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  176:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
  177:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Calculates linearized value for the given value of the LQI
@@ -607,190 +689,229 @@
  180:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
  181:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** uint8_t NWK_LinearizeLqi(uint8_t lqi)
  182:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
- 447               		.loc 1 182 0
- 448               		.cfi_startproc
- 449 0188 CF93      		push r28
- 450               	.LCFI31:
- 451               		.cfi_def_cfa_offset 3
- 452               		.cfi_offset 28, -2
- 453 018a DF93      		push r29
- 454               	.LCFI32:
- 455               		.cfi_def_cfa_offset 4
- 456               		.cfi_offset 29, -3
- 457 018c CDB7      		in r28,__SP_L__
- 458 018e DEB7      		in r29,__SP_H__
- 459               	.LCFI33:
- 460               		.cfi_def_cfa_register 28
- 461 0190 2C97      		sbiw r28,12
- 462               	.LCFI34:
- 463               		.cfi_def_cfa_offset 16
- 464 0192 0FB6      		in __tmp_reg__,__SREG__
- 465 0194 F894      		cli
- 466 0196 DEBF      		out __SP_H__,r29
- 467 0198 0FBE      		out __SREG__,__tmp_reg__
- 468 019a CDBF      		out __SP_L__,r28
- 469               	/* prologue: function */
- 470               	/* frame size = 12 */
- 471               	/* stack size = 14 */
- 472               	.L__stack_usage = 14
- 473 019c 8C87      		std Y+12,r24
+ 533              	 .loc 1 182 0
+ 534              	 .cfi_startproc
+ 535              	 
+ 536              	 
+ 537              	 
+ 538 016c 80B4     	 push {r7}
+ 539              	.LCFI37:
+ 540              	 .cfi_def_cfa_offset 4
+ 541              	 .cfi_offset 7,-4
+ 542 016e 87B0     	 sub sp,sp,#28
+ 543              	.LCFI38:
+ 544              	 .cfi_def_cfa_offset 32
+ 545 0170 00AF     	 add r7,sp,#0
+ 546              	.LCFI39:
+ 547              	 .cfi_def_cfa_register 7
+ 548 0172 0346     	 mov r3,r0
+ 549 0174 FB71     	 strb r3,[r7,#7]
  183:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	const uint8_t val[] = { 3, 8, 26, 64, 128, 190, 230, 247, 252 };
- 474               		.loc 1 183 0
- 475 019e 89E0      		ldi r24,lo8(9)
- 476 01a0 E0E0      		ldi r30,lo8(.LC0)
- 477 01a2 F0E0      		ldi r31,hi8(.LC0)
- 478 01a4 DE01      		movw r26,r28
- 479 01a6 1396      		adiw r26,3
- 480               		0:
- 481 01a8 0190      		ld r0,Z+
- 482 01aa 0D92      		st X+,r0
- 483 01ac 8A95      		dec r24
- 484 01ae 01F4      		brne 0b
+ 550              	 .loc 1 183 0
+ 551 0176 124A     	 ldr r2,.L37
+ 552 0178 07F10C03 	 add r3,r7,#12
+ 553 017c 07CA     	 ldm r2,{r0,r1,r2}
+ 554 017e 03C3     	 stmia r3!,{r0,r1}
+ 555 0180 1A70     	 strb r2,[r3]
  184:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	uint8_t cl = 25;
- 485               		.loc 1 184 0
- 486 01b0 89E1      		ldi r24,lo8(25)
- 487 01b2 8983      		std Y+1,r24
- 488               	.LBB3:
+ 556              	 .loc 1 184 0
+ 557 0182 1923     	 movs r3,#25
+ 558 0184 FB75     	 strb r3,[r7,#23]
+ 559              	.LBB3:
  185:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  186:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	for (uint8_t i = 0; i < sizeof(val); i++) {
- 489               		.loc 1 186 0
- 490 01b4 1A82      		std Y+2,__zero_reg__
- 491 01b6 00C0      		rjmp .L15
- 492               	.L18:
+ 560              	 .loc 1 186 0
+ 561 0186 0023     	 movs r3,#0
+ 562 0188 BB75     	 strb r3,[r7,#22]
+ 563 018a 10E0     	 b .L32
+ 564              	.L35:
  187:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		if (lqi < cl) {
- 493               		.loc 1 187 0
- 494 01b8 9C85      		ldd r25,Y+12
- 495 01ba 8981      		ldd r24,Y+1
- 496 01bc 9817      		cp r25,r24
- 497 01be 00F4      		brsh .L16
+ 565              	 .loc 1 187 0
+ 566 018c FA79     	 ldrb r2,[r7,#7]
+ 567 018e FB7D     	 ldrb r3,[r7,#23]
+ 568 0190 9A42     	 cmp r2,r3
+ 569 0192 06D2     	 bcs .L33
  188:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 			return val[i];
- 498               		.loc 1 188 0
- 499 01c0 8A81      		ldd r24,Y+2
- 500 01c2 882F      		mov r24,r24
- 501 01c4 90E0      		ldi r25,0
- 502 01c6 9E01      		movw r18,r28
- 503 01c8 2D5F      		subi r18,-3
- 504 01ca 3F4F      		sbci r19,-1
- 505 01cc 820F      		add r24,r18
- 506 01ce 931F      		adc r25,r19
- 507 01d0 FC01      		movw r30,r24
- 508 01d2 8081      		ld r24,Z
- 509 01d4 00C0      		rjmp .L19
- 510               	.L16:
+ 570              	 .loc 1 188 0
+ 571 0194 BB7D     	 ldrb r3,[r7,#22]
+ 572 0196 07F11802 	 add r2,r7,#24
+ 573 019a 1344     	 add r3,r3,r2
+ 574 019c 13F80C3C 	 ldrb r3,[r3,#-12]
+ 575 01a0 09E0     	 b .L36
+ 576              	.L33:
  189:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		}
  190:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  191:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		cl += 25;
- 511               		.loc 1 191 0 discriminator 2
- 512 01d6 8981      		ldd r24,Y+1
- 513 01d8 875E      		subi r24,lo8(-(25))
- 514 01da 8983      		std Y+1,r24
+ 577              	 .loc 1 191 0 discriminator 2
+ 578 01a2 FB7D     	 ldrb r3,[r7,#23]
+ 579 01a4 1933     	 adds r3,r3,#25
+ 580 01a6 FB75     	 strb r3,[r7,#23]
  186:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		if (lqi < cl) {
- 515               		.loc 1 186 0 discriminator 2
- 516 01dc 8A81      		ldd r24,Y+2
- 517 01de 8F5F      		subi r24,lo8(-(1))
- 518 01e0 8A83      		std Y+2,r24
- 519               	.L15:
+ 581              	 .loc 1 186 0 discriminator 2
+ 582 01a8 BB7D     	 ldrb r3,[r7,#22]
+ 583 01aa 0133     	 adds r3,r3,#1
+ 584 01ac BB75     	 strb r3,[r7,#22]
+ 585              	.L32:
  186:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 		if (lqi < cl) {
- 520               		.loc 1 186 0 is_stmt 0 discriminator 1
- 521 01e2 8A81      		ldd r24,Y+2
- 522 01e4 8930      		cpi r24,lo8(9)
- 523 01e6 00F0      		brlo .L18
- 524               	.LBE3:
+ 586              	 .loc 1 186 0 is_stmt 0 discriminator 1
+ 587 01ae BB7D     	 ldrb r3,[r7,#22]
+ 588 01b0 082B     	 cmp r3,#8
+ 589 01b2 EBD9     	 bls .L35
+ 590              	.LBE3:
  192:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	}
  193:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  194:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	return 255;
- 525               		.loc 1 194 0 is_stmt 1
- 526 01e8 8FEF      		ldi r24,lo8(-1)
- 527               	.L19:
- 528               	/* epilogue start */
+ 591              	 .loc 1 194 0 is_stmt 1
+ 592 01b4 FF23     	 movs r3,#255
+ 593              	.L36:
  195:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
- 529               		.loc 1 195 0 discriminator 1
- 530 01ea 2C96      		adiw r28,12
- 531 01ec 0FB6      		in __tmp_reg__,__SREG__
- 532 01ee F894      		cli
- 533 01f0 DEBF      		out __SP_H__,r29
- 534 01f2 0FBE      		out __SREG__,__tmp_reg__
- 535 01f4 CDBF      		out __SP_L__,r28
- 536 01f6 DF91      		pop r29
- 537 01f8 CF91      		pop r28
- 538 01fa 0895      		ret
- 539               		.cfi_endproc
- 540               	.LFE75:
- 542               	.global	NWK_TaskHandler
- 544               	NWK_TaskHandler:
- 545               	.LFB76:
+ 594              	 .loc 1 195 0 discriminator 1
+ 595 01b6 1846     	 mov r0,r3
+ 596 01b8 1C37     	 adds r7,r7,#28
+ 597              	.LCFI40:
+ 598              	 .cfi_def_cfa_offset 4
+ 599 01ba BD46     	 mov sp,r7
+ 600              	.LCFI41:
+ 601              	 .cfi_def_cfa_register 13
+ 602              	 
+ 603 01bc 80BC     	 pop {r7}
+ 604              	.LCFI42:
+ 605              	 .cfi_restore 7
+ 606              	 .cfi_def_cfa_offset 0
+ 607 01be 7047     	 bx lr
+ 608              	.L38:
+ 609              	 .align 2
+ 610              	.L37:
+ 611 01c0 00000000 	 .word .LC0
+ 612              	 .cfi_endproc
+ 613              	.LFE136:
+ 615              	 .align 1
+ 616              	 .global NWK_TaskHandler
+ 617              	 .syntax unified
+ 618              	 .thumb
+ 619              	 .thumb_func
+ 620              	 .fpu softvfp
+ 622              	NWK_TaskHandler:
+ 623              	.LFB137:
  196:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 
  197:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** /*************************************************************************//**
  198:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *  @brief Network layer task handler
  199:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** *****************************************************************************/
  200:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** void NWK_TaskHandler(void)
  201:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** {
- 546               		.loc 1 201 0
- 547               		.cfi_startproc
- 548 01fc CF93      		push r28
- 549               	.LCFI35:
- 550               		.cfi_def_cfa_offset 3
- 551               		.cfi_offset 28, -2
- 552 01fe DF93      		push r29
- 553               	.LCFI36:
- 554               		.cfi_def_cfa_offset 4
- 555               		.cfi_offset 29, -3
- 556 0200 CDB7      		in r28,__SP_L__
- 557 0202 DEB7      		in r29,__SP_H__
- 558               	.LCFI37:
- 559               		.cfi_def_cfa_register 28
- 560               	/* prologue: function */
- 561               	/* frame size = 0 */
- 562               	/* stack size = 2 */
- 563               	.L__stack_usage = 2
+ 624              	 .loc 1 201 0
+ 625              	 .cfi_startproc
+ 626              	 
+ 627              	 
+ 628 01c4 80B5     	 push {r7,lr}
+ 629              	.LCFI43:
+ 630              	 .cfi_def_cfa_offset 8
+ 631              	 .cfi_offset 7,-8
+ 632              	 .cfi_offset 14,-4
+ 633 01c6 00AF     	 add r7,sp,#0
+ 634              	.LCFI44:
+ 635              	 .cfi_def_cfa_register 7
  202:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkRxTaskHandler();
- 564               		.loc 1 202 0
- 565 0204 0E94 0000 		call nwkRxTaskHandler
+ 636              	 .loc 1 202 0
+ 637 01c8 034B     	 ldr r3,.L40
+ 638 01ca 9847     	 blx r3
+ 639              	.LVL9:
  203:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkTxTaskHandler();
- 566               		.loc 1 203 0
- 567 0208 0E94 0000 		call nwkTxTaskHandler
+ 640              	 .loc 1 203 0
+ 641 01cc 034B     	 ldr r3,.L40+4
+ 642 01ce 9847     	 blx r3
+ 643              	.LVL10:
  204:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkDataReqTaskHandler();
- 568               		.loc 1 204 0
- 569 020c 0E94 0000 		call nwkDataReqTaskHandler
+ 644              	 .loc 1 204 0
+ 645 01d0 034B     	 ldr r3,.L40+8
+ 646 01d2 9847     	 blx r3
+ 647              	.LVL11:
  205:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #ifdef NWK_ENABLE_SECURITY
  206:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** 	nwkSecurityTaskHandler();
  207:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** #endif
  208:../../../stack/LwMesh/TDMA/nwk/src/nwk.c **** }
- 570               		.loc 1 208 0
- 571 0210 0000      		nop
- 572               	/* epilogue start */
- 573 0212 DF91      		pop r29
- 574 0214 CF91      		pop r28
- 575 0216 0895      		ret
- 576               		.cfi_endproc
- 577               	.LFE76:
- 579               	.Letext0:
- 580               		.file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
- 581               		.file 3 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
- 582               		.file 4 "../../../stack/LwMesh/TDMA/nwk/inc/nwk.h"
- 583               		.file 5 "config/config.h"
+ 648              	 .loc 1 208 0
+ 649 01d4 00BF     	 nop
+ 650 01d6 80BD     	 pop {r7,pc}
+ 651              	.L41:
+ 652              	 .align 2
+ 653              	.L40:
+ 654 01d8 00000000 	 .word nwkRxTaskHandler
+ 655 01dc 00000000 	 .word nwkTxTaskHandler
+ 656 01e0 00000000 	 .word nwkDataReqTaskHandler
+ 657              	 .cfi_endproc
+ 658              	.LFE137:
+ 660              	.Letext0:
+ 661              	 .file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 662              	 .file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 663              	 .file 4 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 664              	 .file 5 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 665              	 .file 6 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 666              	 .file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+ 667              	 .file 8 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 668              	 .file 9 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+ 669              	 .file 10 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 670              	 .file 11 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
+ 671              	 .file 12 "../../../platform/sam/utils/compiler.h"
+ 672              	 .file 13 "../../../platform/common/services/usb/usb_protocol.h"
+ 673              	 .file 14 "../../../platform/common/services/usb/udc/udi.h"
+ 674              	 .file 15 "../../../platform/common/services/usb/udc/udc_desc.h"
+ 675              	 .file 16 "../../../platform/common/services/usb/udc/udd.h"
+ 676              	 .file 17 "../../../platform/common/services/usb/class/cdc/device/udi_cdc.h"
+ 677              	 .file 18 "../../../platform/common/utils/stdio/stdio_usb/stdio_usb.h"
+ 678              	 .file 19 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
+ 679              	 .file 20 "../../../stack/LwMesh/TDMA/nwk/inc/nwk.h"
+ 680              	 .file 21 "config/config.h"
+ 681              	 .file 22 "../../../stack/LwMesh/TDMA/nwk/inc/nwkTx.h"
+ 682              	 .file 23 "../../../stack/LwMesh/TDMA/nwk/inc/nwkDataReq.h"
+ 683              	 .file 24 "../../../stack/LwMesh/TDMA/phy/AT86RF233/inc/phy.h"
+ 684              	 .file 25 "../../../stack/LwMesh/TDMA/nwk/inc/nwkFrame.h"
+ 685              	 .file 26 "../../../stack/LwMesh/TDMA/nwk/inc/nwkGroup.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 nwk.c
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:2      *ABS*:0000003e __SP_H__
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:3      *ABS*:0000003d __SP_L__
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:4      *ABS*:0000003f __SREG__
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:5      *ABS*:0000003b __RAMPZ__
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:6      *ABS*:00000000 __tmp_reg__
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:7      *ABS*:00000001 __zero_reg__
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
                             *COM*:00000001 n
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:15     .bss.tTS:00000000 tTS
-                            *COM*:00000028 nwkIb
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:21     .text:00000000 NWK_Init
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:104    .text:00000066 NWK_SetAddr
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:151    .text:00000094 NWK_SetPanId
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:198    .text:000000c2 NWK_OpenEndpoint
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:253    .text:000000fc NWK_Busy
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:293    .text:0000011c NWK_Lock
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:330    .text:0000013e NWK_Unlock
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:367    .text:00000160 NWK_SleepReq
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:400    .text:00000174 NWK_WakeupReq
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:445    .text:00000188 NWK_LinearizeLqi
-C:\Users\guilh\AppData\Local\Temp\cc0Kn5hd.s:544    .text:000001fc NWK_TaskHandler
+    {standard input}:28     .bss.tTS:00000000 $d
+    {standard input}:31     .bss.tTS:00000000 tTS
+                            *COM*:0000004c nwkIb
+    {standard input}:35     .text:00000000 $t
+    {standard input}:42     .text:00000000 NWK_Init
+    {standard input}:131    .text:0000005c $d
+    {standard input}:140    .text:00000074 $t
+    {standard input}:147    .text:00000074 NWK_SetAddr
+    {standard input}:189    .text:00000094 $d
+    {standard input}:194    .text:0000009c $t
+    {standard input}:201    .text:0000009c NWK_SetPanId
+    {standard input}:243    .text:000000bc $d
+    {standard input}:248    .text:000000c4 $t
+    {standard input}:255    .text:000000c4 NWK_OpenEndpoint
+    {standard input}:298    .text:000000e8 $d
+    {standard input}:302    .text:000000ec $t
+    {standard input}:309    .text:000000ec NWK_Busy
+    {standard input}:345    .text:00000108 $d
+    {standard input}:349    .text:0000010c $t
+    {standard input}:356    .text:0000010c NWK_Lock
+    {standard input}:391    .text:00000128 $d
+    {standard input}:395    .text:0000012c $t
+    {standard input}:402    .text:0000012c NWK_Unlock
+    {standard input}:437    .text:00000148 $d
+    {standard input}:441    .text:0000014c $t
+    {standard input}:448    .text:0000014c NWK_SleepReq
+    {standard input}:472    .text:00000158 $d
+    {standard input}:476    .text:0000015c $t
+    {standard input}:483    .text:0000015c NWK_WakeupReq
+    {standard input}:507    .text:00000168 $d
+    {standard input}:512    .rodata:00000000 $d
+    {standard input}:524    .text:0000016c $t
+    {standard input}:531    .text:0000016c NWK_LinearizeLqi
+    {standard input}:611    .text:000001c0 $d
+    {standard input}:615    .text:000001c4 $t
+    {standard input}:622    .text:000001c4 NWK_TaskHandler
+    {standard input}:654    .text:000001d8 $d
+                     .debug_frame:00000010 $d
 
 UNDEFINED SYMBOLS
 nwkTxInit
@@ -805,5 +926,3 @@ PHY_Wakeup
 nwkRxTaskHandler
 nwkTxTaskHandler
 nwkDataReqTaskHandler
-__do_copy_data
-__do_clear_bss

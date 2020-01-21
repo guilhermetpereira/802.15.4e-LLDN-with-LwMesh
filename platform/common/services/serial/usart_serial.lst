@@ -1,253 +1,753 @@
-   1               		.file	"usart_serial.c"
-   2               	__SP_H__ = 0x3e
-   3               	__SP_L__ = 0x3d
-   4               	__SREG__ = 0x3f
-   5               	__RAMPZ__ = 0x3b
-   6               	__tmp_reg__ = 0
-   7               	__zero_reg__ = 1
-   8               		.text
-   9               	.Ltext0:
-  10               		.cfi_sections	.debug_frame
-  11               		.section	.progmem.data.baudctrl_1mhz,"a",@progbits
-  14               	baudctrl_1mhz:
-  15 0000 3300      		.word	51
-  16 0002 1900      		.word	25
-  17 0004 0C00      		.word	12
-  18 0006 0600      		.word	6
-  19 0008 0300      		.word	3
-  20 000a 0200      		.word	2
-  21 000c 0100      		.word	1
-  22 000e FF00      		.word	255
-  23               		.section	.progmem.data.baudctrl_8mhz,"a",@progbits
-  26               	baudctrl_8mhz:
-  27 0000 A001      		.word	416
-  28 0002 CF00      		.word	207
-  29 0004 6700      		.word	103
-  30 0006 3300      		.word	51
-  31 0008 1900      		.word	25
-  32 000a 0C00      		.word	12
-  33 000c 0700      		.word	7
-  34 000e 0800      		.word	8
-  35               		.section	.progmem.data.baudctrl_16mhz,"a",@progbits
-  38               	baudctrl_16mhz:
-  39 0000 4003      		.word	832
-  40 0002 A001      		.word	416
-  41 0004 CF00      		.word	207
-  42 0006 6700      		.word	103
-  43 0008 3300      		.word	51
-  44 000a 1900      		.word	25
-  45 000c 1000      		.word	16
-  46 000e 1000      		.word	16
-  47               		.text
-  49               	usart_serial_putchar:
-  50               	.LFB96:
-  51               		.file 1 "../../../platform/common/services/serial/megarf_usart/usart_serial.h"
-   1:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /**
-   2:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \file
-   3:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-   4:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \brief This file defines a useful set of functions for the Serial interface on 
-   5:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * AVR MEGARF devices.
-   6:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-   7:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * Copyright (c) 2013 Atmel Corporation. All rights reserved.
-   8:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-   9:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \asf_license_start
-  10:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  11:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \page License
-  12:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  13:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * Redistribution and use in source and binary forms, with or without
-  14:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * modification, are permitted provided that the following conditions are met:
-  15:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  16:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * 1. Redistributions of source code must retain the above copyright notice,
-  17:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    this list of conditions and the following disclaimer.
-  18:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  19:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
-  20:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    this list of conditions and the following disclaimer in the documentation
-  21:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    and/or other materials provided with the distribution.
-  22:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  23:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
-  24:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    from this software without specific prior written permission.
-  25:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  26:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * 4. This software may only be redistributed and used in connection with an
-  27:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    Atmel microcontroller product.
-  28:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  29:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
-  30:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-  31:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
-  32:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
-  33:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  34:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-  35:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-  36:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-  37:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-  38:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  39:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * POSSIBILITY OF SUCH DAMAGE.
-  40:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  41:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \asf_license_stop
-  42:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  43:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
-  44:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #ifndef _USART_SERIAL_H_
-  45:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #define _USART_SERIAL_H_
-  46:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  47:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #ifdef __cplusplus
-  48:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** extern "C" {
-  49:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #endif
-  50:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  51:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "compiler.h"
-  52:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "sysclk.h"
-  53:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "status_codes.h"
-  54:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "usart_megarf.h"
-  55:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  56:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /*! \name Serial Management Configuration
-  57:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
-  58:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /* ! @{ */
-  59:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "conf_usart_serial.h"
-  60:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /* ! @} */
-  61:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  62:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** typedef usart_rs232_options_t usart_serial_options_t;
-  63:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  64:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** typedef USART_t *usart_if;
-  65:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  66:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /*! \brief Initializes the Usart in master mode.
-  67:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  68:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param usart       Base address of the USART instance.
-  69:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param options     Options needed to set up RS232 communication (see \ref
-  70:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * usart_serial_options_t).
-  71:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  72:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \retval true if the initialization was successful
-  73:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \retval false if initialization failed (error in baud rate calculation)
-  74:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
-  75:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** static inline bool usart_serial_init(usart_if usart, const
-  76:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 		usart_serial_options_t *options)
-  77:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** {
-  78:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	/* USART options. */
-  79:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options_t usart_rs232_options;
-  80:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options.charlength   = options->charlength;
-  81:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options.paritytype   = options->paritytype;
-  82:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options.stopbits     = options->stopbits;
-  83:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options.baudrate     = options->baudrate;
-  84:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  85:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	if (usart_init_rs232(usart, &usart_rs232_options)) {
-  86:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 		return true;
-  87:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	} else {
-  88:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 		return false;
-  89:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	}
-  90:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** }
-  91:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
-  92:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /*! \brief Sends a character with the USART.
-  93:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  94:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param usart   Base address of the USART instance.
-  95:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param c       Character to write.
-  96:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
-  97:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \return Status code
-  98:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
-  99:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** static inline status_code_t usart_serial_putchar(usart_if usart, uint8_t c)
- 100:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** {
-  52               		.loc 1 100 0
-  53               		.cfi_startproc
-  54 0000 CF93      		push r28
-  55               	.LCFI0:
-  56               		.cfi_def_cfa_offset 3
-  57               		.cfi_offset 28, -2
-  58 0002 DF93      		push r29
-  59               	.LCFI1:
-  60               		.cfi_def_cfa_offset 4
-  61               		.cfi_offset 29, -3
-  62 0004 00D0      		rcall .
-  63 0006 1F92      		push __zero_reg__
-  64               	.LCFI2:
-  65               		.cfi_def_cfa_offset 7
-  66 0008 CDB7      		in r28,__SP_L__
-  67 000a DEB7      		in r29,__SP_H__
-  68               	.LCFI3:
-  69               		.cfi_def_cfa_register 28
-  70               	/* prologue: function */
-  71               	/* frame size = 3 */
-  72               	/* stack size = 5 */
-  73               	.L__stack_usage = 5
-  74 000c 9A83      		std Y+2,r25
-  75 000e 8983      		std Y+1,r24
-  76 0010 6B83      		std Y+3,r22
- 101:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	return usart_putchar(usart, c);
-  77               		.loc 1 101 0
-  78 0012 8981      		ldd r24,Y+1
-  79 0014 9A81      		ldd r25,Y+2
-  80 0016 6B81      		ldd r22,Y+3
-  81 0018 0E94 0000 		call usart_putchar
-  82               	/* epilogue start */
- 102:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** }
-  83               		.loc 1 102 0
-  84 001c 0F90      		pop __tmp_reg__
-  85 001e 0F90      		pop __tmp_reg__
-  86 0020 0F90      		pop __tmp_reg__
-  87 0022 DF91      		pop r29
-  88 0024 CF91      		pop r28
-  89 0026 0895      		ret
-  90               		.cfi_endproc
-  91               	.LFE96:
-  94               	usart_serial_getchar:
-  95               	.LFB97:
- 103:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
- 104:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /*! \brief Waits until a character is received, and returns it.
- 105:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
- 106:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param usart   Base address of the USART instance.
- 107:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param data   Data to read
- 108:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
- 109:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
- 110:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** static inline void usart_serial_getchar(usart_if usart, uint8_t *data)
- 111:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** {
-  96               		.loc 1 111 0
-  97               		.cfi_startproc
-  98 0028 CF93      		push r28
-  99               	.LCFI4:
- 100               		.cfi_def_cfa_offset 3
- 101               		.cfi_offset 28, -2
- 102 002a DF93      		push r29
- 103               	.LCFI5:
- 104               		.cfi_def_cfa_offset 4
- 105               		.cfi_offset 29, -3
- 106 002c 00D0      		rcall .
- 107 002e 00D0      		rcall .
- 108               	.LCFI6:
- 109               		.cfi_def_cfa_offset 8
- 110 0030 CDB7      		in r28,__SP_L__
- 111 0032 DEB7      		in r29,__SP_H__
- 112               	.LCFI7:
- 113               		.cfi_def_cfa_register 28
- 114               	/* prologue: function */
- 115               	/* frame size = 4 */
- 116               	/* stack size = 6 */
- 117               	.L__stack_usage = 6
- 118 0034 9A83      		std Y+2,r25
- 119 0036 8983      		std Y+1,r24
- 120 0038 7C83      		std Y+4,r23
- 121 003a 6B83      		std Y+3,r22
- 112:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	*data = usart_getchar(usart);
- 122               		.loc 1 112 0
- 123 003c 8981      		ldd r24,Y+1
- 124 003e 9A81      		ldd r25,Y+2
- 125 0040 0E94 0000 		call usart_getchar
- 126 0044 282F      		mov r18,r24
- 127 0046 8B81      		ldd r24,Y+3
- 128 0048 9C81      		ldd r25,Y+4
- 129 004a FC01      		movw r30,r24
- 130 004c 2083      		st Z,r18
- 113:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** }
- 131               		.loc 1 113 0
- 132 004e 0000      		nop
- 133               	/* epilogue start */
- 134 0050 0F90      		pop __tmp_reg__
- 135 0052 0F90      		pop __tmp_reg__
- 136 0054 0F90      		pop __tmp_reg__
- 137 0056 0F90      		pop __tmp_reg__
- 138 0058 DF91      		pop r29
- 139 005a CF91      		pop r28
- 140 005c 0895      		ret
- 141               		.cfi_endproc
- 142               	.LFE97:
- 144               	.global	usart_serial_write_packet
- 146               	usart_serial_write_packet:
- 147               	.LFB98:
- 148               		.file 2 "../../../platform/common/services/serial/usart_serial.c"
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "usart_serial.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .comm n,1,1
+  27              	 .section .bss.tTS,"aw",%nobits
+  28              	 .align 2
+  31              	tTS:
+  32 0000 00000000 	 .space 4
+  33              	 .text
+  34              	 .align 1
+  35              	 .syntax unified
+  36              	 .thumb
+  37              	 .thumb_func
+  38              	 .fpu softvfp
+  40              	usart_serial_putchar:
+  41              	.LFB182:
+  42              	 .file 1 "../../../platform/common/services/serial/sam_uart/uart_serial.h"
+   1:../../../platform/common/services/serial/sam_uart/uart_serial.h **** /**
+   2:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \file
+   3:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+   4:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \brief Uart Serial for SAM.
+   5:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+   6:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * Copyright (c) 2011-2013 Atmel Corporation. All rights reserved.
+   7:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+   8:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \asf_license_start
+   9:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+  10:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \page License
+  11:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+  12:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * Redistribution and use in source and binary forms, with or without
+  13:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * modification, are permitted provided that the following conditions are met:
+  14:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+  15:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  16:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *    this list of conditions and the following disclaimer.
+  17:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+  18:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  19:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *    this list of conditions and the following disclaimer in the documentation
+  20:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *    and/or other materials provided with the distribution.
+  21:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+  22:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  23:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *    from this software without specific prior written permission.
+  24:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+  25:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * 4. This software may only be redistributed and used in connection with an
+  26:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *    Atmel microcontroller product.
+  27:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+  28:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  29:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  30:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  31:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  32:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  33:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  34:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  35:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  36:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  37:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  38:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  39:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+  40:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \asf_license_stop
+  41:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+  42:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  */
+  43:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #ifndef _UART_SERIAL_H_
+  44:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #define _UART_SERIAL_H_
+  45:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+  46:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #include "compiler.h"
+  47:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #include "sysclk.h"
+  48:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (!SAM4L)
+  49:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #include "uart.h"
+  50:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+  51:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #include "usart.h"
+  52:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+  53:../../../platform/common/services/serial/sam_uart/uart_serial.h **** /** 
+  54:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \name Serial Management Configuration
+  55:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  */
+  56:../../../platform/common/services/serial/sam_uart/uart_serial.h **** //! @{
+  57:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #include "conf_uart_serial.h"
+  58:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+  59:../../../platform/common/services/serial/sam_uart/uart_serial.h **** //! @}
+  60:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+  61:../../../platform/common/services/serial/sam_uart/uart_serial.h **** /** Input parameters when initializing RS232 and similar modes. */
+  62:../../../platform/common/services/serial/sam_uart/uart_serial.h **** typedef struct uart_rs232_options {
+  63:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	/** Set baud rate of the USART (unused in slave modes). */
+  64:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	uint32_t baudrate;
+  65:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+  66:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	/** Number of bits to transmit as a character (5 to 9). */
+  67:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	uint32_t charlength;
+  68:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+  69:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	/**
+  70:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	 * Parity type: USART_PMODE_DISABLED_gc, USART_PMODE_EVEN_gc,
+  71:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	 * USART_PMODE_ODD_gc.
+  72:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	 */
+  73:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	uint32_t paritytype;
+  74:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+  75:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	/** 
+  76:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	 * Number of stop bits between two characters:
+  77:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	 * true: 2 stop bits
+  78:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	 * false: 1 stop bit
+  79:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	 */
+  80:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	bool stopbits;
+  81:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+  82:../../../platform/common/services/serial/sam_uart/uart_serial.h **** } usart_rs232_options_t;
+  83:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+  84:../../../platform/common/services/serial/sam_uart/uart_serial.h **** typedef usart_rs232_options_t usart_serial_options_t;
+  85:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+  86:../../../platform/common/services/serial/sam_uart/uart_serial.h **** typedef Usart *usart_if;
+  87:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+  88:../../../platform/common/services/serial/sam_uart/uart_serial.h **** /** 
+  89:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \brief Initializes the Usart in master mode.
+  90:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+  91:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \param p_usart  Base address of the USART instance.
+  92:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \param opt      Options needed to set up RS232 communication (see
+  93:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \ref usart_options_t).
+  94:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  */
+  95:../../../platform/common/services/serial/sam_uart/uart_serial.h **** static inline void usart_serial_init(usart_if p_usart,
+  96:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_serial_options_t *opt)
+  97:../../../platform/common/services/serial/sam_uart/uart_serial.h **** {
+  98:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (!SAM4L)
+  99:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	sam_uart_opt_t uart_settings;
+ 100:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	uart_settings.ul_mck = sysclk_get_peripheral_hz();
+ 101:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	uart_settings.ul_baudrate = opt->baudrate;
+ 102:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	uart_settings.ul_mode = opt->paritytype;
+ 103:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+ 104:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+ 105:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	sam_usart_opt_t usart_settings;
+ 106:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	usart_settings.baudrate = opt->baudrate;
+ 107:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	usart_settings.char_length = opt->charlength;
+ 108:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	usart_settings.parity_type = opt->paritytype;
+ 109:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	usart_settings.stop_bits= opt->stopbits;
+ 110:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	usart_settings.channel_mode= US_MR_CHMODE_NORMAL;
+ 111:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	
+ 112:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #ifdef UART
+ 113:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART == (Uart*)p_usart) {
+ 114:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(ID_UART);
+ 115:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure UART */
+ 116:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		uart_init((Uart*)p_usart, &uart_settings);
+ 117:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 118:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #else
+ 119:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef UART0
+ 120:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART0 == (Uart*)p_usart) {
+ 121:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(ID_UART0);
+ 122:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure UART */
+ 123:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		uart_init((Uart*)p_usart, &uart_settings);
+ 124:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 125:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 126:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef UART1
+ 127:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART1 == (Uart*)p_usart) {
+ 128:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(ID_UART1);
+ 129:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure UART */
+ 130:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		uart_init((Uart*)p_usart, &uart_settings);
+ 131:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 132:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 133:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef UART2
+ 134:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART2 == (Uart*)p_usart) {
+ 135:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(ID_UART2);
+ 136:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure UART */
+ 137:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		uart_init((Uart*)p_usart, &uart_settings);
+ 138:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 139:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 140:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef UART3
+ 141:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART3 == (Uart*)p_usart) {
+ 142:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(ID_UART3);
+ 143:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure UART */
+ 144:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		uart_init((Uart*)p_usart, &uart_settings);
+ 145:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 146:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 147:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif /* ifdef UART */
+ 148:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+ 149:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+ 150:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #ifdef USART
+ 151:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART == p_usart) {
+ 152:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (!SAM4L)
+ 153:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(ID_USART);
+ 154:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure USART */
+ 155:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_init_rs232(p_usart, &usart_settings,
+ 156:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 				sysclk_get_peripheral_hz());
+ 157:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+ 158:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (SAM4L)
+ 159:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(p_usart);
+ 160:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure USART */
+ 161:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_init_rs232(p_usart, &usart_settings,
+ 162:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 				sysclk_get_peripheral_bus_hz(p_usart));
+ 163:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+ 164:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Enable the receiver and transmitter. */
+ 165:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_enable_tx(p_usart);
+ 166:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_enable_rx(p_usart);
+ 167:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 168:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #else
+ 169:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART0
+ 170:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART0 == p_usart) {
+ 171:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (!SAM4L)
+ 172:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(ID_USART0);
+ 173:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure USART */
+ 174:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_init_rs232(p_usart, &usart_settings,
+ 175:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 				sysclk_get_peripheral_hz());
+ 176:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+ 177:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (SAM4L)
+ 178:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(p_usart);
+ 179:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure USART */
+ 180:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_init_rs232(p_usart, &usart_settings,
+ 181:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 				sysclk_get_peripheral_bus_hz(p_usart));
+ 182:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+ 183:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Enable the receiver and transmitter. */
+ 184:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_enable_tx(p_usart);
+ 185:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_enable_rx(p_usart);
+ 186:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 187:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 188:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART1
+ 189:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART1 == p_usart) {
+ 190:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (!SAM4L)
+ 191:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(ID_USART1);
+ 192:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure USART */
+ 193:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_init_rs232(p_usart, &usart_settings,
+ 194:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 				sysclk_get_peripheral_hz());
+ 195:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+ 196:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (SAM4L)
+ 197:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(p_usart);
+ 198:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure USART */
+ 199:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_init_rs232(p_usart, &usart_settings,
+ 200:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 				sysclk_get_peripheral_bus_hz(p_usart));
+ 201:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+ 202:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Enable the receiver and transmitter. */
+ 203:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_enable_tx(p_usart);
+ 204:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_enable_rx(p_usart);
+ 205:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 206:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 207:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART2
+ 208:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART2 == p_usart) {
+ 209:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (!SAM4L)
+ 210:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(ID_USART2);
+ 211:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure USART */
+ 212:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_init_rs232(p_usart, &usart_settings,
+ 213:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 				sysclk_get_peripheral_hz());
+ 214:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+ 215:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (SAM4L)
+ 216:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(p_usart);
+ 217:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure USART */
+ 218:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_init_rs232(p_usart, &usart_settings,
+ 219:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 				sysclk_get_peripheral_bus_hz(p_usart));
+ 220:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+ 221:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Enable the receiver and transmitter. */
+ 222:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_enable_tx(p_usart);
+ 223:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_enable_rx(p_usart);
+ 224:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 225:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 226:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART3
+ 227:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART3 == p_usart) {
+ 228:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (!SAM4L)
+ 229:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(ID_USART3);
+ 230:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure USART */
+ 231:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_init_rs232(p_usart, &usart_settings,
+ 232:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 				sysclk_get_peripheral_hz());
+ 233:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+ 234:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (SAM4L)
+ 235:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(p_usart);
+ 236:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure USART */
+ 237:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_init_rs232(p_usart, &usart_settings,
+ 238:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 				sysclk_get_peripheral_bus_hz(p_usart));
+ 239:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+ 240:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Enable the receiver and transmitter. */
+ 241:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_enable_tx(p_usart);
+ 242:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_enable_rx(p_usart);
+ 243:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 244:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 245:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART4
+ 246:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART4 == p_usart) {
+ 247:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (!SAM4L)
+ 248:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(ID_USART4);
+ 249:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure USART */
+ 250:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_init_rs232(p_usart, &usart_settings,
+ 251:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 				sysclk_get_peripheral_hz());
+ 252:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+ 253:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #if (SAM4L)
+ 254:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		sysclk_enable_peripheral_clock(p_usart);
+ 255:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Configure USART */
+ 256:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_init_rs232(p_usart, &usart_settings,
+ 257:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 				sysclk_get_peripheral_bus_hz(p_usart));
+ 258:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif
+ 259:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		/* Enable the receiver and transmitter. */
+ 260:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_enable_tx(p_usart);
+ 261:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		usart_enable_rx(p_usart);
+ 262:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 263:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 264:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif /* ifdef USART */
+ 265:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+ 266:../../../platform/common/services/serial/sam_uart/uart_serial.h **** }
+ 267:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+ 268:../../../platform/common/services/serial/sam_uart/uart_serial.h **** /**
+ 269:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \brief Sends a character with the USART.
+ 270:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+ 271:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \param p_usart   Base address of the USART instance.
+ 272:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \param c       Character to write.
+ 273:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+ 274:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \return Status.
+ 275:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *   \retval 1  The character was written.
+ 276:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *   \retval 0  The function timed out before the USART transmitter became
+ 277:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * ready to send.
+ 278:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  */
+ 279:../../../platform/common/services/serial/sam_uart/uart_serial.h **** static inline int usart_serial_putchar(usart_if p_usart, const uint8_t c)
+ 280:../../../platform/common/services/serial/sam_uart/uart_serial.h **** {
+  43              	 .loc 1 280 0
+  44              	 .cfi_startproc
+  45              	 
+  46              	 
+  47 0000 80B5     	 push {r7,lr}
+  48              	.LCFI0:
+  49              	 .cfi_def_cfa_offset 8
+  50              	 .cfi_offset 7,-8
+  51              	 .cfi_offset 14,-4
+  52 0002 82B0     	 sub sp,sp,#8
+  53              	.LCFI1:
+  54              	 .cfi_def_cfa_offset 16
+  55 0004 00AF     	 add r7,sp,#0
+  56              	.LCFI2:
+  57              	 .cfi_def_cfa_register 7
+  58 0006 7860     	 str r0,[r7,#4]
+  59 0008 0B46     	 mov r3,r1
+  60 000a FB70     	 strb r3,[r7,#3]
+ 281:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #ifdef UART
+ 282:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART == (Uart*)p_usart) {
+ 283:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (uart_write((Uart*)p_usart, c)!=0);
+ 284:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		return 1;
+ 285:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 286:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #else
+ 287:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef UART0
+ 288:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART0 == (Uart*)p_usart) {
+ 289:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (uart_write((Uart*)p_usart, c)!=0);
+ 290:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		return 1;
+ 291:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 292:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 293:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef UART1
+ 294:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART1 == (Uart*)p_usart) {
+ 295:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (uart_write((Uart*)p_usart, c)!=0);
+ 296:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		return 1;
+ 297:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 298:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 299:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef UART2
+ 300:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART2 == (Uart*)p_usart) {
+ 301:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (uart_write((Uart*)p_usart, c)!=0);
+ 302:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		return 1;
+ 303:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 304:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 305:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef UART3
+ 306:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART3 == (Uart*)p_usart) {
+ 307:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (uart_write((Uart*)p_usart, c)!=0);
+ 308:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		return 1;
+ 309:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 310:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 311:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif /* ifdef UART */
+ 312:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+ 313:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+ 314:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #ifdef USART
+ 315:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART == p_usart) {
+ 316:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (usart_write(p_usart, c)!=0);
+ 317:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		return 1;
+ 318:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 319:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #else
+ 320:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART0
+ 321:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART0 == p_usart) {
+  61              	 .loc 1 321 0
+  62 000c 7B68     	 ldr r3,[r7,#4]
+  63 000e 204A     	 ldr r2,.L11
+  64 0010 9342     	 cmp r3,r2
+  65 0012 0AD1     	 bne .L2
+ 322:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (usart_write(p_usart, c)!=0);
+  66              	 .loc 1 322 0
+  67 0014 00BF     	 nop
+  68              	.L3:
+  69              	 .loc 1 322 0 is_stmt 0 discriminator 1
+  70 0016 FB78     	 ldrb r3,[r7,#3]
+  71 0018 1946     	 mov r1,r3
+  72 001a 7868     	 ldr r0,[r7,#4]
+  73 001c 1D4B     	 ldr r3,.L11+4
+  74 001e 9847     	 blx r3
+  75              	.LVL0:
+  76 0020 0346     	 mov r3,r0
+  77 0022 002B     	 cmp r3,#0
+  78 0024 F7D1     	 bne .L3
+ 323:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		return 1;
+  79              	 .loc 1 323 0 is_stmt 1
+  80 0026 0123     	 movs r3,#1
+  81 0028 2DE0     	 b .L4
+  82              	.L2:
+ 324:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 325:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 326:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART1
+ 327:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART1 == p_usart) {
+  83              	 .loc 1 327 0
+  84 002a 7B68     	 ldr r3,[r7,#4]
+  85 002c 1A4A     	 ldr r2,.L11+8
+  86 002e 9342     	 cmp r3,r2
+  87 0030 0AD1     	 bne .L5
+ 328:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (usart_write(p_usart, c)!=0);
+  88              	 .loc 1 328 0
+  89 0032 00BF     	 nop
+  90              	.L6:
+  91              	 .loc 1 328 0 is_stmt 0 discriminator 1
+  92 0034 FB78     	 ldrb r3,[r7,#3]
+  93 0036 1946     	 mov r1,r3
+  94 0038 7868     	 ldr r0,[r7,#4]
+  95 003a 164B     	 ldr r3,.L11+4
+  96 003c 9847     	 blx r3
+  97              	.LVL1:
+  98 003e 0346     	 mov r3,r0
+  99 0040 002B     	 cmp r3,#0
+ 100 0042 F7D1     	 bne .L6
+ 329:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		return 1;
+ 101              	 .loc 1 329 0 is_stmt 1
+ 102 0044 0123     	 movs r3,#1
+ 103 0046 1EE0     	 b .L4
+ 104              	.L5:
+ 330:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 331:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 332:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART2
+ 333:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART2 == p_usart) {
+ 105              	 .loc 1 333 0
+ 106 0048 7B68     	 ldr r3,[r7,#4]
+ 107 004a 144A     	 ldr r2,.L11+12
+ 108 004c 9342     	 cmp r3,r2
+ 109 004e 0AD1     	 bne .L7
+ 334:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (usart_write(p_usart, c)!=0);
+ 110              	 .loc 1 334 0
+ 111 0050 00BF     	 nop
+ 112              	.L8:
+ 113              	 .loc 1 334 0 is_stmt 0 discriminator 1
+ 114 0052 FB78     	 ldrb r3,[r7,#3]
+ 115 0054 1946     	 mov r1,r3
+ 116 0056 7868     	 ldr r0,[r7,#4]
+ 117 0058 0E4B     	 ldr r3,.L11+4
+ 118 005a 9847     	 blx r3
+ 119              	.LVL2:
+ 120 005c 0346     	 mov r3,r0
+ 121 005e 002B     	 cmp r3,#0
+ 122 0060 F7D1     	 bne .L8
+ 335:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		return 1;
+ 123              	 .loc 1 335 0 is_stmt 1
+ 124 0062 0123     	 movs r3,#1
+ 125 0064 0FE0     	 b .L4
+ 126              	.L7:
+ 336:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 337:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 338:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART3
+ 339:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART3 == p_usart) {
+ 127              	 .loc 1 339 0
+ 128 0066 7B68     	 ldr r3,[r7,#4]
+ 129 0068 0D4A     	 ldr r2,.L11+16
+ 130 006a 9342     	 cmp r3,r2
+ 131 006c 0AD1     	 bne .L9
+ 340:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (usart_write(p_usart, c)!=0);
+ 132              	 .loc 1 340 0
+ 133 006e 00BF     	 nop
+ 134              	.L10:
+ 135              	 .loc 1 340 0 is_stmt 0 discriminator 1
+ 136 0070 FB78     	 ldrb r3,[r7,#3]
+ 137 0072 1946     	 mov r1,r3
+ 138 0074 7868     	 ldr r0,[r7,#4]
+ 139 0076 074B     	 ldr r3,.L11+4
+ 140 0078 9847     	 blx r3
+ 141              	.LVL3:
+ 142 007a 0346     	 mov r3,r0
+ 143 007c 002B     	 cmp r3,#0
+ 144 007e F7D1     	 bne .L10
+ 341:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		return 1;
+ 145              	 .loc 1 341 0 is_stmt 1
+ 146 0080 0123     	 movs r3,#1
+ 147 0082 00E0     	 b .L4
+ 148              	.L9:
+ 342:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 343:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 344:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART4
+ 345:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART4 == p_usart) {
+ 346:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (usart_write(p_usart, c)!=0);
+ 347:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		return 1;
+ 348:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 349:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 350:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif /* ifdef USART */
+ 351:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+ 352:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	return 0;
+ 149              	 .loc 1 352 0
+ 150 0084 0023     	 movs r3,#0
+ 151              	.L4:
+ 353:../../../platform/common/services/serial/sam_uart/uart_serial.h **** }
+ 152              	 .loc 1 353 0
+ 153 0086 1846     	 mov r0,r3
+ 154 0088 0837     	 adds r7,r7,#8
+ 155              	.LCFI3:
+ 156              	 .cfi_def_cfa_offset 8
+ 157 008a BD46     	 mov sp,r7
+ 158              	.LCFI4:
+ 159              	 .cfi_def_cfa_register 13
+ 160              	 
+ 161 008c 80BD     	 pop {r7,pc}
+ 162              	.L12:
+ 163 008e 00BF     	 .align 2
+ 164              	.L11:
+ 165 0090 00400240 	 .word 1073889280
+ 166 0094 00000000 	 .word usart_write
+ 167 0098 00800240 	 .word 1073905664
+ 168 009c 00C00240 	 .word 1073922048
+ 169 00a0 00000340 	 .word 1073938432
+ 170              	 .cfi_endproc
+ 171              	.LFE182:
+ 173              	 .align 1
+ 174              	 .syntax unified
+ 175              	 .thumb
+ 176              	 .thumb_func
+ 177              	 .fpu softvfp
+ 179              	usart_serial_getchar:
+ 180              	.LFB183:
+ 354:../../../platform/common/services/serial/sam_uart/uart_serial.h **** /**
+ 355:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \brief Waits until a character is received, and returns it.
+ 356:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+ 357:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \param p_usart   Base address of the USART instance.
+ 358:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  * \param data   Data to read
+ 359:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  *
+ 360:../../../platform/common/services/serial/sam_uart/uart_serial.h ****  */
+ 361:../../../platform/common/services/serial/sam_uart/uart_serial.h **** static inline void usart_serial_getchar(usart_if p_usart, uint8_t *data)
+ 362:../../../platform/common/services/serial/sam_uart/uart_serial.h **** {
+ 181              	 .loc 1 362 0
+ 182              	 .cfi_startproc
+ 183              	 
+ 184              	 
+ 185 00a4 80B5     	 push {r7,lr}
+ 186              	.LCFI5:
+ 187              	 .cfi_def_cfa_offset 8
+ 188              	 .cfi_offset 7,-8
+ 189              	 .cfi_offset 14,-4
+ 190 00a6 84B0     	 sub sp,sp,#16
+ 191              	.LCFI6:
+ 192              	 .cfi_def_cfa_offset 24
+ 193 00a8 00AF     	 add r7,sp,#0
+ 194              	.LCFI7:
+ 195              	 .cfi_def_cfa_register 7
+ 196 00aa 7860     	 str r0,[r7,#4]
+ 197 00ac 3960     	 str r1,[r7]
+ 363:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	uint32_t val = 0;
+ 198              	 .loc 1 363 0
+ 199 00ae 0023     	 movs r3,#0
+ 200 00b0 FB60     	 str r3,[r7,#12]
+ 364:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+ 365:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	/* Avoid Cppcheck Warning */
+ 366:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	UNUSED(val);
+ 367:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+ 368:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #ifdef UART
+ 369:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART == (Uart*)p_usart) {
+ 370:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (uart_read((Uart*)p_usart, data));
+ 371:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 372:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #else
+ 373:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef UART0
+ 374:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART0 == (Uart*)p_usart) {
+ 375:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (uart_read((Uart*)p_usart, data));
+ 376:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 377:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 378:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef UART1
+ 379:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART1 == (Uart*)p_usart) {
+ 380:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (uart_read((Uart*)p_usart, data));
+ 381:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 382:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 383:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef UART2
+ 384:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART2 == (Uart*)p_usart) {
+ 385:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (uart_read((Uart*)p_usart, data));
+ 386:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 387:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 388:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef UART3
+ 389:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (UART3 == (Uart*)p_usart) {
+ 390:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (uart_read((Uart*)p_usart, data));
+ 391:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 392:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 393:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif /* ifdef UART */
+ 394:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+ 395:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+ 396:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #ifdef USART
+ 397:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART == p_usart) {
+ 398:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (usart_read(p_usart, &val));
+ 399:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		*data = (uint8_t)(val & 0xFF);
+ 400:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 401:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #else
+ 402:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART0
+ 403:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART0 == p_usart) {
+ 201              	 .loc 1 403 0
+ 202 00b2 7B68     	 ldr r3,[r7,#4]
+ 203 00b4 254A     	 ldr r2,.L23
+ 204 00b6 9342     	 cmp r3,r2
+ 205 00b8 0DD1     	 bne .L14
+ 404:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (usart_read(p_usart, &val));
+ 206              	 .loc 1 404 0
+ 207 00ba 00BF     	 nop
+ 208              	.L15:
+ 209              	 .loc 1 404 0 is_stmt 0 discriminator 1
+ 210 00bc 07F10C03 	 add r3,r7,#12
+ 211 00c0 1946     	 mov r1,r3
+ 212 00c2 7868     	 ldr r0,[r7,#4]
+ 213 00c4 224B     	 ldr r3,.L23+4
+ 214 00c6 9847     	 blx r3
+ 215              	.LVL4:
+ 216 00c8 0346     	 mov r3,r0
+ 217 00ca 002B     	 cmp r3,#0
+ 218 00cc F6D1     	 bne .L15
+ 405:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		*data = (uint8_t)(val & 0xFF);
+ 219              	 .loc 1 405 0 is_stmt 1
+ 220 00ce FB68     	 ldr r3,[r7,#12]
+ 221 00d0 DAB2     	 uxtb r2,r3
+ 222 00d2 3B68     	 ldr r3,[r7]
+ 223 00d4 1A70     	 strb r2,[r3]
+ 224              	.L14:
+ 406:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 407:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 408:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART1
+ 409:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART1 == p_usart) {
+ 225              	 .loc 1 409 0
+ 226 00d6 7B68     	 ldr r3,[r7,#4]
+ 227 00d8 1E4A     	 ldr r2,.L23+8
+ 228 00da 9342     	 cmp r3,r2
+ 229 00dc 0DD1     	 bne .L16
+ 410:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (usart_read(p_usart, &val));
+ 230              	 .loc 1 410 0
+ 231 00de 00BF     	 nop
+ 232              	.L17:
+ 233              	 .loc 1 410 0 is_stmt 0 discriminator 1
+ 234 00e0 07F10C03 	 add r3,r7,#12
+ 235 00e4 1946     	 mov r1,r3
+ 236 00e6 7868     	 ldr r0,[r7,#4]
+ 237 00e8 194B     	 ldr r3,.L23+4
+ 238 00ea 9847     	 blx r3
+ 239              	.LVL5:
+ 240 00ec 0346     	 mov r3,r0
+ 241 00ee 002B     	 cmp r3,#0
+ 242 00f0 F6D1     	 bne .L17
+ 411:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		*data = (uint8_t)(val & 0xFF);
+ 243              	 .loc 1 411 0 is_stmt 1
+ 244 00f2 FB68     	 ldr r3,[r7,#12]
+ 245 00f4 DAB2     	 uxtb r2,r3
+ 246 00f6 3B68     	 ldr r3,[r7]
+ 247 00f8 1A70     	 strb r2,[r3]
+ 248              	.L16:
+ 412:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 413:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 414:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART2
+ 415:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART2 == p_usart) {
+ 249              	 .loc 1 415 0
+ 250 00fa 7B68     	 ldr r3,[r7,#4]
+ 251 00fc 164A     	 ldr r2,.L23+12
+ 252 00fe 9342     	 cmp r3,r2
+ 253 0100 0DD1     	 bne .L18
+ 416:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (usart_read(p_usart, &val));
+ 254              	 .loc 1 416 0
+ 255 0102 00BF     	 nop
+ 256              	.L19:
+ 257              	 .loc 1 416 0 is_stmt 0 discriminator 1
+ 258 0104 07F10C03 	 add r3,r7,#12
+ 259 0108 1946     	 mov r1,r3
+ 260 010a 7868     	 ldr r0,[r7,#4]
+ 261 010c 104B     	 ldr r3,.L23+4
+ 262 010e 9847     	 blx r3
+ 263              	.LVL6:
+ 264 0110 0346     	 mov r3,r0
+ 265 0112 002B     	 cmp r3,#0
+ 266 0114 F6D1     	 bne .L19
+ 417:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		*data = (uint8_t)(val & 0xFF);
+ 267              	 .loc 1 417 0 is_stmt 1
+ 268 0116 FB68     	 ldr r3,[r7,#12]
+ 269 0118 DAB2     	 uxtb r2,r3
+ 270 011a 3B68     	 ldr r3,[r7]
+ 271 011c 1A70     	 strb r2,[r3]
+ 272              	.L18:
+ 418:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 419:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 420:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART3
+ 421:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART3 == p_usart) {
+ 273              	 .loc 1 421 0
+ 274 011e 7B68     	 ldr r3,[r7,#4]
+ 275 0120 0E4A     	 ldr r2,.L23+16
+ 276 0122 9342     	 cmp r3,r2
+ 277 0124 0DD1     	 bne .L22
+ 422:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (usart_read(p_usart, &val));
+ 278              	 .loc 1 422 0
+ 279 0126 00BF     	 nop
+ 280              	.L21:
+ 281              	 .loc 1 422 0 is_stmt 0 discriminator 1
+ 282 0128 07F10C03 	 add r3,r7,#12
+ 283 012c 1946     	 mov r1,r3
+ 284 012e 7868     	 ldr r0,[r7,#4]
+ 285 0130 074B     	 ldr r3,.L23+4
+ 286 0132 9847     	 blx r3
+ 287              	.LVL7:
+ 288 0134 0346     	 mov r3,r0
+ 289 0136 002B     	 cmp r3,#0
+ 290 0138 F6D1     	 bne .L21
+ 423:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		*data = (uint8_t)(val & 0xFF);
+ 291              	 .loc 1 423 0 is_stmt 1
+ 292 013a FB68     	 ldr r3,[r7,#12]
+ 293 013c DAB2     	 uxtb r2,r3
+ 294 013e 3B68     	 ldr r3,[r7]
+ 295 0140 1A70     	 strb r2,[r3]
+ 296              	.L22:
+ 424:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 425:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 426:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # ifdef USART4
+ 427:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	if (USART4 == p_usart) {
+ 428:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		while (usart_read(p_usart, &val));
+ 429:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 		*data = (uint8_t)(val & 0xFF);
+ 430:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 	}
+ 431:../../../platform/common/services/serial/sam_uart/uart_serial.h **** # endif
+ 432:../../../platform/common/services/serial/sam_uart/uart_serial.h **** #endif /* ifdef USART */
+ 433:../../../platform/common/services/serial/sam_uart/uart_serial.h **** 
+ 434:../../../platform/common/services/serial/sam_uart/uart_serial.h **** }
+ 297              	 .loc 1 434 0
+ 298 0142 00BF     	 nop
+ 299 0144 1037     	 adds r7,r7,#16
+ 300              	.LCFI8:
+ 301              	 .cfi_def_cfa_offset 8
+ 302 0146 BD46     	 mov sp,r7
+ 303              	.LCFI9:
+ 304              	 .cfi_def_cfa_register 13
+ 305              	 
+ 306 0148 80BD     	 pop {r7,pc}
+ 307              	.L24:
+ 308 014a 00BF     	 .align 2
+ 309              	.L23:
+ 310 014c 00400240 	 .word 1073889280
+ 311 0150 00000000 	 .word usart_read
+ 312 0154 00800240 	 .word 1073905664
+ 313 0158 00C00240 	 .word 1073922048
+ 314 015c 00000340 	 .word 1073938432
+ 315              	 .cfi_endproc
+ 316              	.LFE183:
+ 318              	 .align 1
+ 319              	 .global usart_serial_write_packet
+ 320              	 .syntax unified
+ 321              	 .thumb
+ 322              	 .thumb_func
+ 323              	 .fpu softvfp
+ 325              	usart_serial_write_packet:
+ 326              	.LFB185:
+ 327              	 .file 2 "../../../platform/common/services/serial/usart_serial.c"
    1:../../../platform/common/services/serial/usart_serial.c **** /**
    2:../../../platform/common/services/serial/usart_serial.c ****  *
    3:../../../platform/common/services/serial/usart_serial.c ****  * \file
@@ -305,91 +805,76 @@
   55:../../../platform/common/services/serial/usart_serial.c **** status_code_t usart_serial_write_packet(usart_if usart, const uint8_t *data,
   56:../../../platform/common/services/serial/usart_serial.c **** 		size_t len)
   57:../../../platform/common/services/serial/usart_serial.c **** {
- 149               		.loc 2 57 0
- 150               		.cfi_startproc
- 151 005e CF93      		push r28
- 152               	.LCFI8:
- 153               		.cfi_def_cfa_offset 3
- 154               		.cfi_offset 28, -2
- 155 0060 DF93      		push r29
- 156               	.LCFI9:
- 157               		.cfi_def_cfa_offset 4
- 158               		.cfi_offset 29, -3
- 159 0062 00D0      		rcall .
- 160 0064 00D0      		rcall .
- 161 0066 00D0      		rcall .
- 162               	.LCFI10:
- 163               		.cfi_def_cfa_offset 10
- 164 0068 CDB7      		in r28,__SP_L__
- 165 006a DEB7      		in r29,__SP_H__
- 166               	.LCFI11:
- 167               		.cfi_def_cfa_register 28
- 168               	/* prologue: function */
- 169               	/* frame size = 6 */
- 170               	/* stack size = 8 */
- 171               	.L__stack_usage = 8
- 172 006c 9A83      		std Y+2,r25
- 173 006e 8983      		std Y+1,r24
- 174 0070 7C83      		std Y+4,r23
- 175 0072 6B83      		std Y+3,r22
- 176 0074 5E83      		std Y+6,r21
- 177 0076 4D83      		std Y+5,r20
+ 328              	 .loc 2 57 0
+ 329              	 .cfi_startproc
+ 330              	 
+ 331              	 
+ 332 0160 80B5     	 push {r7,lr}
+ 333              	.LCFI10:
+ 334              	 .cfi_def_cfa_offset 8
+ 335              	 .cfi_offset 7,-8
+ 336              	 .cfi_offset 14,-4
+ 337 0162 84B0     	 sub sp,sp,#16
+ 338              	.LCFI11:
+ 339              	 .cfi_def_cfa_offset 24
+ 340 0164 00AF     	 add r7,sp,#0
+ 341              	.LCFI12:
+ 342              	 .cfi_def_cfa_register 7
+ 343 0166 F860     	 str r0,[r7,#12]
+ 344 0168 B960     	 str r1,[r7,#8]
+ 345 016a 7A60     	 str r2,[r7,#4]
   58:../../../platform/common/services/serial/usart_serial.c **** 	while (len) {
- 178               		.loc 2 58 0
- 179 0078 00C0      		rjmp .L5
- 180               	.L6:
+ 346              	 .loc 2 58 0
+ 347 016c 0BE0     	 b .L26
+ 348              	.L27:
   59:../../../platform/common/services/serial/usart_serial.c **** 		usart_serial_putchar(usart, *data);
- 181               		.loc 2 59 0
- 182 007a 8B81      		ldd r24,Y+3
- 183 007c 9C81      		ldd r25,Y+4
- 184 007e FC01      		movw r30,r24
- 185 0080 2081      		ld r18,Z
- 186 0082 8981      		ldd r24,Y+1
- 187 0084 9A81      		ldd r25,Y+2
- 188 0086 622F      		mov r22,r18
- 189 0088 0E94 0000 		call usart_serial_putchar
+ 349              	 .loc 2 59 0
+ 350 016e BB68     	 ldr r3,[r7,#8]
+ 351 0170 1B78     	 ldrb r3,[r3]
+ 352 0172 1946     	 mov r1,r3
+ 353 0174 F868     	 ldr r0,[r7,#12]
+ 354 0176 FFF743FF 	 bl usart_serial_putchar
   60:../../../platform/common/services/serial/usart_serial.c **** 		len--;
- 190               		.loc 2 60 0
- 191 008c 8D81      		ldd r24,Y+5
- 192 008e 9E81      		ldd r25,Y+6
- 193 0090 0197      		sbiw r24,1
- 194 0092 9E83      		std Y+6,r25
- 195 0094 8D83      		std Y+5,r24
+ 355              	 .loc 2 60 0
+ 356 017a 7B68     	 ldr r3,[r7,#4]
+ 357 017c 013B     	 subs r3,r3,#1
+ 358 017e 7B60     	 str r3,[r7,#4]
   61:../../../platform/common/services/serial/usart_serial.c **** 		data++;
- 196               		.loc 2 61 0
- 197 0096 8B81      		ldd r24,Y+3
- 198 0098 9C81      		ldd r25,Y+4
- 199 009a 0196      		adiw r24,1
- 200 009c 9C83      		std Y+4,r25
- 201 009e 8B83      		std Y+3,r24
- 202               	.L5:
+ 359              	 .loc 2 61 0
+ 360 0180 BB68     	 ldr r3,[r7,#8]
+ 361 0182 0133     	 adds r3,r3,#1
+ 362 0184 BB60     	 str r3,[r7,#8]
+ 363              	.L26:
   58:../../../platform/common/services/serial/usart_serial.c **** 		usart_serial_putchar(usart, *data);
- 203               		.loc 2 58 0
- 204 00a0 8D81      		ldd r24,Y+5
- 205 00a2 9E81      		ldd r25,Y+6
- 206 00a4 892B      		or r24,r25
- 207 00a6 01F4      		brne .L6
+ 364              	 .loc 2 58 0
+ 365 0186 7B68     	 ldr r3,[r7,#4]
+ 366 0188 002B     	 cmp r3,#0
+ 367 018a F0D1     	 bne .L27
   62:../../../platform/common/services/serial/usart_serial.c **** 	}
   63:../../../platform/common/services/serial/usart_serial.c **** 	return STATUS_OK;
- 208               		.loc 2 63 0
- 209 00a8 80E0      		ldi r24,0
- 210               	/* epilogue start */
+ 368              	 .loc 2 63 0
+ 369 018c 0023     	 movs r3,#0
   64:../../../platform/common/services/serial/usart_serial.c **** }
- 211               		.loc 2 64 0
- 212 00aa 2696      		adiw r28,6
- 213 00ac 0FB6      		in __tmp_reg__,__SREG__
- 214 00ae F894      		cli
- 215 00b0 DEBF      		out __SP_H__,r29
- 216 00b2 0FBE      		out __SREG__,__tmp_reg__
- 217 00b4 CDBF      		out __SP_L__,r28
- 218 00b6 DF91      		pop r29
- 219 00b8 CF91      		pop r28
- 220 00ba 0895      		ret
- 221               		.cfi_endproc
- 222               	.LFE98:
- 224               	.global	usart_serial_read_packet
- 226               	usart_serial_read_packet:
- 227               	.LFB99:
+ 370              	 .loc 2 64 0
+ 371 018e 1846     	 mov r0,r3
+ 372 0190 1037     	 adds r7,r7,#16
+ 373              	.LCFI13:
+ 374              	 .cfi_def_cfa_offset 8
+ 375 0192 BD46     	 mov sp,r7
+ 376              	.LCFI14:
+ 377              	 .cfi_def_cfa_register 13
+ 378              	 
+ 379 0194 80BD     	 pop {r7,pc}
+ 380              	 .cfi_endproc
+ 381              	.LFE185:
+ 383              	 .align 1
+ 384              	 .global usart_serial_read_packet
+ 385              	 .syntax unified
+ 386              	 .thumb
+ 387              	 .thumb_func
+ 388              	 .fpu softvfp
+ 390              	usart_serial_read_packet:
+ 391              	.LFB186:
   65:../../../platform/common/services/serial/usart_serial.c **** 
   66:../../../platform/common/services/serial/usart_serial.c **** 
   67:../../../platform/common/services/serial/usart_serial.c **** /**
@@ -403,107 +888,109 @@
   75:../../../platform/common/services/serial/usart_serial.c **** status_code_t usart_serial_read_packet(usart_if usart, uint8_t *data,
   76:../../../platform/common/services/serial/usart_serial.c **** 		size_t len)
   77:../../../platform/common/services/serial/usart_serial.c **** {
- 228               		.loc 2 77 0
- 229               		.cfi_startproc
- 230 00bc CF93      		push r28
- 231               	.LCFI12:
- 232               		.cfi_def_cfa_offset 3
- 233               		.cfi_offset 28, -2
- 234 00be DF93      		push r29
- 235               	.LCFI13:
- 236               		.cfi_def_cfa_offset 4
- 237               		.cfi_offset 29, -3
- 238 00c0 00D0      		rcall .
- 239 00c2 00D0      		rcall .
- 240 00c4 00D0      		rcall .
- 241               	.LCFI14:
- 242               		.cfi_def_cfa_offset 10
- 243 00c6 CDB7      		in r28,__SP_L__
- 244 00c8 DEB7      		in r29,__SP_H__
- 245               	.LCFI15:
- 246               		.cfi_def_cfa_register 28
- 247               	/* prologue: function */
- 248               	/* frame size = 6 */
- 249               	/* stack size = 8 */
- 250               	.L__stack_usage = 8
- 251 00ca 9A83      		std Y+2,r25
- 252 00cc 8983      		std Y+1,r24
- 253 00ce 7C83      		std Y+4,r23
- 254 00d0 6B83      		std Y+3,r22
- 255 00d2 5E83      		std Y+6,r21
- 256 00d4 4D83      		std Y+5,r20
+ 392              	 .loc 2 77 0
+ 393              	 .cfi_startproc
+ 394              	 
+ 395              	 
+ 396 0196 80B5     	 push {r7,lr}
+ 397              	.LCFI15:
+ 398              	 .cfi_def_cfa_offset 8
+ 399              	 .cfi_offset 7,-8
+ 400              	 .cfi_offset 14,-4
+ 401 0198 84B0     	 sub sp,sp,#16
+ 402              	.LCFI16:
+ 403              	 .cfi_def_cfa_offset 24
+ 404 019a 00AF     	 add r7,sp,#0
+ 405              	.LCFI17:
+ 406              	 .cfi_def_cfa_register 7
+ 407 019c F860     	 str r0,[r7,#12]
+ 408 019e B960     	 str r1,[r7,#8]
+ 409 01a0 7A60     	 str r2,[r7,#4]
   78:../../../platform/common/services/serial/usart_serial.c **** 	while (len) {
- 257               		.loc 2 78 0
- 258 00d6 00C0      		rjmp .L9
- 259               	.L10:
+ 410              	 .loc 2 78 0
+ 411 01a2 09E0     	 b .L30
+ 412              	.L31:
   79:../../../platform/common/services/serial/usart_serial.c **** 		usart_serial_getchar(usart, data);
- 260               		.loc 2 79 0
- 261 00d8 2B81      		ldd r18,Y+3
- 262 00da 3C81      		ldd r19,Y+4
- 263 00dc 8981      		ldd r24,Y+1
- 264 00de 9A81      		ldd r25,Y+2
- 265 00e0 B901      		movw r22,r18
- 266 00e2 0E94 0000 		call usart_serial_getchar
+ 413              	 .loc 2 79 0
+ 414 01a4 B968     	 ldr r1,[r7,#8]
+ 415 01a6 F868     	 ldr r0,[r7,#12]
+ 416 01a8 FFF77CFF 	 bl usart_serial_getchar
   80:../../../platform/common/services/serial/usart_serial.c **** 		len--;
- 267               		.loc 2 80 0
- 268 00e6 8D81      		ldd r24,Y+5
- 269 00e8 9E81      		ldd r25,Y+6
- 270 00ea 0197      		sbiw r24,1
- 271 00ec 9E83      		std Y+6,r25
- 272 00ee 8D83      		std Y+5,r24
+ 417              	 .loc 2 80 0
+ 418 01ac 7B68     	 ldr r3,[r7,#4]
+ 419 01ae 013B     	 subs r3,r3,#1
+ 420 01b0 7B60     	 str r3,[r7,#4]
   81:../../../platform/common/services/serial/usart_serial.c **** 		data++;
- 273               		.loc 2 81 0
- 274 00f0 8B81      		ldd r24,Y+3
- 275 00f2 9C81      		ldd r25,Y+4
- 276 00f4 0196      		adiw r24,1
- 277 00f6 9C83      		std Y+4,r25
- 278 00f8 8B83      		std Y+3,r24
- 279               	.L9:
+ 421              	 .loc 2 81 0
+ 422 01b2 BB68     	 ldr r3,[r7,#8]
+ 423 01b4 0133     	 adds r3,r3,#1
+ 424 01b6 BB60     	 str r3,[r7,#8]
+ 425              	.L30:
   78:../../../platform/common/services/serial/usart_serial.c **** 		usart_serial_getchar(usart, data);
- 280               		.loc 2 78 0
- 281 00fa 8D81      		ldd r24,Y+5
- 282 00fc 9E81      		ldd r25,Y+6
- 283 00fe 892B      		or r24,r25
- 284 0100 01F4      		brne .L10
+ 426              	 .loc 2 78 0
+ 427 01b8 7B68     	 ldr r3,[r7,#4]
+ 428 01ba 002B     	 cmp r3,#0
+ 429 01bc F2D1     	 bne .L31
   82:../../../platform/common/services/serial/usart_serial.c **** 	}
   83:../../../platform/common/services/serial/usart_serial.c **** 	return STATUS_OK;
- 285               		.loc 2 83 0
- 286 0102 80E0      		ldi r24,0
- 287               	/* epilogue start */
+ 430              	 .loc 2 83 0
+ 431 01be 0023     	 movs r3,#0
   84:../../../platform/common/services/serial/usart_serial.c **** }
- 288               		.loc 2 84 0
- 289 0104 2696      		adiw r28,6
- 290 0106 0FB6      		in __tmp_reg__,__SREG__
- 291 0108 F894      		cli
- 292 010a DEBF      		out __SP_H__,r29
- 293 010c 0FBE      		out __SREG__,__tmp_reg__
- 294 010e CDBF      		out __SP_L__,r28
- 295 0110 DF91      		pop r29
- 296 0112 CF91      		pop r28
- 297 0114 0895      		ret
- 298               		.cfi_endproc
- 299               	.LFE99:
- 301               	.Letext0:
- 302               		.file 3 "../../../platform/mega_rf/utils/status_codes.h"
- 303               		.file 4 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
- 304               		.file 5 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\lib\\gc
- 305               		.file 6 "../../../platform/mega_rf/drivers/usart/usart_megarf.h"
+ 432              	 .loc 2 84 0
+ 433 01c0 1846     	 mov r0,r3
+ 434 01c2 1037     	 adds r7,r7,#16
+ 435              	.LCFI18:
+ 436              	 .cfi_def_cfa_offset 8
+ 437 01c4 BD46     	 mov sp,r7
+ 438              	.LCFI19:
+ 439              	 .cfi_def_cfa_register 13
+ 440              	 
+ 441 01c6 80BD     	 pop {r7,pc}
+ 442              	 .cfi_endproc
+ 443              	.LFE186:
+ 445              	.Letext0:
+ 446              	 .file 3 "../../../platform/sam/utils/status_codes.h"
+ 447              	 .file 4 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 448              	 .file 5 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 449              	 .file 6 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 450              	 .file 7 "../../../platform/sam/utils/cmsis/sam4l/include/sam4lc4b.h"
+ 451              	 .file 8 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+ 452              	 .file 9 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 453              	 .file 10 "../../../platform/sam/utils/cmsis/sam4l/include/component/component_usart.h"
+ 454              	 .file 11 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 455              	 .file 12 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 456              	 .file 13 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 457              	 .file 14 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+ 458              	 .file 15 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
+ 459              	 .file 16 "../../../platform/sam/utils/compiler.h"
+ 460              	 .file 17 "../../../platform/common/services/usb/usb_protocol.h"
+ 461              	 .file 18 "../../../platform/common/services/usb/udc/udi.h"
+ 462              	 .file 19 "../../../platform/common/services/usb/udc/udc_desc.h"
+ 463              	 .file 20 "../../../platform/common/services/usb/udc/udd.h"
+ 464              	 .file 21 "../../../platform/common/services/usb/class/cdc/device/udi_cdc.h"
+ 465              	 .file 22 "../../../platform/common/utils/stdio/stdio_usb/stdio_usb.h"
+ 466              	 .file 23 "config/config.h"
+ 467              	 .file 24 "../../../platform/sam/drivers/usart/usart.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 usart_serial.c
-C:\Users\guilh\AppData\Local\Temp\ccl93DHf.s:2      *ABS*:0000003e __SP_H__
-C:\Users\guilh\AppData\Local\Temp\ccl93DHf.s:3      *ABS*:0000003d __SP_L__
-C:\Users\guilh\AppData\Local\Temp\ccl93DHf.s:4      *ABS*:0000003f __SREG__
-C:\Users\guilh\AppData\Local\Temp\ccl93DHf.s:5      *ABS*:0000003b __RAMPZ__
-C:\Users\guilh\AppData\Local\Temp\ccl93DHf.s:6      *ABS*:00000000 __tmp_reg__
-C:\Users\guilh\AppData\Local\Temp\ccl93DHf.s:7      *ABS*:00000001 __zero_reg__
-C:\Users\guilh\AppData\Local\Temp\ccl93DHf.s:14     .progmem.data.baudctrl_1mhz:00000000 baudctrl_1mhz
-C:\Users\guilh\AppData\Local\Temp\ccl93DHf.s:26     .progmem.data.baudctrl_8mhz:00000000 baudctrl_8mhz
-C:\Users\guilh\AppData\Local\Temp\ccl93DHf.s:38     .progmem.data.baudctrl_16mhz:00000000 baudctrl_16mhz
-C:\Users\guilh\AppData\Local\Temp\ccl93DHf.s:49     .text:00000000 usart_serial_putchar
-C:\Users\guilh\AppData\Local\Temp\ccl93DHf.s:94     .text:00000028 usart_serial_getchar
-C:\Users\guilh\AppData\Local\Temp\ccl93DHf.s:146    .text:0000005e usart_serial_write_packet
-C:\Users\guilh\AppData\Local\Temp\ccl93DHf.s:226    .text:000000bc usart_serial_read_packet
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
+                            *COM*:00000001 n
+    {standard input}:28     .bss.tTS:00000000 $d
+    {standard input}:31     .bss.tTS:00000000 tTS
+    {standard input}:34     .text:00000000 $t
+    {standard input}:40     .text:00000000 usart_serial_putchar
+    {standard input}:165    .text:00000090 $d
+    {standard input}:173    .text:000000a4 $t
+    {standard input}:179    .text:000000a4 usart_serial_getchar
+    {standard input}:310    .text:0000014c $d
+    {standard input}:318    .text:00000160 $t
+    {standard input}:325    .text:00000160 usart_serial_write_packet
+    {standard input}:390    .text:00000196 usart_serial_read_packet
+                     .debug_frame:00000010 $d
 
 UNDEFINED SYMBOLS
-usart_putchar
-usart_getchar
+usart_write
+usart_read

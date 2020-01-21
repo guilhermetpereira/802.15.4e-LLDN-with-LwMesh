@@ -1,18 +1,35 @@
-   1               		.file	"read.c"
-   2               	__SP_H__ = 0x3e
-   3               	__SP_L__ = 0x3d
-   4               	__SREG__ = 0x3f
-   5               	__RAMPZ__ = 0x3b
-   6               	__tmp_reg__ = 0
-   7               	__zero_reg__ = 1
-   8               		.text
-   9               	.Ltext0:
-  10               		.cfi_sections	.debug_frame
-  11               		.comm	ptr_get,2,1
-  12               	.global	_read
-  14               	_read:
-  15               	.LFB8:
-  16               		.file 1 "../../../platform/common/utils/stdio/read.c"
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "read.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .comm ptr_get,4,4
+  27              	 .text
+  28              	 .align 1
+  29              	 .weak _read
+  30              	 .syntax unified
+  31              	 .thumb
+  32              	 .thumb_func
+  33              	 .fpu softvfp
+  35              	_read:
+  36              	.LFB122:
+  37              	 .file 1 "../../../platform/common/utils/stdio/read.c"
    1:../../../platform/common/utils/stdio/read.c **** /**
    2:../../../platform/common/utils/stdio/read.c ****  * \file
    3:../../../platform/common/utils/stdio/read.c ****  *
@@ -146,93 +163,118 @@
  131:../../../platform/common/utils/stdio/read.c **** int __attribute__((weak))
  132:../../../platform/common/utils/stdio/read.c **** _read (int file, char * ptr, int len)
  133:../../../platform/common/utils/stdio/read.c **** {
+  38              	 .loc 1 133 0
+  39              	 .cfi_startproc
+  40              	 
+  41              	 
+  42 0000 80B5     	 push {r7,lr}
+  43              	.LCFI0:
+  44              	 .cfi_def_cfa_offset 8
+  45              	 .cfi_offset 7,-8
+  46              	 .cfi_offset 14,-4
+  47 0002 86B0     	 sub sp,sp,#24
+  48              	.LCFI1:
+  49              	 .cfi_def_cfa_offset 32
+  50 0004 00AF     	 add r7,sp,#0
+  51              	.LCFI2:
+  52              	 .cfi_def_cfa_register 7
+  53 0006 F860     	 str r0,[r7,#12]
+  54 0008 B960     	 str r1,[r7,#8]
+  55 000a 7A60     	 str r2,[r7,#4]
  134:../../../platform/common/utils/stdio/read.c **** 	int nChars = 0;
+  56              	 .loc 1 134 0
+  57 000c 0023     	 movs r3,#0
+  58 000e 7B61     	 str r3,[r7,#20]
  135:../../../platform/common/utils/stdio/read.c **** 
  136:../../../platform/common/utils/stdio/read.c **** 	if (file != 0) {
+  59              	 .loc 1 136 0
+  60 0010 FB68     	 ldr r3,[r7,#12]
+  61 0012 002B     	 cmp r3,#0
+  62 0014 12D0     	 beq .L4
  137:../../../platform/common/utils/stdio/read.c **** 		return -1;
+  63              	 .loc 1 137 0
+  64 0016 4FF0FF33 	 mov r3,#-1
+  65 001a 13E0     	 b .L3
+  66              	.L5:
  138:../../../platform/common/utils/stdio/read.c **** 	}
  139:../../../platform/common/utils/stdio/read.c **** 
  140:../../../platform/common/utils/stdio/read.c **** 	for (; len > 0; --len) {
  141:../../../platform/common/utils/stdio/read.c **** 		ptr_get(stdio_base, ptr);
+  67              	 .loc 1 141 0 discriminator 2
+  68 001c 0B4B     	 ldr r3,.L6
+  69 001e 1B68     	 ldr r3,[r3]
+  70 0020 0B4A     	 ldr r2,.L6+4
+  71 0022 1268     	 ldr r2,[r2]
+  72 0024 B968     	 ldr r1,[r7,#8]
+  73 0026 1046     	 mov r0,r2
+  74 0028 9847     	 blx r3
+  75              	.LVL0:
  142:../../../platform/common/utils/stdio/read.c **** 		ptr++;
+  76              	 .loc 1 142 0 discriminator 2
+  77 002a BB68     	 ldr r3,[r7,#8]
+  78 002c 0133     	 adds r3,r3,#1
+  79 002e BB60     	 str r3,[r7,#8]
  143:../../../platform/common/utils/stdio/read.c **** 		nChars++;
+  80              	 .loc 1 143 0 discriminator 2
+  81 0030 7B69     	 ldr r3,[r7,#20]
+  82 0032 0133     	 adds r3,r3,#1
+  83 0034 7B61     	 str r3,[r7,#20]
+ 140:../../../platform/common/utils/stdio/read.c **** 		ptr_get(stdio_base, ptr);
+  84              	 .loc 1 140 0 discriminator 2
+  85 0036 7B68     	 ldr r3,[r7,#4]
+  86 0038 013B     	 subs r3,r3,#1
+  87 003a 7B60     	 str r3,[r7,#4]
+  88              	.L4:
+ 140:../../../platform/common/utils/stdio/read.c **** 		ptr_get(stdio_base, ptr);
+  89              	 .loc 1 140 0 is_stmt 0 discriminator 1
+  90 003c 7B68     	 ldr r3,[r7,#4]
+  91 003e 002B     	 cmp r3,#0
+  92 0040 ECDC     	 bgt .L5
  144:../../../platform/common/utils/stdio/read.c **** 	}
  145:../../../platform/common/utils/stdio/read.c **** 	return nChars;
+  93              	 .loc 1 145 0 is_stmt 1
+  94 0042 7B69     	 ldr r3,[r7,#20]
+  95              	.L3:
  146:../../../platform/common/utils/stdio/read.c **** }
- 147:../../../platform/common/utils/stdio/read.c **** 
- 148:../../../platform/common/utils/stdio/read.c **** // GCC AVR implementation
- 149:../../../platform/common/utils/stdio/read.c **** #elif (defined(__GNUC__) && (XMEGA || MEGA) )
- 150:../../../platform/common/utils/stdio/read.c **** 
- 151:../../../platform/common/utils/stdio/read.c **** int _read (int *f); // Remove GCC compiler warning
- 152:../../../platform/common/utils/stdio/read.c **** 
- 153:../../../platform/common/utils/stdio/read.c **** int _read (int *f)
- 154:../../../platform/common/utils/stdio/read.c **** {
-  17               		.loc 1 154 0
-  18               		.cfi_startproc
-  19 0000 CF93      		push r28
-  20               	.LCFI0:
-  21               		.cfi_def_cfa_offset 3
-  22               		.cfi_offset 28, -2
-  23 0002 DF93      		push r29
-  24               	.LCFI1:
-  25               		.cfi_def_cfa_offset 4
-  26               		.cfi_offset 29, -3
-  27 0004 00D0      		rcall .
-  28 0006 1F92      		push __zero_reg__
-  29               	.LCFI2:
-  30               		.cfi_def_cfa_offset 7
-  31 0008 CDB7      		in r28,__SP_L__
-  32 000a DEB7      		in r29,__SP_H__
-  33               	.LCFI3:
-  34               		.cfi_def_cfa_register 28
-  35               	/* prologue: function */
-  36               	/* frame size = 3 */
-  37               	/* stack size = 5 */
-  38               	.L__stack_usage = 5
-  39 000c 9B83      		std Y+3,r25
-  40 000e 8A83      		std Y+2,r24
- 155:../../../platform/common/utils/stdio/read.c **** 	(void) f;
- 156:../../../platform/common/utils/stdio/read.c **** 	char c;
- 157:../../../platform/common/utils/stdio/read.c **** 	ptr_get(stdio_base,&c);
-  41               		.loc 1 157 0
-  42 0010 2091 0000 		lds r18,ptr_get
-  43 0014 3091 0000 		lds r19,ptr_get+1
-  44 0018 8091 0000 		lds r24,stdio_base
-  45 001c 9091 0000 		lds r25,stdio_base+1
-  46 0020 AE01      		movw r20,r28
-  47 0022 4F5F      		subi r20,-1
-  48 0024 5F4F      		sbci r21,-1
-  49 0026 BA01      		movw r22,r20
-  50 0028 F901      		movw r30,r18
-  51 002a 0995      		icall
- 158:../../../platform/common/utils/stdio/read.c **** 	return c;
-  52               		.loc 1 158 0
-  53 002c 8981      		ldd r24,Y+1
-  54 002e 882F      		mov r24,r24
-  55 0030 90E0      		ldi r25,0
-  56               	/* epilogue start */
- 159:../../../platform/common/utils/stdio/read.c **** }
-  57               		.loc 1 159 0
-  58 0032 0F90      		pop __tmp_reg__
-  59 0034 0F90      		pop __tmp_reg__
-  60 0036 0F90      		pop __tmp_reg__
-  61 0038 DF91      		pop r29
-  62 003a CF91      		pop r28
-  63 003c 0895      		ret
-  64               		.cfi_endproc
-  65               	.LFE8:
-  67               	.Letext0:
+  96              	 .loc 1 146 0
+  97 0044 1846     	 mov r0,r3
+  98 0046 1837     	 adds r7,r7,#24
+  99              	.LCFI3:
+ 100              	 .cfi_def_cfa_offset 8
+ 101 0048 BD46     	 mov sp,r7
+ 102              	.LCFI4:
+ 103              	 .cfi_def_cfa_register 13
+ 104              	 
+ 105 004a 80BD     	 pop {r7,pc}
+ 106              	.L7:
+ 107              	 .align 2
+ 108              	.L6:
+ 109 004c 00000000 	 .word ptr_get
+ 110 0050 00000000 	 .word stdio_base
+ 111              	 .cfi_endproc
+ 112              	.LFE122:
+ 114              	.Letext0:
+ 115              	 .file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 116              	 .file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 117              	 .file 4 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+ 118              	 .file 5 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 119              	 .file 6 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 120              	 .file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 121              	 .file 8 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 122              	 .file 9 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 123              	 .file 10 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+ 124              	 .file 11 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 read.c
-C:\Users\guilh\AppData\Local\Temp\ccHWaPA3.s:2      *ABS*:0000003e __SP_H__
-C:\Users\guilh\AppData\Local\Temp\ccHWaPA3.s:3      *ABS*:0000003d __SP_L__
-C:\Users\guilh\AppData\Local\Temp\ccHWaPA3.s:4      *ABS*:0000003f __SREG__
-C:\Users\guilh\AppData\Local\Temp\ccHWaPA3.s:5      *ABS*:0000003b __RAMPZ__
-C:\Users\guilh\AppData\Local\Temp\ccHWaPA3.s:6      *ABS*:00000000 __tmp_reg__
-C:\Users\guilh\AppData\Local\Temp\ccHWaPA3.s:7      *ABS*:00000001 __zero_reg__
-                            *COM*:00000002 ptr_get
-C:\Users\guilh\AppData\Local\Temp\ccHWaPA3.s:14     .text:00000000 _read
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
+                            *COM*:00000004 ptr_get
+    {standard input}:28     .text:00000000 $t
+    {standard input}:35     .text:00000000 _read
+    {standard input}:109    .text:0000004c $d
+                     .debug_frame:00000010 $d
 
 UNDEFINED SYMBOLS
 stdio_base
-__do_clear_bss

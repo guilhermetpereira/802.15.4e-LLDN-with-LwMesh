@@ -330,6 +330,7 @@ void TC2_Handler(void)
 /**
  * \brief Interrupt handlers for TC10
  */
+/*
 #if SAM4L
 void TC10_Handler(void)
 #else
