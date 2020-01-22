@@ -8,10 +8,8 @@
 #include <compiler.h>
 #include <parts.h>
 #include "tc.h"
-#include "sysclk.h"
 #include "genclk.h"
 #include "TC_lldn_conf.h"
-#include "stdio_usb.h"
 	
 #include <stdlib.h>
 #include <stdio.h>
@@ -32,8 +30,20 @@
 #include "board.h"
 
 #include "platform.h"	
-		
+
+#if (SIO2HOST_CHANNEL == SIO_USB)
+/* Only ARM */
+#include "stdio_usb.h"
+#define MASTER_MACSC	0
+#else
+/* Only megarf series */
+#include "conf_sio2host.h"
+#define MASTER_MACSC	1
+#endif
+
+static SYS_Timer_t tmrComputeData;	// Compute data		
 tmr_callback_t tmr_callback;
+AppState_t	appState = APP_STATE_IDLE;
 
 static void configure_NVIC(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch);
 static void tc_callback(void);
@@ -41,6 +51,13 @@ static void tc_callback(void);
 void timer_init(void);
 void timer_enable_cc_interrupt(void);
 void tc_compare_stop(void);
+
+
+static void tmrComputeDataHandler(SYS_Timer_t *timer)
+{
+	printf("\nTimer_Software");
+	appState = APP_STATE_INITIAL;
+}
 
 void hw_expiry_cb(void)
 {
@@ -78,9 +95,13 @@ void timer_init(void)
 	sysclk_enable_peripheral_clock(ID_TC);
 	#endif
 
+	tmr_mul = sysclk_get_peripheral_bus_hz(TIMER) / 1000000;
+	tmr_mul = tmr_mul >> 1;
+
+
 	#if SAM4L
 		tc_init(TIMER, TIMER_CHANNEL_ID,
-		TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_WAVE |
+		TC_CMR_TCCLKS_TIMER_CLOCK2 | TC_CMR_WAVE |
 		TC_CMR_WAVSEL_UP_NO_AUTO);
 	#elif SAM4E
 		tc_init(TIMER, TIMER_CHANNEL_ID,
@@ -241,6 +262,28 @@ void TC3_Handler(void)
 	}
 }
 
+void APP_TaskHandler(void)
+{
+		switch (appState)
+		{
+			case APP_STATE_INITIAL:
+			{
+				printf("\nPRINT FUNCIONANDO");
+				uint16_t delay = 1000;
+				tc_delay(delay);
+				timer_init();
+				printf("\n FUNÇÕES NÃO DANDO SEGMENTATION FAULT");
+				appState = APP_STATE_IDLE;
+				break;
+			}
+			case APP_STATE_IDLE:
+			{
+				break;
+			}
+		}
+}
+
+
 int main (void)
 {
 	sysclk_init();
@@ -276,5 +319,19 @@ int main (void)
 
 	#endif
 	#endif
+	
+	tmrComputeData.interval = 5000;
+	tmrComputeData.mode = SYS_TIMER_PERIODIC_MODE;
+	tmrComputeData.handler = tmrComputeDataHandler;
+	SYS_TimerStart(&tmrComputeData);	
+	
+
+	printf("\nPRINT FUNCIONANDO");
+	for(;;)
+	{
+		SYS_TaskHandler();
+		APP_TaskHandler();
+	}
+	
 	return 0;
 }

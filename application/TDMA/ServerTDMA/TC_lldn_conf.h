@@ -16,5 +16,9 @@
 
 typedef void (*tmr_callback_t)(void);
 
+typedef enum AppState_t {
+	APP_STATE_INITIAL,
+	APP_STATE_IDLE,
+} AppState_t;
 
 #endif /* TC_LLDN_CONF_H_ */
