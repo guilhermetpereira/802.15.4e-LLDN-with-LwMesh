@@ -11,8 +11,8 @@
 
 #define GENCLK_SRC_RC1M		6
 
-#define TIMER TC1
-#define TIMER_CHANNEL_ID (0)
+#define TMR TC1
+#define TMR_CHANNEL_ID (0)
 
 typedef void (*tmr_callback_t)(void);
 
