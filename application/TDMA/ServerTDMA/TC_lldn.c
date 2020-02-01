@@ -89,8 +89,8 @@ void timer_init(void)
 	uint8_t tmr_mul;
 	/* Configure clock service. */
 	#if SAM4L
-	genclk_enable_config(8, GENCLK_SRC_RC1M, 30);
 	sysclk_enable_peripheral_clock(TMR);
+	genclk_enable_config(8, GENCLK_SRC_RC1M, 30);
 	#else
 	sysclk_enable_peripheral_clock(ID_TC);
 	#endif
@@ -267,11 +267,10 @@ void APP_TaskHandler(void)
 		{
 			case APP_STATE_INITIAL:
 			{
-				
+				printf("\nPRINT FUNCIONANDO");
 				uint16_t delay = 1000;
 				timer_init();
 				tc_delay(delay);
-				printf("\nPRINT FUNCIONANDO");
 				appState = APP_STATE_IDLE;
 				break;
 			}
@@ -320,7 +319,7 @@ int main (void)
 	#endif
 	
 	tmrComputeData.interval = 5000;
-	tmrComputeData.mode = SYS_TIMER_INTERVAL_MODE;
+	tmrComputeData.mode = SYS_TIMER_PERIODIC_MODE;
 	tmrComputeData.handler = tmrComputeDataHandler;
 	SYS_TimerStart(&tmrComputeData);	
 	

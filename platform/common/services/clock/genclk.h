@@ -181,7 +181,6 @@ static inline void genclk_enable_config(unsigned int id, enum genclk_source src,
 	genclk_config_set_source(&gcfg, src);
 	genclk_config_set_divider(&gcfg, divider);
 	genclk_enable(&gcfg, id);
-
 }
 
 //! @}
