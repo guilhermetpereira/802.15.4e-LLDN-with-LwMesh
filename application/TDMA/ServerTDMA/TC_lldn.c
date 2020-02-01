@@ -89,8 +89,8 @@ void timer_init(void)
 	uint8_t tmr_mul;
 	/* Configure clock service. */
 	#if SAM4L
-	sysclk_enable_peripheral_clock(TMR);
 	genclk_enable_config(8, GENCLK_SRC_RC1M, 30);
+	sysclk_enable_peripheral_clock(TMR);
 	#else
 	sysclk_enable_peripheral_clock(ID_TC);
 	#endif
