@@ -4060,22 +4060,27 @@
  1377              	 .section .data.appState,"aw",%progbits
  1380              	appState:
  1381 0000 01       	 .byte 1
- 1382              	 .section .rodata
- 1383              	 .align 2
- 1384              	.LC0:
- 1385 0000 0A54696D 	 .ascii "\012Timer_Software\000"
- 1385      65725F53 
- 1385      6F667477 
- 1385      61726500 
- 1386              	 .text
- 1387              	 .align 1
- 1388              	 .syntax unified
- 1389              	 .thumb
- 1390              	 .thumb_func
- 1391              	 .fpu softvfp
- 1393              	tmrComputeDataHandler:
- 1394              	.LFB231:
- 1395              	 .file 7 "TC_lldn.c"
+ 1382              	 .global first
+ 1383              	 .section .data.first,"aw",%progbits
+ 1384              	 .align 2
+ 1387              	first:
+ 1388 0000 01000000 	 .word 1
+ 1389              	 .section .rodata
+ 1390              	 .align 2
+ 1391              	.LC0:
+ 1392 0000 0A54696D 	 .ascii "\012Timer_Software\000"
+ 1392      65725F53 
+ 1392      6F667477 
+ 1392      61726500 
+ 1393              	 .text
+ 1394              	 .align 1
+ 1395              	 .syntax unified
+ 1396              	 .thumb
+ 1397              	 .thumb_func
+ 1398              	 .fpu softvfp
+ 1400              	tmrComputeDataHandler:
+ 1401              	.LFB231:
+ 1402              	 .file 7 "TC_lldn.c"
    1:TC_lldn.c     **** /*
    2:TC_lldn.c     ****  * TC_lldn.c
    3:TC_lldn.c     ****  *
@@ -4122,1047 +4127,981 @@
   44:TC_lldn.c     **** static SYS_Timer_t tmrComputeData;	// Compute data		
   45:TC_lldn.c     **** tmr_callback_t tmr_callback;
   46:TC_lldn.c     **** AppState_t	appState = APP_STATE_IDLE;
-  47:TC_lldn.c     **** 
-  48:TC_lldn.c     **** static void configure_NVIC(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch);
-  49:TC_lldn.c     **** static void tc_callback(void);
-  50:TC_lldn.c     **** 
-  51:TC_lldn.c     **** void timer_init(void);
-  52:TC_lldn.c     **** void timer_enable_cc_interrupt(void);
-  53:TC_lldn.c     **** void tc_compare_stop(void);
-  54:TC_lldn.c     **** 
+  47:TC_lldn.c     **** int first  = 1;
+  48:TC_lldn.c     **** 
+  49:TC_lldn.c     **** static void configure_NVIC(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch);
+  50:TC_lldn.c     **** static void tc_callback(void);
+  51:TC_lldn.c     **** 
+  52:TC_lldn.c     **** void timer_init(void);
+  53:TC_lldn.c     **** void timer_enable_cc_interrupt(void);
+  54:TC_lldn.c     **** void tc_compare_stop(void);
   55:TC_lldn.c     **** 
-  56:TC_lldn.c     **** static void tmrComputeDataHandler(SYS_Timer_t *timer)
-  57:TC_lldn.c     **** {
- 1396              	 .loc 7 57 0
- 1397              	 .cfi_startproc
- 1398              	 
- 1399              	 
- 1400 05f4 80B5     	 push {r7,lr}
- 1401              	.LCFI89:
- 1402              	 .cfi_def_cfa_offset 8
- 1403              	 .cfi_offset 7,-8
- 1404              	 .cfi_offset 14,-4
- 1405 05f6 82B0     	 sub sp,sp,#8
- 1406              	.LCFI90:
- 1407              	 .cfi_def_cfa_offset 16
- 1408 05f8 00AF     	 add r7,sp,#0
- 1409              	.LCFI91:
- 1410              	 .cfi_def_cfa_register 7
- 1411 05fa 7860     	 str r0,[r7,#4]
-  58:TC_lldn.c     **** 	printf("\nTimer_Software");
- 1412              	 .loc 7 58 0
- 1413 05fc 0448     	 ldr r0,.L110
- 1414 05fe 054B     	 ldr r3,.L110+4
- 1415 0600 9847     	 blx r3
- 1416              	.LVL8:
-  59:TC_lldn.c     **** 	appState = APP_STATE_INITIAL;
- 1417              	 .loc 7 59 0
- 1418 0602 054B     	 ldr r3,.L110+8
- 1419 0604 0022     	 movs r2,#0
- 1420 0606 1A70     	 strb r2,[r3]
-  60:TC_lldn.c     **** }
- 1421              	 .loc 7 60 0
- 1422 0608 00BF     	 nop
- 1423 060a 0837     	 adds r7,r7,#8
- 1424              	.LCFI92:
- 1425              	 .cfi_def_cfa_offset 8
- 1426 060c BD46     	 mov sp,r7
- 1427              	.LCFI93:
- 1428              	 .cfi_def_cfa_register 13
- 1429              	 
- 1430 060e 80BD     	 pop {r7,pc}
- 1431              	.L111:
- 1432              	 .align 2
- 1433              	.L110:
- 1434 0610 00000000 	 .word .LC0
- 1435 0614 00000000 	 .word printf
- 1436 0618 00000000 	 .word appState
- 1437              	 .cfi_endproc
- 1438              	.LFE231:
- 1440              	 .section .rodata
- 1441              	 .align 2
- 1442              	.LC1:
- 1443 0010 0A524320 	 .ascii "\012RC Compare Interrupt\000"
- 1443      436F6D70 
- 1443      61726520 
- 1443      496E7465 
- 1443      72727570 
- 1444              	 .text
- 1445              	 .align 1
- 1446              	 .global hw_expiry_cb
- 1447              	 .syntax unified
- 1448              	 .thumb
- 1449              	 .thumb_func
- 1450              	 .fpu softvfp
- 1452              	hw_expiry_cb:
- 1453              	.LFB232:
-  61:TC_lldn.c     **** 
-  62:TC_lldn.c     **** void hw_expiry_cb(void)
-  63:TC_lldn.c     **** {
- 1454              	 .loc 7 63 0
- 1455              	 .cfi_startproc
- 1456              	 
- 1457              	 
- 1458 061c 80B5     	 push {r7,lr}
- 1459              	.LCFI94:
- 1460              	 .cfi_def_cfa_offset 8
- 1461              	 .cfi_offset 7,-8
- 1462              	 .cfi_offset 14,-4
- 1463 061e 00AF     	 add r7,sp,#0
- 1464              	.LCFI95:
- 1465              	 .cfi_def_cfa_register 7
-  64:TC_lldn.c     **** 	printf("\nRC Compare Interrupt");
- 1466              	 .loc 7 64 0
- 1467 0620 0248     	 ldr r0,.L113
- 1468 0622 034B     	 ldr r3,.L113+4
- 1469 0624 9847     	 blx r3
- 1470              	.LVL9:
-  65:TC_lldn.c     **** }
- 1471              	 .loc 7 65 0
- 1472 0626 00BF     	 nop
- 1473 0628 80BD     	 pop {r7,pc}
- 1474              	.L114:
- 1475 062a 00BF     	 .align 2
- 1476              	.L113:
- 1477 062c 10000000 	 .word .LC1
- 1478 0630 00000000 	 .word printf
- 1479              	 .cfi_endproc
- 1480              	.LFE232:
- 1482              	 .section .rodata
- 1483 0026 0000     	 .align 2
- 1484              	.LC2:
- 1485 0028 0A524320 	 .ascii "\012RC Ovf Interrupt\000"
- 1485      4F766620 
- 1485      496E7465 
- 1485      72727570 
- 1485      7400
- 1486              	 .text
- 1487              	 .align 1
- 1488              	 .global hw_overflow_cb
- 1489              	 .syntax unified
- 1490              	 .thumb
- 1491              	 .thumb_func
- 1492              	 .fpu softvfp
- 1494              	hw_overflow_cb:
- 1495              	.LFB233:
-  66:TC_lldn.c     **** 
-  67:TC_lldn.c     **** void hw_overflow_cb(void)
-  68:TC_lldn.c     **** {
- 1496              	 .loc 7 68 0
- 1497              	 .cfi_startproc
- 1498              	 
- 1499              	 
- 1500 0634 80B5     	 push {r7,lr}
- 1501              	.LCFI96:
- 1502              	 .cfi_def_cfa_offset 8
- 1503              	 .cfi_offset 7,-8
- 1504              	 .cfi_offset 14,-4
- 1505 0636 00AF     	 add r7,sp,#0
- 1506              	.LCFI97:
- 1507              	 .cfi_def_cfa_register 7
-  69:TC_lldn.c     **** 	printf("\nRC Ovf Interrupt");
- 1508              	 .loc 7 69 0
- 1509 0638 0248     	 ldr r0,.L116
- 1510 063a 034B     	 ldr r3,.L116+4
- 1511 063c 9847     	 blx r3
- 1512              	.LVL10:
-  70:TC_lldn.c     **** }
- 1513              	 .loc 7 70 0
- 1514 063e 00BF     	 nop
- 1515 0640 80BD     	 pop {r7,pc}
- 1516              	.L117:
- 1517 0642 00BF     	 .align 2
- 1518              	.L116:
- 1519 0644 28000000 	 .word .LC2
- 1520 0648 00000000 	 .word printf
- 1521              	 .cfi_endproc
- 1522              	.LFE233:
- 1524              	 .align 1
- 1525              	 .global timer_stop
- 1526              	 .syntax unified
- 1527              	 .thumb
- 1528              	 .thumb_func
- 1529              	 .fpu softvfp
- 1531              	timer_stop:
- 1532              	.LFB234:
-  71:TC_lldn.c     **** 
-  72:TC_lldn.c     **** void timer_stop(void)
-  73:TC_lldn.c     **** {
- 1533              	 .loc 7 73 0
- 1534              	 .cfi_startproc
- 1535              	 
- 1536              	 
- 1537 064c 80B5     	 push {r7,lr}
- 1538              	.LCFI98:
- 1539              	 .cfi_def_cfa_offset 8
- 1540              	 .cfi_offset 7,-8
- 1541              	 .cfi_offset 14,-4
- 1542 064e 00AF     	 add r7,sp,#0
- 1543              	.LCFI99:
- 1544              	 .cfi_def_cfa_register 7
-  74:TC_lldn.c     **** 	tc_stop(TMR, TMR_CHANNEL_ID);
- 1545              	 .loc 7 74 0
- 1546 0650 0021     	 movs r1,#0
- 1547 0652 0248     	 ldr r0,.L119
- 1548 0654 024B     	 ldr r3,.L119+4
- 1549 0656 9847     	 blx r3
- 1550              	.LVL11:
-  75:TC_lldn.c     **** }
- 1551              	 .loc 7 75 0
- 1552 0658 00BF     	 nop
- 1553 065a 80BD     	 pop {r7,pc}
- 1554              	.L120:
- 1555              	 .align 2
- 1556              	.L119:
- 1557 065c 00400140 	 .word 1073823744
- 1558 0660 00000000 	 .word tc_stop
- 1559              	 .cfi_endproc
- 1560              	.LFE234:
- 1562              	 .align 1
- 1563              	 .global tc_delay
- 1564              	 .syntax unified
- 1565              	 .thumb
- 1566              	 .thumb_func
- 1567              	 .fpu softvfp
- 1569              	tc_delay:
- 1570              	.LFB235:
-  76:TC_lldn.c     **** 
-  77:TC_lldn.c     **** void tc_delay (uint16_t compare_value)
-  78:TC_lldn.c     **** {
- 1571              	 .loc 7 78 0
- 1572              	 .cfi_startproc
- 1573              	 
- 1574              	 
- 1575 0664 80B5     	 push {r7,lr}
- 1576              	.LCFI100:
- 1577              	 .cfi_def_cfa_offset 8
- 1578              	 .cfi_offset 7,-8
- 1579              	 .cfi_offset 14,-4
- 1580 0666 82B0     	 sub sp,sp,#8
- 1581              	.LCFI101:
- 1582              	 .cfi_def_cfa_offset 16
- 1583 0668 00AF     	 add r7,sp,#0
- 1584              	.LCFI102:
- 1585              	 .cfi_def_cfa_register 7
- 1586 066a 0346     	 mov r3,r0
- 1587 066c FB80     	 strh r3,[r7,#6]
-  79:TC_lldn.c     **** 	#if SAM4E
-  80:TC_lldn.c     **** 	tc_write_ra(TMR, TMR_CHANNEL_ID, compare_value);
-  81:TC_lldn.c     **** 	#else
-  82:TC_lldn.c     **** 	tc_write_rc(TMR, TMR_CHANNEL_ID, compare_value);
- 1588              	 .loc 7 82 0
- 1589 066e FB88     	 ldrh r3,[r7,#6]
- 1590 0670 1A46     	 mov r2,r3
- 1591 0672 0021     	 movs r1,#0
- 1592 0674 0448     	 ldr r0,.L122
- 1593 0676 054B     	 ldr r3,.L122+4
- 1594 0678 9847     	 blx r3
- 1595              	.LVL12:
-  83:TC_lldn.c     **** 	#endif
-  84:TC_lldn.c     **** 	timer_enable_cc_interrupt();
- 1596              	 .loc 7 84 0
- 1597 067a FFF7FEFF 	 bl timer_enable_cc_interrupt
-  85:TC_lldn.c     **** }
- 1598              	 .loc 7 85 0
- 1599 067e 00BF     	 nop
- 1600 0680 0837     	 adds r7,r7,#8
- 1601              	.LCFI103:
- 1602              	 .cfi_def_cfa_offset 8
- 1603 0682 BD46     	 mov sp,r7
- 1604              	.LCFI104:
- 1605              	 .cfi_def_cfa_register 13
- 1606              	 
- 1607 0684 80BD     	 pop {r7,pc}
- 1608              	.L123:
- 1609 0686 00BF     	 .align 2
- 1610              	.L122:
- 1611 0688 00400140 	 .word 1073823744
- 1612 068c 00000000 	 .word tc_write_rc
- 1613              	 .cfi_endproc
- 1614              	.LFE235:
- 1616              	 .align 1
- 1617              	 .global timer_init
- 1618              	 .syntax unified
- 1619              	 .thumb
- 1620              	 .thumb_func
- 1621              	 .fpu softvfp
- 1623              	timer_init:
- 1624              	.LFB236:
-  86:TC_lldn.c     **** 
-  87:TC_lldn.c     **** void timer_init(void)
-  88:TC_lldn.c     **** {
- 1625              	 .loc 7 88 0
- 1626              	 .cfi_startproc
- 1627              	 
- 1628              	 
- 1629 0690 80B5     	 push {r7,lr}
- 1630              	.LCFI105:
- 1631              	 .cfi_def_cfa_offset 8
- 1632              	 .cfi_offset 7,-8
- 1633              	 .cfi_offset 14,-4
- 1634 0692 82B0     	 sub sp,sp,#8
- 1635              	.LCFI106:
- 1636              	 .cfi_def_cfa_offset 16
- 1637 0694 00AF     	 add r7,sp,#0
- 1638              	.LCFI107:
- 1639              	 .cfi_def_cfa_register 7
-  89:TC_lldn.c     **** 	uint8_t tmr_mul;
-  90:TC_lldn.c     **** 	/* Configure clock service. */
-  91:TC_lldn.c     **** 	#if SAM4L
-  92:TC_lldn.c     **** 	genclk_enable_config(8, GENCLK_SRC_RC1M, 30);
- 1640              	 .loc 7 92 0
- 1641 0696 1E22     	 movs r2,#30
- 1642 0698 0621     	 movs r1,#6
- 1643 069a 0820     	 movs r0,#8
- 1644 069c FFF782FF 	 bl genclk_enable_config
-  93:TC_lldn.c     **** 	sysclk_enable_peripheral_clock(TMR);
- 1645              	 .loc 7 93 0
- 1646 06a0 1548     	 ldr r0,.L126
- 1647 06a2 164B     	 ldr r3,.L126+4
- 1648 06a4 9847     	 blx r3
- 1649              	.LVL13:
-  94:TC_lldn.c     **** 	#else
-  95:TC_lldn.c     **** 	sysclk_enable_peripheral_clock(ID_TC);
-  96:TC_lldn.c     **** 	#endif
-  97:TC_lldn.c     **** 
-  98:TC_lldn.c     **** 	tmr_mul = sysclk_get_peripheral_bus_hz(TMR) / 1000000;
- 1650              	 .loc 7 98 0
- 1651 06a6 1448     	 ldr r0,.L126
- 1652 06a8 154B     	 ldr r3,.L126+8
- 1653 06aa 9847     	 blx r3
- 1654              	.LVL14:
- 1655 06ac 0246     	 mov r2,r0
- 1656 06ae 154B     	 ldr r3,.L126+12
- 1657 06b0 A3FB0223 	 umull r2,r3,r3,r2
- 1658 06b4 9B0C     	 lsrs r3,r3,#18
- 1659 06b6 FB71     	 strb r3,[r7,#7]
-  99:TC_lldn.c     **** 	tmr_mul = tmr_mul >> 1;
- 1660              	 .loc 7 99 0
- 1661 06b8 FB79     	 ldrb r3,[r7,#7]
- 1662 06ba 5B08     	 lsrs r3,r3,#1
- 1663 06bc FB71     	 strb r3,[r7,#7]
- 100:TC_lldn.c     **** 
- 101:TC_lldn.c     **** 	#if SAM4L
- 102:TC_lldn.c     **** 		tc_init(TMR, TMR_CHANNEL_ID,
- 1664              	 .loc 7 102 0
- 1665 06be 48F20102 	 movw r2,#32769
- 1666 06c2 0021     	 movs r1,#0
- 1667 06c4 0C48     	 ldr r0,.L126
- 1668 06c6 104B     	 ldr r3,.L126+16
- 1669 06c8 9847     	 blx r3
- 1670              	.LVL15:
- 103:TC_lldn.c     **** 		TC_CMR_TCCLKS_TIMER_CLOCK2 | TC_CMR_WAVE |
- 104:TC_lldn.c     **** 		TC_CMR_WAVSEL_UP_NO_AUTO);
- 105:TC_lldn.c     **** 	#elif SAM4E
- 106:TC_lldn.c     **** 		tc_init(TMR, TMR_CHANNEL_ID,
- 107:TC_lldn.c     **** 		TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_WAVE |
- 108:TC_lldn.c     **** 		TC_CMR_WAVSEL_UP_RC);
- 109:TC_lldn.c     **** 	#else
- 110:TC_lldn.c     **** 		tc_init(TMR, TMR_CHANNEL_ID,
- 111:TC_lldn.c     **** 		TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_WAVE |
- 112:TC_lldn.c     **** 		TC_CMR_WAVSEL_UP);
- 113:TC_lldn.c     **** 	#endif
- 114:TC_lldn.c     **** 
- 115:TC_lldn.c     **** 	/* Configure and enable interrupt on RC compare. */
- 116:TC_lldn.c     **** 	configure_NVIC(TMR, TMR_CHANNEL_ID);
- 1671              	 .loc 7 116 0
- 1672 06ca 0021     	 movs r1,#0
- 1673 06cc 0A48     	 ldr r0,.L126
- 1674 06ce 00F023F8 	 bl configure_NVIC
- 117:TC_lldn.c     **** 	#if SAM4E
- 118:TC_lldn.c     **** 		tc_get_status(TMR, TMR_CHANNEL_ID);
- 119:TC_lldn.c     **** 		tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IER_CPCS);
- 120:TC_lldn.c     **** 		tc_write_rc(TMR, TMR_CHANNEL_ID, UINT16_MAX);
- 121:TC_lldn.c     **** 	#else
- 122:TC_lldn.c     **** 		tc_get_status(TMR, TMR_CHANNEL_ID);
- 1675              	 .loc 7 122 0
- 1676 06d2 0021     	 movs r1,#0
- 1677 06d4 0848     	 ldr r0,.L126
- 1678 06d6 0D4B     	 ldr r3,.L126+20
- 1679 06d8 9847     	 blx r3
- 1680              	.LVL16:
- 123:TC_lldn.c     **** 		tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IER_COVFS);
- 1681              	 .loc 7 123 0
- 1682 06da 0122     	 movs r2,#1
- 1683 06dc 0021     	 movs r1,#0
- 1684 06de 0648     	 ldr r0,.L126
- 1685 06e0 0B4B     	 ldr r3,.L126+24
- 1686 06e2 9847     	 blx r3
- 1687              	.LVL17:
- 124:TC_lldn.c     **** 	#endif
- 125:TC_lldn.c     **** 	tc_compare_stop();
- 1688              	 .loc 7 125 0
- 1689 06e4 FFF7FEFF 	 bl tc_compare_stop
- 126:TC_lldn.c     **** 	tc_start(TMR, TMR_CHANNEL_ID);
- 1690              	 .loc 7 126 0
- 1691 06e8 0021     	 movs r1,#0
- 1692 06ea 0348     	 ldr r0,.L126
- 1693 06ec 094B     	 ldr r3,.L126+28
- 1694 06ee 9847     	 blx r3
- 1695              	.LVL18:
- 127:TC_lldn.c     **** 	return;
- 1696              	 .loc 7 127 0
- 1697 06f0 00BF     	 nop
- 128:TC_lldn.c     **** }
- 1698              	 .loc 7 128 0
- 1699 06f2 0837     	 adds r7,r7,#8
- 1700              	.LCFI108:
- 1701              	 .cfi_def_cfa_offset 8
- 1702 06f4 BD46     	 mov sp,r7
- 1703              	.LCFI109:
- 1704              	 .cfi_def_cfa_register 13
- 1705              	 
- 1706 06f6 80BD     	 pop {r7,pc}
- 1707              	.L127:
- 1708              	 .align 2
- 1709              	.L126:
- 1710 06f8 00400140 	 .word 1073823744
- 1711 06fc 00000000 	 .word sysclk_enable_peripheral_clock
- 1712 0700 00000000 	 .word sysclk_get_peripheral_bus_hz
- 1713 0704 83DE1B43 	 .word 1125899907
- 1714 0708 00000000 	 .word tc_init
- 1715 070c 00000000 	 .word tc_get_status
- 1716 0710 00000000 	 .word tc_enable_interrupt
- 1717 0714 00000000 	 .word tc_start
- 1718              	 .cfi_endproc
- 1719              	.LFE236:
- 1721              	 .align 1
- 1722              	 .syntax unified
- 1723              	 .thumb
- 1724              	 .thumb_func
- 1725              	 .fpu softvfp
- 1727              	configure_NVIC:
- 1728              	.LFB237:
- 129:TC_lldn.c     **** 
- 130:TC_lldn.c     **** void configure_NVIC(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch)
- 131:TC_lldn.c     **** {
- 1729              	 .loc 7 131 0
- 1730              	 .cfi_startproc
- 1731              	 
- 1732              	 
- 1733 0718 80B5     	 push {r7,lr}
- 1734              	.LCFI110:
- 1735              	 .cfi_def_cfa_offset 8
- 1736              	 .cfi_offset 7,-8
- 1737              	 .cfi_offset 14,-4
- 1738 071a 82B0     	 sub sp,sp,#8
- 1739              	.LCFI111:
- 1740              	 .cfi_def_cfa_offset 16
- 1741 071c 00AF     	 add r7,sp,#0
- 1742              	.LCFI112:
- 1743              	 .cfi_def_cfa_register 7
- 1744 071e 7860     	 str r0,[r7,#4]
- 1745 0720 0B46     	 mov r3,r1
- 1746 0722 FB70     	 strb r3,[r7,#3]
- 132:TC_lldn.c     **** 	if (TC0 == cmn_hw_timer) {
- 1747              	 .loc 7 132 0
- 1748 0724 7B68     	 ldr r3,[r7,#4]
- 1749 0726 1B4A     	 ldr r2,.L140
- 1750 0728 9342     	 cmp r3,r2
- 1751 072a 13D1     	 bne .L129
- 133:TC_lldn.c     **** 		switch (cmn_hw_timer_ch) {
- 1752              	 .loc 7 133 0
- 1753 072c FB78     	 ldrb r3,[r7,#3]
- 1754 072e 012B     	 cmp r3,#1
- 1755 0730 08D0     	 beq .L131
- 1756 0732 022B     	 cmp r3,#2
- 1757 0734 0AD0     	 beq .L132
- 1758 0736 002B     	 cmp r3,#0
- 1759 0738 00D0     	 beq .L133
- 134:TC_lldn.c     **** 			#if SAM4L
- 135:TC_lldn.c     **** 			case 0:
- 136:TC_lldn.c     **** 			NVIC_EnableIRQ(TC00_IRQn);
- 137:TC_lldn.c     **** 			break;
- 138:TC_lldn.c     **** 
- 139:TC_lldn.c     **** 			case 1:
- 140:TC_lldn.c     **** 			NVIC_EnableIRQ(TC01_IRQn);
- 141:TC_lldn.c     **** 			break;
+  56:TC_lldn.c     **** 
+  57:TC_lldn.c     **** static void tmrComputeDataHandler(SYS_Timer_t *timer)
+  58:TC_lldn.c     **** {
+ 1403              	 .loc 7 58 0
+ 1404              	 .cfi_startproc
+ 1405              	 
+ 1406              	 
+ 1407 05f4 80B5     	 push {r7,lr}
+ 1408              	.LCFI89:
+ 1409              	 .cfi_def_cfa_offset 8
+ 1410              	 .cfi_offset 7,-8
+ 1411              	 .cfi_offset 14,-4
+ 1412 05f6 82B0     	 sub sp,sp,#8
+ 1413              	.LCFI90:
+ 1414              	 .cfi_def_cfa_offset 16
+ 1415 05f8 00AF     	 add r7,sp,#0
+ 1416              	.LCFI91:
+ 1417              	 .cfi_def_cfa_register 7
+ 1418 05fa 7860     	 str r0,[r7,#4]
+  59:TC_lldn.c     **** 	printf("\nTimer_Software");
+ 1419              	 .loc 7 59 0
+ 1420 05fc 0848     	 ldr r0,.L112
+ 1421 05fe 094B     	 ldr r3,.L112+4
+ 1422 0600 9847     	 blx r3
+ 1423              	.LVL8:
+  60:TC_lldn.c     **** 	if(first)
+ 1424              	 .loc 7 60 0
+ 1425 0602 094B     	 ldr r3,.L112+8
+ 1426 0604 1B68     	 ldr r3,[r3]
+ 1427 0606 002B     	 cmp r3,#0
+ 1428 0608 05D0     	 beq .L111
+  61:TC_lldn.c     **** 	{
+  62:TC_lldn.c     **** 	appState = APP_STATE_INITIAL;	
+ 1429              	 .loc 7 62 0
+ 1430 060a 084B     	 ldr r3,.L112+12
+ 1431 060c 0022     	 movs r2,#0
+ 1432 060e 1A70     	 strb r2,[r3]
+  63:TC_lldn.c     **** 	first = 0;
+ 1433              	 .loc 7 63 0
+ 1434 0610 054B     	 ldr r3,.L112+8
+ 1435 0612 0022     	 movs r2,#0
+ 1436 0614 1A60     	 str r2,[r3]
+ 1437              	.L111:
+  64:TC_lldn.c     **** 	}
+  65:TC_lldn.c     **** 	
+  66:TC_lldn.c     **** }
+ 1438              	 .loc 7 66 0
+ 1439 0616 00BF     	 nop
+ 1440 0618 0837     	 adds r7,r7,#8
+ 1441              	.LCFI92:
+ 1442              	 .cfi_def_cfa_offset 8
+ 1443 061a BD46     	 mov sp,r7
+ 1444              	.LCFI93:
+ 1445              	 .cfi_def_cfa_register 13
+ 1446              	 
+ 1447 061c 80BD     	 pop {r7,pc}
+ 1448              	.L113:
+ 1449 061e 00BF     	 .align 2
+ 1450              	.L112:
+ 1451 0620 00000000 	 .word .LC0
+ 1452 0624 00000000 	 .word printf
+ 1453 0628 00000000 	 .word first
+ 1454 062c 00000000 	 .word appState
+ 1455              	 .cfi_endproc
+ 1456              	.LFE231:
+ 1458              	 .section .rodata
+ 1459              	 .align 2
+ 1460              	.LC1:
+ 1461 0010 0A524320 	 .ascii "\012RC Compare Interrupt\000"
+ 1461      436F6D70 
+ 1461      61726520 
+ 1461      496E7465 
+ 1461      72727570 
+ 1462              	 .text
+ 1463              	 .align 1
+ 1464              	 .global hw_expiry_cb
+ 1465              	 .syntax unified
+ 1466              	 .thumb
+ 1467              	 .thumb_func
+ 1468              	 .fpu softvfp
+ 1470              	hw_expiry_cb:
+ 1471              	.LFB232:
+  67:TC_lldn.c     **** 
+  68:TC_lldn.c     **** void hw_expiry_cb(void)
+  69:TC_lldn.c     **** {
+ 1472              	 .loc 7 69 0
+ 1473              	 .cfi_startproc
+ 1474              	 
+ 1475              	 
+ 1476 0630 80B5     	 push {r7,lr}
+ 1477              	.LCFI94:
+ 1478              	 .cfi_def_cfa_offset 8
+ 1479              	 .cfi_offset 7,-8
+ 1480              	 .cfi_offset 14,-4
+ 1481 0632 00AF     	 add r7,sp,#0
+ 1482              	.LCFI95:
+ 1483              	 .cfi_def_cfa_register 7
+  70:TC_lldn.c     **** 	printf("\nRC Compare Interrupt");
+ 1484              	 .loc 7 70 0
+ 1485 0634 0248     	 ldr r0,.L115
+ 1486 0636 034B     	 ldr r3,.L115+4
+ 1487 0638 9847     	 blx r3
+ 1488              	.LVL9:
+  71:TC_lldn.c     **** }
+ 1489              	 .loc 7 71 0
+ 1490 063a 00BF     	 nop
+ 1491 063c 80BD     	 pop {r7,pc}
+ 1492              	.L116:
+ 1493 063e 00BF     	 .align 2
+ 1494              	.L115:
+ 1495 0640 10000000 	 .word .LC1
+ 1496 0644 00000000 	 .word printf
+ 1497              	 .cfi_endproc
+ 1498              	.LFE232:
+ 1500              	 .section .rodata
+ 1501 0026 0000     	 .align 2
+ 1502              	.LC2:
+ 1503 0028 0A524320 	 .ascii "\012RC Ovf Interrupt\000"
+ 1503      4F766620 
+ 1503      496E7465 
+ 1503      72727570 
+ 1503      7400
+ 1504              	 .text
+ 1505              	 .align 1
+ 1506              	 .global hw_overflow_cb
+ 1507              	 .syntax unified
+ 1508              	 .thumb
+ 1509              	 .thumb_func
+ 1510              	 .fpu softvfp
+ 1512              	hw_overflow_cb:
+ 1513              	.LFB233:
+  72:TC_lldn.c     **** 
+  73:TC_lldn.c     **** void hw_overflow_cb(void)
+  74:TC_lldn.c     **** {
+ 1514              	 .loc 7 74 0
+ 1515              	 .cfi_startproc
+ 1516              	 
+ 1517              	 
+ 1518 0648 80B5     	 push {r7,lr}
+ 1519              	.LCFI96:
+ 1520              	 .cfi_def_cfa_offset 8
+ 1521              	 .cfi_offset 7,-8
+ 1522              	 .cfi_offset 14,-4
+ 1523 064a 00AF     	 add r7,sp,#0
+ 1524              	.LCFI97:
+ 1525              	 .cfi_def_cfa_register 7
+  75:TC_lldn.c     **** 	printf("\nRC Ovf Interrupt");
+ 1526              	 .loc 7 75 0
+ 1527 064c 0248     	 ldr r0,.L118
+ 1528 064e 034B     	 ldr r3,.L118+4
+ 1529 0650 9847     	 blx r3
+ 1530              	.LVL10:
+  76:TC_lldn.c     **** }
+ 1531              	 .loc 7 76 0
+ 1532 0652 00BF     	 nop
+ 1533 0654 80BD     	 pop {r7,pc}
+ 1534              	.L119:
+ 1535 0656 00BF     	 .align 2
+ 1536              	.L118:
+ 1537 0658 28000000 	 .word .LC2
+ 1538 065c 00000000 	 .word printf
+ 1539              	 .cfi_endproc
+ 1540              	.LFE233:
+ 1542              	 .align 1
+ 1543              	 .global timer_stop
+ 1544              	 .syntax unified
+ 1545              	 .thumb
+ 1546              	 .thumb_func
+ 1547              	 .fpu softvfp
+ 1549              	timer_stop:
+ 1550              	.LFB234:
+  77:TC_lldn.c     **** 
+  78:TC_lldn.c     **** void timer_stop(void)
+  79:TC_lldn.c     **** {
+ 1551              	 .loc 7 79 0
+ 1552              	 .cfi_startproc
+ 1553              	 
+ 1554              	 
+ 1555 0660 80B5     	 push {r7,lr}
+ 1556              	.LCFI98:
+ 1557              	 .cfi_def_cfa_offset 8
+ 1558              	 .cfi_offset 7,-8
+ 1559              	 .cfi_offset 14,-4
+ 1560 0662 00AF     	 add r7,sp,#0
+ 1561              	.LCFI99:
+ 1562              	 .cfi_def_cfa_register 7
+  80:TC_lldn.c     **** 	tc_stop(TMR, TMR_CHANNEL_ID);
+ 1563              	 .loc 7 80 0
+ 1564 0664 0021     	 movs r1,#0
+ 1565 0666 0248     	 ldr r0,.L121
+ 1566 0668 024B     	 ldr r3,.L121+4
+ 1567 066a 9847     	 blx r3
+ 1568              	.LVL11:
+  81:TC_lldn.c     **** }
+ 1569              	 .loc 7 81 0
+ 1570 066c 00BF     	 nop
+ 1571 066e 80BD     	 pop {r7,pc}
+ 1572              	.L122:
+ 1573              	 .align 2
+ 1574              	.L121:
+ 1575 0670 00400140 	 .word 1073823744
+ 1576 0674 00000000 	 .word tc_stop
+ 1577              	 .cfi_endproc
+ 1578              	.LFE234:
+ 1580              	 .align 1
+ 1581              	 .global tc_delay
+ 1582              	 .syntax unified
+ 1583              	 .thumb
+ 1584              	 .thumb_func
+ 1585              	 .fpu softvfp
+ 1587              	tc_delay:
+ 1588              	.LFB235:
+  82:TC_lldn.c     **** 
+  83:TC_lldn.c     **** void tc_delay (uint16_t compare_value)
+  84:TC_lldn.c     **** {
+ 1589              	 .loc 7 84 0
+ 1590              	 .cfi_startproc
+ 1591              	 
+ 1592              	 
+ 1593 0678 80B5     	 push {r7,lr}
+ 1594              	.LCFI100:
+ 1595              	 .cfi_def_cfa_offset 8
+ 1596              	 .cfi_offset 7,-8
+ 1597              	 .cfi_offset 14,-4
+ 1598 067a 82B0     	 sub sp,sp,#8
+ 1599              	.LCFI101:
+ 1600              	 .cfi_def_cfa_offset 16
+ 1601 067c 00AF     	 add r7,sp,#0
+ 1602              	.LCFI102:
+ 1603              	 .cfi_def_cfa_register 7
+ 1604 067e 0346     	 mov r3,r0
+ 1605 0680 FB80     	 strh r3,[r7,#6]
+  85:TC_lldn.c     **** 	#if SAM4E
+  86:TC_lldn.c     **** 	tc_write_ra(TMR, TMR_CHANNEL_ID, compare_value);
+  87:TC_lldn.c     **** 	#else
+  88:TC_lldn.c     **** 	tc_write_rc(TMR, TMR_CHANNEL_ID, compare_value);
+ 1606              	 .loc 7 88 0
+ 1607 0682 FB88     	 ldrh r3,[r7,#6]
+ 1608 0684 1A46     	 mov r2,r3
+ 1609 0686 0021     	 movs r1,#0
+ 1610 0688 0448     	 ldr r0,.L124
+ 1611 068a 054B     	 ldr r3,.L124+4
+ 1612 068c 9847     	 blx r3
+ 1613              	.LVL12:
+  89:TC_lldn.c     **** 	#endif
+  90:TC_lldn.c     **** 	timer_enable_cc_interrupt();
+ 1614              	 .loc 7 90 0
+ 1615 068e FFF7FEFF 	 bl timer_enable_cc_interrupt
+  91:TC_lldn.c     **** }
+ 1616              	 .loc 7 91 0
+ 1617 0692 00BF     	 nop
+ 1618 0694 0837     	 adds r7,r7,#8
+ 1619              	.LCFI103:
+ 1620              	 .cfi_def_cfa_offset 8
+ 1621 0696 BD46     	 mov sp,r7
+ 1622              	.LCFI104:
+ 1623              	 .cfi_def_cfa_register 13
+ 1624              	 
+ 1625 0698 80BD     	 pop {r7,pc}
+ 1626              	.L125:
+ 1627 069a 00BF     	 .align 2
+ 1628              	.L124:
+ 1629 069c 00400140 	 .word 1073823744
+ 1630 06a0 00000000 	 .word tc_write_rc
+ 1631              	 .cfi_endproc
+ 1632              	.LFE235:
+ 1634              	 .align 1
+ 1635              	 .global timer_init
+ 1636              	 .syntax unified
+ 1637              	 .thumb
+ 1638              	 .thumb_func
+ 1639              	 .fpu softvfp
+ 1641              	timer_init:
+ 1642              	.LFB236:
+  92:TC_lldn.c     **** 
+  93:TC_lldn.c     **** void timer_init(void)
+  94:TC_lldn.c     **** {
+ 1643              	 .loc 7 94 0
+ 1644              	 .cfi_startproc
+ 1645              	 
+ 1646              	 
+ 1647 06a4 80B5     	 push {r7,lr}
+ 1648              	.LCFI105:
+ 1649              	 .cfi_def_cfa_offset 8
+ 1650              	 .cfi_offset 7,-8
+ 1651              	 .cfi_offset 14,-4
+ 1652 06a6 82B0     	 sub sp,sp,#8
+ 1653              	.LCFI106:
+ 1654              	 .cfi_def_cfa_offset 16
+ 1655 06a8 00AF     	 add r7,sp,#0
+ 1656              	.LCFI107:
+ 1657              	 .cfi_def_cfa_register 7
+  95:TC_lldn.c     **** 	uint8_t tmr_mul;
+  96:TC_lldn.c     **** 	/* Configure clock service. */
+  97:TC_lldn.c     **** 	
+  98:TC_lldn.c     **** 	#if SAM4L
+  99:TC_lldn.c     **** 	genclk_enable_config(8, GENCLK_SRC_RC1M, 30);
+ 1658              	 .loc 7 99 0
+ 1659 06aa 1E22     	 movs r2,#30
+ 1660 06ac 0621     	 movs r1,#6
+ 1661 06ae 0820     	 movs r0,#8
+ 1662 06b0 FFF778FF 	 bl genclk_enable_config
+ 100:TC_lldn.c     **** 	sysclk_enable_peripheral_clock(TMR);
+ 1663              	 .loc 7 100 0
+ 1664 06b4 1348     	 ldr r0,.L128
+ 1665 06b6 144B     	 ldr r3,.L128+4
+ 1666 06b8 9847     	 blx r3
+ 1667              	.LVL13:
+ 101:TC_lldn.c     **** 	#else
+ 102:TC_lldn.c     **** 	sysclk_enable_peripheral_clock(ID_TC);
+ 103:TC_lldn.c     **** 	#endif
+ 104:TC_lldn.c     **** 
+ 105:TC_lldn.c     **** 	tmr_mul = sysclk_get_peripheral_bus_hz(TMR) / 1000000;
+ 1668              	 .loc 7 105 0
+ 1669 06ba 1248     	 ldr r0,.L128
+ 1670 06bc 134B     	 ldr r3,.L128+8
+ 1671 06be 9847     	 blx r3
+ 1672              	.LVL14:
+ 1673 06c0 0246     	 mov r2,r0
+ 1674 06c2 134B     	 ldr r3,.L128+12
+ 1675 06c4 A3FB0223 	 umull r2,r3,r3,r2
+ 1676 06c8 9B0C     	 lsrs r3,r3,#18
+ 1677 06ca FB71     	 strb r3,[r7,#7]
+ 106:TC_lldn.c     **** 	tmr_mul = tmr_mul >> 1;
+ 1678              	 .loc 7 106 0
+ 1679 06cc FB79     	 ldrb r3,[r7,#7]
+ 1680 06ce 5B08     	 lsrs r3,r3,#1
+ 1681 06d0 FB71     	 strb r3,[r7,#7]
+ 107:TC_lldn.c     **** 
+ 108:TC_lldn.c     **** 	#if SAM4L
+ 109:TC_lldn.c     **** 		tc_init(TMR, TMR_CHANNEL_ID,
+ 1682              	 .loc 7 109 0
+ 1683 06d2 48F20102 	 movw r2,#32769
+ 1684 06d6 0021     	 movs r1,#0
+ 1685 06d8 0A48     	 ldr r0,.L128
+ 1686 06da 0E4B     	 ldr r3,.L128+16
+ 1687 06dc 9847     	 blx r3
+ 1688              	.LVL15:
+ 110:TC_lldn.c     **** 		TC_CMR_TCCLKS_TIMER_CLOCK2 | TC_CMR_WAVE |
+ 111:TC_lldn.c     **** 		TC_CMR_WAVSEL_UP_NO_AUTO);
+ 112:TC_lldn.c     **** 	#elif SAM4E
+ 113:TC_lldn.c     **** 		tc_init(TMR, TMR_CHANNEL_ID,
+ 114:TC_lldn.c     **** 		TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_WAVE |
+ 115:TC_lldn.c     **** 		TC_CMR_WAVSEL_UP_RC);
+ 116:TC_lldn.c     **** 	#else
+ 117:TC_lldn.c     **** 		tc_init(TMR, TMR_CHANNEL_ID,
+ 118:TC_lldn.c     **** 		TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_WAVE |
+ 119:TC_lldn.c     **** 		TC_CMR_WAVSEL_UP);
+ 120:TC_lldn.c     **** 	#endif
+ 121:TC_lldn.c     **** 
+ 122:TC_lldn.c     **** 	/* Configure and enable interrupt on RC compare. */
+ 123:TC_lldn.c     **** 	
+ 124:TC_lldn.c     **** 	configure_NVIC(TMR, TMR_CHANNEL_ID);
+ 1689              	 .loc 7 124 0
+ 1690 06de 0021     	 movs r1,#0
+ 1691 06e0 0848     	 ldr r0,.L128
+ 1692 06e2 00F01DF8 	 bl configure_NVIC
+ 125:TC_lldn.c     **** 	
+ 126:TC_lldn.c     **** 	#if SAM4E
+ 127:TC_lldn.c     **** 		tc_get_status(TMR, TMR_CHANNEL_ID);
+ 128:TC_lldn.c     **** 		tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IER_CPCS);
+ 129:TC_lldn.c     **** 		tc_write_rc(TMR, TMR_CHANNEL_ID, UINT16_MAX);
+ 130:TC_lldn.c     **** 	#else
+ 131:TC_lldn.c     **** 		tc_get_status(TMR, TMR_CHANNEL_ID);
+ 1693              	 .loc 7 131 0
+ 1694 06e6 0021     	 movs r1,#0
+ 1695 06e8 0648     	 ldr r0,.L128
+ 1696 06ea 0B4B     	 ldr r3,.L128+20
+ 1697 06ec 9847     	 blx r3
+ 1698              	.LVL16:
+ 132:TC_lldn.c     **** 	
+ 133:TC_lldn.c     **** 		tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IER_COVFS);
+ 1699              	 .loc 7 133 0
+ 1700 06ee 0122     	 movs r2,#1
+ 1701 06f0 0021     	 movs r1,#0
+ 1702 06f2 0448     	 ldr r0,.L128
+ 1703 06f4 094B     	 ldr r3,.L128+24
+ 1704 06f6 9847     	 blx r3
+ 1705              	.LVL17:
+ 134:TC_lldn.c     **** 	#endif
+ 135:TC_lldn.c     **** 	
+ 136:TC_lldn.c     **** 	tc_compare_stop();
+ 1706              	 .loc 7 136 0
+ 1707 06f8 FFF7FEFF 	 bl tc_compare_stop
+ 137:TC_lldn.c     **** 	
+ 138:TC_lldn.c     **** 	// tc_start(TMR, TMR_CHANNEL_ID);
+ 139:TC_lldn.c     **** 	
+ 140:TC_lldn.c     **** 	return;
+ 1708              	 .loc 7 140 0
+ 1709 06fc 00BF     	 nop
+ 141:TC_lldn.c     **** }
+ 1710              	 .loc 7 141 0
+ 1711 06fe 0837     	 adds r7,r7,#8
+ 1712              	.LCFI108:
+ 1713              	 .cfi_def_cfa_offset 8
+ 1714 0700 BD46     	 mov sp,r7
+ 1715              	.LCFI109:
+ 1716              	 .cfi_def_cfa_register 13
+ 1717              	 
+ 1718 0702 80BD     	 pop {r7,pc}
+ 1719              	.L129:
+ 1720              	 .align 2
+ 1721              	.L128:
+ 1722 0704 00400140 	 .word 1073823744
+ 1723 0708 00000000 	 .word sysclk_enable_peripheral_clock
+ 1724 070c 00000000 	 .word sysclk_get_peripheral_bus_hz
+ 1725 0710 83DE1B43 	 .word 1125899907
+ 1726 0714 00000000 	 .word tc_init
+ 1727 0718 00000000 	 .word tc_get_status
+ 1728 071c 00000000 	 .word tc_enable_interrupt
+ 1729              	 .cfi_endproc
+ 1730              	.LFE236:
+ 1732              	 .align 1
+ 1733              	 .syntax unified
+ 1734              	 .thumb
+ 1735              	 .thumb_func
+ 1736              	 .fpu softvfp
+ 1738              	configure_NVIC:
+ 1739              	.LFB237:
  142:TC_lldn.c     **** 
- 143:TC_lldn.c     **** 			case 2:
- 144:TC_lldn.c     **** 			NVIC_EnableIRQ(TC02_IRQn);
- 145:TC_lldn.c     **** 			break;
- 146:TC_lldn.c     **** 
- 147:TC_lldn.c     **** 			#else
- 148:TC_lldn.c     **** 			case 0:
- 149:TC_lldn.c     **** 			NVIC_EnableIRQ(TC0_IRQn);
- 150:TC_lldn.c     **** 			break;
- 151:TC_lldn.c     **** 
- 152:TC_lldn.c     **** 			case 1:
- 153:TC_lldn.c     **** 			NVIC_EnableIRQ(TC1_IRQn);
- 154:TC_lldn.c     **** 			break;
- 155:TC_lldn.c     **** 
- 156:TC_lldn.c     **** 			case 2:
- 157:TC_lldn.c     **** 			NVIC_EnableIRQ(TC2_IRQn);
- 158:TC_lldn.c     **** 			break;
- 159:TC_lldn.c     **** 			#endif
- 160:TC_lldn.c     **** 			default:
- 161:TC_lldn.c     **** 			break;
- 1760              	 .loc 7 161 0
- 1761 073a 23E0     	 b .L135
- 1762              	.L133:
- 136:TC_lldn.c     **** 			break;
- 1763              	 .loc 7 136 0
- 1764 073c 3720     	 movs r0,#55
- 1765 073e FFF75FFC 	 bl NVIC_EnableIRQ
- 137:TC_lldn.c     **** 
- 1766              	 .loc 7 137 0
- 1767 0742 1FE0     	 b .L135
- 1768              	.L131:
- 140:TC_lldn.c     **** 			break;
- 1769              	 .loc 7 140 0
- 1770 0744 3820     	 movs r0,#56
- 1771 0746 FFF75BFC 	 bl NVIC_EnableIRQ
- 141:TC_lldn.c     **** 
- 1772              	 .loc 7 141 0
- 1773 074a 1BE0     	 b .L135
- 1774              	.L132:
- 144:TC_lldn.c     **** 			break;
- 1775              	 .loc 7 144 0
- 1776 074c 3920     	 movs r0,#57
- 1777 074e FFF757FC 	 bl NVIC_EnableIRQ
- 145:TC_lldn.c     **** 
- 1778              	 .loc 7 145 0
- 1779 0752 17E0     	 b .L135
- 1780              	.L129:
- 162:TC_lldn.c     **** 		}
- 163:TC_lldn.c     **** 		#ifdef TC1
- 164:TC_lldn.c     **** 		} else if (TC1 == cmn_hw_timer) {
- 1781              	 .loc 7 164 0
- 1782 0754 7B68     	 ldr r3,[r7,#4]
- 1783 0756 104A     	 ldr r2,.L140+4
- 1784 0758 9342     	 cmp r3,r2
- 1785 075a 13D1     	 bne .L135
- 165:TC_lldn.c     **** 		switch (cmn_hw_timer_ch) {
- 1786              	 .loc 7 165 0
- 1787 075c FB78     	 ldrb r3,[r7,#3]
- 1788 075e 012B     	 cmp r3,#1
- 1789 0760 08D0     	 beq .L137
- 1790 0762 022B     	 cmp r3,#2
- 1791 0764 0AD0     	 beq .L138
- 1792 0766 002B     	 cmp r3,#0
- 1793 0768 00D0     	 beq .L139
- 166:TC_lldn.c     **** 			#if SAM4L
- 167:TC_lldn.c     **** 			case 0:
- 168:TC_lldn.c     **** 			NVIC_EnableIRQ(TC10_IRQn);
- 169:TC_lldn.c     **** 			break;				
- 170:TC_lldn.c     **** 
- 171:TC_lldn.c     **** 			case 1:
- 172:TC_lldn.c     **** 			NVIC_EnableIRQ(TC11_IRQn);
- 173:TC_lldn.c     **** 			break;
- 174:TC_lldn.c     **** 
- 175:TC_lldn.c     **** 			case 2:
- 176:TC_lldn.c     **** 			NVIC_EnableIRQ(TC12_IRQn);
- 177:TC_lldn.c     **** 			break;
- 178:TC_lldn.c     **** 
- 179:TC_lldn.c     **** 			#else
- 180:TC_lldn.c     **** 			case 0:
- 181:TC_lldn.c     **** 			NVIC_EnableIRQ(TC3_IRQn);
- 182:TC_lldn.c     **** 			break;
- 183:TC_lldn.c     **** 
- 184:TC_lldn.c     **** 			case 1:
- 185:TC_lldn.c     **** 			NVIC_EnableIRQ(TC4_IRQn);
- 186:TC_lldn.c     **** 			break;
- 187:TC_lldn.c     **** 
- 188:TC_lldn.c     **** 			case 2:
- 189:TC_lldn.c     **** 			NVIC_EnableIRQ(TC5_IRQn);
- 190:TC_lldn.c     **** 			break;
- 191:TC_lldn.c     **** 			#endif
- 192:TC_lldn.c     **** 			default:
- 193:TC_lldn.c     **** 			break;
- 1794              	 .loc 7 193 0
- 1795 076a 0BE0     	 b .L135
- 1796              	.L139:
- 168:TC_lldn.c     **** 			break;				
- 1797              	 .loc 7 168 0
- 1798 076c 3A20     	 movs r0,#58
- 1799 076e FFF747FC 	 bl NVIC_EnableIRQ
+ 143:TC_lldn.c     **** void configure_NVIC(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch)
+ 144:TC_lldn.c     **** {
+ 1740              	 .loc 7 144 0
+ 1741              	 .cfi_startproc
+ 1742              	 
+ 1743              	 
+ 1744 0720 80B5     	 push {r7,lr}
+ 1745              	.LCFI110:
+ 1746              	 .cfi_def_cfa_offset 8
+ 1747              	 .cfi_offset 7,-8
+ 1748              	 .cfi_offset 14,-4
+ 1749 0722 82B0     	 sub sp,sp,#8
+ 1750              	.LCFI111:
+ 1751              	 .cfi_def_cfa_offset 16
+ 1752 0724 00AF     	 add r7,sp,#0
+ 1753              	.LCFI112:
+ 1754              	 .cfi_def_cfa_register 7
+ 1755 0726 7860     	 str r0,[r7,#4]
+ 1756 0728 0B46     	 mov r3,r1
+ 1757 072a FB70     	 strb r3,[r7,#3]
+ 145:TC_lldn.c     **** 	
+ 146:TC_lldn.c     **** 	if (TC1 == cmn_hw_timer) {
+ 1758              	 .loc 7 146 0
+ 1759 072c 7B68     	 ldr r3,[r7,#4]
+ 1760 072e 0D4A     	 ldr r2,.L137
+ 1761 0730 9342     	 cmp r3,r2
+ 1762 0732 13D1     	 bne .L136
+ 147:TC_lldn.c     **** 		switch (cmn_hw_timer_ch) {
+ 1763              	 .loc 7 147 0
+ 1764 0734 FB78     	 ldrb r3,[r7,#3]
+ 1765 0736 012B     	 cmp r3,#1
+ 1766 0738 08D0     	 beq .L133
+ 1767 073a 022B     	 cmp r3,#2
+ 1768 073c 0AD0     	 beq .L134
+ 1769 073e 002B     	 cmp r3,#0
+ 1770 0740 00D0     	 beq .L135
+ 148:TC_lldn.c     **** 			#if SAM4L
+ 149:TC_lldn.c     **** 			case 0:
+ 150:TC_lldn.c     **** 			NVIC_EnableIRQ(TC10_IRQn);
+ 151:TC_lldn.c     **** 			break;				
+ 152:TC_lldn.c     **** 
+ 153:TC_lldn.c     **** 			case 1:
+ 154:TC_lldn.c     **** 			NVIC_EnableIRQ(TC11_IRQn);
+ 155:TC_lldn.c     **** 			break;
+ 156:TC_lldn.c     **** 
+ 157:TC_lldn.c     **** 			case 2:
+ 158:TC_lldn.c     **** 			NVIC_EnableIRQ(TC12_IRQn);
+ 159:TC_lldn.c     **** 			break;
+ 160:TC_lldn.c     **** 
+ 161:TC_lldn.c     **** 			#else
+ 162:TC_lldn.c     **** 			case 0:
+ 163:TC_lldn.c     **** 			NVIC_EnableIRQ(TC3_IRQn);
+ 164:TC_lldn.c     **** 			break;
+ 165:TC_lldn.c     **** 
+ 166:TC_lldn.c     **** 			case 1:
+ 167:TC_lldn.c     **** 			NVIC_EnableIRQ(TC4_IRQn);
+ 168:TC_lldn.c     **** 			break;
  169:TC_lldn.c     **** 
- 1800              	 .loc 7 169 0
- 1801 0772 07E0     	 b .L135
- 1802              	.L137:
+ 170:TC_lldn.c     **** 			case 2:
+ 171:TC_lldn.c     **** 			NVIC_EnableIRQ(TC5_IRQn);
  172:TC_lldn.c     **** 			break;
- 1803              	 .loc 7 172 0
- 1804 0774 3B20     	 movs r0,#59
- 1805 0776 FFF743FC 	 bl NVIC_EnableIRQ
- 173:TC_lldn.c     **** 
- 1806              	 .loc 7 173 0
- 1807 077a 03E0     	 b .L135
- 1808              	.L138:
- 176:TC_lldn.c     **** 			break;
- 1809              	 .loc 7 176 0
- 1810 077c 3C20     	 movs r0,#60
- 1811 077e FFF73FFC 	 bl NVIC_EnableIRQ
- 177:TC_lldn.c     **** 
- 1812              	 .loc 7 177 0
- 1813 0782 00BF     	 nop
- 1814              	.L135:
- 194:TC_lldn.c     **** 		}
- 195:TC_lldn.c     **** 		#endif
- 196:TC_lldn.c     **** 	}
- 197:TC_lldn.c     **** 
- 198:TC_lldn.c     **** 	tmr_callback = tc_callback;
- 1815              	 .loc 7 198 0
- 1816 0784 054B     	 ldr r3,.L140+8
- 1817 0786 064A     	 ldr r2,.L140+12
- 1818 0788 1A60     	 str r2,[r3]
- 199:TC_lldn.c     **** }
- 1819              	 .loc 7 199 0
- 1820 078a 00BF     	 nop
- 1821 078c 0837     	 adds r7,r7,#8
- 1822              	.LCFI113:
- 1823              	 .cfi_def_cfa_offset 8
- 1824 078e BD46     	 mov sp,r7
- 1825              	.LCFI114:
- 1826              	 .cfi_def_cfa_register 13
- 1827              	 
- 1828 0790 80BD     	 pop {r7,pc}
- 1829              	.L141:
- 1830 0792 00BF     	 .align 2
- 1831              	.L140:
- 1832 0794 00000140 	 .word 1073807360
- 1833 0798 00400140 	 .word 1073823744
- 1834 079c 00000000 	 .word tmr_callback
- 1835 07a0 00000000 	 .word tc_callback
- 1836              	 .cfi_endproc
- 1837              	.LFE237:
- 1839              	 .align 1
- 1840              	 .syntax unified
- 1841              	 .thumb
- 1842              	 .thumb_func
- 1843              	 .fpu softvfp
- 1845              	tc_callback:
- 1846              	.LFB238:
- 200:TC_lldn.c     **** 
- 201:TC_lldn.c     **** 
- 202:TC_lldn.c     **** void tc_callback(void)
- 203:TC_lldn.c     **** {
- 1847              	 .loc 7 203 0
- 1848              	 .cfi_startproc
- 1849              	 
- 1850              	 
- 1851 07a4 80B5     	 push {r7,lr}
- 1852              	.LCFI115:
- 1853              	 .cfi_def_cfa_offset 8
- 1854              	 .cfi_offset 7,-8
- 1855              	 .cfi_offset 14,-4
- 1856 07a6 82B0     	 sub sp,sp,#8
- 1857              	.LCFI116:
- 1858              	 .cfi_def_cfa_offset 16
- 1859 07a8 00AF     	 add r7,sp,#0
- 1860              	.LCFI117:
- 1861              	 .cfi_def_cfa_register 7
- 204:TC_lldn.c     **** 	uint32_t ul_status;
- 205:TC_lldn.c     **** 	/* Read TC0 Status. */
- 206:TC_lldn.c     **** 	ul_status = tc_get_status(TMR, TMR_CHANNEL_ID);
- 1862              	 .loc 7 206 0
- 1863 07aa 0021     	 movs r1,#0
- 1864 07ac 0E48     	 ldr r0,.L146
- 1865 07ae 0F4B     	 ldr r3,.L146+4
- 1866 07b0 9847     	 blx r3
- 1867              	.LVL19:
- 1868 07b2 7860     	 str r0,[r7,#4]
- 207:TC_lldn.c     **** 	ul_status &= tc_get_interrupt_mask(TMR, TMR_CHANNEL_ID);
- 1869              	 .loc 7 207 0
- 1870 07b4 0021     	 movs r1,#0
- 1871 07b6 0C48     	 ldr r0,.L146
- 1872 07b8 0D4B     	 ldr r3,.L146+8
- 1873 07ba 9847     	 blx r3
- 1874              	.LVL20:
- 1875 07bc 0246     	 mov r2,r0
- 1876 07be 7B68     	 ldr r3,[r7,#4]
- 1877 07c0 1340     	 ands r3,r3,r2
- 1878 07c2 7B60     	 str r3,[r7,#4]
- 208:TC_lldn.c     **** 	#if SAM4E
- 209:TC_lldn.c     **** 	if (TC_SR_CPAS == (ul_status & TC_SR_CPAS)) {
- 210:TC_lldn.c     **** 		hw_expiry_cb();
- 211:TC_lldn.c     **** 	}
+ 173:TC_lldn.c     **** 			#endif
+ 174:TC_lldn.c     **** 			default:
+ 175:TC_lldn.c     **** 			break;
+ 1771              	 .loc 7 175 0
+ 1772 0742 0BE0     	 b .L131
+ 1773              	.L135:
+ 150:TC_lldn.c     **** 			break;				
+ 1774              	 .loc 7 150 0
+ 1775 0744 3A20     	 movs r0,#58
+ 1776 0746 FFF75BFC 	 bl NVIC_EnableIRQ
+ 151:TC_lldn.c     **** 
+ 1777              	 .loc 7 151 0
+ 1778 074a 07E0     	 b .L131
+ 1779              	.L133:
+ 154:TC_lldn.c     **** 			break;
+ 1780              	 .loc 7 154 0
+ 1781 074c 3B20     	 movs r0,#59
+ 1782 074e FFF757FC 	 bl NVIC_EnableIRQ
+ 155:TC_lldn.c     **** 
+ 1783              	 .loc 7 155 0
+ 1784 0752 03E0     	 b .L131
+ 1785              	.L134:
+ 158:TC_lldn.c     **** 			break;
+ 1786              	 .loc 7 158 0
+ 1787 0754 3C20     	 movs r0,#60
+ 1788 0756 FFF753FC 	 bl NVIC_EnableIRQ
+ 159:TC_lldn.c     **** 
+ 1789              	 .loc 7 159 0
+ 1790 075a 00BF     	 nop
+ 1791              	.L131:
+ 1792              	.L136:
+ 176:TC_lldn.c     **** 		}
+ 177:TC_lldn.c     **** 		
+ 178:TC_lldn.c     **** 	}
+ 179:TC_lldn.c     **** 	
+ 180:TC_lldn.c     **** 	// tmr_callback = tc_callback;
+ 181:TC_lldn.c     **** 	
+ 182:TC_lldn.c     **** }
+ 1793              	 .loc 7 182 0
+ 1794 075c 00BF     	 nop
+ 1795 075e 0837     	 adds r7,r7,#8
+ 1796              	.LCFI113:
+ 1797              	 .cfi_def_cfa_offset 8
+ 1798 0760 BD46     	 mov sp,r7
+ 1799              	.LCFI114:
+ 1800              	 .cfi_def_cfa_register 13
+ 1801              	 
+ 1802 0762 80BD     	 pop {r7,pc}
+ 1803              	.L138:
+ 1804              	 .align 2
+ 1805              	.L137:
+ 1806 0764 00400140 	 .word 1073823744
+ 1807              	 .cfi_endproc
+ 1808              	.LFE237:
+ 1810              	 .align 1
+ 1811              	 .syntax unified
+ 1812              	 .thumb
+ 1813              	 .thumb_func
+ 1814              	 .fpu softvfp
+ 1816              	tc_callback:
+ 1817              	.LFB238:
+ 183:TC_lldn.c     **** 
+ 184:TC_lldn.c     **** 
+ 185:TC_lldn.c     **** void tc_callback(void)
+ 186:TC_lldn.c     **** {
+ 1818              	 .loc 7 186 0
+ 1819              	 .cfi_startproc
+ 1820              	 
+ 1821              	 
+ 1822 0768 80B5     	 push {r7,lr}
+ 1823              	.LCFI115:
+ 1824              	 .cfi_def_cfa_offset 8
+ 1825              	 .cfi_offset 7,-8
+ 1826              	 .cfi_offset 14,-4
+ 1827 076a 82B0     	 sub sp,sp,#8
+ 1828              	.LCFI116:
+ 1829              	 .cfi_def_cfa_offset 16
+ 1830 076c 00AF     	 add r7,sp,#0
+ 1831              	.LCFI117:
+ 1832              	 .cfi_def_cfa_register 7
+ 187:TC_lldn.c     **** 	uint32_t ul_status;
+ 188:TC_lldn.c     **** 	/* Read TC0 Status. */
+ 189:TC_lldn.c     **** 	ul_status = tc_get_status(TMR, TMR_CHANNEL_ID);
+ 1833              	 .loc 7 189 0
+ 1834 076e 0021     	 movs r1,#0
+ 1835 0770 0E48     	 ldr r0,.L143
+ 1836 0772 0F4B     	 ldr r3,.L143+4
+ 1837 0774 9847     	 blx r3
+ 1838              	.LVL18:
+ 1839 0776 7860     	 str r0,[r7,#4]
+ 190:TC_lldn.c     **** 	ul_status &= tc_get_interrupt_mask(TMR, TMR_CHANNEL_ID);
+ 1840              	 .loc 7 190 0
+ 1841 0778 0021     	 movs r1,#0
+ 1842 077a 0C48     	 ldr r0,.L143
+ 1843 077c 0D4B     	 ldr r3,.L143+8
+ 1844 077e 9847     	 blx r3
+ 1845              	.LVL19:
+ 1846 0780 0246     	 mov r2,r0
+ 1847 0782 7B68     	 ldr r3,[r7,#4]
+ 1848 0784 1340     	 ands r3,r3,r2
+ 1849 0786 7B60     	 str r3,[r7,#4]
+ 191:TC_lldn.c     **** 	#if SAM4E
+ 192:TC_lldn.c     **** 	if (TC_SR_CPAS == (ul_status & TC_SR_CPAS)) {
+ 193:TC_lldn.c     **** 		hw_expiry_cb();
+ 194:TC_lldn.c     **** 	}
+ 195:TC_lldn.c     **** 
+ 196:TC_lldn.c     **** 	if (TC_SR_CPCS == (ul_status & TC_SR_CPCS)) {
+ 197:TC_lldn.c     **** 		hw_overflow_cb();
+ 198:TC_lldn.c     **** 	}
+ 199:TC_lldn.c     **** 
+ 200:TC_lldn.c     **** 	#else
+ 201:TC_lldn.c     **** 	if (TC_SR_CPCS == (ul_status & TC_SR_CPCS)) {
+ 1850              	 .loc 7 201 0
+ 1851 0788 7B68     	 ldr r3,[r7,#4]
+ 1852 078a 03F01003 	 and r3,r3,#16
+ 1853 078e 002B     	 cmp r3,#0
+ 1854 0790 01D0     	 beq .L140
+ 202:TC_lldn.c     **** 		hw_expiry_cb();
+ 1855              	 .loc 7 202 0
+ 1856 0792 FFF7FEFF 	 bl hw_expiry_cb
+ 1857              	.L140:
+ 203:TC_lldn.c     **** 	}
+ 204:TC_lldn.c     **** 
+ 205:TC_lldn.c     **** 	/* Overflow */
+ 206:TC_lldn.c     **** 	if (TC_SR_COVFS == (ul_status & TC_SR_COVFS)) {
+ 1858              	 .loc 7 206 0
+ 1859 0796 7B68     	 ldr r3,[r7,#4]
+ 1860 0798 03F00103 	 and r3,r3,#1
+ 1861 079c 002B     	 cmp r3,#0
+ 1862 079e 01D0     	 beq .L142
+ 207:TC_lldn.c     **** 		hw_overflow_cb();
+ 1863              	 .loc 7 207 0
+ 1864 07a0 FFF7FEFF 	 bl hw_overflow_cb
+ 1865              	.L142:
+ 208:TC_lldn.c     **** 	}
+ 209:TC_lldn.c     **** 	#endif
+ 210:TC_lldn.c     **** }
+ 1866              	 .loc 7 210 0
+ 1867 07a4 00BF     	 nop
+ 1868 07a6 0837     	 adds r7,r7,#8
+ 1869              	.LCFI118:
+ 1870              	 .cfi_def_cfa_offset 8
+ 1871 07a8 BD46     	 mov sp,r7
+ 1872              	.LCFI119:
+ 1873              	 .cfi_def_cfa_register 13
+ 1874              	 
+ 1875 07aa 80BD     	 pop {r7,pc}
+ 1876              	.L144:
+ 1877              	 .align 2
+ 1878              	.L143:
+ 1879 07ac 00400140 	 .word 1073823744
+ 1880 07b0 00000000 	 .word tc_get_status
+ 1881 07b4 00000000 	 .word tc_get_interrupt_mask
+ 1882              	 .cfi_endproc
+ 1883              	.LFE238:
+ 1885              	 .align 1
+ 1886              	 .global timer_enable_cc_interrupt
+ 1887              	 .syntax unified
+ 1888              	 .thumb
+ 1889              	 .thumb_func
+ 1890              	 .fpu softvfp
+ 1892              	timer_enable_cc_interrupt:
+ 1893              	.LFB239:
+ 211:TC_lldn.c     **** 
  212:TC_lldn.c     **** 
- 213:TC_lldn.c     **** 	if (TC_SR_CPCS == (ul_status & TC_SR_CPCS)) {
- 214:TC_lldn.c     **** 		hw_overflow_cb();
- 215:TC_lldn.c     **** 	}
- 216:TC_lldn.c     **** 
- 217:TC_lldn.c     **** 	#else
- 218:TC_lldn.c     **** 	if (TC_SR_CPCS == (ul_status & TC_SR_CPCS)) {
- 1879              	 .loc 7 218 0
- 1880 07c4 7B68     	 ldr r3,[r7,#4]
- 1881 07c6 03F01003 	 and r3,r3,#16
- 1882 07ca 002B     	 cmp r3,#0
- 1883 07cc 01D0     	 beq .L143
- 219:TC_lldn.c     **** 		hw_expiry_cb();
- 1884              	 .loc 7 219 0
- 1885 07ce FFF7FEFF 	 bl hw_expiry_cb
- 1886              	.L143:
- 220:TC_lldn.c     **** 	}
- 221:TC_lldn.c     **** 
- 222:TC_lldn.c     **** 	/* Overflow */
- 223:TC_lldn.c     **** 	if (TC_SR_COVFS == (ul_status & TC_SR_COVFS)) {
- 1887              	 .loc 7 223 0
- 1888 07d2 7B68     	 ldr r3,[r7,#4]
- 1889 07d4 03F00103 	 and r3,r3,#1
- 1890 07d8 002B     	 cmp r3,#0
- 1891 07da 01D0     	 beq .L145
- 224:TC_lldn.c     **** 		hw_overflow_cb();
- 1892              	 .loc 7 224 0
- 1893 07dc FFF7FEFF 	 bl hw_overflow_cb
- 1894              	.L145:
- 225:TC_lldn.c     **** 	}
- 226:TC_lldn.c     **** 	#endif
- 227:TC_lldn.c     **** }
- 1895              	 .loc 7 227 0
- 1896 07e0 00BF     	 nop
- 1897 07e2 0837     	 adds r7,r7,#8
- 1898              	.LCFI118:
- 1899              	 .cfi_def_cfa_offset 8
- 1900 07e4 BD46     	 mov sp,r7
- 1901              	.LCFI119:
- 1902              	 .cfi_def_cfa_register 13
- 1903              	 
- 1904 07e6 80BD     	 pop {r7,pc}
- 1905              	.L147:
- 1906              	 .align 2
- 1907              	.L146:
- 1908 07e8 00400140 	 .word 1073823744
- 1909 07ec 00000000 	 .word tc_get_status
- 1910 07f0 00000000 	 .word tc_get_interrupt_mask
- 1911              	 .cfi_endproc
- 1912              	.LFE238:
- 1914              	 .align 1
- 1915              	 .global timer_enable_cc_interrupt
- 1916              	 .syntax unified
- 1917              	 .thumb
- 1918              	 .thumb_func
- 1919              	 .fpu softvfp
- 1921              	timer_enable_cc_interrupt:
- 1922              	.LFB239:
- 228:TC_lldn.c     **** 
- 229:TC_lldn.c     **** 
- 230:TC_lldn.c     **** void timer_enable_cc_interrupt(void)
- 231:TC_lldn.c     **** {
- 1923              	 .loc 7 231 0
- 1924              	 .cfi_startproc
- 1925              	 
- 1926              	 
- 1927 07f4 80B5     	 push {r7,lr}
- 1928              	.LCFI120:
- 1929              	 .cfi_def_cfa_offset 8
- 1930              	 .cfi_offset 7,-8
- 1931              	 .cfi_offset 14,-4
- 1932 07f6 00AF     	 add r7,sp,#0
- 1933              	.LCFI121:
- 1934              	 .cfi_def_cfa_register 7
- 232:TC_lldn.c     **** 	tc_get_status(TMR, TMR_CHANNEL_ID);
- 1935              	 .loc 7 232 0
- 1936 07f8 0021     	 movs r1,#0
- 1937 07fa 0548     	 ldr r0,.L149
- 1938 07fc 054B     	 ldr r3,.L149+4
- 1939 07fe 9847     	 blx r3
- 1940              	.LVL21:
- 233:TC_lldn.c     **** 	#if SAM4E
- 234:TC_lldn.c     **** 	tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IDR_CPAS);
- 235:TC_lldn.c     **** 	#else
- 236:TC_lldn.c     **** 	tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IDR_CPCS);
- 1941              	 .loc 7 236 0
- 1942 0800 1022     	 movs r2,#16
- 1943 0802 0021     	 movs r1,#0
- 1944 0804 0248     	 ldr r0,.L149
- 1945 0806 044B     	 ldr r3,.L149+8
- 1946 0808 9847     	 blx r3
- 1947              	.LVL22:
- 237:TC_lldn.c     **** 	#endif
- 238:TC_lldn.c     **** }
- 1948              	 .loc 7 238 0
- 1949 080a 00BF     	 nop
- 1950 080c 80BD     	 pop {r7,pc}
- 1951              	.L150:
- 1952 080e 00BF     	 .align 2
- 1953              	.L149:
- 1954 0810 00400140 	 .word 1073823744
- 1955 0814 00000000 	 .word tc_get_status
- 1956 0818 00000000 	 .word tc_enable_interrupt
- 1957              	 .cfi_endproc
- 1958              	.LFE239:
- 1960              	 .align 1
- 1961              	 .global tc_compare_stop
- 1962              	 .syntax unified
- 1963              	 .thumb
- 1964              	 .thumb_func
- 1965              	 .fpu softvfp
- 1967              	tc_compare_stop:
- 1968              	.LFB240:
- 239:TC_lldn.c     **** 
- 240:TC_lldn.c     **** void tc_compare_stop(void)
+ 213:TC_lldn.c     **** void timer_enable_cc_interrupt(void)
+ 214:TC_lldn.c     **** {
+ 1894              	 .loc 7 214 0
+ 1895              	 .cfi_startproc
+ 1896              	 
+ 1897              	 
+ 1898 07b8 80B5     	 push {r7,lr}
+ 1899              	.LCFI120:
+ 1900              	 .cfi_def_cfa_offset 8
+ 1901              	 .cfi_offset 7,-8
+ 1902              	 .cfi_offset 14,-4
+ 1903 07ba 00AF     	 add r7,sp,#0
+ 1904              	.LCFI121:
+ 1905              	 .cfi_def_cfa_register 7
+ 215:TC_lldn.c     **** 	tc_get_status(TMR, TMR_CHANNEL_ID);
+ 1906              	 .loc 7 215 0
+ 1907 07bc 0021     	 movs r1,#0
+ 1908 07be 0548     	 ldr r0,.L146
+ 1909 07c0 054B     	 ldr r3,.L146+4
+ 1910 07c2 9847     	 blx r3
+ 1911              	.LVL20:
+ 216:TC_lldn.c     **** 	#if SAM4E
+ 217:TC_lldn.c     **** 	tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IDR_CPAS);
+ 218:TC_lldn.c     **** 	#else
+ 219:TC_lldn.c     **** 	tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IDR_CPCS);
+ 1912              	 .loc 7 219 0
+ 1913 07c4 1022     	 movs r2,#16
+ 1914 07c6 0021     	 movs r1,#0
+ 1915 07c8 0248     	 ldr r0,.L146
+ 1916 07ca 044B     	 ldr r3,.L146+8
+ 1917 07cc 9847     	 blx r3
+ 1918              	.LVL21:
+ 220:TC_lldn.c     **** 	#endif
+ 221:TC_lldn.c     **** }
+ 1919              	 .loc 7 221 0
+ 1920 07ce 00BF     	 nop
+ 1921 07d0 80BD     	 pop {r7,pc}
+ 1922              	.L147:
+ 1923 07d2 00BF     	 .align 2
+ 1924              	.L146:
+ 1925 07d4 00400140 	 .word 1073823744
+ 1926 07d8 00000000 	 .word tc_get_status
+ 1927 07dc 00000000 	 .word tc_enable_interrupt
+ 1928              	 .cfi_endproc
+ 1929              	.LFE239:
+ 1931              	 .align 1
+ 1932              	 .global tc_compare_stop
+ 1933              	 .syntax unified
+ 1934              	 .thumb
+ 1935              	 .thumb_func
+ 1936              	 .fpu softvfp
+ 1938              	tc_compare_stop:
+ 1939              	.LFB240:
+ 222:TC_lldn.c     **** 
+ 223:TC_lldn.c     **** void tc_compare_stop(void)
+ 224:TC_lldn.c     **** {
+ 1940              	 .loc 7 224 0
+ 1941              	 .cfi_startproc
+ 1942              	 
+ 1943              	 
+ 1944 07e0 80B5     	 push {r7,lr}
+ 1945              	.LCFI122:
+ 1946              	 .cfi_def_cfa_offset 8
+ 1947              	 .cfi_offset 7,-8
+ 1948              	 .cfi_offset 14,-4
+ 1949 07e2 00AF     	 add r7,sp,#0
+ 1950              	.LCFI123:
+ 1951              	 .cfi_def_cfa_register 7
+ 225:TC_lldn.c     **** 	tc_get_status(TMR, TMR_CHANNEL_ID);
+ 1952              	 .loc 7 225 0
+ 1953 07e4 0021     	 movs r1,#0
+ 1954 07e6 0548     	 ldr r0,.L149
+ 1955 07e8 054B     	 ldr r3,.L149+4
+ 1956 07ea 9847     	 blx r3
+ 1957              	.LVL22:
+ 226:TC_lldn.c     **** 	#if SAM4E
+ 227:TC_lldn.c     **** 	tc_disable_interrupt(TMR, TMR_CHANNEL_ID, TC_IDR_CPAS);
+ 228:TC_lldn.c     **** 	#else
+ 229:TC_lldn.c     **** 	tc_disable_interrupt(TMR, TMR_CHANNEL_ID, TC_IDR_CPCS);
+ 1958              	 .loc 7 229 0
+ 1959 07ec 1022     	 movs r2,#16
+ 1960 07ee 0021     	 movs r1,#0
+ 1961 07f0 0248     	 ldr r0,.L149
+ 1962 07f2 044B     	 ldr r3,.L149+8
+ 1963 07f4 9847     	 blx r3
+ 1964              	.LVL23:
+ 230:TC_lldn.c     **** 	#endif
+ 231:TC_lldn.c     **** }
+ 1965              	 .loc 7 231 0
+ 1966 07f6 00BF     	 nop
+ 1967 07f8 80BD     	 pop {r7,pc}
+ 1968              	.L150:
+ 1969 07fa 00BF     	 .align 2
+ 1970              	.L149:
+ 1971 07fc 00400140 	 .word 1073823744
+ 1972 0800 00000000 	 .word tc_get_status
+ 1973 0804 00000000 	 .word tc_disable_interrupt
+ 1974              	 .cfi_endproc
+ 1975              	.LFE240:
+ 1977              	 .section .rodata
+ 1978 003a 0000     	 .align 2
+ 1979              	.LC3:
+ 1980 003c 0A686572 	 .ascii "\012here\000"
+ 1980      6500
+ 1981              	 .text
+ 1982              	 .align 1
+ 1983              	 .global TC10_Handler
+ 1984              	 .syntax unified
+ 1985              	 .thumb
+ 1986              	 .thumb_func
+ 1987              	 .fpu softvfp
+ 1989              	TC10_Handler:
+ 1990              	.LFB241:
+ 232:TC_lldn.c     **** 
+ 233:TC_lldn.c     **** /**
+ 234:TC_lldn.c     ****  * \brief Interrupt handlers for TC10
+ 235:TC_lldn.c     ****  */
+ 236:TC_lldn.c     **** #if SAM4L
+ 237:TC_lldn.c     **** void TC10_Handler(void)
+ 238:TC_lldn.c     **** #else
+ 239:TC_lldn.c     **** void TC3_Handler(void)
+ 240:TC_lldn.c     **** #endif
  241:TC_lldn.c     **** {
- 1969              	 .loc 7 241 0
- 1970              	 .cfi_startproc
- 1971              	 
- 1972              	 
- 1973 081c 80B5     	 push {r7,lr}
- 1974              	.LCFI122:
- 1975              	 .cfi_def_cfa_offset 8
- 1976              	 .cfi_offset 7,-8
- 1977              	 .cfi_offset 14,-4
- 1978 081e 00AF     	 add r7,sp,#0
- 1979              	.LCFI123:
- 1980              	 .cfi_def_cfa_register 7
- 242:TC_lldn.c     **** 	tc_get_status(TMR, TMR_CHANNEL_ID);
- 1981              	 .loc 7 242 0
- 1982 0820 0021     	 movs r1,#0
- 1983 0822 0548     	 ldr r0,.L152
- 1984 0824 054B     	 ldr r3,.L152+4
- 1985 0826 9847     	 blx r3
- 1986              	.LVL23:
- 243:TC_lldn.c     **** 	#if SAM4E
- 244:TC_lldn.c     **** 	tc_disable_interrupt(TMR, TMR_CHANNEL_ID, TC_IDR_CPAS);
- 245:TC_lldn.c     **** 	#else
- 246:TC_lldn.c     **** 	tc_disable_interrupt(TMR, TMR_CHANNEL_ID, TC_IDR_CPCS);
- 1987              	 .loc 7 246 0
- 1988 0828 1022     	 movs r2,#16
- 1989 082a 0021     	 movs r1,#0
- 1990 082c 0248     	 ldr r0,.L152
- 1991 082e 044B     	 ldr r3,.L152+8
- 1992 0830 9847     	 blx r3
- 1993              	.LVL24:
- 247:TC_lldn.c     **** 	#endif
- 248:TC_lldn.c     **** }
- 1994              	 .loc 7 248 0
- 1995 0832 00BF     	 nop
- 1996 0834 80BD     	 pop {r7,pc}
- 1997              	.L153:
- 1998 0836 00BF     	 .align 2
- 1999              	.L152:
- 2000 0838 00400140 	 .word 1073823744
- 2001 083c 00000000 	 .word tc_get_status
- 2002 0840 00000000 	 .word tc_disable_interrupt
- 2003              	 .cfi_endproc
- 2004              	.LFE240:
- 2006              	 .align 1
- 2007              	 .global TC10_Handler
- 2008              	 .syntax unified
- 2009              	 .thumb
- 2010              	 .thumb_func
- 2011              	 .fpu softvfp
- 2013              	TC10_Handler:
- 2014              	.LFB241:
- 249:TC_lldn.c     **** 
- 250:TC_lldn.c     **** /**
- 251:TC_lldn.c     ****  * \brief Interrupt handlers for TC10
- 252:TC_lldn.c     ****  */
- 253:TC_lldn.c     **** #if SAM4L
- 254:TC_lldn.c     **** void TC10_Handler(void)
- 255:TC_lldn.c     **** #else
- 256:TC_lldn.c     **** void TC3_Handler(void)
- 257:TC_lldn.c     **** #endif
- 258:TC_lldn.c     **** {
- 2015              	 .loc 7 258 0
- 2016              	 .cfi_startproc
- 2017              	 
- 2018              	 
- 2019 0844 80B5     	 push {r7,lr}
- 2020              	.LCFI124:
- 2021              	 .cfi_def_cfa_offset 8
- 2022              	 .cfi_offset 7,-8
- 2023              	 .cfi_offset 14,-4
- 2024 0846 00AF     	 add r7,sp,#0
- 2025              	.LCFI125:
- 2026              	 .cfi_def_cfa_register 7
- 259:TC_lldn.c     **** 	if (tmr_callback) {
- 2027              	 .loc 7 259 0
- 2028 0848 044B     	 ldr r3,.L157
- 2029 084a 1B68     	 ldr r3,[r3]
- 2030 084c 002B     	 cmp r3,#0
- 2031 084e 02D0     	 beq .L156
- 260:TC_lldn.c     **** 		tmr_callback();
- 2032              	 .loc 7 260 0
- 2033 0850 024B     	 ldr r3,.L157
- 2034 0852 1B68     	 ldr r3,[r3]
- 2035 0854 9847     	 blx r3
- 2036              	.LVL25:
- 2037              	.L156:
- 261:TC_lldn.c     **** 	}
- 262:TC_lldn.c     **** }
- 2038              	 .loc 7 262 0
- 2039 0856 00BF     	 nop
- 2040 0858 80BD     	 pop {r7,pc}
- 2041              	.L158:
- 2042 085a 00BF     	 .align 2
- 2043              	.L157:
- 2044 085c 00000000 	 .word tmr_callback
- 2045              	 .cfi_endproc
- 2046              	.LFE241:
- 2048              	 .section .rodata
- 2049 003a 0000     	 .align 2
- 2050              	.LC3:
- 2051 003c 0A505249 	 .ascii "\012PRINT FUNCIONANDO\000"
- 2051      4E542046 
- 2051      554E4349 
- 2051      4F4E414E 
- 2051      444F00
- 2052              	 .text
- 2053              	 .align 1
- 2054              	 .global APP_TaskHandler
- 2055              	 .syntax unified
- 2056              	 .thumb
- 2057              	 .thumb_func
- 2058              	 .fpu softvfp
- 2060              	APP_TaskHandler:
- 2061              	.LFB242:
- 263:TC_lldn.c     **** 
- 264:TC_lldn.c     **** void APP_TaskHandler(void)
- 265:TC_lldn.c     **** {
- 2062              	 .loc 7 265 0
- 2063              	 .cfi_startproc
- 2064              	 
- 2065              	 
- 2066 0860 80B5     	 push {r7,lr}
- 2067              	.LCFI126:
- 2068              	 .cfi_def_cfa_offset 8
- 2069              	 .cfi_offset 7,-8
- 2070              	 .cfi_offset 14,-4
- 2071 0862 82B0     	 sub sp,sp,#8
- 2072              	.LCFI127:
- 2073              	 .cfi_def_cfa_offset 16
- 2074 0864 00AF     	 add r7,sp,#0
- 2075              	.LCFI128:
- 2076              	 .cfi_def_cfa_register 7
- 266:TC_lldn.c     **** 		switch (appState)
- 2077              	 .loc 7 266 0
- 2078 0866 0D4B     	 ldr r3,.L163
- 2079 0868 1B78     	 ldrb r3,[r3]
- 2080 086a 002B     	 cmp r3,#0
- 2081 086c 01D0     	 beq .L161
- 2082 086e 012B     	 cmp r3,#1
- 267:TC_lldn.c     **** 		{
- 268:TC_lldn.c     **** 			case APP_STATE_INITIAL:
- 269:TC_lldn.c     **** 			{
- 270:TC_lldn.c     **** 				printf("\nPRINT FUNCIONANDO");
- 271:TC_lldn.c     **** 				uint16_t delay = 1000;
- 272:TC_lldn.c     **** 				timer_init();
- 273:TC_lldn.c     **** 				tc_delay(delay);
- 274:TC_lldn.c     **** 				appState = APP_STATE_IDLE;
- 275:TC_lldn.c     **** 				break;
- 276:TC_lldn.c     **** 			}
- 277:TC_lldn.c     **** 			case APP_STATE_IDLE:
- 278:TC_lldn.c     **** 			{
- 279:TC_lldn.c     **** 				break;
- 2083              	 .loc 7 279 0
- 2084 0870 0FE0     	 b .L160
- 2085              	.L161:
- 2086              	.LBB6:
- 270:TC_lldn.c     **** 				uint16_t delay = 1000;
- 2087              	 .loc 7 270 0
- 2088 0872 0B48     	 ldr r0,.L163+4
- 2089 0874 0B4B     	 ldr r3,.L163+8
- 2090 0876 9847     	 blx r3
- 2091              	.LVL26:
- 271:TC_lldn.c     **** 				timer_init();
- 2092              	 .loc 7 271 0
- 2093 0878 4FF47A73 	 mov r3,#1000
- 2094 087c FB80     	 strh r3,[r7,#6]
- 272:TC_lldn.c     **** 				tc_delay(delay);
- 2095              	 .loc 7 272 0
- 2096 087e FFF7FEFF 	 bl timer_init
- 273:TC_lldn.c     **** 				appState = APP_STATE_IDLE;
- 2097              	 .loc 7 273 0
- 2098 0882 FB88     	 ldrh r3,[r7,#6]
- 2099 0884 1846     	 mov r0,r3
- 2100 0886 FFF7FEFF 	 bl tc_delay
- 274:TC_lldn.c     **** 				break;
- 2101              	 .loc 7 274 0
- 2102 088a 044B     	 ldr r3,.L163
- 2103 088c 0122     	 movs r2,#1
- 2104 088e 1A70     	 strb r2,[r3]
- 275:TC_lldn.c     **** 			}
- 2105              	 .loc 7 275 0
- 2106 0890 00BF     	 nop
- 2107              	.L160:
- 2108              	.LBE6:
- 280:TC_lldn.c     **** 			}
- 281:TC_lldn.c     **** 		}
- 282:TC_lldn.c     **** }
- 2109              	 .loc 7 282 0
- 2110 0892 00BF     	 nop
- 2111 0894 0837     	 adds r7,r7,#8
- 2112              	.LCFI129:
- 2113              	 .cfi_def_cfa_offset 8
- 2114 0896 BD46     	 mov sp,r7
- 2115              	.LCFI130:
- 2116              	 .cfi_def_cfa_register 13
- 2117              	 
- 2118 0898 80BD     	 pop {r7,pc}
- 2119              	.L164:
- 2120 089a 00BF     	 .align 2
- 2121              	.L163:
- 2122 089c 00000000 	 .word appState
- 2123 08a0 3C000000 	 .word .LC3
- 2124 08a4 00000000 	 .word printf
- 2125              	 .cfi_endproc
- 2126              	.LFE242:
- 2128              	 .align 1
- 2129              	 .global main
- 2130              	 .syntax unified
- 2131              	 .thumb
- 2132              	 .thumb_func
- 2133              	 .fpu softvfp
- 2135              	main:
- 2136              	.LFB243:
- 283:TC_lldn.c     **** 
- 284:TC_lldn.c     **** 
- 285:TC_lldn.c     **** int main (void)
- 286:TC_lldn.c     **** {
- 2137              	 .loc 7 286 0
- 2138              	 .cfi_startproc
- 2139              	 
- 2140              	 
- 2141 08a8 80B5     	 push {r7,lr}
- 2142              	.LCFI131:
- 2143              	 .cfi_def_cfa_offset 8
- 2144              	 .cfi_offset 7,-8
- 2145              	 .cfi_offset 14,-4
- 2146 08aa 00AF     	 add r7,sp,#0
- 2147              	.LCFI132:
- 2148              	 .cfi_def_cfa_register 7
- 287:TC_lldn.c     **** 	sysclk_init();
- 2149              	 .loc 7 287 0
- 2150 08ac 124B     	 ldr r3,.L167
- 2151 08ae 9847     	 blx r3
- 2152              	.LVL27:
- 288:TC_lldn.c     **** 	board_init();
- 2153              	 .loc 7 288 0
- 2154 08b0 124B     	 ldr r3,.L167+4
- 2155 08b2 9847     	 blx r3
- 2156              	.LVL28:
- 289:TC_lldn.c     **** 
- 290:TC_lldn.c     **** 	SYS_Init();
- 2157              	 .loc 7 290 0
- 2158 08b4 124B     	 ldr r3,.L167+8
- 2159 08b6 9847     	 blx r3
- 2160              	.LVL29:
- 291:TC_lldn.c     **** 	// Disable CSMA/CA
- 292:TC_lldn.c     **** 	// Disable auto ACK
- 293:TC_lldn.c     **** 	PHY_SetTdmaMode(true);
- 2161              	 .loc 7 293 0
- 2162 08b8 0120     	 movs r0,#1
- 2163 08ba 124B     	 ldr r3,.L167+12
- 2164 08bc 9847     	 blx r3
- 2165              	.LVL30:
- 294:TC_lldn.c     **** 	sm_init();
- 2166              	 .loc 7 294 0
- 2167 08be 124B     	 ldr r3,.L167+16
- 2168 08c0 9847     	 blx r3
- 2169              	.LVL31:
- 295:TC_lldn.c     **** 
- 296:TC_lldn.c     **** 	// Initialize interrupt vector table support.
- 297:TC_lldn.c     **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
- 298:TC_lldn.c     **** 	irq_initialize_vectors();
- 299:TC_lldn.c     **** 	#endif
- 300:TC_lldn.c     **** 	cpu_irq_enable();
- 2170              	 .loc 7 300 0
- 2171 08c2 124B     	 ldr r3,.L167+20
- 2172 08c4 0122     	 movs r2,#1
- 2173 08c6 1A70     	 strb r2,[r3]
- 2174              	.LBB7:
- 2175              	.LBB8:
- 2176              	 .file 8 "../../../platform/thirdparty/CMSIS/include/core_cmInstr.h"
+ 1991              	 .loc 7 241 0
+ 1992              	 .cfi_startproc
+ 1993              	 
+ 1994              	 
+ 1995 0808 80B5     	 push {r7,lr}
+ 1996              	.LCFI124:
+ 1997              	 .cfi_def_cfa_offset 8
+ 1998              	 .cfi_offset 7,-8
+ 1999              	 .cfi_offset 14,-4
+ 2000 080a 00AF     	 add r7,sp,#0
+ 2001              	.LCFI125:
+ 2002              	 .cfi_def_cfa_register 7
+ 242:TC_lldn.c     **** 	if (tmr_callback) {
+ 2003              	 .loc 7 242 0
+ 2004 080c 054B     	 ldr r3,.L154
+ 2005 080e 1B68     	 ldr r3,[r3]
+ 2006 0810 002B     	 cmp r3,#0
+ 2007 0812 05D0     	 beq .L153
+ 243:TC_lldn.c     **** 		printf("\nhere");
+ 2008              	 .loc 7 243 0
+ 2009 0814 0448     	 ldr r0,.L154+4
+ 2010 0816 054B     	 ldr r3,.L154+8
+ 2011 0818 9847     	 blx r3
+ 2012              	.LVL24:
+ 244:TC_lldn.c     **** 		tmr_callback();
+ 2013              	 .loc 7 244 0
+ 2014 081a 024B     	 ldr r3,.L154
+ 2015 081c 1B68     	 ldr r3,[r3]
+ 2016 081e 9847     	 blx r3
+ 2017              	.LVL25:
+ 2018              	.L153:
+ 245:TC_lldn.c     **** 	}
+ 246:TC_lldn.c     **** }
+ 2019              	 .loc 7 246 0
+ 2020 0820 00BF     	 nop
+ 2021 0822 80BD     	 pop {r7,pc}
+ 2022              	.L155:
+ 2023              	 .align 2
+ 2024              	.L154:
+ 2025 0824 00000000 	 .word tmr_callback
+ 2026 0828 3C000000 	 .word .LC3
+ 2027 082c 00000000 	 .word printf
+ 2028              	 .cfi_endproc
+ 2029              	.LFE241:
+ 2031              	 .align 1
+ 2032              	 .global APP_TaskHandler
+ 2033              	 .syntax unified
+ 2034              	 .thumb
+ 2035              	 .thumb_func
+ 2036              	 .fpu softvfp
+ 2038              	APP_TaskHandler:
+ 2039              	.LFB242:
+ 247:TC_lldn.c     **** 
+ 248:TC_lldn.c     **** void APP_TaskHandler(void)
+ 249:TC_lldn.c     **** {
+ 2040              	 .loc 7 249 0
+ 2041              	 .cfi_startproc
+ 2042              	 
+ 2043              	 
+ 2044 0830 80B5     	 push {r7,lr}
+ 2045              	.LCFI126:
+ 2046              	 .cfi_def_cfa_offset 8
+ 2047              	 .cfi_offset 7,-8
+ 2048              	 .cfi_offset 14,-4
+ 2049 0832 82B0     	 sub sp,sp,#8
+ 2050              	.LCFI127:
+ 2051              	 .cfi_def_cfa_offset 16
+ 2052 0834 00AF     	 add r7,sp,#0
+ 2053              	.LCFI128:
+ 2054              	 .cfi_def_cfa_register 7
+ 250:TC_lldn.c     **** 		switch (appState)
+ 2055              	 .loc 7 250 0
+ 2056 0836 094B     	 ldr r3,.L160
+ 2057 0838 1B78     	 ldrb r3,[r3]
+ 2058 083a 002B     	 cmp r3,#0
+ 2059 083c 01D0     	 beq .L158
+ 2060 083e 012B     	 cmp r3,#1
+ 251:TC_lldn.c     **** 		{
+ 252:TC_lldn.c     **** 			case APP_STATE_INITIAL:
+ 253:TC_lldn.c     **** 			{
+ 254:TC_lldn.c     **** 				uint16_t delay = 1000;
+ 255:TC_lldn.c     **** 				
+ 256:TC_lldn.c     **** 				timer_init();
+ 257:TC_lldn.c     **** 				// tc_delay(delay);
+ 258:TC_lldn.c     **** 				
+ 259:TC_lldn.c     **** 				appState = APP_STATE_IDLE;
+ 260:TC_lldn.c     **** 				break;
+ 261:TC_lldn.c     **** 			}
+ 262:TC_lldn.c     **** 			case APP_STATE_IDLE:
+ 263:TC_lldn.c     **** 			{
+ 264:TC_lldn.c     **** 				break;
+ 2061              	 .loc 7 264 0
+ 2062 0840 08E0     	 b .L157
+ 2063              	.L158:
+ 2064              	.LBB6:
+ 254:TC_lldn.c     **** 				
+ 2065              	 .loc 7 254 0
+ 2066 0842 4FF47A73 	 mov r3,#1000
+ 2067 0846 FB80     	 strh r3,[r7,#6]
+ 256:TC_lldn.c     **** 				// tc_delay(delay);
+ 2068              	 .loc 7 256 0
+ 2069 0848 FFF7FEFF 	 bl timer_init
+ 259:TC_lldn.c     **** 				break;
+ 2070              	 .loc 7 259 0
+ 2071 084c 034B     	 ldr r3,.L160
+ 2072 084e 0122     	 movs r2,#1
+ 2073 0850 1A70     	 strb r2,[r3]
+ 260:TC_lldn.c     **** 			}
+ 2074              	 .loc 7 260 0
+ 2075 0852 00BF     	 nop
+ 2076              	.L157:
+ 2077              	.LBE6:
+ 265:TC_lldn.c     **** 			}
+ 266:TC_lldn.c     **** 		}
+ 267:TC_lldn.c     **** }
+ 2078              	 .loc 7 267 0
+ 2079 0854 00BF     	 nop
+ 2080 0856 0837     	 adds r7,r7,#8
+ 2081              	.LCFI129:
+ 2082              	 .cfi_def_cfa_offset 8
+ 2083 0858 BD46     	 mov sp,r7
+ 2084              	.LCFI130:
+ 2085              	 .cfi_def_cfa_register 13
+ 2086              	 
+ 2087 085a 80BD     	 pop {r7,pc}
+ 2088              	.L161:
+ 2089              	 .align 2
+ 2090              	.L160:
+ 2091 085c 00000000 	 .word appState
+ 2092              	 .cfi_endproc
+ 2093              	.LFE242:
+ 2095              	 .align 1
+ 2096              	 .global main
+ 2097              	 .syntax unified
+ 2098              	 .thumb
+ 2099              	 .thumb_func
+ 2100              	 .fpu softvfp
+ 2102              	main:
+ 2103              	.LFB243:
+ 268:TC_lldn.c     **** 
+ 269:TC_lldn.c     **** 
+ 270:TC_lldn.c     **** int main (void)
+ 271:TC_lldn.c     **** {
+ 2104              	 .loc 7 271 0
+ 2105              	 .cfi_startproc
+ 2106              	 
+ 2107              	 
+ 2108 0860 80B5     	 push {r7,lr}
+ 2109              	.LCFI131:
+ 2110              	 .cfi_def_cfa_offset 8
+ 2111              	 .cfi_offset 7,-8
+ 2112              	 .cfi_offset 14,-4
+ 2113 0862 00AF     	 add r7,sp,#0
+ 2114              	.LCFI132:
+ 2115              	 .cfi_def_cfa_register 7
+ 272:TC_lldn.c     **** 	sysclk_init();
+ 2116              	 .loc 7 272 0
+ 2117 0864 124B     	 ldr r3,.L164
+ 2118 0866 9847     	 blx r3
+ 2119              	.LVL26:
+ 273:TC_lldn.c     **** 	board_init();
+ 2120              	 .loc 7 273 0
+ 2121 0868 124B     	 ldr r3,.L164+4
+ 2122 086a 9847     	 blx r3
+ 2123              	.LVL27:
+ 274:TC_lldn.c     **** 
+ 275:TC_lldn.c     **** 	SYS_Init();
+ 2124              	 .loc 7 275 0
+ 2125 086c 124B     	 ldr r3,.L164+8
+ 2126 086e 9847     	 blx r3
+ 2127              	.LVL28:
+ 276:TC_lldn.c     **** 	// Disable CSMA/CA
+ 277:TC_lldn.c     **** 	// Disable auto ACK
+ 278:TC_lldn.c     **** 	PHY_SetTdmaMode(true);
+ 2128              	 .loc 7 278 0
+ 2129 0870 0120     	 movs r0,#1
+ 2130 0872 124B     	 ldr r3,.L164+12
+ 2131 0874 9847     	 blx r3
+ 2132              	.LVL29:
+ 279:TC_lldn.c     **** 	sm_init();
+ 2133              	 .loc 7 279 0
+ 2134 0876 124B     	 ldr r3,.L164+16
+ 2135 0878 9847     	 blx r3
+ 2136              	.LVL30:
+ 280:TC_lldn.c     **** 
+ 281:TC_lldn.c     **** 	// Initialize interrupt vector table support.
+ 282:TC_lldn.c     **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
+ 283:TC_lldn.c     **** 	irq_initialize_vectors();
+ 284:TC_lldn.c     **** 	#endif
+ 285:TC_lldn.c     **** 	cpu_irq_enable();
+ 2137              	 .loc 7 285 0
+ 2138 087a 124B     	 ldr r3,.L164+20
+ 2139 087c 0122     	 movs r2,#1
+ 2140 087e 1A70     	 strb r2,[r3]
+ 2141              	.LBB7:
+ 2142              	.LBB8:
+ 2143              	 .file 8 "../../../platform/thirdparty/CMSIS/include/core_cmInstr.h"
    1:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** /**************************************************************************//**
    2:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @file     core_cmInstr.h
    3:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****  * @brief    CMSIS Cortex-M Core Instruction Access Header File
@@ -5517,18 +5456,18 @@
  352:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __DMB(void)
  353:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h **** {
  354:../../../platform/thirdparty/CMSIS/include/core_cmInstr.h ****   __ASM volatile ("dmb");
- 2177              	 .loc 8 354 0
- 2178              	 .syntax unified
- 2179              	
- 2180 08c8 BFF35F8F 	 dmb
- 2181              	
- 2182              	 .thumb
- 2183              	 .syntax unified
- 2184              	.LBE8:
- 2185              	.LBE7:
- 2186              	.LBB9:
- 2187              	.LBB10:
- 2188              	 .file 9 "../../../platform/thirdparty/CMSIS/include/core_cmFunc.h"
+ 2144              	 .loc 8 354 0
+ 2145              	 .syntax unified
+ 2146              	
+ 2147 0880 BFF35F8F 	 dmb
+ 2148              	
+ 2149              	 .thumb
+ 2150              	 .syntax unified
+ 2151              	.LBE8:
+ 2152              	.LBE7:
+ 2153              	.LBB9:
+ 2154              	.LBB10:
+ 2155              	 .file 9 "../../../platform/thirdparty/CMSIS/include/core_cmFunc.h"
    1:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** /**************************************************************************//**
    2:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * @file     core_cmFunc.h
    3:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****  * @brief    CMSIS Cortex-M Core Function Access Header File
@@ -5845,126 +5784,126 @@
  314:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** __attribute__( ( always_inline ) ) __STATIC_INLINE void __enable_irq(void)
  315:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h **** {
  316:../../../platform/thirdparty/CMSIS/include/core_cmFunc.h ****   __ASM volatile ("cpsie i");
- 2189              	 .loc 9 316 0
- 2190              	 .syntax unified
- 2191              	
- 2192 08cc 62B6     	 cpsie i
- 2193              	
- 2194              	 .thumb
- 2195              	 .syntax unified
- 2196              	.LBE10:
- 2197              	.LBE9:
- 301:TC_lldn.c     **** 
- 302:TC_lldn.c     **** 	#if APP_COORDINATOR
- 303:TC_lldn.c     **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
- 304:TC_lldn.c     **** 	stdio_usb_init();
- 2198              	 .loc 7 304 0
- 2199 08ce 104B     	 ldr r3,.L167+24
- 2200 08d0 9847     	 blx r3
- 2201              	.LVL32:
- 305:TC_lldn.c     **** 	#else
- 306:TC_lldn.c     **** 	const usart_serial_options_t usart_serial_options =
- 307:TC_lldn.c     **** 	{
- 308:TC_lldn.c     **** 		.baudrate     = USART_HOST_BAUDRATE,
- 309:TC_lldn.c     **** 		.charlength   = USART_HOST_CHAR_LENGTH,
- 310:TC_lldn.c     **** 		.paritytype   = USART_HOST_PARITY,
- 311:TC_lldn.c     **** 		.stopbits     = USART_HOST_STOP_BITS
- 312:TC_lldn.c     **** 	};
- 313:TC_lldn.c     **** 
- 314:TC_lldn.c     **** 	stdio_serial_init(USART_HOST, &usart_serial_options);
- 315:TC_lldn.c     **** 	usart_double_baud_enable(USART_HOST);
- 316:TC_lldn.c     **** 	usart_set_baudrate_precalculated(USART_HOST, USART_HOST_BAUDRATE, sysclk_get_source_clock_hz());
- 317:TC_lldn.c     **** 
- 318:TC_lldn.c     **** 	#endif
- 319:TC_lldn.c     **** 	#endif
- 320:TC_lldn.c     **** 	
- 321:TC_lldn.c     **** 	tmrComputeData.interval = 5000;
- 2202              	 .loc 7 321 0
- 2203 08d2 104B     	 ldr r3,.L167+28
- 2204 08d4 41F28832 	 movw r2,#5000
- 2205 08d8 9A60     	 str r2,[r3,#8]
- 322:TC_lldn.c     **** 	tmrComputeData.mode = SYS_TIMER_PERIODIC_MODE;
- 2206              	 .loc 7 322 0
- 2207 08da 0E4B     	 ldr r3,.L167+28
- 2208 08dc 0122     	 movs r2,#1
- 2209 08de 1A73     	 strb r2,[r3,#12]
- 323:TC_lldn.c     **** 	tmrComputeData.handler = tmrComputeDataHandler;
- 2210              	 .loc 7 323 0
- 2211 08e0 0C4B     	 ldr r3,.L167+28
- 2212 08e2 0D4A     	 ldr r2,.L167+32
- 2213 08e4 1A61     	 str r2,[r3,#16]
- 324:TC_lldn.c     **** 	SYS_TimerStart(&tmrComputeData);	
- 2214              	 .loc 7 324 0
- 2215 08e6 0B48     	 ldr r0,.L167+28
- 2216 08e8 0C4B     	 ldr r3,.L167+36
- 2217 08ea 9847     	 blx r3
- 2218              	.LVL33:
- 2219              	.L166:
- 325:TC_lldn.c     **** 	
- 326:TC_lldn.c     **** 	
- 327:TC_lldn.c     **** 	for(;;)
- 328:TC_lldn.c     **** 	{
- 329:TC_lldn.c     **** 		SYS_TaskHandler();
- 2220              	 .loc 7 329 0 discriminator 1
- 2221 08ec 0C4B     	 ldr r3,.L167+40
- 2222 08ee 9847     	 blx r3
- 2223              	.LVL34:
- 330:TC_lldn.c     **** 		APP_TaskHandler();
- 2224              	 .loc 7 330 0 discriminator 1
- 2225 08f0 FFF7FEFF 	 bl APP_TaskHandler
- 329:TC_lldn.c     **** 		APP_TaskHandler();
- 2226              	 .loc 7 329 0 discriminator 1
- 2227 08f4 FAE7     	 b .L166
- 2228              	.L168:
- 2229 08f6 00BF     	 .align 2
- 2230              	.L167:
- 2231 08f8 00000000 	 .word sysclk_init
- 2232 08fc 00000000 	 .word board_init
- 2233 0900 00000000 	 .word SYS_Init
- 2234 0904 00000000 	 .word PHY_SetTdmaMode
- 2235 0908 00000000 	 .word sm_init
- 2236 090c 00000000 	 .word g_interrupt_enabled
- 2237 0910 00000000 	 .word stdio_usb_init
- 2238 0914 00000000 	 .word tmrComputeData
- 2239 0918 00000000 	 .word tmrComputeDataHandler
- 2240 091c 00000000 	 .word SYS_TimerStart
- 2241 0920 00000000 	 .word SYS_TaskHandler
- 2242              	 .cfi_endproc
- 2243              	.LFE243:
- 2245              	.Letext0:
- 2246              	 .file 10 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
- 2247              	 .file 11 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
- 2248              	 .file 12 "../../../platform/sam/utils/cmsis/sam4l/include/sam4lc4b.h"
- 2249              	 .file 13 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
- 2250              	 .file 14 "../../../platform/sam/utils/cmsis/sam4l/include/component/component_bscif.h"
- 2251              	 .file 15 "../../../platform/sam/utils/cmsis/sam4l/include/component/component_scif.h"
- 2252              	 .file 16 "../../../platform/sam/utils/cmsis/sam4l/include/component/component_tc.h"
- 2253              	 .file 17 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
- 2254              	 .file 18 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
- 2255              	 .file 19 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
- 2256              	 .file 20 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
- 2257              	 .file 21 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
- 2258              	 .file 22 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
- 2259              	 .file 23 "../../../platform/sam/utils/compiler.h"
- 2260              	 .file 24 "../../../platform/common/services/usb/usb_protocol.h"
- 2261              	 .file 25 "../../../platform/common/services/usb/udc/udi.h"
- 2262              	 .file 26 "../../../platform/common/services/usb/udc/udc_desc.h"
- 2263              	 .file 27 "../../../platform/common/services/usb/udc/udd.h"
- 2264              	 .file 28 "../../../platform/common/services/usb/class/cdc/device/udi_cdc.h"
- 2265              	 .file 29 "../../../platform/common/utils/stdio/stdio_usb/stdio_usb.h"
- 2266              	 .file 30 "TC_lldn_conf.h"
- 2267              	 .file 31 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
- 2268              	 .file 32 "../../../stack/LwMesh/TDMA/nwk/inc/nwk.h"
- 2269              	 .file 33 "../../../stack/LwMesh/TDMA/sys/inc/sysTimer.h"
- 2270              	 .file 34 "../../../platform/common/services/sleepmgr/sam4l/sleepmgr.h"
- 2271              	 .file 35 "../../../platform/common/services/clock/sam4l/sysclk.h"
- 2272              	 .file 36 "../../../platform/common/boards/board.h"
- 2273              	 .file 37 "../../../stack/LwMesh/TDMA/sys/inc/sys.h"
- 2274              	 .file 38 "../../../stack/LwMesh/TDMA/phy/AT86RF233/inc/phy.h"
- 2275              	 .file 39 "../../../stack/LwMesh/TDMA/services/sleep_mgr/sleep_mgr.h"
- 2276              	 .file 40 "../../../platform/sam/drivers/tc/tc.h"
- 2277              	 .file 41 "config/config.h"
- 2278              	 .file 42 "<built-in>"
+ 2156              	 .loc 9 316 0
+ 2157              	 .syntax unified
+ 2158              	
+ 2159 0884 62B6     	 cpsie i
+ 2160              	
+ 2161              	 .thumb
+ 2162              	 .syntax unified
+ 2163              	.LBE10:
+ 2164              	.LBE9:
+ 286:TC_lldn.c     **** 
+ 287:TC_lldn.c     **** 	#if APP_COORDINATOR
+ 288:TC_lldn.c     **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
+ 289:TC_lldn.c     **** 	stdio_usb_init();
+ 2165              	 .loc 7 289 0
+ 2166 0886 104B     	 ldr r3,.L164+24
+ 2167 0888 9847     	 blx r3
+ 2168              	.LVL31:
+ 290:TC_lldn.c     **** 	#else
+ 291:TC_lldn.c     **** 	const usart_serial_options_t usart_serial_options =
+ 292:TC_lldn.c     **** 	{
+ 293:TC_lldn.c     **** 		.baudrate     = USART_HOST_BAUDRATE,
+ 294:TC_lldn.c     **** 		.charlength   = USART_HOST_CHAR_LENGTH,
+ 295:TC_lldn.c     **** 		.paritytype   = USART_HOST_PARITY,
+ 296:TC_lldn.c     **** 		.stopbits     = USART_HOST_STOP_BITS
+ 297:TC_lldn.c     **** 	};
+ 298:TC_lldn.c     **** 
+ 299:TC_lldn.c     **** 	stdio_serial_init(USART_HOST, &usart_serial_options);
+ 300:TC_lldn.c     **** 	usart_double_baud_enable(USART_HOST);
+ 301:TC_lldn.c     **** 	usart_set_baudrate_precalculated(USART_HOST, USART_HOST_BAUDRATE, sysclk_get_source_clock_hz());
+ 302:TC_lldn.c     **** 
+ 303:TC_lldn.c     **** 	#endif
+ 304:TC_lldn.c     **** 	#endif
+ 305:TC_lldn.c     **** 	
+ 306:TC_lldn.c     **** 	tmrComputeData.interval = 2000;
+ 2169              	 .loc 7 306 0
+ 2170 088a 104B     	 ldr r3,.L164+28
+ 2171 088c 4FF4FA62 	 mov r2,#2000
+ 2172 0890 9A60     	 str r2,[r3,#8]
+ 307:TC_lldn.c     **** 	tmrComputeData.mode = SYS_TIMER_PERIODIC_MODE;
+ 2173              	 .loc 7 307 0
+ 2174 0892 0E4B     	 ldr r3,.L164+28
+ 2175 0894 0122     	 movs r2,#1
+ 2176 0896 1A73     	 strb r2,[r3,#12]
+ 308:TC_lldn.c     **** 	tmrComputeData.handler = tmrComputeDataHandler;
+ 2177              	 .loc 7 308 0
+ 2178 0898 0C4B     	 ldr r3,.L164+28
+ 2179 089a 0D4A     	 ldr r2,.L164+32
+ 2180 089c 1A61     	 str r2,[r3,#16]
+ 309:TC_lldn.c     **** 	SYS_TimerStart(&tmrComputeData);	
+ 2181              	 .loc 7 309 0
+ 2182 089e 0B48     	 ldr r0,.L164+28
+ 2183 08a0 0C4B     	 ldr r3,.L164+36
+ 2184 08a2 9847     	 blx r3
+ 2185              	.LVL32:
+ 2186              	.L163:
+ 310:TC_lldn.c     **** 	
+ 311:TC_lldn.c     **** 	
+ 312:TC_lldn.c     **** 	for(;;)
+ 313:TC_lldn.c     **** 	{
+ 314:TC_lldn.c     **** 		SYS_TaskHandler();
+ 2187              	 .loc 7 314 0 discriminator 1
+ 2188 08a4 0C4B     	 ldr r3,.L164+40
+ 2189 08a6 9847     	 blx r3
+ 2190              	.LVL33:
+ 315:TC_lldn.c     **** 		APP_TaskHandler();
+ 2191              	 .loc 7 315 0 discriminator 1
+ 2192 08a8 FFF7FEFF 	 bl APP_TaskHandler
+ 314:TC_lldn.c     **** 		APP_TaskHandler();
+ 2193              	 .loc 7 314 0 discriminator 1
+ 2194 08ac FAE7     	 b .L163
+ 2195              	.L165:
+ 2196 08ae 00BF     	 .align 2
+ 2197              	.L164:
+ 2198 08b0 00000000 	 .word sysclk_init
+ 2199 08b4 00000000 	 .word board_init
+ 2200 08b8 00000000 	 .word SYS_Init
+ 2201 08bc 00000000 	 .word PHY_SetTdmaMode
+ 2202 08c0 00000000 	 .word sm_init
+ 2203 08c4 00000000 	 .word g_interrupt_enabled
+ 2204 08c8 00000000 	 .word stdio_usb_init
+ 2205 08cc 00000000 	 .word tmrComputeData
+ 2206 08d0 00000000 	 .word tmrComputeDataHandler
+ 2207 08d4 00000000 	 .word SYS_TimerStart
+ 2208 08d8 00000000 	 .word SYS_TaskHandler
+ 2209              	 .cfi_endproc
+ 2210              	.LFE243:
+ 2212              	.Letext0:
+ 2213              	 .file 10 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 2214              	 .file 11 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 2215              	 .file 12 "../../../platform/sam/utils/cmsis/sam4l/include/sam4lc4b.h"
+ 2216              	 .file 13 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 2217              	 .file 14 "../../../platform/sam/utils/cmsis/sam4l/include/component/component_bscif.h"
+ 2218              	 .file 15 "../../../platform/sam/utils/cmsis/sam4l/include/component/component_scif.h"
+ 2219              	 .file 16 "../../../platform/sam/utils/cmsis/sam4l/include/component/component_tc.h"
+ 2220              	 .file 17 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 2221              	 .file 18 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 2222              	 .file 19 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 2223              	 .file 20 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 2224              	 .file 21 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+ 2225              	 .file 22 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
+ 2226              	 .file 23 "../../../platform/sam/utils/compiler.h"
+ 2227              	 .file 24 "../../../platform/common/services/usb/usb_protocol.h"
+ 2228              	 .file 25 "../../../platform/common/services/usb/udc/udi.h"
+ 2229              	 .file 26 "../../../platform/common/services/usb/udc/udc_desc.h"
+ 2230              	 .file 27 "../../../platform/common/services/usb/udc/udd.h"
+ 2231              	 .file 28 "../../../platform/common/services/usb/class/cdc/device/udi_cdc.h"
+ 2232              	 .file 29 "../../../platform/common/utils/stdio/stdio_usb/stdio_usb.h"
+ 2233              	 .file 30 "TC_lldn_conf.h"
+ 2234              	 .file 31 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
+ 2235              	 .file 32 "../../../stack/LwMesh/TDMA/nwk/inc/nwk.h"
+ 2236              	 .file 33 "../../../stack/LwMesh/TDMA/sys/inc/sysTimer.h"
+ 2237              	 .file 34 "../../../platform/common/services/sleepmgr/sam4l/sleepmgr.h"
+ 2238              	 .file 35 "../../../platform/common/services/clock/sam4l/sysclk.h"
+ 2239              	 .file 36 "../../../platform/common/boards/board.h"
+ 2240              	 .file 37 "../../../stack/LwMesh/TDMA/sys/inc/sys.h"
+ 2241              	 .file 38 "../../../stack/LwMesh/TDMA/phy/AT86RF233/inc/phy.h"
+ 2242              	 .file 39 "../../../stack/LwMesh/TDMA/services/sleep_mgr/sleep_mgr.h"
+ 2243              	 .file 40 "../../../platform/sam/drivers/tc/tc.h"
+ 2244              	 .file 41 "config/config.h"
+ 2245              	 .file 42 "<built-in>"
 DEFINED SYMBOLS
                             *ABS*:00000000 TC_lldn.c
     {standard input}:15     .text:00000000 $t
@@ -6021,45 +5960,47 @@ DEFINED SYMBOLS
     {standard input}:1373   .bss.tmrComputeData:00000000 tmrComputeData
                             *COM*:00000004 tmr_callback
     {standard input}:1380   .data.appState:00000000 appState
-    {standard input}:1383   .rodata:00000000 $d
-    {standard input}:1393   .text:000005f4 tmrComputeDataHandler
-    {standard input}:1434   .text:00000610 $d
-    {standard input}:1445   .text:0000061c $t
-    {standard input}:1452   .text:0000061c hw_expiry_cb
-    {standard input}:1477   .text:0000062c $d
-    {standard input}:1487   .text:00000634 $t
-    {standard input}:1494   .text:00000634 hw_overflow_cb
-    {standard input}:1519   .text:00000644 $d
-    {standard input}:1524   .text:0000064c $t
-    {standard input}:1531   .text:0000064c timer_stop
-    {standard input}:1557   .text:0000065c $d
-    {standard input}:1562   .text:00000664 $t
-    {standard input}:1569   .text:00000664 tc_delay
-    {standard input}:1921   .text:000007f4 timer_enable_cc_interrupt
-    {standard input}:1611   .text:00000688 $d
-    {standard input}:1616   .text:00000690 $t
-    {standard input}:1623   .text:00000690 timer_init
-    {standard input}:1727   .text:00000718 configure_NVIC
-    {standard input}:1967   .text:0000081c tc_compare_stop
-    {standard input}:1710   .text:000006f8 $d
-    {standard input}:1721   .text:00000718 $t
-    {standard input}:1832   .text:00000794 $d
-    {standard input}:1845   .text:000007a4 tc_callback
-    {standard input}:1839   .text:000007a4 $t
-    {standard input}:1908   .text:000007e8 $d
-    {standard input}:1914   .text:000007f4 $t
-    {standard input}:1954   .text:00000810 $d
-    {standard input}:1960   .text:0000081c $t
-    {standard input}:2000   .text:00000838 $d
-    {standard input}:2006   .text:00000844 $t
-    {standard input}:2013   .text:00000844 TC10_Handler
-    {standard input}:2044   .text:0000085c $d
-    {standard input}:2053   .text:00000860 $t
-    {standard input}:2060   .text:00000860 APP_TaskHandler
-    {standard input}:2122   .text:0000089c $d
-    {standard input}:2128   .text:000008a8 $t
-    {standard input}:2135   .text:000008a8 main
-    {standard input}:2231   .text:000008f8 $d
+    {standard input}:1387   .data.first:00000000 first
+    {standard input}:1384   .data.first:00000000 $d
+    {standard input}:1390   .rodata:00000000 $d
+    {standard input}:1400   .text:000005f4 tmrComputeDataHandler
+    {standard input}:1451   .text:00000620 $d
+    {standard input}:1463   .text:00000630 $t
+    {standard input}:1470   .text:00000630 hw_expiry_cb
+    {standard input}:1495   .text:00000640 $d
+    {standard input}:1505   .text:00000648 $t
+    {standard input}:1512   .text:00000648 hw_overflow_cb
+    {standard input}:1537   .text:00000658 $d
+    {standard input}:1542   .text:00000660 $t
+    {standard input}:1549   .text:00000660 timer_stop
+    {standard input}:1575   .text:00000670 $d
+    {standard input}:1580   .text:00000678 $t
+    {standard input}:1587   .text:00000678 tc_delay
+    {standard input}:1892   .text:000007b8 timer_enable_cc_interrupt
+    {standard input}:1629   .text:0000069c $d
+    {standard input}:1634   .text:000006a4 $t
+    {standard input}:1641   .text:000006a4 timer_init
+    {standard input}:1738   .text:00000720 configure_NVIC
+    {standard input}:1938   .text:000007e0 tc_compare_stop
+    {standard input}:1722   .text:00000704 $d
+    {standard input}:1732   .text:00000720 $t
+    {standard input}:1806   .text:00000764 $d
+    {standard input}:1810   .text:00000768 $t
+    {standard input}:1816   .text:00000768 tc_callback
+    {standard input}:1879   .text:000007ac $d
+    {standard input}:1885   .text:000007b8 $t
+    {standard input}:1925   .text:000007d4 $d
+    {standard input}:1931   .text:000007e0 $t
+    {standard input}:1971   .text:000007fc $d
+    {standard input}:1982   .text:00000808 $t
+    {standard input}:1989   .text:00000808 TC10_Handler
+    {standard input}:2025   .text:00000824 $d
+    {standard input}:2031   .text:00000830 $t
+    {standard input}:2038   .text:00000830 APP_TaskHandler
+    {standard input}:2091   .text:0000085c $d
+    {standard input}:2095   .text:00000860 $t
+    {standard input}:2102   .text:00000860 main
+    {standard input}:2198   .text:000008b0 $d
                      .debug_frame:00000010 $d
 
 UNDEFINED SYMBOLS
@@ -6079,7 +6020,6 @@ sysclk_get_peripheral_bus_hz
 tc_init
 tc_get_status
 tc_enable_interrupt
-tc_start
 tc_get_interrupt_mask
 tc_disable_interrupt
 sysclk_init

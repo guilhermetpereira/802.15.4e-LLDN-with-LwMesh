@@ -44,6 +44,7 @@
 static SYS_Timer_t tmrComputeData;	// Compute data		
 tmr_callback_t tmr_callback;
 AppState_t	appState = APP_STATE_IDLE;
+int first  = 1;
 
 static void configure_NVIC(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch);
 static void tc_callback(void);
@@ -56,7 +57,12 @@ void tc_compare_stop(void);
 static void tmrComputeDataHandler(SYS_Timer_t *timer)
 {
 	printf("\nTimer_Software");
-	appState = APP_STATE_INITIAL;
+	if(first)
+	{
+	appState = APP_STATE_INITIAL;	
+	first = 0;
+	}
+	
 }
 
 void hw_expiry_cb(void)
@@ -88,6 +94,7 @@ void timer_init(void)
 {
 	uint8_t tmr_mul;
 	/* Configure clock service. */
+	
 	#if SAM4L
 	genclk_enable_config(8, GENCLK_SRC_RC1M, 30);
 	sysclk_enable_peripheral_clock(TMR);
@@ -113,55 +120,30 @@ void timer_init(void)
 	#endif
 
 	/* Configure and enable interrupt on RC compare. */
+	
 	configure_NVIC(TMR, TMR_CHANNEL_ID);
+	
 	#if SAM4E
 		tc_get_status(TMR, TMR_CHANNEL_ID);
 		tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IER_CPCS);
 		tc_write_rc(TMR, TMR_CHANNEL_ID, UINT16_MAX);
 	#else
 		tc_get_status(TMR, TMR_CHANNEL_ID);
+	
 		tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IER_COVFS);
 	#endif
+	
 	tc_compare_stop();
-	tc_start(TMR, TMR_CHANNEL_ID);
+	
+	// tc_start(TMR, TMR_CHANNEL_ID);
+	
 	return;
 }
 
 void configure_NVIC(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch)
 {
-	if (TC0 == cmn_hw_timer) {
-		switch (cmn_hw_timer_ch) {
-			#if SAM4L
-			case 0:
-			NVIC_EnableIRQ(TC00_IRQn);
-			break;
-
-			case 1:
-			NVIC_EnableIRQ(TC01_IRQn);
-			break;
-
-			case 2:
-			NVIC_EnableIRQ(TC02_IRQn);
-			break;
-
-			#else
-			case 0:
-			NVIC_EnableIRQ(TC0_IRQn);
-			break;
-
-			case 1:
-			NVIC_EnableIRQ(TC1_IRQn);
-			break;
-
-			case 2:
-			NVIC_EnableIRQ(TC2_IRQn);
-			break;
-			#endif
-			default:
-			break;
-		}
-		#ifdef TC1
-		} else if (TC1 == cmn_hw_timer) {
+	
+	if (TC1 == cmn_hw_timer) {
 		switch (cmn_hw_timer_ch) {
 			#if SAM4L
 			case 0:
@@ -192,10 +174,11 @@ void configure_NVIC(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch)
 			default:
 			break;
 		}
-		#endif
+		
 	}
-
-	tmr_callback = tc_callback;
+	
+	// tmr_callback = tc_callback;
+	
 }
 
 
@@ -257,6 +240,7 @@ void TC3_Handler(void)
 #endif
 {
 	if (tmr_callback) {
+		printf("\nhere");
 		tmr_callback();
 	}
 }
@@ -267,10 +251,11 @@ void APP_TaskHandler(void)
 		{
 			case APP_STATE_INITIAL:
 			{
-				printf("\nPRINT FUNCIONANDO");
 				uint16_t delay = 1000;
+				
 				timer_init();
-				tc_delay(delay);
+				// tc_delay(delay);
+				
 				appState = APP_STATE_IDLE;
 				break;
 			}
@@ -318,7 +303,7 @@ int main (void)
 	#endif
 	#endif
 	
-	tmrComputeData.interval = 5000;
+	tmrComputeData.interval = 2000;
 	tmrComputeData.mode = SYS_TIMER_PERIODIC_MODE;
 	tmrComputeData.handler = tmrComputeDataHandler;
 	SYS_TimerStart(&tmrComputeData);	
