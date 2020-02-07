@@ -9,7 +9,7 @@
 #include <parts.h>
 #include "tc.h"
 #include "genclk.h"
-#include "TC_lldn_conf.h"
+#include "hw_timer_lldn.h"
 	
 #include <stdlib.h>
 #include <stdio.h>
@@ -42,17 +42,25 @@
 #endif
 
 static SYS_Timer_t tmrComputeData;	// Compute data		
-tmr_callback_t tmr_callback_lldn = 0;
 AppState_t	appState = APP_STATE_IDLE;
 int first  = 1;
 
-static void configure_NVIC(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch);
+static void configura_NVIC_lldn(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch);
 static void tc_callback_lldn(void);
 
 void timer_init(void);
 void timer_enable_cc_interrupt(void);
 void tc_compare_stop(void);
 
+tmr_callback_t tmr_callback_lldn = 0;
+int i = 0;
+uint16_t delay = 4;
+
+void hw_timer_lldn_setup(tmr_callback_t callback, uint16_t delay_v)
+{
+	tmr_callback_lldn = callback;
+	delay = delay_v;
+}
 
 static void tmrComputeDataHandler(SYS_Timer_t *timer)
 {
@@ -66,7 +74,19 @@ static void tmrComputeDataHandler(SYS_Timer_t *timer)
 
 void hw_expiry_cb(void)
 {
-	printf("\nRC Compare Interrupt");
+	// timer_stop();
+	// timer_init();
+	// tc_delay();
+	printf("\nRC Compare Interrupt %d", i++);
+}
+
+
+void hw_callback(void)
+{
+	timer_stop();
+	timer_init();
+	tc_delay();
+	printf("\nhw_callback  %d", i++);
 }
 
 void hw_overflow_cb(void)
@@ -79,10 +99,10 @@ void timer_stop(void)
 	tc_stop(TMR, TMR_CHANNEL_ID);
 }
 
-void tc_delay (uint16_t compare_value)
+void tc_delay ()
 {
 
-	tc_write_rc(TMR, TMR_CHANNEL_ID, compare_value);
+	tc_write_rc(TMR, TMR_CHANNEL_ID, delay);
 	timer_enable_cc_interrupt();
 }
 
@@ -91,7 +111,7 @@ void timer_init(void)
 	uint8_t tmr_mul;
 	/* Configure clock service. */
 	
-	genclk_enable_config(8, GENCLK_SRC_RC32K, 1);
+	genclk_enable_config(8, GENCLK_SRC_CLK_1K, 499);
 	sysclk_enable_peripheral_clock(TMR);
 
 	tmr_mul = sysclk_get_peripheral_bus_hz(TMR) / 1000000;
@@ -99,11 +119,11 @@ void timer_init(void)
 
 	tc_init(TMR, TMR_CHANNEL_ID,
 	TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_WAVE |
-	TC_CMR_WAVSEL_UP_NO_AUTO);
+	TC_CMR_WAVSEL_UP_AUTO);
 
 	/* Configure and enable interrupt on RC compare. */
 	
-	configure_NVIC(TMR, TMR_CHANNEL_ID);
+	configura_NVIC_lldn(TMR, TMR_CHANNEL_ID);
 	
 	tc_get_status(TMR, TMR_CHANNEL_ID);
 	// tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IER_COVFS);
@@ -115,7 +135,7 @@ void timer_init(void)
 	return;
 }
 
-void configure_NVIC(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch)
+void configura_NVIC_lldn(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch)
 {
 	(void) cmn_hw_timer;
 	
@@ -134,7 +154,8 @@ void configure_NVIC(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch)
 	break;
 	default:
 	break;
-	}	
+	}
+		
 	tmr_callback_lldn = tc_callback_lldn;
 	
 }
@@ -175,7 +196,6 @@ void tc_compare_stop(void)
 void TC10_Handler(void)
 {
 	if (tmr_callback_lldn) {
-		printf("\nTC10_Handler");
 		tmr_callback_lldn();
 	}
 }
@@ -186,10 +206,9 @@ void APP_TaskHandler(void)
 		{
 			case APP_STATE_INITIAL:
 			{
-				uint16_t delay = 1000;
 				
 				timer_init();
-				tc_delay(delay);
+				tc_delay();
 				
 				appState = APP_STATE_IDLE;
 				break;
@@ -238,7 +257,7 @@ int main (void)
 	#endif
 	#endif
 	
-	tmrComputeData.interval = 2000;
+	tmrComputeData.interval = 4000;
 	tmrComputeData.mode = SYS_TIMER_PERIODIC_MODE;
 	tmrComputeData.handler = tmrComputeDataHandler;
 	SYS_TimerStart(&tmrComputeData);	

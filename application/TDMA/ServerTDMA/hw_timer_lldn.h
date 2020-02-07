@@ -6,8 +6,8 @@
  */ 
 
 
-#ifndef TC_LLDN_CONF_H_
-#define TC_LLDN_CONF_H_
+#ifndef HW_TIMER_LLDN_H_
+#define HW_TIMER_LLDN_H_
 
 #define GENCLK_SRC_RC1M		6
 
@@ -15,6 +15,7 @@
 #define TMR_CHANNEL_ID (0)
 
 typedef void (*tmr_callback_t)(void);
+
 
 typedef enum AppState_t {
 	APP_STATE_INITIAL,
