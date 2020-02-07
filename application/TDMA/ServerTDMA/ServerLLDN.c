@@ -72,7 +72,7 @@ static void appSendData(void)
 
 	#define NODOS_ASSOCIADOS_ESPERADOS 12
 
-	float beaconInterval;
+	float beaconInterval = 0;
 	AppPanState_t appPanState = APP_PAN_STATE_RESET;		// Initial state of PAN node
 	NWK_ACKFormat_t ACKFrame;								// ACK Frame Payload used in Discovery State
 	int ACKFrame_size = 0;									// Bitmap size 
@@ -81,7 +81,6 @@ static void appSendData(void)
 	NWK_ConfigRequest_t msgsConfRequest[254];				// Array for Configure Request messages, one position per node, 254 limited by star topology
 	NWK_ConfigRequest_t ConfigRequest;
 	int macLLDNnumUplinkTS = 0;								// Number of uplink timeslots, is also the control of associated nodes, further implementations must be done
-	int tsDuration  = 0;						
 	int index_ConfRequest = 0;
 	int index_TimeSlot = 0;
 	static SYS_Timer_t tmrDelay_Discovery;							// Timer for delay between messages
@@ -123,13 +122,15 @@ static void appSendData(void)
 		}
 	}
 	
-	static void start_online_handled(void)
+	/*
+	static void start_online_handler(void)
 	{
 		appPanState = APP_PAN_STATE_ONLINE_INITIAL
 	}
-	
+	*/
 	static void end_online_handler(void)
 	{
+		appState = APP_STATE_ATT_PAN_STATE;
 		appPanState = APP_PAN_STATE_ONLINE_END_BE;
 	}
 	
@@ -163,9 +164,10 @@ static void appSendData(void)
 	{
 		count_configuration++;
 		index_ConfRequest++;
-		if(node->ts_dir.tsDuration > tsDuration)
-			tsDuration = node->ts_dir.tsDuration;
-		// tem que atualizar o tamanho final
+		
+		if(node->ts_dir.tsDuration > n)
+			n = node->ts_dir.tsDuration;
+
 		msgsConfRequest[index_ConfRequest].id = LL_CONFIGURATION_REQUEST;
  		msgsConfRequest[index_ConfRequest].macAddr = node->macAddr;
  		msgsConfRequest[index_ConfRequest].s_macAddr = APP_ADDR;
@@ -181,7 +183,7 @@ static void appSendData(void)
 		ConfigRequest.tx_channel = msgsConfRequest[i].tx_channel;
 		ConfigRequest.assTimeSlot = msgsConfRequest[i].assTimeSlot;
 		ConfigRequest.macAddr = msgsConfRequest[i].macAddr;
-		ConfigRequest.conf.tsDuration = tsDuration;
+		ConfigRequest.conf.tsDuration = n;
 		ConfigRequest.conf.macLLDNmgmtTS = msgsConfRequest[i].conf.macLLDNmgmtTS;
 	}
 	
@@ -234,7 +236,7 @@ static void appSendData(void)
 		index_TimeSlot = 0;
 		index_ConfRequest = 0;
 		counter_associados = 0;
-		tsDuration = 0;
+		n = 0;
 	}
 
 	static void appPanDiscInit(void)
@@ -257,7 +259,7 @@ static void appSendData(void)
 		{
 			
 		/* Calculates Beacon Intervals according to 802.15.4e - 2012 p. 70 */
-		n = 127; // 180 -safe octets
+		n = 127; 
 		tTS =  ((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var);
 		#if (MASTER_MACSC == 1)
 		
@@ -293,12 +295,21 @@ static void appSendData(void)
 
 	static void appPanOnlineInit()
 	{
-		beaconInterval = (assTimeSlot + MacLLDNMgmtTS*numBaseTimeSlotperMgmt) * tsDuration; // in octets
+		tTS =  ((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var);
+		beaconInterval = (assTimeSlot + MacLLDNMgmtTS*numBaseTimeSlotperMgmt) * tTS / (SYMBOL_TIME); // (number of time slots x mgmt time solts) x base timelosts
 		// Configure Timers
 		macsc_set_cmp1_int_cb(end_online_handler);
 		macsc_enable_manual_bts();
 		macsc_enable_cmp_int(MACSC_CC1);
 		macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval, MACSC_CC1);
+		
+		/* prepares online beacon , PRECISA SER REVISADO COM A NORMA, ESTOU EM DÚVIDA NO TIMESLOTE SIZE, TALVEZ MUDAR NO DATAREQ EM VEZ DE n COLOCAR tTS*/  
+		msgReq.dstAddr				= 0;
+		msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
+		msgReq.srcEndpoint			= APP_BEACON_ENDPOINT;
+		msgReq.options				= NWK_OPT_LLDN_BEACON | NWK_OPT_ONLINE_STATE;
+		msgReq.data					= NULL;
+		msgReq.size					= 0;
 	}
 
 
@@ -309,7 +320,7 @@ static void appSendData(void)
 
 	static uint8_t payloadSize = 0x01;
 	uint8_t assTimeSlot = 0xFF;
-	uint8_t tsDuration = 0;
+	uint8_t n = 0;
 	
 	static bool ack_received;
 	bool MacLLDNMgmtTS = 0; 
@@ -325,6 +336,7 @@ static void appSendData(void)
 	{
 		macsc_enable_manual_bts();	
 		rec_beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
+		// é bom implementar rotinas pra se o nodo estiver associado a um coordeandor e se não estiver
 		PanId = rec_beacon->PanId; // só pode mudar se ele associar
 		
 		if( (rec_beacon->Flags.txState == DISC_MODE && !ack_received) || 
@@ -375,7 +387,7 @@ static void appSendData(void)
 				PHY_SetChannel(msg->tx_channel);
 				NWK_SetPanId(msg->s_macAddr);
 				assTimeSlot = msg->assTimeSlot;
-				tsDuration = msg->conf.tsDuration;
+				n = msg->conf.tsDuration;
 			}
 		}
 		return true;
@@ -527,7 +539,7 @@ static void APP_TaskHandler(void)
 						msgReq.options = 0;
 						/* set coordinator node to idle further implementation of online state must be done */
 						appState = APP_STATE_IDLE;
-						appPanState = APP_PAN_STATE_IDLE;
+						appPanState = APP_PAN_STATE_IDLE; // APP_PAN_STATE_ONLINE_INIT
 						
 					}
 					/* if not all nodes expected where associated run through association process again */
@@ -631,8 +643,11 @@ static void APP_TaskHandler(void)
 					}
 					else
 					{
+						// posso calcular esse valor no onlineinit, o tTS precisa ser recalculado, o seu valor muda no inicio do online, talvez definir este valor ? 
+						// pode voltar pro state_online_initial porque precisa reconfigurar os timers
+						// precisa revisar o macsc_enable_manual_bts()
 						int idle_time =  2 * numBaseTimeSlotperMgmt * (tTS) * 5 / (SYMBOL_TIME); // 5 is the total of beacons in discovery + configuration
-						macsc_set_cmp1_int_cb(start_online_handled);
+						macsc_set_cmp1_int_cb(lldn_server_beacon); // esta função pode só mandar o beacon do online, checar se não precisa atualizar em nada este beacon, seq number é atualizado sozinho
 						macsc_enable_manual_bts();
 						macsc_enable_cmp_int(MACSC_CC1);
 						macsc_use_cmp(MACSC_RELATIVE_CMP, idle_time, MACSC_CC1);

@@ -42,12 +42,12 @@
 #endif
 
 static SYS_Timer_t tmrComputeData;	// Compute data		
-tmr_callback_t tmr_callback;
+tmr_callback_t tmr_callback_lldn = 0;
 AppState_t	appState = APP_STATE_IDLE;
 int first  = 1;
 
 static void configure_NVIC(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch);
-static void tc_callback(void);
+static void tc_callback_lldn(void);
 
 void timer_init(void);
 void timer_enable_cc_interrupt(void);
@@ -62,7 +62,6 @@ static void tmrComputeDataHandler(SYS_Timer_t *timer)
 	appState = APP_STATE_INITIAL;	
 	first = 0;
 	}
-	
 }
 
 void hw_expiry_cb(void)
@@ -82,11 +81,8 @@ void timer_stop(void)
 
 void tc_delay (uint16_t compare_value)
 {
-	#if SAM4E
-	tc_write_ra(TMR, TMR_CHANNEL_ID, compare_value);
-	#else
+
 	tc_write_rc(TMR, TMR_CHANNEL_ID, compare_value);
-	#endif
 	timer_enable_cc_interrupt();
 }
 
@@ -95,109 +91,61 @@ void timer_init(void)
 	uint8_t tmr_mul;
 	/* Configure clock service. */
 	
-	#if SAM4L
-	genclk_enable_config(8, GENCLK_SRC_RC1M, 30);
+	genclk_enable_config(8, GENCLK_SRC_RC32K, 1);
 	sysclk_enable_peripheral_clock(TMR);
-	#else
-	sysclk_enable_peripheral_clock(ID_TC);
-	#endif
 
 	tmr_mul = sysclk_get_peripheral_bus_hz(TMR) / 1000000;
 	tmr_mul = tmr_mul >> 1;
 
-	#if SAM4L
-		tc_init(TMR, TMR_CHANNEL_ID,
-		TC_CMR_TCCLKS_TIMER_CLOCK2 | TC_CMR_WAVE |
-		TC_CMR_WAVSEL_UP_NO_AUTO);
-	#elif SAM4E
-		tc_init(TMR, TMR_CHANNEL_ID,
-		TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_WAVE |
-		TC_CMR_WAVSEL_UP_RC);
-	#else
-		tc_init(TMR, TMR_CHANNEL_ID,
-		TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_WAVE |
-		TC_CMR_WAVSEL_UP);
-	#endif
+	tc_init(TMR, TMR_CHANNEL_ID,
+	TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_WAVE |
+	TC_CMR_WAVSEL_UP_NO_AUTO);
 
 	/* Configure and enable interrupt on RC compare. */
 	
 	configure_NVIC(TMR, TMR_CHANNEL_ID);
 	
-	#if SAM4E
-		tc_get_status(TMR, TMR_CHANNEL_ID);
-		tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IER_CPCS);
-		tc_write_rc(TMR, TMR_CHANNEL_ID, UINT16_MAX);
-	#else
-		tc_get_status(TMR, TMR_CHANNEL_ID);
-	
-		tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IER_COVFS);
-	#endif
+	tc_get_status(TMR, TMR_CHANNEL_ID);
+	// tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IER_COVFS);
 	
 	tc_compare_stop();
 	
-	// tc_start(TMR, TMR_CHANNEL_ID);
+	tc_start(TMR, TMR_CHANNEL_ID);
 	
 	return;
 }
 
 void configure_NVIC(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch)
 {
+	(void) cmn_hw_timer;
 	
-	if (TC1 == cmn_hw_timer) {
-		switch (cmn_hw_timer_ch) {
-			#if SAM4L
-			case 0:
-			NVIC_EnableIRQ(TC10_IRQn);
-			break;				
+	switch (cmn_hw_timer_ch) 
+	{
+	case 0:
+	NVIC_EnableIRQ(TC10_IRQn);
+	break;
 
-			case 1:
-			NVIC_EnableIRQ(TC11_IRQn);
-			break;
+	case 1:
+	NVIC_EnableIRQ(TC11_IRQn);
+	break;
 
-			case 2:
-			NVIC_EnableIRQ(TC12_IRQn);
-			break;
-
-			#else
-			case 0:
-			NVIC_EnableIRQ(TC3_IRQn);
-			break;
-
-			case 1:
-			NVIC_EnableIRQ(TC4_IRQn);
-			break;
-
-			case 2:
-			NVIC_EnableIRQ(TC5_IRQn);
-			break;
-			#endif
-			default:
-			break;
-		}
-		
-	}
-	
-	// tmr_callback = tc_callback;
+	case 2:
+	NVIC_EnableIRQ(TC12_IRQn);
+	break;
+	default:
+	break;
+	}	
+	tmr_callback_lldn = tc_callback_lldn;
 	
 }
 
 
-void tc_callback(void)
+void tc_callback_lldn(void)
 {
 	uint32_t ul_status;
-	/* Read TC0 Status. */
+	/* Read TC1 Status. */
 	ul_status = tc_get_status(TMR, TMR_CHANNEL_ID);
 	ul_status &= tc_get_interrupt_mask(TMR, TMR_CHANNEL_ID);
-	#if SAM4E
-	if (TC_SR_CPAS == (ul_status & TC_SR_CPAS)) {
-		hw_expiry_cb();
-	}
-
-	if (TC_SR_CPCS == (ul_status & TC_SR_CPCS)) {
-		hw_overflow_cb();
-	}
-
-	#else
 	if (TC_SR_CPCS == (ul_status & TC_SR_CPCS)) {
 		hw_expiry_cb();
 	}
@@ -206,42 +154,29 @@ void tc_callback(void)
 	if (TC_SR_COVFS == (ul_status & TC_SR_COVFS)) {
 		hw_overflow_cb();
 	}
-	#endif
 }
 
 
 void timer_enable_cc_interrupt(void)
 {
 	tc_get_status(TMR, TMR_CHANNEL_ID);
-	#if SAM4E
-	tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IDR_CPAS);
-	#else
 	tc_enable_interrupt(TMR, TMR_CHANNEL_ID, TC_IDR_CPCS);
-	#endif
 }
 
 void tc_compare_stop(void)
 {
 	tc_get_status(TMR, TMR_CHANNEL_ID);
-	#if SAM4E
-	tc_disable_interrupt(TMR, TMR_CHANNEL_ID, TC_IDR_CPAS);
-	#else
 	tc_disable_interrupt(TMR, TMR_CHANNEL_ID, TC_IDR_CPCS);
-	#endif
 }
 
 /**
  * \brief Interrupt handlers for TC10
  */
-#if SAM4L
 void TC10_Handler(void)
-#else
-void TC3_Handler(void)
-#endif
 {
-	if (tmr_callback) {
-		printf("\nhere");
-		tmr_callback();
+	if (tmr_callback_lldn) {
+		printf("\nTC10_Handler");
+		tmr_callback_lldn();
 	}
 }
 
@@ -254,7 +189,7 @@ void APP_TaskHandler(void)
 				uint16_t delay = 1000;
 				
 				timer_init();
-				// tc_delay(delay);
+				tc_delay(delay);
 				
 				appState = APP_STATE_IDLE;
 				break;

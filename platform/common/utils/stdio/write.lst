@@ -1,19 +1,36 @@
-   1               		.file	"write.c"
-   2               	__SP_H__ = 0x3e
-   3               	__SP_L__ = 0x3d
-   4               	__SREG__ = 0x3f
-   5               	__RAMPZ__ = 0x3b
-   6               	__tmp_reg__ = 0
-   7               	__zero_reg__ = 1
-   8               		.text
-   9               	.Ltext0:
-  10               		.cfi_sections	.debug_frame
-  11               		.comm	stdio_base,2,1
-  12               		.comm	ptr_put,2,1
-  13               	.global	_write
-  15               	_write:
-  16               	.LFB8:
-  17               		.file 1 "../../../platform/common/utils/stdio/write.c"
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "write.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .comm stdio_base,4,4
+  27              	 .comm ptr_put,4,4
+  28              	 .text
+  29              	 .align 1
+  30              	 .weak _write
+  31              	 .syntax unified
+  32              	 .thumb
+  33              	 .thumb_func
+  34              	 .fpu softvfp
+  36              	_write:
+  37              	.LFB122:
+  38              	 .file 1 "../../../platform/common/utils/stdio/write.c"
    1:../../../platform/common/utils/stdio/write.c **** /**
    2:../../../platform/common/utils/stdio/write.c ****  * \file
    3:../../../platform/common/utils/stdio/write.c ****  *
@@ -126,100 +143,133 @@
  110:../../../platform/common/utils/stdio/write.c **** int __attribute__((weak))
  111:../../../platform/common/utils/stdio/write.c **** _write (int file, const char *ptr, int len)
  112:../../../platform/common/utils/stdio/write.c **** {
+  39              	 .loc 1 112 0
+  40              	 .cfi_startproc
+  41              	 
+  42              	 
+  43 0000 80B5     	 push {r7,lr}
+  44              	.LCFI0:
+  45              	 .cfi_def_cfa_offset 8
+  46              	 .cfi_offset 7,-8
+  47              	 .cfi_offset 14,-4
+  48 0002 86B0     	 sub sp,sp,#24
+  49              	.LCFI1:
+  50              	 .cfi_def_cfa_offset 32
+  51 0004 00AF     	 add r7,sp,#0
+  52              	.LCFI2:
+  53              	 .cfi_def_cfa_register 7
+  54 0006 F860     	 str r0,[r7,#12]
+  55 0008 B960     	 str r1,[r7,#8]
+  56 000a 7A60     	 str r2,[r7,#4]
  113:../../../platform/common/utils/stdio/write.c **** 	int nChars = 0;
+  57              	 .loc 1 113 0
+  58 000c 0023     	 movs r3,#0
+  59 000e 7B61     	 str r3,[r7,#20]
  114:../../../platform/common/utils/stdio/write.c **** 
  115:../../../platform/common/utils/stdio/write.c **** 	if ((file != 1) && (file != 2) && (file!=3)) {
+  60              	 .loc 1 115 0
+  61 0010 FB68     	 ldr r3,[r7,#12]
+  62 0012 012B     	 cmp r3,#1
+  63 0014 1ED0     	 beq .L4
+  64              	 .loc 1 115 0 is_stmt 0 discriminator 1
+  65 0016 FB68     	 ldr r3,[r7,#12]
+  66 0018 022B     	 cmp r3,#2
+  67 001a 1BD0     	 beq .L4
+  68              	 .loc 1 115 0 discriminator 2
+  69 001c FB68     	 ldr r3,[r7,#12]
+  70 001e 032B     	 cmp r3,#3
+  71 0020 18D0     	 beq .L4
  116:../../../platform/common/utils/stdio/write.c **** 		return -1;
+  72              	 .loc 1 116 0 is_stmt 1
+  73 0022 4FF0FF33 	 mov r3,#-1
+  74 0026 19E0     	 b .L3
+  75              	.L6:
  117:../../../platform/common/utils/stdio/write.c **** 	}
  118:../../../platform/common/utils/stdio/write.c **** 
  119:../../../platform/common/utils/stdio/write.c **** 	for (; len != 0; --len) {
  120:../../../platform/common/utils/stdio/write.c **** 		if (ptr_put(stdio_base, *ptr++) < 0) {
+  76              	 .loc 1 120 0
+  77 0028 0E4B     	 ldr r3,.L7
+  78 002a 1A68     	 ldr r2,[r3]
+  79 002c 0E4B     	 ldr r3,.L7+4
+  80 002e 1868     	 ldr r0,[r3]
+  81 0030 BB68     	 ldr r3,[r7,#8]
+  82 0032 591C     	 adds r1,r3,#1
+  83 0034 B960     	 str r1,[r7,#8]
+  84 0036 1B78     	 ldrb r3,[r3]
+  85 0038 1946     	 mov r1,r3
+  86 003a 9047     	 blx r2
+  87              	.LVL0:
+  88 003c 0346     	 mov r3,r0
+  89 003e 002B     	 cmp r3,#0
+  90 0040 02DA     	 bge .L5
  121:../../../platform/common/utils/stdio/write.c **** 			return -1;
+  91              	 .loc 1 121 0
+  92 0042 4FF0FF33 	 mov r3,#-1
+  93 0046 09E0     	 b .L3
+  94              	.L5:
  122:../../../platform/common/utils/stdio/write.c **** 		}
  123:../../../platform/common/utils/stdio/write.c **** 		++nChars;
+  95              	 .loc 1 123 0
+  96 0048 7B69     	 ldr r3,[r7,#20]
+  97 004a 0133     	 adds r3,r3,#1
+  98 004c 7B61     	 str r3,[r7,#20]
+ 119:../../../platform/common/utils/stdio/write.c **** 		if (ptr_put(stdio_base, *ptr++) < 0) {
+  99              	 .loc 1 119 0
+ 100 004e 7B68     	 ldr r3,[r7,#4]
+ 101 0050 013B     	 subs r3,r3,#1
+ 102 0052 7B60     	 str r3,[r7,#4]
+ 103              	.L4:
+ 119:../../../platform/common/utils/stdio/write.c **** 		if (ptr_put(stdio_base, *ptr++) < 0) {
+ 104              	 .loc 1 119 0 is_stmt 0 discriminator 1
+ 105 0054 7B68     	 ldr r3,[r7,#4]
+ 106 0056 002B     	 cmp r3,#0
+ 107 0058 E6D1     	 bne .L6
  124:../../../platform/common/utils/stdio/write.c **** 	}
  125:../../../platform/common/utils/stdio/write.c **** 	return nChars;
+ 108              	 .loc 1 125 0 is_stmt 1
+ 109 005a 7B69     	 ldr r3,[r7,#20]
+ 110              	.L3:
  126:../../../platform/common/utils/stdio/write.c **** }
- 127:../../../platform/common/utils/stdio/write.c **** 
- 128:../../../platform/common/utils/stdio/write.c **** #elif (defined(__GNUC__) && (XMEGA || MEGA))
- 129:../../../platform/common/utils/stdio/write.c **** 
- 130:../../../platform/common/utils/stdio/write.c **** int _write (char c, int *f);
- 131:../../../platform/common/utils/stdio/write.c **** 
- 132:../../../platform/common/utils/stdio/write.c **** int _write (char c, int *f)
- 133:../../../platform/common/utils/stdio/write.c **** {
-  18               		.loc 1 133 0
-  19               		.cfi_startproc
-  20 0000 CF93      		push r28
-  21               	.LCFI0:
-  22               		.cfi_def_cfa_offset 3
-  23               		.cfi_offset 28, -2
-  24 0002 DF93      		push r29
-  25               	.LCFI1:
-  26               		.cfi_def_cfa_offset 4
-  27               		.cfi_offset 29, -3
-  28 0004 00D0      		rcall .
-  29 0006 1F92      		push __zero_reg__
-  30               	.LCFI2:
-  31               		.cfi_def_cfa_offset 7
-  32 0008 CDB7      		in r28,__SP_L__
-  33 000a DEB7      		in r29,__SP_H__
-  34               	.LCFI3:
-  35               		.cfi_def_cfa_register 28
-  36               	/* prologue: function */
-  37               	/* frame size = 3 */
-  38               	/* stack size = 5 */
-  39               	.L__stack_usage = 5
-  40 000c 8983      		std Y+1,r24
-  41 000e 7B83      		std Y+3,r23
-  42 0010 6A83      		std Y+2,r22
- 134:../../../platform/common/utils/stdio/write.c **** 	(void) f;
- 135:../../../platform/common/utils/stdio/write.c **** 
- 136:../../../platform/common/utils/stdio/write.c **** 	if (ptr_put(stdio_base, c) < 0) {
-  43               		.loc 1 136 0
-  44 0012 2091 0000 		lds r18,ptr_put
-  45 0016 3091 0000 		lds r19,ptr_put+1
-  46 001a 8091 0000 		lds r24,stdio_base
-  47 001e 9091 0000 		lds r25,stdio_base+1
-  48 0022 6981      		ldd r22,Y+1
-  49 0024 F901      		movw r30,r18
-  50 0026 0995      		icall
-  51 0028 9923      		tst r25
-  52 002a 04F4      		brge .L2
- 137:../../../platform/common/utils/stdio/write.c **** 		return -1;
-  53               		.loc 1 137 0
-  54 002c 8FEF      		ldi r24,lo8(-1)
-  55 002e 9FEF      		ldi r25,lo8(-1)
-  56 0030 00C0      		rjmp .L3
-  57               	.L2:
- 138:../../../platform/common/utils/stdio/write.c **** 	}
- 139:../../../platform/common/utils/stdio/write.c **** 	return 1;
-  58               		.loc 1 139 0
-  59 0032 81E0      		ldi r24,lo8(1)
-  60 0034 90E0      		ldi r25,0
-  61               	.L3:
-  62               	/* epilogue start */
- 140:../../../platform/common/utils/stdio/write.c **** }
-  63               		.loc 1 140 0
-  64 0036 0F90      		pop __tmp_reg__
-  65 0038 0F90      		pop __tmp_reg__
-  66 003a 0F90      		pop __tmp_reg__
-  67 003c DF91      		pop r29
-  68 003e CF91      		pop r28
-  69 0040 0895      		ret
-  70               		.cfi_endproc
-  71               	.LFE8:
-  73               	.Letext0:
+ 111              	 .loc 1 126 0
+ 112 005c 1846     	 mov r0,r3
+ 113 005e 1837     	 adds r7,r7,#24
+ 114              	.LCFI3:
+ 115              	 .cfi_def_cfa_offset 8
+ 116 0060 BD46     	 mov sp,r7
+ 117              	.LCFI4:
+ 118              	 .cfi_def_cfa_register 13
+ 119              	 
+ 120 0062 80BD     	 pop {r7,pc}
+ 121              	.L8:
+ 122              	 .align 2
+ 123              	.L7:
+ 124 0064 00000000 	 .word ptr_put
+ 125 0068 00000000 	 .word stdio_base
+ 126              	 .cfi_endproc
+ 127              	.LFE122:
+ 129              	.Letext0:
+ 130              	 .file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 131              	 .file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 132              	 .file 4 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+ 133              	 .file 5 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 134              	 .file 6 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 135              	 .file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 136              	 .file 8 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 137              	 .file 9 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 138              	 .file 10 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+ 139              	 .file 11 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 write.c
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpdYacr.s:2      *ABS*:0000003e __SP_H__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpdYacr.s:3      *ABS*:0000003d __SP_L__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpdYacr.s:4      *ABS*:0000003f __SREG__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpdYacr.s:5      *ABS*:0000003b __RAMPZ__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpdYacr.s:6      *ABS*:00000000 __tmp_reg__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpdYacr.s:7      *ABS*:00000001 __zero_reg__
-                            *COM*:00000002 stdio_base
-                            *COM*:00000002 ptr_put
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpdYacr.s:15     .text:00000000 _write
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
+                            *COM*:00000004 stdio_base
+                            *COM*:00000004 ptr_put
+    {standard input}:29     .text:00000000 $t
+    {standard input}:36     .text:00000000 _write
+    {standard input}:124    .text:00000064 $d
+                     .debug_frame:00000010 $d
 
-UNDEFINED SYMBOLS
-__do_clear_bss
+NO UNDEFINED SYMBOLS

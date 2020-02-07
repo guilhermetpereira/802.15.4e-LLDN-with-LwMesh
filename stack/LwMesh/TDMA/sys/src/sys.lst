@@ -1,22 +1,39 @@
-   1               		.file	"sys.c"
-   2               	__SP_H__ = 0x3e
-   3               	__SP_L__ = 0x3d
-   4               	__SREG__ = 0x3f
-   5               	__RAMPZ__ = 0x3b
-   6               	__tmp_reg__ = 0
-   7               	__zero_reg__ = 1
-   8               		.text
-   9               	.Ltext0:
-  10               		.cfi_sections	.debug_frame
-  11               		.comm	n,1,1
-  12               		.section	.bss.tTS,"aw",@nobits
-  15               	tTS:
-  16 0000 0000 0000 		.zero	4
-  17               		.text
-  18               	.global	SYS_Init
-  20               	SYS_Init:
-  21               	.LFB66:
-  22               		.file 1 "../../../stack/LwMesh/TDMA/sys/src/sys.c"
+   1              	 .cpu cortex-m4
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,6
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "sys.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .bss.cpu_irq_critical_section_counter,"aw",%nobits
+  16              	 .align 2
+  19              	cpu_irq_critical_section_counter:
+  20 0000 00000000 	 .space 4
+  21              	 .section .bss.cpu_irq_prev_interrupt_state,"aw",%nobits
+  24              	cpu_irq_prev_interrupt_state:
+  25 0000 00       	 .space 1
+  26              	 .comm n,1,1
+  27              	 .section .bss.tTS,"aw",%nobits
+  28              	 .align 2
+  31              	tTS:
+  32 0000 00000000 	 .space 4
+  33              	 .text
+  34              	 .align 1
+  35              	 .global SYS_Init
+  36              	 .syntax unified
+  37              	 .thumb
+  38              	 .thumb_func
+  39              	 .fpu softvfp
+  41              	SYS_Init:
+  42              	.LFB224:
+  43              	 .file 1 "../../../stack/LwMesh/TDMA/sys/src/sys.c"
    1:../../../stack/LwMesh/TDMA/sys/src/sys.c **** /**
    2:../../../stack/LwMesh/TDMA/sys/src/sys.c ****  * \file sys.c
    3:../../../stack/LwMesh/TDMA/sys/src/sys.c ****  *
@@ -82,106 +99,145 @@
   63:../../../stack/LwMesh/TDMA/sys/src/sys.c **** *****************************************************************************/
   64:../../../stack/LwMesh/TDMA/sys/src/sys.c **** void SYS_Init(void)
   65:../../../stack/LwMesh/TDMA/sys/src/sys.c **** {
-  23               		.loc 1 65 0
-  24               		.cfi_startproc
-  25 0000 CF93      		push r28
-  26               	.LCFI0:
-  27               		.cfi_def_cfa_offset 3
-  28               		.cfi_offset 28, -2
-  29 0002 DF93      		push r29
-  30               	.LCFI1:
-  31               		.cfi_def_cfa_offset 4
-  32               		.cfi_offset 29, -3
-  33 0004 CDB7      		in r28,__SP_L__
-  34 0006 DEB7      		in r29,__SP_H__
-  35               	.LCFI2:
-  36               		.cfi_def_cfa_register 28
-  37               	/* prologue: function */
-  38               	/* frame size = 0 */
-  39               	/* stack size = 2 */
-  40               	.L__stack_usage = 2
+  44              	 .loc 1 65 0
+  45              	 .cfi_startproc
+  46              	 
+  47              	 
+  48 0000 80B5     	 push {r7,lr}
+  49              	.LCFI0:
+  50              	 .cfi_def_cfa_offset 8
+  51              	 .cfi_offset 7,-8
+  52              	 .cfi_offset 14,-4
+  53 0002 00AF     	 add r7,sp,#0
+  54              	.LCFI1:
+  55              	 .cfi_def_cfa_register 7
   66:../../../stack/LwMesh/TDMA/sys/src/sys.c **** 	SYS_TimerInit();
-  41               		.loc 1 66 0
-  42 0008 0E94 0000 		call SYS_TimerInit
+  56              	 .loc 1 66 0
+  57 0004 044B     	 ldr r3,.L2
+  58 0006 9847     	 blx r3
+  59              	.LVL0:
   67:../../../stack/LwMesh/TDMA/sys/src/sys.c **** #if SYS_SECURITY_MODE == 0
   68:../../../stack/LwMesh/TDMA/sys/src/sys.c **** 	sal_init();
-  43               		.loc 1 68 0
-  44 000c 0E94 0000 		call sal_init
+  60              	 .loc 1 68 0
+  61 0008 044B     	 ldr r3,.L2+4
+  62 000a 9847     	 blx r3
+  63              	.LVL1:
   69:../../../stack/LwMesh/TDMA/sys/src/sys.c **** #endif
   70:../../../stack/LwMesh/TDMA/sys/src/sys.c **** 	PHY_Init();
-  45               		.loc 1 70 0
-  46 0010 0E94 0000 		call PHY_Init
+  64              	 .loc 1 70 0
+  65 000c 044B     	 ldr r3,.L2+8
+  66 000e 9847     	 blx r3
+  67              	.LVL2:
   71:../../../stack/LwMesh/TDMA/sys/src/sys.c **** 	NWK_Init();
-  47               		.loc 1 71 0
-  48 0014 0E94 0000 		call NWK_Init
+  68              	 .loc 1 71 0
+  69 0010 044B     	 ldr r3,.L2+12
+  70 0012 9847     	 blx r3
+  71              	.LVL3:
   72:../../../stack/LwMesh/TDMA/sys/src/sys.c **** }
-  49               		.loc 1 72 0
-  50 0018 0000      		nop
-  51               	/* epilogue start */
-  52 001a DF91      		pop r29
-  53 001c CF91      		pop r28
-  54 001e 0895      		ret
-  55               		.cfi_endproc
-  56               	.LFE66:
-  58               	.global	SYS_TaskHandler
-  60               	SYS_TaskHandler:
-  61               	.LFB67:
+  72              	 .loc 1 72 0
+  73 0014 00BF     	 nop
+  74 0016 80BD     	 pop {r7,pc}
+  75              	.L3:
+  76              	 .align 2
+  77              	.L2:
+  78 0018 00000000 	 .word SYS_TimerInit
+  79 001c 00000000 	 .word sal_init
+  80 0020 00000000 	 .word PHY_Init
+  81 0024 00000000 	 .word NWK_Init
+  82              	 .cfi_endproc
+  83              	.LFE224:
+  85              	 .align 1
+  86              	 .global SYS_TaskHandler
+  87              	 .syntax unified
+  88              	 .thumb
+  89              	 .thumb_func
+  90              	 .fpu softvfp
+  92              	SYS_TaskHandler:
+  93              	.LFB225:
   73:../../../stack/LwMesh/TDMA/sys/src/sys.c **** 
   74:../../../stack/LwMesh/TDMA/sys/src/sys.c **** /*************************************************************************//**
   75:../../../stack/LwMesh/TDMA/sys/src/sys.c **** *****************************************************************************/
   76:../../../stack/LwMesh/TDMA/sys/src/sys.c **** void SYS_TaskHandler(void)
   77:../../../stack/LwMesh/TDMA/sys/src/sys.c **** {
-  62               		.loc 1 77 0
-  63               		.cfi_startproc
-  64 0020 CF93      		push r28
-  65               	.LCFI3:
-  66               		.cfi_def_cfa_offset 3
-  67               		.cfi_offset 28, -2
-  68 0022 DF93      		push r29
-  69               	.LCFI4:
-  70               		.cfi_def_cfa_offset 4
-  71               		.cfi_offset 29, -3
-  72 0024 CDB7      		in r28,__SP_L__
-  73 0026 DEB7      		in r29,__SP_H__
-  74               	.LCFI5:
-  75               		.cfi_def_cfa_register 28
-  76               	/* prologue: function */
-  77               	/* frame size = 0 */
-  78               	/* stack size = 2 */
-  79               	.L__stack_usage = 2
+  94              	 .loc 1 77 0
+  95              	 .cfi_startproc
+  96              	 
+  97              	 
+  98 0028 80B5     	 push {r7,lr}
+  99              	.LCFI2:
+ 100              	 .cfi_def_cfa_offset 8
+ 101              	 .cfi_offset 7,-8
+ 102              	 .cfi_offset 14,-4
+ 103 002a 00AF     	 add r7,sp,#0
+ 104              	.LCFI3:
+ 105              	 .cfi_def_cfa_register 7
   78:../../../stack/LwMesh/TDMA/sys/src/sys.c **** 	PHY_TaskHandler();
-  80               		.loc 1 78 0
-  81 0028 0E94 0000 		call PHY_TaskHandler
+ 106              	 .loc 1 78 0
+ 107 002c 034B     	 ldr r3,.L5
+ 108 002e 9847     	 blx r3
+ 109              	.LVL4:
   79:../../../stack/LwMesh/TDMA/sys/src/sys.c **** 	NWK_TaskHandler();
-  82               		.loc 1 79 0
-  83 002c 0E94 0000 		call NWK_TaskHandler
+ 110              	 .loc 1 79 0
+ 111 0030 034B     	 ldr r3,.L5+4
+ 112 0032 9847     	 blx r3
+ 113              	.LVL5:
   80:../../../stack/LwMesh/TDMA/sys/src/sys.c **** 	SYS_TimerTaskHandler();
-  84               		.loc 1 80 0
-  85 0030 0E94 0000 		call SYS_TimerTaskHandler
+ 114              	 .loc 1 80 0
+ 115 0034 034B     	 ldr r3,.L5+8
+ 116 0036 9847     	 blx r3
+ 117              	.LVL6:
   81:../../../stack/LwMesh/TDMA/sys/src/sys.c **** }
-  86               		.loc 1 81 0
-  87 0034 0000      		nop
-  88               	/* epilogue start */
-  89 0036 DF91      		pop r29
-  90 0038 CF91      		pop r28
-  91 003a 0895      		ret
-  92               		.cfi_endproc
-  93               	.LFE67:
-  95               	.Letext0:
-  96               		.file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
-  97               		.file 3 "config/config.h"
+ 118              	 .loc 1 81 0
+ 119 0038 00BF     	 nop
+ 120 003a 80BD     	 pop {r7,pc}
+ 121              	.L6:
+ 122              	 .align 2
+ 123              	.L5:
+ 124 003c 00000000 	 .word PHY_TaskHandler
+ 125 0040 00000000 	 .word NWK_TaskHandler
+ 126 0044 00000000 	 .word SYS_TimerTaskHandler
+ 127              	 .cfi_endproc
+ 128              	.LFE225:
+ 130              	.Letext0:
+ 131              	 .file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 132              	 .file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 133              	 .file 4 "../../../platform/thirdparty/CMSIS/include/core_cm4.h"
+ 134              	 .file 5 "../../../platform/sam/utils/cmsis/sam4l/source/templates/system_sam4l.h"
+ 135              	 .file 6 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\lock.h"
+ 136              	 .file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\_types.h"
+ 137              	 .file 8 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\lib\\gcc\\arm-none-eabi\\6.3.1\\include\\stddef.h"
+ 138              	 .file 9 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\sys\\reent.h"
+ 139              	 .file 10 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\arm\\arm-gnu-toolchain\\arm-none-eabi\\include\\stdlib.h"
+ 140              	 .file 11 "../../../platform/common/utils/interrupt/interrupt_sam_nvic.h"
+ 141              	 .file 12 "../../../platform/sam/utils/compiler.h"
+ 142              	 .file 13 "../../../platform/common/services/usb/usb_protocol.h"
+ 143              	 .file 14 "../../../platform/common/services/usb/udc/udi.h"
+ 144              	 .file 15 "../../../platform/common/services/usb/udc/udc_desc.h"
+ 145              	 .file 16 "../../../platform/common/services/usb/udc/udd.h"
+ 146              	 .file 17 "../../../platform/common/services/usb/class/cdc/device/udi_cdc.h"
+ 147              	 .file 18 "../../../platform/common/utils/stdio/stdio_usb/stdio_usb.h"
+ 148              	 .file 19 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
+ 149              	 .file 20 "../../../stack/LwMesh/TDMA/nwk/inc/nwk.h"
+ 150              	 .file 21 "../../../stack/LwMesh/TDMA/phy/AT86RF233/inc/phy.h"
+ 151              	 .file 22 "../../../stack/LwMesh/TDMA/sys/inc/sysTimer.h"
+ 152              	 .file 23 "../../../stack/LwMesh/TDMA/services/sal/inc/sal.h"
+ 153              	 .file 24 "config/config.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 sys.c
-C:\Users\GUILHE~1\AppData\Local\Temp\ccD49Tkq.s:2      *ABS*:0000003e __SP_H__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccD49Tkq.s:3      *ABS*:0000003d __SP_L__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccD49Tkq.s:4      *ABS*:0000003f __SREG__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccD49Tkq.s:5      *ABS*:0000003b __RAMPZ__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccD49Tkq.s:6      *ABS*:00000000 __tmp_reg__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccD49Tkq.s:7      *ABS*:00000001 __zero_reg__
+    {standard input}:16     .bss.cpu_irq_critical_section_counter:00000000 $d
+    {standard input}:19     .bss.cpu_irq_critical_section_counter:00000000 cpu_irq_critical_section_counter
+    {standard input}:24     .bss.cpu_irq_prev_interrupt_state:00000000 cpu_irq_prev_interrupt_state
+    {standard input}:25     .bss.cpu_irq_prev_interrupt_state:00000000 $d
                             *COM*:00000001 n
-C:\Users\GUILHE~1\AppData\Local\Temp\ccD49Tkq.s:15     .bss.tTS:00000000 tTS
-C:\Users\GUILHE~1\AppData\Local\Temp\ccD49Tkq.s:20     .text:00000000 SYS_Init
-C:\Users\GUILHE~1\AppData\Local\Temp\ccD49Tkq.s:60     .text:00000020 SYS_TaskHandler
+    {standard input}:28     .bss.tTS:00000000 $d
+    {standard input}:31     .bss.tTS:00000000 tTS
+    {standard input}:34     .text:00000000 $t
+    {standard input}:41     .text:00000000 SYS_Init
+    {standard input}:78     .text:00000018 $d
+    {standard input}:85     .text:00000028 $t
+    {standard input}:92     .text:00000028 SYS_TaskHandler
+    {standard input}:124    .text:0000003c $d
+                     .debug_frame:00000010 $d
 
 UNDEFINED SYMBOLS
 SYS_TimerInit
@@ -191,4 +247,3 @@ NWK_Init
 PHY_TaskHandler
 NWK_TaskHandler
 SYS_TimerTaskHandler
-__do_clear_bss
