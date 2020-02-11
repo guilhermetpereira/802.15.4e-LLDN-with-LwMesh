@@ -125,7 +125,6 @@ void nwkRxInit(void)
 void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 {
 	NwkFrame_t *frame;
-
 	// check frame control for a LL-Beacon frame
 	if(0x0c == ind->data[0])
 	{
