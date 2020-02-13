@@ -296,7 +296,7 @@ static void appSendData(void)
 	static void appPanOnlineInit()
 	{
 		tTS =  ((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var);
-		beaconInterval = (assTimeSlot + MacLLDNMgmtTS*numBaseTimeSlotperMgmt) * tTS / (SYMBOL_TIME); // (number of time slots x mgmt time solts) x base timelosts
+		// beaconInterval = (assTimeSlot + MacLLDNMgmtTS*numBaseTimeSlotperMgmt) * tTS / (SYMBOL_TIME); // (number of time slots x mgmt time solts) x base timelosts
 		// Configure Timers
 		macsc_set_cmp1_int_cb(end_online_handler);
 		macsc_enable_manual_bts();
@@ -528,7 +528,7 @@ static void APP_TaskHandler(void)
 					 * this implementation was done as is to be used in tests, for real network functionality 
 					 * the number of max association processes must be done through macLLDNdiscoveryModeTimeout
 					 */
-					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 12)
+					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 1)
 					{	
 						printf("\n%d, %d", cycles_counter, counter_associados);
 						counter_associados = 0;

@@ -92,6 +92,7 @@ uint16_t PHY_RandomReq(void);
 
 void PHY_EncryptReq(uint8_t *text, uint8_t *key);
 
+void PHY_SetPromiscuousMode(bool mode);
 int8_t PHY_EdReq(void);
 void PHY_SetTdmaMode(bool mode);
 
