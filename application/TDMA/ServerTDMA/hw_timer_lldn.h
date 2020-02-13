@@ -21,7 +21,7 @@ void timer_init(void);
 void timer_delay(uint16_t delay_v);
 void timer_start(void);
 void timer_stop(void);
-void setup_handler(tmr_callback_t callback_v);
+void hw_timer_setup_handler(tmr_callback_t callback_v);
 
 
 static void configura_NVIC_lldn(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch);
@@ -35,7 +35,7 @@ tmr_callback_t callback = 0;
 uint16_t delay = 0;
 
 
-void setup_handler(tmr_callback_t callback_v)
+void hw_timer_setup_handler(tmr_callback_t callback_v)
 {
 	callback = callback_v;
 }

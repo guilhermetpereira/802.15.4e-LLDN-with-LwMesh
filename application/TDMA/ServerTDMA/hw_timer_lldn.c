@@ -5,7 +5,7 @@
  *  Author: guilh
  */ 
 
-// #include "hw_timer_lldn.h"
+#include "hw_timer_lldn.h"
 
 static void configura_NVIC_lldn(Tc *cmn_hw_timer, uint8_t cmn_hw_timer_ch);
 static void tc_callback_lldn(void);

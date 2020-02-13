@@ -53,6 +53,10 @@ typedef enum Estado_t
 Estado_t state = IDLE;
 static SYS_Timer_t	tmrInit;				// Feedback
 static NWK_DataReq_t msgReq;
+static NWK_DiscoverResponse_t msgDiscResponse = { .id = LL_DISCOVER_RESPONSE,
+													.macAddr = APP_ADDR,
+													.ts_dir.tsDuration = 0x01,
+													.ts_dir.dirIndicator = 1 };
 
 int tmr_cont = 0;
 
@@ -82,7 +86,7 @@ void APP_TaskHandler(void)
 			
 			timer_init();
 			timer_delay((uint16_t) 150 - 100);
-			setup_handler(hw_timer_handler);
+			hw_timer_setup_handler(hw_timer_handler);
 			/*
 			 * Enable CSMA/CA
 			 * Enable Random CSMA seed generator
@@ -99,12 +103,18 @@ void APP_TaskHandler(void)
 			* Configure interrupts callback functions
 			*/
 			
+			msgDiscResponse.id = LL_DISCOVER_RESPONSE;
+			msgDiscResponse.macAddr = 0x0024;
+			msgDiscResponse.ts_dir.tsDuration = 0x05;
+			msgDiscResponse.ts_dir.dirIndicator = 0b0; 
+			
+			
 			msgReq.dstAddr				= 0;
-			msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
-			msgReq.srcEndpoint			= APP_BEACON_ENDPOINT;
-			msgReq.options				= NWK_OPT_LLDN_BEACON;
-			msgReq.data					= 0;
-			msgReq.size					= 0;
+			msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
+			msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
+			msgReq.options				= NWK_OPT_MAC_COMMAND;
+			msgReq.data					= (uint8_t*)&msgDiscResponse;
+			msgReq.size					= sizeof(msgDiscResponse);
 			
 			NWK_DataReq(&msgReq);
 			

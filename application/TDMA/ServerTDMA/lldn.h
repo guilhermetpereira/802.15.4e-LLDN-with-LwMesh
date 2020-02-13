@@ -9,7 +9,7 @@
 #ifndef LLDN_H_
 #define LLDN_H_
 
-typedef enum AppState_t {
+typedef enum {
 	APP_STATE_INITIAL,
 	APP_STATE_IDLE,
 	APP_STATE_SEND,
@@ -24,7 +24,7 @@ typedef enum AppState_t {
 	#define DELAY 200 // symbols
 	#define MacLLDNMgmtTS 0x01
 
-	typedef enum AppPanState_t {
+	typedef enum {
 		APP_PAN_STATE_IDLE,
 		APP_PAN_STATE_RESET,
 		APP_PAN_STATE_DISC_INITIAL,
@@ -38,12 +38,18 @@ typedef enum AppState_t {
 		APP_PAN_STATE_ONLINE_END_BE,
 	} AppPanState_t;
 	
-	typedef struct infoNode{
+	typedef struct nodes_info_t{
 		uint8_t s_macAddr;
-		uint8_t assTimeSlot;
-		uint16_t macAddr;
-		uint8_t tsDuration;
-	};
+		uint8_t assigned_time_slot;
+		uint16_t mac_addr;
+		uint8_t req_timeslot_duration;
+	}nodes_info_t;
+	
+	typedef struct nodes_info_list_t{
+		nodes_info_t *node;
+		int pos;
+		struct nodes_info_list *next;
+	}nodes_info_list_t;
 	
 #else
 	#define DISC_MODE	0b100

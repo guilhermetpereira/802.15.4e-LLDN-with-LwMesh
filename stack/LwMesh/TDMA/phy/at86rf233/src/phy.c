@@ -253,31 +253,30 @@ void PHY_Wakeup(void)
 void PHY_DataReq(uint8_t *data, uint8_t size)
 {
 	(void*)size;
-#if (ANTENNA_DIVERSITY == 1)
-#endif // ANTENNA_DIVERSITY
-#ifdef EXT_RF_FRONT_END_CTRL
+	#if (ANTENNA_DIVERSITY == 1)
+	#endif // ANTENNA_DIVERSITY
+	#ifdef EXT_RF_FRONT_END_CTRL
 	ioport_set_pin_level(AT86RFX_CSD, IOPORT_PIN_LEVEL_LOW);
-#endif // EXT_RF_FRONT_END_CTRL
+	#endif // EXT_RF_FRONT_END_CTRL
 
 	phyTrxSetState(TRX_CMD_TX_ARET_ON);
 
 	phyReadRegister(IRQ_STATUS_REG);
-	/* size of the buffer is sent as first byte of the data
-	 * and data starts from second byte.
-	 */
-	data[0] += 0;
-	for (int i = size; i > 0; i--)
+	for (int i = size + 1; i > 0; i--)
 	{
 		data[i] = data[i-1];
 		
 	}
-	trx_frame_write(data, size +1 /*(data[0] - 1)  length value*/);
+	
+	data[0] = size;
+	trx_frame_write(data, (data[0]));
 
 	phyState = PHY_STATE_TX_WAIT_END;
 
 	TRX_SLP_TR_HIGH();
 	TRX_TRIG_DELAY();
 	TRX_SLP_TR_LOW();
+
 }
 
 /*************************************************************************//**

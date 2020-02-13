@@ -125,6 +125,7 @@ void nwkRxInit(void)
 void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 {
 	NwkFrame_t *frame;
+	printf("\n\nDataInd ind->data[0] %hhx", ind->data[0]);
 	// check frame control for a LL-Beacon frame
 	if(0x0c == ind->data[0])
 	{
@@ -189,14 +190,19 @@ void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 		// if frame receveid is LL-MACComand change state to LLCOMMAND
 		if(ind->data[0] == 0x8c) 
 			frame->state = NWK_RX_STATE_LLACKFRAME;
-		else 
+		else
+		{ 
 			frame->state = NWK_RX_STATE_LLCOMMAND;
+		}
 	}
 
 	frame->size = ind->size;
+	printf("\nframe->size = %hhx", frame->size);
 	frame->rx.lqi = ind->lqi;
 	frame->rx.rssi = ind->rssi;
 	memcpy(frame->data, ind->data, ind->size);
+	printf("\nframe->payload[2] = %hhx", frame->payload[2]);
+
 }
 
 /*************************************************************************//**
@@ -600,6 +606,8 @@ static bool nwkRxIndicateLLBeaconFrame(NwkFrame_t *frame)
 
 static bool nwkRxIndicateLLCommandFrame(NwkFrame_t *frame)
 {
+	
+	
 	NwkFrameGeneralHeaderLLDN_t *header = &frame->LLgeneral;
 	NWK_DataInd_t ind;
 
@@ -618,12 +626,13 @@ static bool nwkRxIndicateLLCommandFrame(NwkFrame_t *frame)
 	ind.dstEndpoint = 0;
 
 	ind.data = frame->payload;
+	
 	ind.size = nwkFramePayloadSize(frame);
 	ind.lqi = frame->rx.lqi;
 	ind.rssi = frame->rx.rssi;
 
 	ind.options	= NWK_IND_OPT_LLDN_MACCOMMAND;
-
+	
 	return nwkIb.endpoint[APP_COMMAND_ENDPOINT](&ind);
 }
 

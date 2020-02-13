@@ -64,6 +64,11 @@ Estado_t state = INIT;
 static SYS_Timer_t	tmrInit;				// Feedback
 static NWK_DataReq_t msgReq;
 
+static NWK_DiscoverResponse_t msgDiscResponse = { .id = LL_DISCOVER_RESPONSE,
+												.macAddr = APP_ADDR,
+												.ts_dir.tsDuration = 0x01,
+												.ts_dir.dirIndicator = 1 };
+
 static void tmrDelayHandler(SYS_Timer_t *timer)
 {
 	printf("\nsw timer");
@@ -85,6 +90,14 @@ static bool appBeaconInd(NWK_DataInd_t *ind)
 	NwkFrameBeaconHeaderLLDN_t *beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
 	
 	printf("\nBeacon Recebido %d", beacon->TimeSlotSize);
+	return true;
+}
+
+static bool appMacCommandInd(NWK_DataInd_t *ind)
+{
+	// NwkFrameBeaconHeaderLLDN_t *beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
+	
+	printf("\Command Recebido");
 	return true;
 }
 
@@ -121,13 +134,15 @@ void APP_TaskHandler(void)
 			macsc_enable_cmp_int(MACSC_CC1);
 			macsc_use_cmp(MACSC_RELATIVE_CMP, 300, MACSC_CC1);
 			NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);			
+			NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appMacCommandInd);
 			
 			msgReq.dstAddr				= 0;
 			msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
 			msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
-			msgReq.options				= NWK_OPT_LLDN_BEACON;
-			msgReq.data					= 0;
-			msgReq.size					= 0;
+			msgReq.options				= NWK_OPT_MAC_COMMAND;
+			msgReq.data					= (uint8_t*)&msgDiscResponse;
+			msgReq.size					= sizeof(msgDiscResponse);
+
 			NWK_DataReq(&msgReq);
 			
 			/*
