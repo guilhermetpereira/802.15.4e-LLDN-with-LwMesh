@@ -60,9 +60,6 @@
 #define AES_CORE_CYCLE_TIME            24 /* us */
 #define RANDOM_NUMBER_UPDATE_INTERVAL  1 /* us */
 
-/* Typed memory access macro */
-#define MMIO_REG(mem_addr, type) (*(volatile type *)(mem_addr))
-
 /*- Types ------------------------------------------------------------------*/
 #define TRX_STATUS_REG    0x01
 #define TRX_STATE_REG     0x02
@@ -84,22 +81,7 @@
 #define XOSC_CTRL_REG     0x12
 #define RX_SYN_REG        0x15
 #define TRX_RPC_REG       0x16
-
 #define XAH_CTRL_1_REG    0x17
-
-// #define XAH_CTRL_1_REG   MMIO_REG(0x17, uint8_t)
-// #define XAH_CTRL_1_REG_s MMIO_REG(0x17, struct __struct_XAH_CTRL_1_REG)
-// struct __struct_XAH_CTRL_1_REG {
-//	uint8_t aackSpcEn			: 1;
-//	uint8_t aackPromMode		: 1; /* Enable Acknowledgment in Promiscuous Mode */
-//	uint8_t aackAckTime   : 1; /* Reduce Acknowledgment Time */
-//	uint8_t               : 1;
-//	uint8_t aackUpldResFt : 1; /* Process Reserved Frames */
-//	uint8_t aackFltrResFt : 1; /* Filter Reserved Frames */
-//	uint8_t               : 1;
-//	uint8_t aret_tx_ts_en : 1; 
-//};
-
 #define FTN_CTRL_REG      0x18
 #define XAH_CTRL_2_REG    0x19
 #define PLL_CF_REG        0x1a
@@ -122,19 +104,7 @@
 #define IEEE_ADDR_7_REG   0x2b
 #define XAH_CTRL_0_REG    0x2c
 #define CSMA_SEED_0_REG   0x2d
-
 #define CSMA_SEED_1_REG   0x2e
-/* Transceiver Acknowledgment Frame Control Register 2 */
-// #define CSMA_SEED_1_REG   MMIO_REG(0x2e, uint8_t)
-// #define CSMA_SEED_1_REG_s MMIO_REG(0x2e, struct __struct_CSMA_SEED_1_REG)
-// struct __struct_CSMA_SEED_1_REG {
-//	uint8_t csmaSeed_1   : 3; /* Seed Value for CSMA Random Number Generator */
-//	uint8_t aackIAmCoord : 1; /* Set Personal Area Network Coordinator */
-//	uint8_t aackDisAck   : 1; /* Disable Acknowledgment Frame Transmission */
-//	uint8_t aackSetPd    : 1; /* Set Frame Pending Sub-field */
-//	uint8_t aackFvnMode  : 2; /* Acknowledgment Frame Filter Mode */
-// };
-
 #define CSMA_BE_REG       0x2f
 #define TST_CTRL_DIGI_REG 0x36
 #define PHY_TX_TIME_REG   0x3b

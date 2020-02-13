@@ -168,8 +168,8 @@ void PHY_SetPromiscuousMode(bool mode)
 
 void PHY_SetOptimizedCSMAValues(void)
 {
-	CSMA_BE_REG_s.minBe = 0x03;
-	CSMA_BE_REG_s.maxBe = 0x08;
+	// CSMA_BE_REG_s.minBe = 0x08;
+	// CSMA_BE_REG_s.maxBe = 0x08;
 	CSMA_SEED_0_REG = (uint8_t)PHY_RandomReq();
 }
 

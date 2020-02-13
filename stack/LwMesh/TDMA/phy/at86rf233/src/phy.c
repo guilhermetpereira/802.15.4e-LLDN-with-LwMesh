@@ -110,37 +110,6 @@ void PHY_Init(void)
 	ioport_set_pin_level(AT86RFX_CSD, IOPORT_PIN_LEVEL_HIGH);
 #endif // EXT_RF_FRONT_END_CTRL
 }
-
-void PHY_SetPromiscuousMode(bool mode)
-{
-	uint8_t ieee_address[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-
-	if(mode)
-	{
-		PHY_SetShortAddr(0);
-		PHY_SetPanId(0);
-		PHY_SetIEEEAddr(ieee_address);
-
-		// AACK_UPLD_RES_FT = 1, AACK_FLT_RES_FT = 0:
-		//	Any non-corrupted frame with a reserved frame type is indicated by a
-		//	TRX24_RX_END interrupt. No further address filtering is applied on those frames.
-		//	A TRX24_AMI interrupt is never generated and the acknowledgment subfield is
-		//	ignored.
-
-		phyWriteRegister(XAH_CTRL_1_REG, (1 << AACK_PROM_MODE) |	// enable promiscuous mode
-										 (1 << AACK_UPLD_RES_FT) |	// enable reserved frame type reception
-										 (1 << AACK_FLTR_RES_FT) );	// enable reserved frame types filtering
-		
-		phyWriteRegister(CSMA_SEED_1_REG, (1 << AACK_DIS_ACK));							  
-	}
-	else
-	{
-		// XAH_CTRL_1_REG = 0;
-		// CSMA_SEED_1_REG_s.aackDisAck = 0;
-	}
-}
-
-
 void PHY_SetTdmaMode(bool mode)
 {
 	uint8_t		reg					= phyReadRegister(CSMA_SEED_1_REG);
@@ -158,6 +127,7 @@ void PHY_SetTdmaMode(bool mode)
 		phyWriteRegister(CSMA_SEED_1_REG, reg);
 	}
 }
+
 
 /*************************************************************************//**
 *****************************************************************************/
@@ -252,7 +222,6 @@ void PHY_Wakeup(void)
 
 void PHY_DataReq(uint8_t *data, uint8_t size)
 {
-	(void*)size;
 #if (ANTENNA_DIVERSITY == 1)
 #endif // ANTENNA_DIVERSITY
 #ifdef EXT_RF_FRONT_END_CTRL
@@ -262,16 +231,12 @@ void PHY_DataReq(uint8_t *data, uint8_t size)
 	phyTrxSetState(TRX_CMD_TX_ARET_ON);
 
 	phyReadRegister(IRQ_STATUS_REG);
+
 	/* size of the buffer is sent as first byte of the data
 	 * and data starts from second byte.
 	 */
-	data[0] += 0;
-	for (int i = size; i > 0; i--)
-	{
-		data[i] = data[i-1];
-		
-	}
-	trx_frame_write(data, size +1 /*(data[0] - 1)  length value*/);
+	data[0] += 2;
+	trx_frame_write(data, size /* length value*/);
 
 	phyState = PHY_STATE_TX_WAIT_END;
 
@@ -426,9 +391,8 @@ void PHY_TaskHandler(void)
 		return;
 	}
 
-if (phyReadRegister(IRQ_STATUS_REG) & (1 << TRX_END)) {
-		
-	if (PHY_STATE_IDLE == phyState) {
+	if (phyReadRegister(IRQ_STATUS_REG) & (1 << TRX_END)) {
+		if (PHY_STATE_IDLE == phyState) {
 			PHY_DataInd_t ind;
 			uint8_t size;
 			int8_t rssi;
