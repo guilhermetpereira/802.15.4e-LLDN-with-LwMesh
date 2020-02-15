@@ -252,7 +252,6 @@ void PHY_Wakeup(void)
 
 void PHY_DataReq(uint8_t *data, uint8_t size)
 {
-	(void*)size;
 	#if (ANTENNA_DIVERSITY == 1)
 	#endif // ANTENNA_DIVERSITY
 	#ifdef EXT_RF_FRONT_END_CTRL
@@ -262,11 +261,6 @@ void PHY_DataReq(uint8_t *data, uint8_t size)
 	phyTrxSetState(TRX_CMD_TX_ARET_ON);
 
 	phyReadRegister(IRQ_STATUS_REG);
-	for (int i = size + 1; i > 0; i--)
-	{
-		data[i] = data[i-1];
-		
-	}
 	
 	data[0] = size;
 	trx_frame_write(data, (data[0]));

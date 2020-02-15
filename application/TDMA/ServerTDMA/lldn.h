@@ -66,7 +66,7 @@ typedef enum {
 // payload structure for Discovery Response Frame
 typedef struct NWK_DiscoverResponse_t {
 	uint8_t id;
-	uint16_t macAddr;
+	uint8_t macAddr;
 	struct{
 		uint8_t tsDuration	 : 7;
 		uint8_t dirIndicator : 1;
@@ -78,7 +78,7 @@ typedef struct NWK_DiscoverResponse_t {
 		uint8_t id;
 		uint8_t s_macAddr;
 		uint8_t assTimeSlot;
-		uint16_t macAddr;
+		uint8_t macAddr;
 		struct{
 			uint8_t tsDuration 		: 7;
 			uint8_t dirIndicator 	: 1;

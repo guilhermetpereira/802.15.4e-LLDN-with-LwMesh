@@ -125,8 +125,13 @@ void nwkRxInit(void)
 void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 {
 	NwkFrame_t *frame;
-	printf("\n\nDataInd ind->data[0] %hhx", ind->data[0]);
+// 	printf("\n\nDataInd ind->data[0] %hhx", ind->data[0]);
 	// check frame control for a LL-Beacon frame
+		for (int i = 0; i < ind->size; i++)
+		{
+			printf("\ndata[%d] = %hhx", i, ind->data[i]);
+		}
+		printf("\n******end rx*******");
 	if(0x0c == ind->data[0])
 	{
 		if(ind->size < sizeof(NwkFrameBeaconHeaderLLDN_t))
@@ -197,11 +202,11 @@ void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 	}
 
 	frame->size = ind->size;
-	printf("\nframe->size = %hhx", frame->size);
+// 	printf("\nframe->size = %hhx", frame->size);
 	frame->rx.lqi = ind->lqi;
 	frame->rx.rssi = ind->rssi;
 	memcpy(frame->data, ind->data, ind->size);
-	printf("\nframe->payload[2] = %hhx", frame->payload[2]);
+// 	printf("\nframe->payload[2] = %hhx", frame->payload[2]);
 
 }
 

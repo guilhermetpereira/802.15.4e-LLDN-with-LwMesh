@@ -140,6 +140,9 @@ typedef struct  NwkFrameBeaconHeaderLLDN_t {
 } NwkFrameBeaconHeaderLLDN_t;
 
 typedef struct  NwkFrameGeneralHeaderLLDN_t {
+	#if (TAL_TYPE == AT86RF233)
+	// uint8_t PHR;
+	#endif
 	uint8_t macFcf;
 	uint8_t macSeqNumber;
 	struct

@@ -53,10 +53,10 @@ typedef enum Estado_t
 Estado_t state = IDLE;
 static SYS_Timer_t	tmrInit;				// Feedback
 static NWK_DataReq_t msgReq;
-static NWK_DiscoverResponse_t msgDiscResponse = { .id = LL_DISCOVER_RESPONSE,
-													.macAddr = APP_ADDR,
-													.ts_dir.tsDuration = 0x01,
-													.ts_dir.dirIndicator = 1 };
+static NWK_ConfigStatus_t msgDiscResponse = { .id = LL_DISCOVER_RESPONSE,
+	.macAddr = APP_ADDR,
+	.ts_dir.tsDuration = 0x01,
+.ts_dir.dirIndicator = 1 };
 
 int tmr_cont = 0;
 
@@ -103,12 +103,15 @@ void APP_TaskHandler(void)
 			* Configure interrupts callback functions
 			*/
 			
+			
 			msgDiscResponse.id = LL_DISCOVER_RESPONSE;
-			msgDiscResponse.macAddr = 0x0024;
-			msgDiscResponse.ts_dir.tsDuration = 0x05;
-			msgDiscResponse.ts_dir.dirIndicator = 0b0; 
+			msgDiscResponse.s_macAddr = 0x11;
+			msgDiscResponse.assTimeSlot = 0x22;
+			msgDiscResponse.macAddr = 0x24;
+			msgDiscResponse.ts_dir.tsDuration = (uint8_t)15;
+			msgDiscResponse.ts_dir.dirIndicator = 1 << 0;
 			
-			
+				
 			msgReq.dstAddr				= 0;
 			msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
 			msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;

@@ -95,9 +95,18 @@ static bool appBeaconInd(NWK_DataInd_t *ind)
 
 static bool appMacCommandInd(NWK_DataInd_t *ind)
 {
-	// NwkFrameBeaconHeaderLLDN_t *beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
+	NWK_DiscoverResponse_t *mac = (NWK_DiscoverResponse_t*)ind->data;
 	
-	printf("\Command Recebido");
+	for (int i = 0; i < ind->size; i++)
+	{
+		printf("\ndata[%d] = %hhx", i, ind->data[i]);
+	}
+
+	
+	printf("\nmac->id %hhx", mac->id);
+	printf("\nmac->macAddr %hhx", mac->macAddr);
+	printf("\nmac->tsDuration %d", mac->ts_dir.tsDuration);
+	printf("\nmac->dirIndicator %d", mac->ts_dir.dirIndicator);
 	return true;
 }
 
@@ -135,6 +144,12 @@ void APP_TaskHandler(void)
 			macsc_use_cmp(MACSC_RELATIVE_CMP, 300, MACSC_CC1);
 			NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);			
 			NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appMacCommandInd);
+			
+			msgDiscResponse.id = LL_DISCOVER_RESPONSE;
+			msgDiscResponse.macAddr = 0x24;
+			msgDiscResponse.ts_dir.tsDuration = (uint8_t)15;
+			msgDiscResponse.ts_dir.dirIndicator = 1 << 0;
+			
 			
 			msgReq.dstAddr				= 0;
 			msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
