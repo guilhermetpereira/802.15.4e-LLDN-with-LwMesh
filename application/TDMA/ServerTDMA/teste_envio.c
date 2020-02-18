@@ -151,12 +151,16 @@ void APP_TaskHandler(void)
 			msgDiscResponse.ts_dir.dirIndicator = 1 << 0;
 			
 			
-			msgReq.dstAddr				= 0;
-			msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
-			msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
-			msgReq.options				= NWK_OPT_MAC_COMMAND;
-			msgReq.data					= (uint8_t*)&msgDiscResponse;
-			msgReq.size					= sizeof(msgDiscResponse);
+// 			msgReq.dstAddr				= 0;
+// 			msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
+// 			msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
+// 			msgReq.options				= NWK_OPT_MAC_COMMAND;
+// 			msgReq.data					= (uint8_t*)&msgDiscResponse;
+// 			msgReq.size					= sizeof(msgDiscResponse);
+
+			msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE | NWK_OPT_SECOND_BEACON ;
+			msgReq.data = NULL;
+			msgReq.size = 0;
 
 			NWK_DataReq(&msgReq);
 			

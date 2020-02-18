@@ -46,6 +46,7 @@
 
 #if (MASTER_MACSC == 1)
 #include "macsc_megarf.h"
+#define TIMESLOT_TIMER 1
 #else
 static SYS_Timer_t				tmrBeaconInterval;			// Beacon
 static SYS_Timer_t				tmrComputeData;				// Compute data
@@ -83,9 +84,9 @@ static uint8_t PanId;
 												 .s_macAddr = APP_ADDR,
 												 .tx_channel = APP_CHANNEL,
 												 .conf.macLLDNmgmtTS = MacLLDNMgmtTS };
-	nodes_info_list_t *conf_req_list = 0;
-	
-	int index_nodes_array = 0;
+	nodes_info_list_t *conf_req_list = NULL;
+	int conf_req_arr[254];
+	int conf_req_index = 0;
 	/* Acknowledge Frame and Array */
 	NWK_ACKFormat_t ACKFrame;	// ACK Frame Payload used in Discovery State
 	int ACKFrame_size = 0;
@@ -138,7 +139,7 @@ static uint8_t PanId;
 	}
 	#endif
 	
-	static bool addToAckArray(uint16_t addres)
+	static bool addToAckArray(uint8_t addres)
 	{	
 		int pos =(int) addres / 8;
 		int bit_shift = 8 - (addres % 8);
@@ -148,55 +149,44 @@ static uint8_t PanId;
 			printf("\nAddres %d is already on ACK Array", addres);
 			return false;
 		}
-		
+		ACKFrame.ackFlags[pos] = 1 << bit_shift;
 		if (pos + 1 > ACKFrame_size)
-		ACKFrame_size = pos + 1;
+			ACKFrame_size = pos + 1;
+		
 		return true;
-	}
-
-	static void get_next_confreq(NWK_ConfigRequest_t *msg)
-	{
-		msg->assTimeSlot = conf_req_list->pos;
-		msg->macAddr = (uint8_t)conf_req_list->node->mac_addr;
-		
-		nodes_info_list_t* tmp = conf_req_list;
-		
-		conf_req_list = conf_req_list->next;
-		
-		tmp->node = 0;
-		tmp->next = 0;
-		free(tmp);
 	}
 
 	static void addConfRequestArray(NWK_ConfigStatus_t *node)
 	{
-		index_nodes_array++;
-		int i;
-		for (i = 0; nodes_info_arr[i].mac_addr != 0 && i < 255; i++);
+		//printf("conf_req_index : %d", conf_req_index);
+		conf_req_index++;
 		
-		if(config_request_frame.conf.tsDuration < node->ts_dir.tsDuration)
-			config_request_frame.conf.tsDuration = node->ts_dir.tsDuration;
+		if(node->ts_dir.tsDuration > config_request_frame.conf.tsDuration)
+		config_request_frame.conf.tsDuration = node->ts_dir.tsDuration;
 		
-		nodes_info_arr[i].mac_addr = node->macAddr;
-		nodes_info_arr[i].req_timeslot_duration = node->ts_dir.tsDuration;
-		/*
-		nodes_info_list_t* tmp = (nodes_info_list_t*)malloc( sizeof(nodes_info_list_t) );
-		tmp->node = &nodes_info_arr[i];
-		tmp->pos = i;
-		tmp->next = conf_req_list;
-		conf_req_list = tmp; */
+		// tem que atualizar o tamanho final
+		nodes_info_arr[conf_req_index].req_timeslot_duration = node->ts_dir.tsDuration;
+		nodes_info_arr[conf_req_index].mac_addr = node->macAddr;
+		nodes_info_arr[conf_req_index].assigned_time_slot = (uint8_t)conf_req_index;
+
 	}
+
+	static void CopyToConfigRequest(int i)
+	{
+		config_request_frame.assTimeSlot = nodes_info_arr[i].assigned_time_slot;
+		config_request_frame.macAddr = nodes_info_arr[i].mac_addr;
+	}
+
 
 	static bool appCommandInd(NWK_DataInd_t *ind)
 	{
 		if(ind->data[0] == LL_DISCOVER_RESPONSE)
 		{
 			NWK_DiscoverResponse_t *msg = (NWK_DiscoverResponse_t*)ind->data;
-			msg->macAddr = ind->data[2];
 			addToAckArray(msg->macAddr);	
 					
 			#if PRINT
-			printf("\nDISC %hhx", msg->ts_dir);	
+			printf("\nDISC %hhx", msg->macAddr);	
 			#endif
 		}
 		else if(ind->data[0] == LL_CONFIGURATION_STATUS)
@@ -217,16 +207,9 @@ static uint8_t PanId;
 		msgReq.dstEndpoint	= APP_BEACON_ENDPOINT;
 		msgReq.srcEndpoint	= APP_BEACON_ENDPOINT;
 		msgReq.options		= NWK_OPT_LLDN_ACK;
-		if(ACKFrame_size != 0)
-		{
-			msgReq.data	= (uint8_t *)&ACKFrame;
-			msgReq.size	= sizeof(uint8_t)*(ACKFrame_size + 1);
-		}
-		else
-		{
-			msgReq.data	= 0;
-			msgReq.size	= 0;
-		}
+		msgReq.data	= (uint8_t *)&ACKFrame;
+		msgReq.size	= sizeof(uint8_t)*(ACKFrame_size + 1);
+
 	}
 
 	static void appPanReset(void)
@@ -243,9 +226,9 @@ static uint8_t PanId;
 			ACKFrame.ackFlags[i] = 0;
 		for (int i = 0; i < 255; i++)
 			nodes_info_arr[i].mac_addr = 0;
-		
+			
 		ACKFrame_size = 0;
-		index_nodes_array = 0;
+		conf_req_index = 0;
 		counter_associados = 0;
 		n = 0;
 	}
@@ -330,11 +313,12 @@ static uint8_t PanId;
 	static NwkFrameBeaconHeaderLLDN_t *rec_beacon;
 	static NWK_DiscoverResponse_t msgDiscResponse = { .id = LL_DISCOVER_RESPONSE,
 													 .macAddr = APP_ADDR,
-													 .ts_dir.tsDuration = 0x01,
-													 .ts_dir.dirIndicator = 1 };
+													 .ts_dir.tsDuration = 4,
+													 .ts_dir.dirIndicator = 0b1 };
 	static NWK_ConfigStatus_t msgConfigStatus = { .id = LL_CONFIGURATION_STATUS,
-												 .macAddr = 0x0001,
-												 .s_macAddr = 0x0001,
+												 .macAddr = APP_ADDR,
+												 .s_macAddr = APP_ADDR,
+												 .ts_dir.tsDuration = 4,
 												 .ts_dir.dirIndicator = 1,
 												 .assTimeSlot = 0xff };
 	static bool ack_received;
@@ -355,8 +339,7 @@ static uint8_t PanId;
 		rec_beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
 		// é bom implementar rotinas pra se o nodo estiver associado a um coordeandor e se não estiver
 		PanId = rec_beacon->PanId; // só pode mudar se ele associar
-		
-		if( (rec_beacon->Flags.txState == DISC_MODE && !ack_received) || 
+		if( (rec_beacon->Flags.txState == DISC_MODE && !ack_received && rec_beacon->confSeqNumber == 0x00) || 
 			(rec_beacon->Flags.txState == CONFIG_MODE && ack_received))
 		{
 			int msg_wait_time = rec_beacon->Flags.numBaseMgmtTimeslots * rec_beacon->TimeSlotSize* 2; // symbols 190 is a delay adjustment
@@ -384,16 +367,19 @@ static uint8_t PanId;
 	
 	static bool appAckInd(NWK_DataInd_t *ind)
 	{
+		#if !MASTER_MACSC
+		// ind->data = ind->data - (uint8_t) 1;
+		#endif
 		NWK_ACKFormat_t *ackframe = (NWK_ACKFormat_t*)ind->data;
 		if(PanId == ackframe->sourceId)
 		{
-			int pos = APP_ADDR / 8;
+			int pos = (int) APP_ADDR / 8;
 			int bit_shift = 8 - APP_ADDR % 8;
 			if( ackframe->ackFlags[pos] & 1 << bit_shift)	
-				{
+			{
 				printf("\n ack true");
 				ack_received = true;
-				}
+			}
 		}
 		return true;
 	}
@@ -409,6 +395,8 @@ static uint8_t PanId;
 				NWK_SetPanId(msg->s_macAddr);
 				assTimeSlot = msg->assTimeSlot;
 				n = msg->conf.tsDuration;
+				bool associated = 1;
+				printf("\nRecebeu conf request");
 			}
 		}
 		return true;
@@ -524,7 +512,7 @@ static void APP_TaskHandler(void)
 					 * this implementation was done as is to be used in tests, for real network functionality 
 					 * the number of max association processes must be done through macLLDNdiscoveryModeTimeout
 					 */
-					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 1)
+					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 2)
 					{	
 						printf("\n%d, %d", cycles_counter, counter_associados);
 						counter_associados = 0;
@@ -555,7 +543,7 @@ static void APP_TaskHandler(void)
 					msgReq.size = 0;
 					
 					appState	= APP_PAN_STATE_DISC_PREPARE_ACK;
-					appPanState = APP_PAN_STATE_IDLE;
+					appPanState = APP_PAN_STATE_DISC_PREPARE_ACK;
 					break;
 				}
 				case APP_PAN_STATE_DISC_PREPARE_ACK:
@@ -566,7 +554,7 @@ static void APP_TaskHandler(void)
 					appPanPrepareACK();
 					SYS_TimerStart(&tmrDelay);
 					
-					appPanState = APP_STATE_IDLE; 
+					appPanState = APP_PAN_STATE_CONFIG_INITIAL; 
 					appState = APP_STATE_IDLE;
 					break;
 				}
@@ -595,21 +583,18 @@ static void APP_TaskHandler(void)
 				}
 				case APP_PAN_STATE_SEND_CONF_REQUEST:
 				{
-					/* Send Configuration Requests frames with delay between messages*/
-					if( conf_req_list != 0 )
-					{
-						
-						get_next_confreq(&config_request_frame);
 
+					if(conf_req_index > 0)
+					{
+						CopyToConfigRequest(conf_req_index);
 						msgReq.options		= NWK_OPT_MAC_COMMAND;
 						msgReq.data			= (uint8_t*)&config_request_frame;
 						msgReq.size			= sizeof(NWK_ConfigRequest_t);
-						
 						appState	= APP_STATE_IDLE;
 						appPanState = APP_PAN_STATE_SEND_CONF_REQUEST;
-						
-						counter_associados++;												
-						SYS_TimerStart(&tmrDelay);
+						conf_req_index--;
+						counter_associados++;
+						// SYS_TimerStart(&tmrDelay);
 					}
 					else
 					{
@@ -686,6 +671,7 @@ static void APP_TaskHandler(void)
 				timer_stop();
 				#endif
 			}
+			ack_received = 0;
 			appState = APP_STATE_IDLE;
 			break;
 		}

@@ -267,10 +267,8 @@ void PHY_DataReq(uint8_t *data, uint8_t size)
 
   TRX_FRAME_BUFFER(0) = size + PHY_CRC_SIZE;
   for (uint8_t i = 0; i < size; i++)
-  {
-	printf("\n%hhx", data[i]);
     TRX_FRAME_BUFFER(i+1) = data[i];
-  }
+	
   phyState = PHY_STATE_TX_WAIT_END;
   TRX_STATE_REG = TRX_CMD_TX_START;
 }

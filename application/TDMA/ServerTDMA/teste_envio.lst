@@ -2684,285 +2684,277 @@
  1059 04b4 8093 0000 		sts msgDiscResponse+2,r24
  152:teste_envio.c **** 			
  153:teste_envio.c **** 			
- 154:teste_envio.c **** 			msgReq.dstAddr				= 0;
- 1060               		.loc 6 154 0
- 1061 04b8 1092 0000 		sts msgReq+5+1,__zero_reg__
- 1062 04bc 1092 0000 		sts msgReq+5,__zero_reg__
- 155:teste_envio.c **** 			msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
- 1063               		.loc 6 155 0
- 1064 04c0 83E0      		ldi r24,lo8(3)
- 1065 04c2 8093 0000 		sts msgReq+7,r24
- 156:teste_envio.c **** 			msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
- 1066               		.loc 6 156 0
- 1067 04c6 83E0      		ldi r24,lo8(3)
- 1068 04c8 8093 0000 		sts msgReq+8,r24
- 157:teste_envio.c **** 			msgReq.options				= NWK_OPT_MAC_COMMAND;
- 1069               		.loc 6 157 0
- 1070 04cc 80E0      		ldi r24,0
- 1071 04ce 90E8      		ldi r25,lo8(-128)
- 1072 04d0 9093 0000 		sts msgReq+9+1,r25
- 1073 04d4 8093 0000 		sts msgReq+9,r24
- 158:teste_envio.c **** 			msgReq.data					= (uint8_t*)&msgDiscResponse;
- 1074               		.loc 6 158 0
- 1075 04d8 80E0      		ldi r24,lo8(msgDiscResponse)
- 1076 04da 90E0      		ldi r25,hi8(msgDiscResponse)
- 1077 04dc 9093 0000 		sts msgReq+13+1,r25
- 1078 04e0 8093 0000 		sts msgReq+13,r24
- 159:teste_envio.c **** 			msgReq.size					= sizeof(msgDiscResponse);
- 1079               		.loc 6 159 0
- 1080 04e4 83E0      		ldi r24,lo8(3)
- 1081 04e6 8093 0000 		sts msgReq+15,r24
+ 154:teste_envio.c **** // 			msgReq.dstAddr				= 0;
+ 155:teste_envio.c **** // 			msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
+ 156:teste_envio.c **** // 			msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
+ 157:teste_envio.c **** // 			msgReq.options				= NWK_OPT_MAC_COMMAND;
+ 158:teste_envio.c **** // 			msgReq.data					= (uint8_t*)&msgDiscResponse;
+ 159:teste_envio.c **** // 			msgReq.size					= sizeof(msgDiscResponse);
  160:teste_envio.c **** 
- 161:teste_envio.c **** 			NWK_DataReq(&msgReq);
- 1082               		.loc 6 161 0
- 1083 04ea 80E0      		ldi r24,lo8(msgReq)
- 1084 04ec 90E0      		ldi r25,hi8(msgReq)
- 1085 04ee 0E94 0000 		call NWK_DataReq
- 162:teste_envio.c **** 			
- 163:teste_envio.c **** 			/*
- 164:teste_envio.c **** 			* Configure interrupts callback functions
- 165:teste_envio.c **** 			*/
- 166:teste_envio.c **** 			state = IDLE;
- 1086               		.loc 6 166 0
- 1087 04f2 81E0      		ldi r24,lo8(1)
- 1088 04f4 8093 0000 		sts state,r24
- 167:teste_envio.c **** 			break;
- 1089               		.loc 6 167 0
- 1090 04f8 00C0      		rjmp .L28
- 1091               	.L31:
- 168:teste_envio.c **** 		}
- 169:teste_envio.c **** 		case IDLE:
- 170:teste_envio.c **** 		{
+ 161:teste_envio.c **** 			msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE | NWK_OPT_SECOND_BEACON ;
+ 1060               		.loc 6 161 0
+ 1061 04b8 80E4      		ldi r24,lo8(64)
+ 1062 04ba 99E0      		ldi r25,lo8(9)
+ 1063 04bc 9093 0000 		sts msgReq+9+1,r25
+ 1064 04c0 8093 0000 		sts msgReq+9,r24
+ 162:teste_envio.c **** 			msgReq.data = NULL;
+ 1065               		.loc 6 162 0
+ 1066 04c4 1092 0000 		sts msgReq+13+1,__zero_reg__
+ 1067 04c8 1092 0000 		sts msgReq+13,__zero_reg__
+ 163:teste_envio.c **** 			msgReq.size = 0;
+ 1068               		.loc 6 163 0
+ 1069 04cc 1092 0000 		sts msgReq+15,__zero_reg__
+ 164:teste_envio.c **** 
+ 165:teste_envio.c **** 			NWK_DataReq(&msgReq);
+ 1070               		.loc 6 165 0
+ 1071 04d0 80E0      		ldi r24,lo8(msgReq)
+ 1072 04d2 90E0      		ldi r25,hi8(msgReq)
+ 1073 04d4 0E94 0000 		call NWK_DataReq
+ 166:teste_envio.c **** 			
+ 167:teste_envio.c **** 			/*
+ 168:teste_envio.c **** 			* Configure interrupts callback functions
+ 169:teste_envio.c **** 			*/
+ 170:teste_envio.c **** 			state = IDLE;
+ 1074               		.loc 6 170 0
+ 1075 04d8 81E0      		ldi r24,lo8(1)
+ 1076 04da 8093 0000 		sts state,r24
  171:teste_envio.c **** 			break;
- 1092               		.loc 6 171 0
- 1093 04fa 0000      		nop
- 1094               	.L28:
+ 1077               		.loc 6 171 0
+ 1078 04de 00C0      		rjmp .L28
+ 1079               	.L31:
  172:teste_envio.c **** 		}
- 173:teste_envio.c **** 	}
- 174:teste_envio.c **** 	
- 175:teste_envio.c **** }
- 1095               		.loc 6 175 0
- 1096 04fc 0000      		nop
- 1097               	/* epilogue start */
- 1098 04fe DF91      		pop r29
- 1099 0500 CF91      		pop r28
- 1100 0502 0895      		ret
- 1101               		.cfi_endproc
- 1102               	.LFE135:
- 1104               		.section	.rodata
- 1105               	.LC0:
- 1106 0091 00        		.byte	0
- 1107 0092 C2        		.byte	-62
- 1108 0093 01        		.byte	1
- 1109 0094 00        		.byte	0
- 1110 0095 03        		.byte	3
- 1111 0096 00        		.byte	0
- 1112 0097 00        		.byte	0
- 1113               		.text
- 1114               	.global	main
- 1116               	main:
- 1117               	.LFB136:
- 176:teste_envio.c **** 
- 177:teste_envio.c **** int main(void)
- 178:teste_envio.c **** {
- 1118               		.loc 6 178 0
- 1119               		.cfi_startproc
- 1120 0504 0F93      		push r16
- 1121               	.LCFI50:
- 1122               		.cfi_def_cfa_offset 3
- 1123               		.cfi_offset 16, -2
- 1124 0506 1F93      		push r17
- 1125               	.LCFI51:
- 1126               		.cfi_def_cfa_offset 4
- 1127               		.cfi_offset 17, -3
- 1128 0508 CF93      		push r28
- 1129               	.LCFI52:
- 1130               		.cfi_def_cfa_offset 5
- 1131               		.cfi_offset 28, -4
- 1132 050a DF93      		push r29
- 1133               	.LCFI53:
- 1134               		.cfi_def_cfa_offset 6
- 1135               		.cfi_offset 29, -5
- 1136 050c CDB7      		in r28,__SP_L__
- 1137 050e DEB7      		in r29,__SP_H__
- 1138               	.LCFI54:
- 1139               		.cfi_def_cfa_register 28
- 1140 0510 2797      		sbiw r28,7
- 1141               	.LCFI55:
- 1142               		.cfi_def_cfa_offset 13
- 1143 0512 0FB6      		in __tmp_reg__,__SREG__
- 1144 0514 F894      		cli
- 1145 0516 DEBF      		out __SP_H__,r29
- 1146 0518 0FBE      		out __SREG__,__tmp_reg__
- 1147 051a CDBF      		out __SP_L__,r28
- 1148               	/* prologue: function */
- 1149               	/* frame size = 7 */
- 1150               	/* stack size = 11 */
- 1151               	.L__stack_usage = 11
- 179:teste_envio.c **** 	sysclk_init();
- 1152               		.loc 6 179 0
- 1153 051c 0E94 0000 		call sysclk_init
- 180:teste_envio.c **** 	board_init();
- 1154               		.loc 6 180 0
- 1155 0520 0E94 0000 		call board_init
- 181:teste_envio.c **** 
- 182:teste_envio.c **** 	SYS_Init();
- 1156               		.loc 6 182 0
- 1157 0524 0E94 0000 		call SYS_Init
- 183:teste_envio.c **** 	// Disable CSMA/CA
- 184:teste_envio.c **** 	// Disable auto ACK
- 185:teste_envio.c **** 	sm_init();
- 1158               		.loc 6 185 0
- 1159 0528 0E94 0000 		call sm_init
- 186:teste_envio.c **** 
- 187:teste_envio.c **** 	// Initialize interrupt vector table support.
- 188:teste_envio.c **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
- 189:teste_envio.c **** 	irq_initialize_vectors();
- 190:teste_envio.c **** 	#endif
- 191:teste_envio.c **** 	cpu_irq_enable();
- 1160               		.loc 6 191 0
- 1161               	/* #APP */
- 1162               	 ;  191 "teste_envio.c" 1
- 1163 052c 7894      		sei
- 1164               	 ;  0 "" 2
- 192:teste_envio.c **** 
- 193:teste_envio.c **** 	#if APP_COORDINATOR
- 194:teste_envio.c **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
- 195:teste_envio.c **** 	stdio_usb_init();
- 196:teste_envio.c **** 	#else
- 197:teste_envio.c **** 	const usart_serial_options_t usart_serial_options =
- 1165               		.loc 6 197 0
- 1166               	/* #NOAPP */
- 1167 052e 27E0      		ldi r18,lo8(7)
- 1168 0530 E0E0      		ldi r30,lo8(.LC0)
- 1169 0532 F0E0      		ldi r31,hi8(.LC0)
- 1170 0534 CE01      		movw r24,r28
- 1171 0536 0196      		adiw r24,1
- 1172 0538 DC01      		movw r26,r24
- 1173               		0:
- 1174 053a 0190      		ld r0,Z+
- 1175 053c 0D92      		st X+,r0
- 1176 053e 2A95      		dec r18
- 1177 0540 01F4      		brne 0b
- 198:teste_envio.c **** 	{
- 199:teste_envio.c **** 		.baudrate     = USART_HOST_BAUDRATE,
- 200:teste_envio.c **** 		.charlength   = USART_HOST_CHAR_LENGTH,
- 201:teste_envio.c **** 		.paritytype   = USART_HOST_PARITY,
- 202:teste_envio.c **** 		.stopbits     = USART_HOST_STOP_BITS
- 203:teste_envio.c **** 	};
- 204:teste_envio.c **** 
- 205:teste_envio.c **** 	stdio_serial_init(USART_HOST, &usart_serial_options);
- 1178               		.loc 6 205 0
- 1179 0542 CE01      		movw r24,r28
- 1180 0544 0196      		adiw r24,1
- 1181 0546 BC01      		movw r22,r24
- 1182 0548 80EC      		ldi r24,lo8(-64)
- 1183 054a 90E0      		ldi r25,0
- 1184 054c 0E94 0000 		call stdio_serial_init
- 206:teste_envio.c **** 	usart_double_baud_enable(USART_HOST);
- 1185               		.loc 6 206 0
- 1186 0550 80EC      		ldi r24,lo8(-64)
- 1187 0552 90E0      		ldi r25,0
- 1188 0554 0E94 0000 		call usart_double_baud_enable
- 207:teste_envio.c **** 	usart_set_baudrate_precalculated(USART_HOST, USART_HOST_BAUDRATE, sysclk_get_source_clock_hz());
- 1189               		.loc 6 207 0
- 1190 0558 0E94 0000 		call sysclk_get_source_clock_hz
- 1191 055c DC01      		movw r26,r24
- 1192 055e CB01      		movw r24,r22
- 1193 0560 8C01      		movw r16,r24
- 1194 0562 9D01      		movw r18,r26
- 1195 0564 40E0      		ldi r20,0
- 1196 0566 52EC      		ldi r21,lo8(-62)
- 1197 0568 61E0      		ldi r22,lo8(1)
- 1198 056a 70E0      		ldi r23,0
- 1199 056c 80EC      		ldi r24,lo8(-64)
- 1200 056e 90E0      		ldi r25,0
- 1201 0570 0E94 0000 		call usart_set_baudrate_precalculated
+ 173:teste_envio.c **** 		case IDLE:
+ 174:teste_envio.c **** 		{
+ 175:teste_envio.c **** 			break;
+ 1080               		.loc 6 175 0
+ 1081 04e0 0000      		nop
+ 1082               	.L28:
+ 176:teste_envio.c **** 		}
+ 177:teste_envio.c **** 	}
+ 178:teste_envio.c **** 	
+ 179:teste_envio.c **** }
+ 1083               		.loc 6 179 0
+ 1084 04e2 0000      		nop
+ 1085               	/* epilogue start */
+ 1086 04e4 DF91      		pop r29
+ 1087 04e6 CF91      		pop r28
+ 1088 04e8 0895      		ret
+ 1089               		.cfi_endproc
+ 1090               	.LFE135:
+ 1092               		.section	.rodata
+ 1093               	.LC0:
+ 1094 0091 00        		.byte	0
+ 1095 0092 C2        		.byte	-62
+ 1096 0093 01        		.byte	1
+ 1097 0094 00        		.byte	0
+ 1098 0095 03        		.byte	3
+ 1099 0096 00        		.byte	0
+ 1100 0097 00        		.byte	0
+ 1101               		.text
+ 1102               	.global	main
+ 1104               	main:
+ 1105               	.LFB136:
+ 180:teste_envio.c **** 
+ 181:teste_envio.c **** int main(void)
+ 182:teste_envio.c **** {
+ 1106               		.loc 6 182 0
+ 1107               		.cfi_startproc
+ 1108 04ea 0F93      		push r16
+ 1109               	.LCFI50:
+ 1110               		.cfi_def_cfa_offset 3
+ 1111               		.cfi_offset 16, -2
+ 1112 04ec 1F93      		push r17
+ 1113               	.LCFI51:
+ 1114               		.cfi_def_cfa_offset 4
+ 1115               		.cfi_offset 17, -3
+ 1116 04ee CF93      		push r28
+ 1117               	.LCFI52:
+ 1118               		.cfi_def_cfa_offset 5
+ 1119               		.cfi_offset 28, -4
+ 1120 04f0 DF93      		push r29
+ 1121               	.LCFI53:
+ 1122               		.cfi_def_cfa_offset 6
+ 1123               		.cfi_offset 29, -5
+ 1124 04f2 CDB7      		in r28,__SP_L__
+ 1125 04f4 DEB7      		in r29,__SP_H__
+ 1126               	.LCFI54:
+ 1127               		.cfi_def_cfa_register 28
+ 1128 04f6 2797      		sbiw r28,7
+ 1129               	.LCFI55:
+ 1130               		.cfi_def_cfa_offset 13
+ 1131 04f8 0FB6      		in __tmp_reg__,__SREG__
+ 1132 04fa F894      		cli
+ 1133 04fc DEBF      		out __SP_H__,r29
+ 1134 04fe 0FBE      		out __SREG__,__tmp_reg__
+ 1135 0500 CDBF      		out __SP_L__,r28
+ 1136               	/* prologue: function */
+ 1137               	/* frame size = 7 */
+ 1138               	/* stack size = 11 */
+ 1139               	.L__stack_usage = 11
+ 183:teste_envio.c **** 	sysclk_init();
+ 1140               		.loc 6 183 0
+ 1141 0502 0E94 0000 		call sysclk_init
+ 184:teste_envio.c **** 	board_init();
+ 1142               		.loc 6 184 0
+ 1143 0506 0E94 0000 		call board_init
+ 185:teste_envio.c **** 
+ 186:teste_envio.c **** 	SYS_Init();
+ 1144               		.loc 6 186 0
+ 1145 050a 0E94 0000 		call SYS_Init
+ 187:teste_envio.c **** 	// Disable CSMA/CA
+ 188:teste_envio.c **** 	// Disable auto ACK
+ 189:teste_envio.c **** 	sm_init();
+ 1146               		.loc 6 189 0
+ 1147 050e 0E94 0000 		call sm_init
+ 190:teste_envio.c **** 
+ 191:teste_envio.c **** 	// Initialize interrupt vector table support.
+ 192:teste_envio.c **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
+ 193:teste_envio.c **** 	irq_initialize_vectors();
+ 194:teste_envio.c **** 	#endif
+ 195:teste_envio.c **** 	cpu_irq_enable();
+ 1148               		.loc 6 195 0
+ 1149               	/* #APP */
+ 1150               	 ;  195 "teste_envio.c" 1
+ 1151 0512 7894      		sei
+ 1152               	 ;  0 "" 2
+ 196:teste_envio.c **** 
+ 197:teste_envio.c **** 	#if APP_COORDINATOR
+ 198:teste_envio.c **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
+ 199:teste_envio.c **** 	stdio_usb_init();
+ 200:teste_envio.c **** 	#else
+ 201:teste_envio.c **** 	const usart_serial_options_t usart_serial_options =
+ 1153               		.loc 6 201 0
+ 1154               	/* #NOAPP */
+ 1155 0514 27E0      		ldi r18,lo8(7)
+ 1156 0516 E0E0      		ldi r30,lo8(.LC0)
+ 1157 0518 F0E0      		ldi r31,hi8(.LC0)
+ 1158 051a CE01      		movw r24,r28
+ 1159 051c 0196      		adiw r24,1
+ 1160 051e DC01      		movw r26,r24
+ 1161               		0:
+ 1162 0520 0190      		ld r0,Z+
+ 1163 0522 0D92      		st X+,r0
+ 1164 0524 2A95      		dec r18
+ 1165 0526 01F4      		brne 0b
+ 202:teste_envio.c **** 	{
+ 203:teste_envio.c **** 		.baudrate     = USART_HOST_BAUDRATE,
+ 204:teste_envio.c **** 		.charlength   = USART_HOST_CHAR_LENGTH,
+ 205:teste_envio.c **** 		.paritytype   = USART_HOST_PARITY,
+ 206:teste_envio.c **** 		.stopbits     = USART_HOST_STOP_BITS
+ 207:teste_envio.c **** 	};
  208:teste_envio.c **** 
- 209:teste_envio.c **** 	#endif
- 210:teste_envio.c **** 	#endif
- 211:teste_envio.c **** 	
- 212:teste_envio.c **** 	
- 213:teste_envio.c **** 	 tmrInit.interval = 1000;
- 1202               		.loc 6 213 0
- 1203 0574 88EE      		ldi r24,lo8(-24)
- 1204 0576 93E0      		ldi r25,lo8(3)
- 1205 0578 A0E0      		ldi r26,0
- 1206 057a B0E0      		ldi r27,0
- 1207 057c 8093 0000 		sts tmrInit+6,r24
- 1208 0580 9093 0000 		sts tmrInit+6+1,r25
- 1209 0584 A093 0000 		sts tmrInit+6+2,r26
- 1210 0588 B093 0000 		sts tmrInit+6+3,r27
- 214:teste_envio.c **** 	 tmrInit.mode = SYS_TIMER_INTERVAL_MODE;
- 1211               		.loc 6 214 0
- 1212 058c 1092 0000 		sts tmrInit+10,__zero_reg__
- 215:teste_envio.c **** 	 tmrInit.handler = tmrDelayHandler;
- 1213               		.loc 6 215 0
- 1214 0590 80E0      		ldi r24,lo8(gs(tmrDelayHandler))
- 1215 0592 90E0      		ldi r25,hi8(gs(tmrDelayHandler))
- 1216 0594 9093 0000 		sts tmrInit+11+1,r25
- 1217 0598 8093 0000 		sts tmrInit+11,r24
- 1218               	.L33:
- 216:teste_envio.c **** 	 // SYS_TimerStart(&tmrInit);
- 217:teste_envio.c **** 
- 218:teste_envio.c **** 
- 219:teste_envio.c **** 	for(;;)
- 220:teste_envio.c **** 	{
- 221:teste_envio.c **** 		SYS_TaskHandler();
- 1219               		.loc 6 221 0 discriminator 1
- 1220 059c 0E94 0000 		call SYS_TaskHandler
- 222:teste_envio.c **** 		APP_TaskHandler();
- 1221               		.loc 6 222 0 discriminator 1
- 1222 05a0 0E94 0000 		call APP_TaskHandler
- 223:teste_envio.c **** 	}
- 1223               		.loc 6 223 0 discriminator 1
- 1224 05a4 00C0      		rjmp .L33
- 1225               		.cfi_endproc
- 1226               	.LFE136:
- 1228               	.Letext0:
- 1229               		.file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
- 1230               		.file 8 "../../../stack/LwMesh/TDMA/nwk/inc/nwkFrame.h"
- 1231               		.file 9 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
- 1232               		.file 10 "../../../stack/LwMesh/TDMA/nwk/inc/nwkDataReq.h"
- 1233               		.file 11 "../../../stack/LwMesh/TDMA/sys/inc/sysTimer.h"
- 1234               		.file 12 "../../../platform/mega_rf/drivers/sleep/sleep.h"
- 1235               		.file 13 "lldn.h"
- 1236               		.file 14 "../../../platform/mega_rf/utils/status_codes.h"
- 1237               		.file 15 "config/config.h"
- 1238               		.file 16 "../../../platform/common/services/sleepmgr/mega_rf/sleepmgr.h"
+ 209:teste_envio.c **** 	stdio_serial_init(USART_HOST, &usart_serial_options);
+ 1166               		.loc 6 209 0
+ 1167 0528 CE01      		movw r24,r28
+ 1168 052a 0196      		adiw r24,1
+ 1169 052c BC01      		movw r22,r24
+ 1170 052e 80EC      		ldi r24,lo8(-64)
+ 1171 0530 90E0      		ldi r25,0
+ 1172 0532 0E94 0000 		call stdio_serial_init
+ 210:teste_envio.c **** 	usart_double_baud_enable(USART_HOST);
+ 1173               		.loc 6 210 0
+ 1174 0536 80EC      		ldi r24,lo8(-64)
+ 1175 0538 90E0      		ldi r25,0
+ 1176 053a 0E94 0000 		call usart_double_baud_enable
+ 211:teste_envio.c **** 	usart_set_baudrate_precalculated(USART_HOST, USART_HOST_BAUDRATE, sysclk_get_source_clock_hz());
+ 1177               		.loc 6 211 0
+ 1178 053e 0E94 0000 		call sysclk_get_source_clock_hz
+ 1179 0542 DC01      		movw r26,r24
+ 1180 0544 CB01      		movw r24,r22
+ 1181 0546 8C01      		movw r16,r24
+ 1182 0548 9D01      		movw r18,r26
+ 1183 054a 40E0      		ldi r20,0
+ 1184 054c 52EC      		ldi r21,lo8(-62)
+ 1185 054e 61E0      		ldi r22,lo8(1)
+ 1186 0550 70E0      		ldi r23,0
+ 1187 0552 80EC      		ldi r24,lo8(-64)
+ 1188 0554 90E0      		ldi r25,0
+ 1189 0556 0E94 0000 		call usart_set_baudrate_precalculated
+ 212:teste_envio.c **** 
+ 213:teste_envio.c **** 	#endif
+ 214:teste_envio.c **** 	#endif
+ 215:teste_envio.c **** 	
+ 216:teste_envio.c **** 	
+ 217:teste_envio.c **** 	 tmrInit.interval = 1000;
+ 1190               		.loc 6 217 0
+ 1191 055a 88EE      		ldi r24,lo8(-24)
+ 1192 055c 93E0      		ldi r25,lo8(3)
+ 1193 055e A0E0      		ldi r26,0
+ 1194 0560 B0E0      		ldi r27,0
+ 1195 0562 8093 0000 		sts tmrInit+6,r24
+ 1196 0566 9093 0000 		sts tmrInit+6+1,r25
+ 1197 056a A093 0000 		sts tmrInit+6+2,r26
+ 1198 056e B093 0000 		sts tmrInit+6+3,r27
+ 218:teste_envio.c **** 	 tmrInit.mode = SYS_TIMER_INTERVAL_MODE;
+ 1199               		.loc 6 218 0
+ 1200 0572 1092 0000 		sts tmrInit+10,__zero_reg__
+ 219:teste_envio.c **** 	 tmrInit.handler = tmrDelayHandler;
+ 1201               		.loc 6 219 0
+ 1202 0576 80E0      		ldi r24,lo8(gs(tmrDelayHandler))
+ 1203 0578 90E0      		ldi r25,hi8(gs(tmrDelayHandler))
+ 1204 057a 9093 0000 		sts tmrInit+11+1,r25
+ 1205 057e 8093 0000 		sts tmrInit+11,r24
+ 1206               	.L33:
+ 220:teste_envio.c **** 	 // SYS_TimerStart(&tmrInit);
+ 221:teste_envio.c **** 
+ 222:teste_envio.c **** 
+ 223:teste_envio.c **** 	for(;;)
+ 224:teste_envio.c **** 	{
+ 225:teste_envio.c **** 		SYS_TaskHandler();
+ 1207               		.loc 6 225 0 discriminator 1
+ 1208 0582 0E94 0000 		call SYS_TaskHandler
+ 226:teste_envio.c **** 		APP_TaskHandler();
+ 1209               		.loc 6 226 0 discriminator 1
+ 1210 0586 0E94 0000 		call APP_TaskHandler
+ 227:teste_envio.c **** 	}
+ 1211               		.loc 6 227 0 discriminator 1
+ 1212 058a 00C0      		rjmp .L33
+ 1213               		.cfi_endproc
+ 1214               	.LFE136:
+ 1216               	.Letext0:
+ 1217               		.file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 1218               		.file 8 "../../../stack/LwMesh/TDMA/nwk/inc/nwkFrame.h"
+ 1219               		.file 9 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
+ 1220               		.file 10 "../../../stack/LwMesh/TDMA/nwk/inc/nwkDataReq.h"
+ 1221               		.file 11 "../../../stack/LwMesh/TDMA/sys/inc/sysTimer.h"
+ 1222               		.file 12 "../../../platform/mega_rf/drivers/sleep/sleep.h"
+ 1223               		.file 13 "lldn.h"
+ 1224               		.file 14 "../../../platform/mega_rf/utils/status_codes.h"
+ 1225               		.file 15 "config/config.h"
+ 1226               		.file 16 "../../../platform/common/services/sleepmgr/mega_rf/sleepmgr.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 teste_envio.c
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:2      *ABS*:0000003e __SP_H__
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:3      *ABS*:0000003d __SP_L__
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:4      *ABS*:0000003f __SREG__
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:5      *ABS*:0000003b __RAMPZ__
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:6      *ABS*:00000000 __tmp_reg__
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:2      *ABS*:0000003e __SP_H__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:3      *ABS*:0000003d __SP_L__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:4      *ABS*:0000003f __SREG__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:7      *ABS*:00000001 __zero_reg__
                             *COM*:00000001 n
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:15     .bss.tTS:00000000 tTS
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:19     .text:00000000 sysclk_get_main_hz
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:56     .text:0000001a sysclk_get_source_clock_hz
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:93     .progmem.data.baudctrl_1mhz:00000000 baudctrl_1mhz
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:105    .progmem.data.baudctrl_8mhz:00000000 baudctrl_8mhz
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:117    .progmem.data.baudctrl_16mhz:00000000 baudctrl_16mhz
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:128    .text:00000034 usart_double_baud_enable
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:177    .text:00000062 usart_serial_init
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:272    .text:000000de usart_serial_putchar
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:316    .text:00000106 usart_serial_getchar
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:367    .text:0000013c stdio_serial_init
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:438    .text:0000019e macsc_enable_manual_bts
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:492    .bss.state:00000000 state
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:497    .bss.tmrInit:00000000 tmrInit
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:502    .bss.msgReq:00000000 msgReq
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:507    .data.msgDiscResponse:00000000 msgDiscResponse
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:516    .text:000001d2 tmrDelayHandler
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:577    .text:0000020e hw_timer_handler
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:622    .text:00000234 appBeaconInd
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:705    .text:0000028e appMacCommandInd
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:913    .bss.count:00000000 count
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:920    .text:000003e6 lldn_server_beacon_t
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:975    .text:0000042a APP_TaskHandler
-C:\Users\GUILHE~1\AppData\Local\Temp\cclgW7EM.s:1116   .text:00000504 main
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:15     .bss.tTS:00000000 tTS
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:19     .text:00000000 sysclk_get_main_hz
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:56     .text:0000001a sysclk_get_source_clock_hz
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:93     .progmem.data.baudctrl_1mhz:00000000 baudctrl_1mhz
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:105    .progmem.data.baudctrl_8mhz:00000000 baudctrl_8mhz
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:117    .progmem.data.baudctrl_16mhz:00000000 baudctrl_16mhz
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:128    .text:00000034 usart_double_baud_enable
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:177    .text:00000062 usart_serial_init
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:272    .text:000000de usart_serial_putchar
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:316    .text:00000106 usart_serial_getchar
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:367    .text:0000013c stdio_serial_init
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:438    .text:0000019e macsc_enable_manual_bts
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:492    .bss.state:00000000 state
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:497    .bss.tmrInit:00000000 tmrInit
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:502    .bss.msgReq:00000000 msgReq
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:507    .data.msgDiscResponse:00000000 msgDiscResponse
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:516    .text:000001d2 tmrDelayHandler
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:577    .text:0000020e hw_timer_handler
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:622    .text:00000234 appBeaconInd
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:705    .text:0000028e appMacCommandInd
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:913    .bss.count:00000000 count
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:920    .text:000003e6 lldn_server_beacon_t
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:975    .text:0000042a APP_TaskHandler
+C:\Users\GUILHE~1\AppData\Local\Temp\ccuyzREE.s:1104   .text:000004ea main
 
 UNDEFINED SYMBOLS
 usart_init_rs232
