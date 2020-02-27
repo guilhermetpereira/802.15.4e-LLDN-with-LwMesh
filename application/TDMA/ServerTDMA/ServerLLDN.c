@@ -146,7 +146,7 @@ static uint8_t PanId;
 		
 		if(ACKFrame.ackFlags[pos] & 1 << bit_shift)
 		{
-			printf("\nAddres %d is already on ACK Array", addres);
+			printf("\nAddr rep %d", addres);
 			return false;
 		}
 		ACKFrame.ackFlags[pos] = 1 << bit_shift;
@@ -162,7 +162,7 @@ static uint8_t PanId;
 		conf_req_index++;
 		
 		if(node->ts_dir.tsDuration > config_request_frame.conf.tsDuration)
-		config_request_frame.conf.tsDuration = node->ts_dir.tsDuration;
+		config_request_frame.conf.tsDuration =  ((p_var*sp + (m+ node->ts_dir.tsDuration )*sm + macMinLIFSPeriod)/v_var);
 		
 		// tem que atualizar o tamanho final
 		nodes_info_arr[conf_req_index].req_timeslot_duration = node->ts_dir.tsDuration;
@@ -327,6 +327,7 @@ static uint8_t PanId;
 	
 	static void send_message_timeHandler(void)
 	{
+		printf("\nTIMER");
 		appState = APP_STATE_SEND;	
 		#if MASTER_MACSC == 0
 			timer_stop();
@@ -339,10 +340,13 @@ static uint8_t PanId;
 		rec_beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
 		// é bom implementar rotinas pra se o nodo estiver associado a um coordeandor e se não estiver
 		PanId = rec_beacon->PanId; // só pode mudar se ele associar
-		if( (rec_beacon->Flags.txState == DISC_MODE && !ack_received && rec_beacon->confSeqNumber == 0x00) || 
-			(rec_beacon->Flags.txState == CONFIG_MODE && ack_received))
+		if( ((rec_beacon->Flags.txState == DISC_MODE && !ack_received && rec_beacon->confSeqNumber == 0x00) || 
+			(rec_beacon->Flags.txState == CONFIG_MODE && ack_received)) && associated == 0)
 		{
-			int msg_wait_time = rec_beacon->Flags.numBaseMgmtTimeslots * rec_beacon->TimeSlotSize* 2; // symbols 190 is a delay adjustment
+	
+			int ts_time =  ((p_var*sp + (m+ rec_beacon->TimeSlotSize  )*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
+			int msg_wait_time = rec_beacon->Flags.numBaseMgmtTimeslots * rec_beacon->TimeSlotSize * 2; // symbols 190 is a delay adjustment
+			printf("\n TimeSlotSize %d", rec_beacon->TimeSlotSize);
 			#if MASTER_MACSC
 				macsc_enable_manual_bts();
 				macsc_set_cmp1_int_cb(send_message_timeHandler);
@@ -350,7 +354,7 @@ static uint8_t PanId;
 				macsc_use_cmp(MACSC_RELATIVE_CMP, msg_wait_time - 250, MACSC_CC1);
 			#else
 				timer_init();
-				timer_delay(msg_wait_time/2 - 100);
+				timer_delay(msg_wait_time/2);
 				hw_timer_setup_handler(send_message_timeHandler);
 				timer_start();
 			#endif
@@ -368,7 +372,7 @@ static uint8_t PanId;
 	static bool appAckInd(NWK_DataInd_t *ind)
 	{
 		#if !MASTER_MACSC
-		// ind->data = ind->data - (uint8_t) 1;
+		ind->data = ind->data - (uint8_t) 1;
 		#endif
 		NWK_ACKFormat_t *ackframe = (NWK_ACKFormat_t*)ind->data;
 		if(PanId == ackframe->sourceId)
@@ -386,6 +390,10 @@ static uint8_t PanId;
 	
 	static bool appCommandInd(NWK_DataInd_t *ind)
 	{
+		#if !MASTER_MACSC
+		ind->data = ind->data - (uint8_t) 1;
+		#endif
+		
 		if(ind->data[0] == LL_CONFIGURATION_REQUEST)
 		{
 			NWK_ConfigRequest_t *msg = (NWK_ConfigRequest_t*)ind->data;
@@ -395,7 +403,7 @@ static uint8_t PanId;
 				NWK_SetPanId(msg->s_macAddr);
 				assTimeSlot = msg->assTimeSlot;
 				n = msg->conf.tsDuration;
-				bool associated = 1;
+				associated = 1;
 				printf("\nRecebeu conf request");
 			}
 		}
@@ -431,11 +439,10 @@ static void appInit(void)
 	PHY_SetRxState(true);
 		
 	#if APP_COORDINATOR	 
-	printf("\n Inicio.."); 
-	  /* Timer used for delay between messages */
-	  tmrDelay.interval = 2;
-	  tmrDelay.mode = SYS_TIMER_INTERVAL_MODE;
-	  tmrDelay.handler = tmrDelayHandler;
+		/* Timer used for delay between messages */
+		tmrDelay.interval = 2;
+		tmrDelay.mode = SYS_TIMER_INTERVAL_MODE;
+		tmrDelay.handler = tmrDelayHandler;
 	  
 		/* 
 		* Disable CSMA/CA
@@ -445,7 +452,7 @@ static void appInit(void)
 		PanId = APP_PANID;
 		ACKFrame.sourceId = APP_PANID;
 		PHY_SetTdmaMode(true);
-		NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appCommandInd);
+	NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appCommandInd);
 	#else
 		/*
 		 * Enable CSMA/CA
@@ -594,7 +601,7 @@ static void APP_TaskHandler(void)
 						appPanState = APP_PAN_STATE_SEND_CONF_REQUEST;
 						conf_req_index--;
 						counter_associados++;
-						// SYS_TimerStart(&tmrDelay);
+						SYS_TimerStart(&tmrDelay);
 					}
 					else
 					{

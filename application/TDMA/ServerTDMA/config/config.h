@@ -91,7 +91,7 @@
 #define macLLDNdiscoveryModeTimeout 1 // defined based on number of cycles
 
 uint8_t n; // Expected maximum number of octets of data payload
-static float tTS;
+float tTS;
 
 #define numBaseTimeSlotperMgmt  2
  

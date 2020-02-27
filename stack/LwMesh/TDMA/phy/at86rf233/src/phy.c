@@ -262,7 +262,7 @@ void PHY_DataReq(uint8_t *data, uint8_t size)
 
 	phyReadRegister(IRQ_STATUS_REG);
 	
-	data[0] = size;
+	data[0] = size + 1;
 	trx_frame_write(data, (data[0]));
 
 	phyState = PHY_STATE_TX_WAIT_END;
