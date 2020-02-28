@@ -36,6 +36,7 @@ typedef enum {
 		APP_PAN_STATE_CONFIG_THIRD_BEACON,
 		APP_PAN_STATE_ONLINE_INITIAL,
 		APP_PAN_STATE_ONLINE_END_BE,
+		APP_PAN_STATE_CHECK_TS,
 	} AppPanState_t;
 	
 	typedef struct nodes_info_t{
