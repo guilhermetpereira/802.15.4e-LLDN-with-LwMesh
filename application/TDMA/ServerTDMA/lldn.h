@@ -42,13 +42,6 @@ typedef enum {
 		uint8_t assigned_time_slot;
 		uint16_t mac_addr;
 		uint8_t req_timeslot_duration;
-		unsigned int number_message_losts;
-		uint8_t data[NWK_MAX_PAYLOAD_SIZE];
-		int8_t rssi;
-		uint8_t lqi;
-		bool cooperative;
-		// implementar vizinhos
-		// implementar coperantes
 	}nodes_info_t;
 	
 	typedef struct nodes_info_list_t{
