@@ -84,14 +84,14 @@ static uint8_t PanId;
 												 .s_macAddr = APP_ADDR,
 												 .tx_channel = APP_CHANNEL,
 												 .conf.macLLDNmgmtTS = MacLLDNMgmtTS };
-	uint8_t arr_slots[256];
+	nodes_info_list_t *conf_req_list = NULL;
 	int conf_req_arr[254];
 	int conf_req_index = 0;
 	/* Acknowledge Frame and Array */
 	NWK_ACKFormat_t ACKFrame;	// ACK Frame Payload used in Discovery State
 	int ACKFrame_size = 0;
-	int counter_online = 100;
-	unsigned int beaconInterval = 0; // não precisa ser global
+
+	float beaconInterval = 0; // não precisa ser global
 	
 	int macLLDNnumUplinkTS = 0;		// Number of uplink timeslots, is also the control of associated nodes, further implementations must be done
 	
@@ -101,10 +101,9 @@ static uint8_t PanId;
 	static SYS_Timer_t tmrDelay;	
 	
 	/*  Control variables for testing */	
-	int assTimeSlot = 0;
 	int counter_associados = 0;		// Associated nodes counter
 	uint8_t cycles_counter = macLLDNdiscoveryModeTimeout;
-	uint8_t timeslot_counter = 0;
+
 	
 	static void tmrDelayHandler(SYS_Timer_t *timer)
 	{
@@ -117,12 +116,6 @@ static uint8_t PanId;
 		appState = APP_STATE_SEND;
 	}
 	
-	static void time_slot_handler(void)
-	{
-		macsc_enable_manual_bts();
-		appState = APP_STATE_ATT_PAN_STATE;
-	}
-	
 	static void downlink_delay_handler(void)
 	{
 		if(msgReq.options == NWK_OPT_LLDN_ACK)
@@ -133,8 +126,8 @@ static uint8_t PanId;
 
 	static void end_of_online_handler(void)
 	{
-		printf("\n END ONLINE HANDLER");
 		appState = APP_STATE_ATT_PAN_STATE;
+		appPanState = APP_PAN_STATE_ONLINE_END_BE;
 	}
 	
 	#if TIMESLOT_TIMER
@@ -167,18 +160,14 @@ static uint8_t PanId;
 	{
 		//printf("conf_req_index : %d", conf_req_index);
 		conf_req_index++;
-		uint8_t i;
-		for (i= 0;i < 256 && arr_slots[i] == 1; i++);
-		arr_slots[i] = 1;
-		assTimeSlot++;
-		printf("\nassTimeSlot %d", assTimeSlot);
+		
 		if(node->ts_dir.tsDuration > config_request_frame.conf.tsDuration)
-		config_request_frame.conf.tsDuration = node->ts_dir.tsDuration;
+		config_request_frame.conf.tsDuration =  ((p_var*sp + (m+ node->ts_dir.tsDuration )*sm + macMinLIFSPeriod)/v_var);
 		
 		// tem que atualizar o tamanho final
 		nodes_info_arr[conf_req_index].req_timeslot_duration = node->ts_dir.tsDuration;
 		nodes_info_arr[conf_req_index].mac_addr = node->macAddr;
-		nodes_info_arr[conf_req_index].assigned_time_slot = (uint8_t)i;
+		nodes_info_arr[conf_req_index].assigned_time_slot = (uint8_t)conf_req_index;
 
 	}
 
@@ -236,11 +225,8 @@ static uint8_t PanId;
 		for(int i = 0; i < 32; i++)
 			ACKFrame.ackFlags[i] = 0;
 		for (int i = 0; i < 255; i++)
-		{
-			arr_slots[i] = 0;
 			nodes_info_arr[i].mac_addr = 0;
-		}
-		assTimeSlot = MacLLDNMgmtTS * 2;
+			
 		ACKFrame_size = 0;
 		conf_req_index = 0;
 		counter_associados = 0;
@@ -299,23 +285,23 @@ static uint8_t PanId;
 
 	static void appPanOnlineInit()
 	{
-		timeslot_counter = 0;
-		
- 		tTS =  ((p_var*sp + (m+ /*config_request_frame.conf.tsDuration */ 127.0 )*sm + macMinLIFSPeriod)/v_var);
-		
-		// (number of time slots x mgmt time solts) x base timelosts
- 		beaconInterval = (assTimeSlot + MacLLDNMgmtTS*numBaseTimeSlotperMgmt) * tTS / (SYMBOL_TIME); 
-		
+		/*
+		tTS =  ((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var);
+		// beaconInterval = (assTimeSlot + MacLLDNMgmtTS*numBaseTimeSlotperMgmt) * tTS / (SYMBOL_TIME); // (number of time slots x mgmt time solts) x base timelosts
 		// Configure Timers
-		macsc_set_cmp1_int_cb(time_slot_handler);
-		
+		macsc_set_cmp1_int_cb(end_of_online_handler);
 		macsc_enable_manual_bts();
-		
 		macsc_enable_cmp_int(MACSC_CC1);
-		macsc_use_cmp(MACSC_RELATIVE_CMP, tTS / (SYMBOL_TIME), MACSC_CC1);
+		macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval, MACSC_CC1);
 		
-		appPanState = APP_PAN_STATE_CHECK_TS;
-	
+		/* prepares online beacon , PRECISA SER REVISADO COM A NORMA, ESTOU EM DÚVIDA NO TIMESLOTE SIZE, TALVEZ MUDAR NO DATAREQ EM VEZ DE n COLOCAR tTS*/  
+		msgReq.dstAddr				= 0;
+		msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
+		msgReq.srcEndpoint			= APP_BEACON_ENDPOINT;
+		msgReq.options				= NWK_OPT_LLDN_BEACON | NWK_OPT_ONLINE_STATE;
+		msgReq.data					= NULL;
+		msgReq.size					= 0;
+		
 	}
 
 
@@ -538,13 +524,12 @@ static void APP_TaskHandler(void)
 						printf("\n%d, %d", cycles_counter, counter_associados);
 						counter_associados = 0;
 						/* if all nodes expected where associated stop beacon generation interruptions */
-						// macsc_disable_cmp_int(MACSC_CC1);
-						// macsc_disable_cmp_int(MACSC_CC2);
+						macsc_disable_cmp_int(MACSC_CC1);
+						macsc_disable_cmp_int(MACSC_CC2);
 						msgReq.options = 0;
 						/* set coordinator node to idle further implementation of online state must be done */
-						appState = APP_STATE_ATT_PAN_STATE;
-						appPanState = APP_PAN_STATE_ONLINE_INITIAL; // APP_PAN_STATE_ONLINE_INIT
-						printf("\nassTimeSlots %d", assTimeSlot);
+						appState = APP_STATE_IDLE;
+						appPanState = APP_PAN_STATE_IDLE; // APP_PAN_STATE_ONLINE_INIT
 						
 					}
 					/* if not all nodes expected where associated run through association process again */
@@ -641,23 +626,6 @@ static void APP_TaskHandler(void)
 					appPanOnlineInit();
 					break;
 				}
-				case APP_PAN_STATE_CHECK_TS:
-				{
-					if(timeslot_counter >= assTimeSlot)
-					{
-						printf("\nFim de um Período");
-						macsc_disable_cmp_int(MACSC_CC1);
-						macsc_disable_cmp_int(MACSC_CC2);
-						appState = APP_STATE_IDLE;
-						appPanState = APP_PAN_STATE_IDLE;	
-					}
-					else
-					{
-						printf("\n------- slot %d --------", timeslot_counter);
-						appState = APP_STATE_IDLE;
-						timeslot_counter++;
-					}
-				}
 				case APP_PAN_STATE_ONLINE_END_BE:
 				{
 					if(0)
@@ -669,15 +637,13 @@ static void APP_TaskHandler(void)
 						// posso calcular esse valor no onlineinit, o tTS precisa ser recalculado, o seu valor muda no inicio do online, talvez definir este valor ? 
 						// pode voltar pro state_online_initial porque precisa reconfigurar os timers
 						// precisa revisar o macsc_enable_manual_bts()
-						
-						tTS =  ((p_var*sp + (m+127)*sm + macMinLIFSPeriod)/v_var);
-
+						/*
 						int idle_time =  2 * numBaseTimeSlotperMgmt * (tTS) * 5 / (SYMBOL_TIME); // 5 is the total of beacons in discovery + configuration
 						macsc_set_cmp1_int_cb(lldn_server_beacon); // esta função pode só mandar o beacon do online, checar se não precisa atualizar em nada este beacon, seq number é atualizado sozinho
 						macsc_enable_manual_bts();
 						macsc_enable_cmp_int(MACSC_CC1);
 						macsc_use_cmp(MACSC_RELATIVE_CMP, idle_time, MACSC_CC1);
-						
+						*/
 					}
 					break;
 				}
