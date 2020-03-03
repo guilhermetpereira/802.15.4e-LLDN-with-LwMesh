@@ -17,6 +17,7 @@ typedef enum {
 	#if !APP_COORDINATOR
 	APP_STATE_PREP_DISC_REPONSE,
 	APP_STATE_PREP_CONFIG_STATUS,
+	APP_STATE_PREP_DATA_FRAME,
 	#endif
 } AppState_t;
 
@@ -56,6 +57,7 @@ typedef enum {
 	#define DISC_MODE	0b100
 	#define CONFIG_MODE 0b110
 	#define RESET_MODE	0b111
+	#define ONLINE_MODE 0b000
 #endif
 
 

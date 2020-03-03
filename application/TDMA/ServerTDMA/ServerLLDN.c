@@ -220,6 +220,11 @@ static uint8_t PanId;
 		return true;
 	}
 	
+	static bool appDataInd(NWK_DataInd_t *ind)
+	{
+		printf("\n Recebeu Data");
+	}
+	
 	static void appPanPrepareACK(void)
 	{
 		msgReq.dstAddr		= 0;
@@ -309,10 +314,19 @@ static uint8_t PanId;
 	{
 			timeslot_counter = 0;
 			
-			tTS =  ((p_var*sp + (m+ /*config_request_frame.conf.tsDuration */ 127.0 )*sm + macMinLIFSPeriod)/v_var);
+			tTS =  ((p_var*sp + (m+ /*config_request_frame.conf.tsDuration */ 127 )*sm + macMinLIFSPeriod)/v_var);
+			
+			n = /*config_request_frame.conf.tsDuration */ 127;
+			
+			msgReq.dstAddr				= 0;
+			msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
+			msgReq.srcEndpoint			= APP_BEACON_ENDPOINT;
+			msgReq.options				= NWK_OPT_LLDN_BEACON | NWK_OPT_ONLINE_STATE;
+			msgReq.data					= NULL;
+			msgReq.size					= 0;
 			
 			// (number of time slots x mgmt time solts) x base timelosts
-			beaconInterval = (assTimeSlot + MacLLDNMgmtTS*numBaseTimeSlotperMgmt) * tTS / (SYMBOL_TIME);
+			beaconInterval = (assTimeSlot + 2*MacLLDNMgmtTS*numBaseTimeSlotperMgmt) * tTS / (SYMBOL_TIME);
 			
 			// Configure Timers
 			macsc_set_cmp1_int_cb(time_slot_handler);
@@ -322,7 +336,9 @@ static uint8_t PanId;
 			macsc_enable_cmp_int(MACSC_CC1);
 			macsc_use_cmp(MACSC_RELATIVE_CMP, tTS / (SYMBOL_TIME), MACSC_CC1);
 			
-			appPanState = APP_PAN_STATE_CHECK_TS;	
+			NWK_OpenEndpoint(APP_DATA_ENDPOINT, appDataInd);
+
+			
 	}
 
 
@@ -355,12 +371,27 @@ static uint8_t PanId;
 		#endif
 	}
 
+	static void start_timer(int delay)
+	{
+		#if MASTER_MACSC
+		macsc_enable_manual_bts();
+		macsc_set_cmp1_int_cb(send_message_timeHandler);
+		macsc_enable_cmp_int(MACSC_CC1);
+		macsc_use_cmp(MACSC_RELATIVE_CMP, delay - 250, MACSC_CC1);
+		#else
+		timer_init();
+		timer_delay(delay/2);
+		hw_timer_setup_handler(send_message_timeHandler);
+		timer_start();
+		#endif
+	}
 	
 	static bool appBeaconInd(NWK_DataInd_t *ind)
 	{
+		printf("\nRecebendo Beacon ");
 		rec_beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
+		PanId = rec_beacon->PanId;
 		// é bom implementar rotinas pra se o nodo estiver associado a um coordeandor e se não estiver
-		PanId = rec_beacon->PanId; // só pode mudar se ele associar
 		if( ((rec_beacon->Flags.txState == DISC_MODE && !ack_received && rec_beacon->confSeqNumber == 0x00) || 
 			(rec_beacon->Flags.txState == CONFIG_MODE && ack_received)) && associated == 0)
 		{
@@ -368,25 +399,23 @@ static uint8_t PanId;
 			int ts_time =  ((p_var*sp + (m+ rec_beacon->TimeSlotSize  )*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
 			int msg_wait_time = rec_beacon->Flags.numBaseMgmtTimeslots * rec_beacon->TimeSlotSize * 2; // symbols 190 is a delay adjustment
 			printf("\n TimeSlotSize %d", rec_beacon->TimeSlotSize);
-			#if MASTER_MACSC
-				macsc_enable_manual_bts();
-				macsc_set_cmp1_int_cb(send_message_timeHandler);
-				macsc_enable_cmp_int(MACSC_CC1); 
-				macsc_use_cmp(MACSC_RELATIVE_CMP, msg_wait_time - 250, MACSC_CC1);
-			#else
-				timer_init();
-				timer_delay(msg_wait_time/2);
-				hw_timer_setup_handler(send_message_timeHandler);
-				timer_start();
-			#endif
+			
+			start_timer(msg_wait_time);
+			
 			appState = (rec_beacon->Flags.txState == DISC_MODE) ? APP_STATE_PREP_DISC_REPONSE : APP_STATE_PREP_CONFIG_STATUS;
+		}
+		else if (rec_beacon->Flags.txState == ONLINE_MODE && assTimeSlot != 0xFF && associated == 1)
+		{
+			int ts_time = ((p_var*sp + (m+ n)*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
+			int msg_wait_time = (2*rec_beacon->Flags.numBaseMgmtTimeslots + assTimeSlot) * n;
+			start_timer(msg_wait_time);
+			appState = APP_STATE_PREP_DATA_FRAME;
 		}
 		else if (rec_beacon->Flags.txState == RESET_MODE)
 		{
 			ack_received = 0;
 			associated = 0;
 		}
-
 		return true;
 	}
 	
@@ -422,6 +451,7 @@ static uint8_t PanId;
 			{
 				PHY_SetChannel(msg->tx_channel);
 				NWK_SetPanId(msg->s_macAddr);
+				PanId = msg->s_macAddr;
 				assTimeSlot = msg->assTimeSlot;
 				n = msg->conf.tsDuration;
 				associated = 1;
@@ -450,6 +480,22 @@ static uint8_t PanId;
 		msgReq.data					= (uint8_t*)&msgConfigStatus;
 		msgReq.size					= sizeof(msgConfigStatus);
 	}
+	
+	void appPrepareDataFrame(void)
+	{
+		
+		uint8_t data = 0xFA;
+		PHY_SetTdmaMode(false);
+
+	
+		msgReq.dstAddr				= 0;
+		msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
+		msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
+		msgReq.options				= NWK_OPT_LLDN_DATA;
+		msgReq.data					= (uint8_t*)&data;
+		msgReq.size					= sizeof(data);
+	}
+	
 	
 #endif // APP_COORDINATOR
 
@@ -545,12 +591,12 @@ static void APP_TaskHandler(void)
 						printf("\n%d, %d", cycles_counter, counter_associados);
 						counter_associados = 0;
 						/* if all nodes expected where associated stop beacon generation interruptions */
-						macsc_disable_cmp_int(MACSC_CC1);
+						// macsc_disable_cmp_int(MACSC_CC1);
 						macsc_disable_cmp_int(MACSC_CC2);
 						msgReq.options = 0;
 						/* set coordinator node to idle further implementation of online state must be done */
 						appState = APP_STATE_IDLE;
-						appPanState = APP_PAN_STATE_IDLE; // APP_PAN_STATE_ONLINE_INIT
+						appPanState = APP_PAN_STATE_ONLINE_INITIAL; // APP_PAN_STATE_ONLINE_INIT
 						
 					}
 					/* if not all nodes expected where associated run through association process again */
@@ -645,6 +691,9 @@ static void APP_TaskHandler(void)
 				case APP_PAN_STATE_ONLINE_INITIAL:
 				{
 					appPanOnlineInit();
+					appState = APP_STATE_SEND;
+					appPanState = APP_PAN_STATE_CHECK_TS;
+
 					break;
 				}
 				case APP_PAN_STATE_CHECK_TS:
@@ -720,6 +769,11 @@ static void APP_TaskHandler(void)
 			ack_received = 0;
 			appState = APP_STATE_IDLE;
 			break;
+		}
+		case APP_STATE_PREP_DATA_FRAME:
+		{
+			appPrepareDataFrame();
+			appState = APP_STATE_IDLE;
 		}
 		#endif
 		default:

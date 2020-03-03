@@ -65,6 +65,7 @@ enum {
 	NWK_IND_OPT_BEACON			  = 1 << 7,
 	NWK_IND_OPT_LLDN_BEACON		  = 1 << 8,
 	NWK_IND_OPT_LLDN_MACCOMMAND   = 1 << 9,
+	NWK_IND_OPT_LLDN_DATA		  = 1 << 10,
 };
 
 
