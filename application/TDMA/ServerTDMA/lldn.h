@@ -45,7 +45,17 @@ typedef enum {
 		uint8_t assigned_time_slot;
 		uint16_t mac_addr;
 		uint8_t req_timeslot_duration;
+		uint8_t rssi;
+		unsigned int num_neighbors;
+		double tx_success;
+		double tx_success_neigh;
+		// uint8_t DATA_PAYLOAD[127];
+		bool coop;
+		
 	}nodes_info_t;
+	
+	// estrutura mensagens dos coperantes
+	// vetor com todas as mensagens
 	
 	typedef struct nodes_info_list_t{
 		nodes_info_t *node;

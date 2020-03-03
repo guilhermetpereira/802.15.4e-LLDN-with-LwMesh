@@ -110,6 +110,8 @@ static uint8_t PanId;
 	int counter_associados = 0;		// Associated nodes counter
 	uint8_t cycles_counter = macLLDNdiscoveryModeTimeout;
 
+	float succes_rate = 0;
+
 	
 	static void tmrDelayHandler(SYS_Timer_t *timer)
 	{
