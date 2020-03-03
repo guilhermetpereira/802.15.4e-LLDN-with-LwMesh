@@ -132,7 +132,7 @@ void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 // 		{
 // 			printf("\ndata[%d] %hhx", i,ind->data[i]);
 // 
-//  		}
+// /  		}
 
 	if(0x0c == ind->data[0])
 	{
@@ -198,13 +198,9 @@ void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 		if(ind->data[0] == 0x8c) 
 			frame->state = NWK_RX_STATE_LLACKFRAME;
 		else if(ind->data[0] == 0xcc)
-		{ 
 			frame->state = NWK_RX_STATE_LLCOMMAND;
-		}
 		else
-		{
 			frame->state = NWK_RX_STATE_LLDATA;	
-		}
 	}
 
 	frame->size = ind->size;
@@ -649,9 +645,7 @@ static bool nwkRxIndicateLLCommandFrame(NwkFrame_t *frame)
 }
 
 static bool nwkRxIndicateLLDataFrame(NwkFrame_t *frame)
-{
-	
-	
+{		
 	NwkFrameGeneralHeaderLLDN_t *header = &frame->LLgeneral;
 	NWK_DataInd_t ind;
 

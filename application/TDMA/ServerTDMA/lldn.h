@@ -45,10 +45,14 @@ typedef enum {
 		uint8_t assigned_time_slot;
 		uint16_t mac_addr;
 		uint8_t req_timeslot_duration;
+		
 		uint8_t rssi;
-		unsigned int num_neighbors;
+		// unsigned int num_neighbors;
 		double tx_success;
 		double tx_success_neigh;
+		
+		unsigned int msg_rec;
+		unsigned int msg_not_rec;
 		// uint8_t DATA_PAYLOAD[127];
 		bool coop;
 		
@@ -59,7 +63,6 @@ typedef enum {
 	
 	typedef struct nodes_info_list_t{
 		nodes_info_t *node;
-		int pos;
 		struct nodes_info_list *next;
 	}nodes_info_list_t;
 	
@@ -117,8 +120,6 @@ typedef struct NWK_ACKFormat_t{
 	// 4: size of NwkFrameGeneralHeaderLLDN_t
 	uint8_t ackFlags[32];
 } NWK_ACKFormat_t;
-
-
 
 
 
