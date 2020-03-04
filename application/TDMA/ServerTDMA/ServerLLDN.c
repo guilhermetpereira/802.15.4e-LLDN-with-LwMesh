@@ -46,7 +46,7 @@
 
 #if (MASTER_MACSC == 1)
 #include "macsc_megarf.h"
-#define TIMESLOT_TIMER 1
+#define TIMESLOT_TIMER 0
 #else
 static SYS_Timer_t				tmrBeaconInterval;			// Beacon
 static SYS_Timer_t				tmrComputeData;				// Compute data
@@ -79,7 +79,7 @@ static uint8_t PanId;
 	
 	/* Configuration Request Frames */
 	/* Da pra mudar o envio do confrequest pra ja usar essa array com as informaçõs dos nodos */	
-	nodes_info_t nodes_info_arr[254]; // Array for Configure Request messages, one position per node, 254 limited by star topology
+	nodes_info_t nodes_info_arr[50]; // Array for Configure Request messages, one position per node, 254 limited by star topology
 	NWK_ConfigRequest_t config_request_frame = { .id = LL_CONFIGURATION_REQUEST,
 												 .s_macAddr = APP_ADDR,
 												 .tx_channel = APP_CHANNEL,
@@ -106,8 +106,11 @@ static uint8_t PanId;
 	int counter_associados = 0;		// Associated nodes counter
 	uint8_t cycles_counter = macLLDNdiscoveryModeTimeout;
 
+	/* data related variables */
+	msg_info_t msg_info_array[50]; // size of array limited by hardware
+	unsigned int size_msg_info = 0;
+	bool data_received = false;
 	float succes_rate = 0;
-
 	
 	static void tmrDelayHandler(SYS_Timer_t *timer)
 	{
@@ -175,7 +178,7 @@ static uint8_t PanId;
 		assTimeSlot++;
 	
 		if(node->ts_dir.tsDuration > config_request_frame.conf.tsDuration)
-		config_request_frame.conf.tsDuration =  node->ts_dir.tsDuration;
+			config_request_frame.conf.tsDuration =  node->ts_dir.tsDuration;
 		
 		nodes_info_arr[i].req_timeslot_duration = node->ts_dir.tsDuration;
 		nodes_info_arr[i].mac_addr = node->macAddr;
@@ -235,9 +238,13 @@ static uint8_t PanId;
 	{
 		
 		int curr_ts = timeslot_counter - 2*MacLLDNMgmtTS;
-		printf("\n");
+		
+		nodes_info_arr[curr_ts].rssi = ind->rssi;
+		nodes_info_arr[curr_ts].msg_rec++;
+		
+		printf("\n %d payload: ", curr_ts);
 		for (int i = 0; i < ind->size; i++)
-			printf("%hhx ", ind->data[i]);
+			printf("%hhx", ind->data[i]);
 			
 	}
 	
@@ -265,9 +272,15 @@ static uint8_t PanId;
 		for(int i = 0; i < 32; i++)
 			ACKFrame.ackFlags[i] = 0;
 			
-		for (int i = 0; i < 255; i++)
+		for (int i = 0; i < 50; i++)
+		{
 			nodes_info_arr[i].mac_addr = 0;
+			msg_info_array[i].mac_addr = 0;
+			msg_info_array[i].coop_addr = 0;
 			
+			for (int j = 0; j < 50; j++)
+				nodes_info_arr[i].neighbors[j] = 0;
+		}
 		assTimeSlot = MacLLDNMgmtTS * 2;	
 		ACKFrame_size = 0;
 		counter_associados = 0;
@@ -379,7 +392,6 @@ static uint8_t PanId;
 	
 	static void send_message_timeHandler(void)
 	{
-		printf("\nTIMER");
 		appState = APP_STATE_SEND;	
 		#if MASTER_MACSC == 0
 			timer_stop();
@@ -403,7 +415,6 @@ static uint8_t PanId;
 	
 	static bool appBeaconInd(NWK_DataInd_t *ind)
 	{
-		printf("\nRecebendo Beacon ");
 		rec_beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
 		PanId = rec_beacon->PanId;
 		// é bom implementar rotinas pra se o nodo estiver associado a um coordeandor e se não estiver
@@ -413,7 +424,6 @@ static uint8_t PanId;
 	
 			int ts_time =  ((p_var*sp + (m+ rec_beacon->TimeSlotSize  )*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
 			int msg_wait_time = rec_beacon->Flags.numBaseMgmtTimeslots * rec_beacon->TimeSlotSize * 2; // symbols 190 is a delay adjustment
-			printf("\n TimeSlotSize %d", rec_beacon->TimeSlotSize);
 			
 			start_timer(msg_wait_time);
 			
@@ -428,6 +438,7 @@ static uint8_t PanId;
 		}
 		else if (rec_beacon->Flags.txState == RESET_MODE)
 		{
+			printf("\n Reset beacon");
 			ack_received = 0;
 			associated = 0;
 		}
@@ -470,7 +481,7 @@ static uint8_t PanId;
 				assTimeSlot = msg->assTimeSlot;
 				n = msg->conf.tsDuration;
 				associated = 1;
-				printf("\nRecebeu conf request");
+				printf("\nAssociado!");
 			}
 		}
 		return true;
@@ -722,6 +733,11 @@ static void APP_TaskHandler(void)
 					}
 					else
 					{
+						/* check if coordinator received any message in last time slot, used to calculate success rate */
+						if(timeslot_counter >= 2*MacLLDNMgmtTS && !data_received)
+							nodes_info_arr[timeslot_counter - 2*MacLLDNMgmtTS].msg_not_rec++;
+						data_received = false;
+						
 						printf("\n------- slot %d --------", timeslot_counter);
 						appState = APP_STATE_IDLE;
 						timeslot_counter++;
