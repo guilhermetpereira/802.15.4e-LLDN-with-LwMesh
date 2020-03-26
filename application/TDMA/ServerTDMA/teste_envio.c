@@ -1,19 +1,10 @@
 /*
- * teste_envio.c
- *
- * Created: 10/02/2020 17:24:12
- *  Author: Guilherme
- */ 
+	* ServerLLDN.c
+	*
+	* Created: 10/18/2019 5:15:37 PM
+	*  Author: guilherme
+	*/ 
 
-
-/*
- * Teste.c
- *
- * Created: 09/02/2020 15:58:34
- *  Author: Guilherme
- */ 
-
-// #include "hw_timer_lldn.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -32,197 +23,134 @@
 #include "conf_sleepmgr.h"
 #include "board.h"
 #include "platform.h"
+
 #include "lldn.h"
 
-#if APP_COORDINATOR
+#if 1
 #if (SIO2HOST_CHANNEL == SIO_USB)
 /* Only ARM */
+#include "hw_timer_lldn.h"
 #include "stdio_usb.h"
 #define MASTER_MACSC	0
-#define TIMESLOT_TIMER	0
 #else
 /* Only megarf series */
-#include "conf_sio2host.h" // necessary for prints
+#include "conf_sio2host.h"
 #define MASTER_MACSC	1
-#define TIMESLOT_TIMER	0
 #endif
 #else
 /* Only megarf series */
-#include "conf_sio2host.h" // necessary for prints
 #define MASTER_MACSC		1
 #endif
 
+#define HUMAM_READABLE			1
+
+#if (MASTER_MACSC == 1)
 #include "macsc_megarf.h"
+#define TIMESLOT_TIMER 0
+#else
+static SYS_Timer_t				tmrBeaconInterval;			// Beacon
+static SYS_Timer_t				tmrComputeData;				// Compute data
+#endif
 
-typedef enum Estado_t
-{
-	INIT,
-	IDLE,	
-}Estado_t;
+#define PRINT 1
 
-Estado_t state = INIT;
-static SYS_Timer_t	tmrInit;				// Feedback
+	
+// equation for tTS gives time in seconds, the division by SYMBOL_TIME changes to symbols for counter usage
+AppState_t	appState = APP_STATE_INITIAL;
+static NWK_DataReq_t msgReq;
+static uint8_t PanId;
 static NWK_DataReq_t msgReq;
 
-static NWK_DiscoverResponse_t msgDiscResponse = { .id = LL_DISCOVER_RESPONSE,
+static NWK_ConfigStatus_t msgConfigStatus = { .id = LL_CONFIGURATION_STATUS,
 												.macAddr = APP_ADDR,
-												.ts_dir.tsDuration = 0x01,
-												.ts_dir.dirIndicator = 1 };
+												.s_macAddr = APP_ADDR,
+												.ts_dir.tsDuration = 127,
+												.ts_dir.dirIndicator = 1,
+												.assTimeSlot = 0xff };
 
-static void tmrDelayHandler(SYS_Timer_t *timer)
+static bool appCommandInd(NWK_DataInd_t *ind)
 {
-	printf("\nsw timer");
-	state = INIT;
-	SYS_TimerStop(&tmrInit);
-	return;
+	uint32_t cmp_value = macsc_read_bts();
+	printf("\n%" PRIu32 "\n",cmp_value);
+	macsc_disable();
 }
 
-
-
-void hw_timer_handler(void)
+static void APP_TaskHandler(void)
 {
-	// timer_start();
-	printf("\n hw_timer_handler");	
-}
-
-static bool appBeaconInd(NWK_DataInd_t *ind)
-{
-	NwkFrameBeaconHeaderLLDN_t *beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
-	
-	printf("\nBeacon Recebido %d", beacon->TimeSlotSize);
-	return true;
-}
-
-static bool appMacCommandInd(NWK_DataInd_t *ind)
-{
-	NWK_DiscoverResponse_t *mac = (NWK_DiscoverResponse_t*)ind->data;
-	
-	for (int i = 0; i < ind->size; i++)
-	{
-		printf("\ndata[%d] = %hhx", i, ind->data[i]);
-	}
-
-	
-	printf("\nmac->id %hhx", mac->id);
-	printf("\nmac->macAddr %hhx", mac->macAddr);
-	printf("\nmac->tsDuration %d", mac->ts_dir.tsDuration);
-	printf("\nmac->dirIndicator %d", mac->ts_dir.dirIndicator);
-	return true;
-}
-
-int count = 0;
-
-static void lldn_server_beacon_t(void)
-{
-	printf("\nTS");
-	if( count++ <= 4)
-		macsc_enable_manual_bts();
-}
-
-
-void APP_TaskHandler(void)
-{
-	
-	switch (state)
-	{
-		case INIT:
+	switch (appState){
+		case APP_STATE_INITIAL:
 		{
-			/*
-			 * Enable CSMA/CA
-			 * Enable Random CSMA seed generator
-			 */
+			printf("\nINIT");
+
 			NWK_SetAddr(APP_ADDR);
 			PHY_SetChannel(APP_CHANNEL);
 			PHY_SetRxState(true);
-			PHY_SetPromiscuousMode(true);
 			PHY_SetTdmaMode(false);
-			// PHY_SetOptimizedCSMAValues();
-			
-			macsc_set_cmp1_int_cb(lldn_server_beacon_t);
-			macsc_enable_manual_bts();
-			macsc_enable_cmp_int(MACSC_CC1);
-			macsc_use_cmp(MACSC_RELATIVE_CMP, 300, MACSC_CC1);
-			NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);			
-			NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appMacCommandInd);
-			
-			msgDiscResponse.id = LL_DISCOVER_RESPONSE;
-			msgDiscResponse.macAddr = 0x24;
-			msgDiscResponse.ts_dir.tsDuration = (uint8_t)15;
-			msgDiscResponse.ts_dir.dirIndicator = 1 << 0;
-			
-			
-// 			msgReq.dstAddr				= 0;
-// 			msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
-// 			msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
-// 			msgReq.options				= NWK_OPT_MAC_COMMAND;
-// 			msgReq.data					= (uint8_t*)&msgDiscResponse;
-// 			msgReq.size					= sizeof(msgDiscResponse);
 
-			msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE | NWK_OPT_SECOND_BEACON ;
-			msgReq.data = NULL;
-			msgReq.size = 0;
+			NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appCommandInd);
+			PHY_SetPromiscuousMode(true);
+	
+			macsc_write_count(0x00000000);
 
+			msgReq.dstAddr				= 0;
+			msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
+			msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
+			msgReq.options				= NWK_OPT_MAC_COMMAND;
+			msgReq.data					= (uint8_t*)&msgConfigStatus;
+			msgReq.size					= sizeof(msgConfigStatus);
+		
 			NWK_DataReq(&msgReq);
-			
-			/*
-			* Configure interrupts callback functions
-			*/
-			state = IDLE;
-			break;
+
+			appState = APP_STATE_IDLE;
 		}
-		case IDLE:
-		{
-			break;
-		}
+		
+		default:
+		break;
 	}
-	
 }
 
-int main(void)
-{
-	sysclk_init();
-	board_init();
+	/*****************************************************************************
+	*****************************************************************************/
+	int main(void)
+	{
+		sysclk_init();
+		board_init();
 
-	SYS_Init();
-	// Disable CSMA/CA
-	// Disable auto ACK
-	sm_init();
+		SYS_Init();
+		/* Disable CSMA/CA
+		 * Disable auto ACK
+		 * Enable Rx of LLDN Frame Type as described in 802.15.4e - 2012 
+		 */
 
-	// Initialize interrupt vector table support.
+		sm_init();
+
+		// Initialize interrupt vector table support.
 	#if (SIO2HOST_CHANNEL == SIO_USB)
-	irq_initialize_vectors();
+		irq_initialize_vectors();
 	#endif
-	cpu_irq_enable();
+		cpu_irq_enable();
 
-	#if APP_COORDINATOR
+	#if 1
 	#if (SIO2HOST_CHANNEL == SIO_USB)
-	stdio_usb_init();
+		stdio_usb_init();
 	#else
-	const usart_serial_options_t usart_serial_options =
-	{
-		.baudrate     = USART_HOST_BAUDRATE,
-		.charlength   = USART_HOST_CHAR_LENGTH,
-		.paritytype   = USART_HOST_PARITY,
-		.stopbits     = USART_HOST_STOP_BITS
-	};
+		const usart_serial_options_t usart_serial_options =
+		{
+			.baudrate     = USART_HOST_BAUDRATE,
+			.charlength   = USART_HOST_CHAR_LENGTH,
+			.paritytype   = USART_HOST_PARITY,
+			.stopbits     = USART_HOST_STOP_BITS
+		};
 
-	stdio_serial_init(USART_HOST, &usart_serial_options);
-	usart_double_baud_enable(USART_HOST);
-	usart_set_baudrate_precalculated(USART_HOST, USART_HOST_BAUDRATE, sysclk_get_source_clock_hz());
+		stdio_serial_init(USART_HOST, &usart_serial_options);
+		usart_double_baud_enable(USART_HOST);
+		usart_set_baudrate_precalculated(USART_HOST, USART_HOST_BAUDRATE, sysclk_get_source_clock_hz());
 
 	#endif
 	#endif
-	
-	
-	 tmrInit.interval = 1000;
-	 tmrInit.mode = SYS_TIMER_INTERVAL_MODE;
-	 tmrInit.handler = tmrDelayHandler;
-	 // SYS_TimerStart(&tmrInit);
-
-
-	for(;;)
-	{
-		SYS_TaskHandler();
-		APP_TaskHandler();
+		for(;;)
+		{
+			SYS_TaskHandler();
+			APP_TaskHandler();
+		}
 	}
-}

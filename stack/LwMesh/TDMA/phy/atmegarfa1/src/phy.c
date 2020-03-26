@@ -48,6 +48,8 @@
 #include "sal.h"
 #include "atmegarfa1.h"
 
+#include "macsc_megarf.h"
+
 /*- Definitions ------------------------------------------------------------*/
 #define PHY_CRC_SIZE          2
 #define IRQ_CLEAR_VALUE       0xff

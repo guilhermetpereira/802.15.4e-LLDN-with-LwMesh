@@ -370,28 +370,29 @@ static uint8_t PanId;
 
 
 #else 
-	uint8_t payloadSize = 127;
+	uint8_t payloadSize = 22;
 	uint8_t assTimeSlot = 0xFF;
 	uint8_t n = 0;
 	
 	static NwkFrameBeaconHeaderLLDN_t *rec_beacon;
 	static NWK_DiscoverResponse_t msgDiscResponse = { .id = LL_DISCOVER_RESPONSE,
 													 .macAddr = APP_ADDR,
-													 .ts_dir.tsDuration = 127,
+													 .ts_dir.tsDuration = 22,
 													 .ts_dir.dirIndicator = 0b1 };
 	static NWK_ConfigStatus_t msgConfigStatus = { .id = LL_CONFIGURATION_STATUS,
 												 .macAddr = APP_ADDR,
 												 .s_macAddr = APP_ADDR,
-												 .ts_dir.tsDuration = 127,
+												 .ts_dir.tsDuration = 22,
 												 .ts_dir.dirIndicator = 1,
 												 .assTimeSlot = 0xff };
-	uint8_t data_payload = 0xFA;
+	uint8_t data_payload = APP_ADDR;
 	static bool ack_received;
 	bool MacLLDNMgmtTS = 0; 
 	bool associated = 0;
 	
 	static void send_message_timeHandler(void)
 	{
+		printf("\nmsg_hdlr");
 		appState = APP_STATE_SEND;	
 		#if MASTER_MACSC == 0
 			timer_stop();
@@ -404,7 +405,7 @@ static uint8_t PanId;
 		macsc_enable_manual_bts();
 		macsc_set_cmp1_int_cb(send_message_timeHandler);
 		macsc_enable_cmp_int(MACSC_CC1);
-		macsc_use_cmp(MACSC_RELATIVE_CMP, delay - 250, MACSC_CC1);
+		macsc_use_cmp(MACSC_RELATIVE_CMP, delay - 195, MACSC_CC1);
 		#else
 		timer_init();
 		timer_delay(delay/2);
@@ -432,7 +433,8 @@ static uint8_t PanId;
 		else if (rec_beacon->Flags.txState == ONLINE_MODE && assTimeSlot != 0xFF && associated == 1)
 		{
 			int ts_time = ((p_var*sp + (m+ n)*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
-			int msg_wait_time = (2*rec_beacon->Flags.numBaseMgmtTimeslots + assTimeSlot) * n;
+			int msg_wait_time = (2*rec_beacon->Flags.numBaseMgmtTimeslots + assTimeSlot) * ts_time;
+			printf("msg_wait_time: %d", msg_wait_time);
 			start_timer(msg_wait_time);
 			appState = APP_STATE_PREP_DATA_FRAME;
 		}
