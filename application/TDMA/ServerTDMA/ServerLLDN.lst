@@ -2196,274 +2196,279 @@
  125:ServerLLDN.c  **** 	
  126:ServerLLDN.c  **** 	static void time_slot_handler(void)
  127:ServerLLDN.c  **** 	{
- 128:ServerLLDN.c  **** 		macsc_enable_manual_bts();
- 129:ServerLLDN.c  **** 		appState = APP_STATE_ATT_PAN_STATE;
- 130:ServerLLDN.c  **** 	}
- 131:ServerLLDN.c  **** 	
- 132:ServerLLDN.c  **** 	static void downlink_delay_handler(void)
- 133:ServerLLDN.c  **** 	{
- 134:ServerLLDN.c  **** 		if(msgReq.options == NWK_OPT_LLDN_ACK)
- 135:ServerLLDN.c  **** 		{
- 136:ServerLLDN.c  **** 		appState = APP_STATE_SEND;
- 137:ServerLLDN.c  **** 		}
- 138:ServerLLDN.c  **** 	}
- 139:ServerLLDN.c  **** 
- 140:ServerLLDN.c  **** 	static void end_of_online_handler(void)
- 141:ServerLLDN.c  **** 	{
- 142:ServerLLDN.c  **** 		appState = APP_STATE_ATT_PAN_STATE;
- 143:ServerLLDN.c  **** 		appPanState = APP_PAN_STATE_ONLINE_END_BE;
- 144:ServerLLDN.c  **** 	}
- 145:ServerLLDN.c  **** 	
- 146:ServerLLDN.c  **** 	#if TIMESLOT_TIMER
- 147:ServerLLDN.c  **** 	static void teste_handler(void)
- 148:ServerLLDN.c  **** 	{
- 149:ServerLLDN.c  **** 		if(msgReq.options)
- 150:ServerLLDN.c  **** 			printf("\n***TIMESLOT****");
- 151:ServerLLDN.c  **** 		macsc_disable_cmp_int(MACSC_CC3);
- 152:ServerLLDN.c  **** 	}
- 153:ServerLLDN.c  **** 	#endif
- 154:ServerLLDN.c  **** 	
- 155:ServerLLDN.c  **** 	static bool addToAckArray(uint8_t addres)
- 156:ServerLLDN.c  **** 	{	
- 157:ServerLLDN.c  **** 		int pos =(int) addres / 8;
- 158:ServerLLDN.c  **** 		int bit_shift = 8 - (addres % 8);
- 159:ServerLLDN.c  **** 		
- 160:ServerLLDN.c  **** 		if(ACKFrame.ackFlags[pos] & 1 << bit_shift)
- 161:ServerLLDN.c  **** 		{
- 162:ServerLLDN.c  **** 			printf("\nAddr rep %d", addres);
- 163:ServerLLDN.c  **** 			return false;
- 164:ServerLLDN.c  **** 		}
- 165:ServerLLDN.c  **** 		ACKFrame.ackFlags[pos] = 1 << bit_shift;
- 166:ServerLLDN.c  **** 		if (pos + 1 > ACKFrame_size)
- 167:ServerLLDN.c  **** 			ACKFrame_size = pos + 1;
- 168:ServerLLDN.c  **** 		
- 169:ServerLLDN.c  **** 		return true;
- 170:ServerLLDN.c  **** 	}
- 171:ServerLLDN.c  **** 
- 172:ServerLLDN.c  **** 	static void addConfRequestArray(NWK_ConfigStatus_t *node)
- 173:ServerLLDN.c  **** 	{
+ 128:ServerLLDN.c  **** 		if (timeslot_counter > 0)
+ 129:ServerLLDN.c  **** 			macsc_use_cmp(MACSC_RELATIVE_CMP, tTS / (SYMBOL_TIME), MACSC_CC1);
+ 130:ServerLLDN.c  **** 		
+ 131:ServerLLDN.c  **** 		macsc_enable_manual_bts();
+ 132:ServerLLDN.c  **** 		appState = APP_STATE_ATT_PAN_STATE;
+ 133:ServerLLDN.c  **** 	}
+ 134:ServerLLDN.c  **** 	
+ 135:ServerLLDN.c  **** 	static void downlink_delay_handler(void)
+ 136:ServerLLDN.c  **** 	{
+ 137:ServerLLDN.c  **** 		if(msgReq.options == NWK_OPT_LLDN_ACK)
+ 138:ServerLLDN.c  **** 		{
+ 139:ServerLLDN.c  **** 		appState = APP_STATE_SEND;
+ 140:ServerLLDN.c  **** 		}
+ 141:ServerLLDN.c  **** 	}
+ 142:ServerLLDN.c  **** 
+ 143:ServerLLDN.c  **** 	static void end_of_online_handler(void)
+ 144:ServerLLDN.c  **** 	{
+ 145:ServerLLDN.c  **** 		appState = APP_STATE_ATT_PAN_STATE;
+ 146:ServerLLDN.c  **** 		appPanState = APP_PAN_STATE_ONLINE_END_BE;
+ 147:ServerLLDN.c  **** 	}
+ 148:ServerLLDN.c  **** 	
+ 149:ServerLLDN.c  **** 	#if TIMESLOT_TIMER
+ 150:ServerLLDN.c  **** 	static void teste_handler(void)
+ 151:ServerLLDN.c  **** 	{
+ 152:ServerLLDN.c  **** 		if(msgReq.options)
+ 153:ServerLLDN.c  **** 			printf("\n***TIMESLOT****");
+ 154:ServerLLDN.c  **** 		macsc_disable_cmp_int(MACSC_CC3);
+ 155:ServerLLDN.c  **** 	}
+ 156:ServerLLDN.c  **** 	#endif
+ 157:ServerLLDN.c  **** 	
+ 158:ServerLLDN.c  **** 	static bool addToAckArray(uint8_t addres)
+ 159:ServerLLDN.c  **** 	{	
+ 160:ServerLLDN.c  **** 		int pos =(int) addres / 8;
+ 161:ServerLLDN.c  **** 		int bit_shift = 8 - (addres % 8);
+ 162:ServerLLDN.c  **** 		
+ 163:ServerLLDN.c  **** 		if(ACKFrame.ackFlags[pos] & 1 << bit_shift)
+ 164:ServerLLDN.c  **** 		{
+ 165:ServerLLDN.c  **** 			printf("\nAddr rep %d", addres);
+ 166:ServerLLDN.c  **** 			return false;
+ 167:ServerLLDN.c  **** 		}
+ 168:ServerLLDN.c  **** 		ACKFrame.ackFlags[pos] = 1 << bit_shift;
+ 169:ServerLLDN.c  **** 		if (pos + 1 > ACKFrame_size)
+ 170:ServerLLDN.c  **** 			ACKFrame_size = pos + 1;
+ 171:ServerLLDN.c  **** 		
+ 172:ServerLLDN.c  **** 		return true;
+ 173:ServerLLDN.c  **** 	}
  174:ServerLLDN.c  **** 
- 175:ServerLLDN.c  **** 		uint8_t i;
- 176:ServerLLDN.c  **** 		for (i= 0;i < 256 && nodes_info_arr[i].mac_addr != 0; i++);
- 177:ServerLLDN.c  **** 		
- 178:ServerLLDN.c  **** 		assTimeSlot++;
- 179:ServerLLDN.c  **** 	
- 180:ServerLLDN.c  **** 		if(node->ts_dir.tsDuration > config_request_frame.conf.tsDuration)
- 181:ServerLLDN.c  **** 			config_request_frame.conf.tsDuration =  node->ts_dir.tsDuration;
- 182:ServerLLDN.c  **** 		
- 183:ServerLLDN.c  **** 		nodes_info_arr[i].req_timeslot_duration = node->ts_dir.tsDuration;
- 184:ServerLLDN.c  **** 		nodes_info_arr[i].mac_addr = node->macAddr;
- 185:ServerLLDN.c  **** 		nodes_info_arr[i].assigned_time_slot = (uint8_t)i;
- 186:ServerLLDN.c  **** 		
- 187:ServerLLDN.c  **** 		if(conf_req_list != NULL)
- 188:ServerLLDN.c  **** 		{
- 189:ServerLLDN.c  **** 			nodes_info_list_t *tmp = (nodes_info_list_t*)malloc(sizeof(nodes_info_list_t));
- 190:ServerLLDN.c  **** 			tmp->node = &nodes_info_arr[i];
- 191:ServerLLDN.c  **** 			tmp->next = conf_req_list;
- 192:ServerLLDN.c  **** 			conf_req_list = tmp;
- 193:ServerLLDN.c  **** 		}
- 194:ServerLLDN.c  **** 		else
- 195:ServerLLDN.c  **** 		{
- 196:ServerLLDN.c  **** 			conf_req_list = (nodes_info_list_t*)malloc(sizeof(nodes_info_list_t));
- 197:ServerLLDN.c  **** 			conf_req_list->node = &nodes_info_arr[i];
- 198:ServerLLDN.c  **** 			conf_req_list->next = NULL;
- 199:ServerLLDN.c  **** 		}
- 200:ServerLLDN.c  **** 	}
- 201:ServerLLDN.c  **** 
- 202:ServerLLDN.c  **** 	static void CopyToConfigRequest()
- 203:ServerLLDN.c  **** 	{
- 204:ServerLLDN.c  **** 		config_request_frame.assTimeSlot = conf_req_list->node->assigned_time_slot;
- 205:ServerLLDN.c  **** 		config_request_frame.macAddr = conf_req_list->node->mac_addr;
- 206:ServerLLDN.c  **** 		nodes_info_list_t *tmp = conf_req_list;
- 207:ServerLLDN.c  **** 		conf_req_list = conf_req_list->next;
- 208:ServerLLDN.c  **** 		tmp->node = NULL;
- 209:ServerLLDN.c  **** 		tmp->next = NULL;
- 210:ServerLLDN.c  **** 		free(tmp);
- 211:ServerLLDN.c  **** 	}
- 212:ServerLLDN.c  **** 
- 213:ServerLLDN.c  **** 
- 214:ServerLLDN.c  **** 	static bool appCommandInd(NWK_DataInd_t *ind)
- 215:ServerLLDN.c  **** 	{
- 216:ServerLLDN.c  **** 		if(ind->data[0] == LL_DISCOVER_RESPONSE)
- 217:ServerLLDN.c  **** 		{
- 218:ServerLLDN.c  **** 			NWK_DiscoverResponse_t *msg = (NWK_DiscoverResponse_t*)ind->data;
- 219:ServerLLDN.c  **** 			addToAckArray(msg->macAddr);	
- 220:ServerLLDN.c  **** 					
- 221:ServerLLDN.c  **** 			#if PRINT
- 222:ServerLLDN.c  **** 			printf("\nDISC %hhx", msg->macAddr);	
- 223:ServerLLDN.c  **** 			#endif
- 224:ServerLLDN.c  **** 		}
- 225:ServerLLDN.c  **** 		else if(ind->data[0] == LL_CONFIGURATION_STATUS)
- 226:ServerLLDN.c  **** 		{
- 227:ServerLLDN.c  **** 			NWK_ConfigStatus_t *msg = (NWK_ConfigStatus_t*)ind->data;
- 228:ServerLLDN.c  **** 			addConfRequestArray(msg);
- 229:ServerLLDN.c  **** 			#if PRINT
- 230:ServerLLDN.c  **** 			printf("\nCONF %d", msg->macAddr);	
- 231:ServerLLDN.c  **** 			#endif
- 232:ServerLLDN.c  **** 		}
- 233:ServerLLDN.c  **** 		else return false;			
- 234:ServerLLDN.c  **** 		return true;
- 235:ServerLLDN.c  **** 	}
- 236:ServerLLDN.c  **** 	
- 237:ServerLLDN.c  **** 	static bool appDataInd(NWK_DataInd_t *ind)
- 238:ServerLLDN.c  **** 	{
- 239:ServerLLDN.c  **** 		
- 240:ServerLLDN.c  **** 		int curr_ts = timeslot_counter - 2*MacLLDNMgmtTS;
- 241:ServerLLDN.c  **** 		
- 242:ServerLLDN.c  **** 		nodes_info_arr[curr_ts].rssi = ind->rssi;
- 243:ServerLLDN.c  **** 		nodes_info_arr[curr_ts].msg_rec++;
+ 175:ServerLLDN.c  **** 	static void addConfRequestArray(NWK_ConfigStatus_t *node)
+ 176:ServerLLDN.c  **** 	{
+ 177:ServerLLDN.c  **** 
+ 178:ServerLLDN.c  **** 		uint8_t i;
+ 179:ServerLLDN.c  **** 		for (i= 0;i < 256 && nodes_info_arr[i].mac_addr != 0; i++);
+ 180:ServerLLDN.c  **** 		
+ 181:ServerLLDN.c  **** 		assTimeSlot++;
+ 182:ServerLLDN.c  **** 	
+ 183:ServerLLDN.c  **** 		if(node->ts_dir.tsDuration > config_request_frame.conf.tsDuration)
+ 184:ServerLLDN.c  **** 			config_request_frame.conf.tsDuration =  node->ts_dir.tsDuration;
+ 185:ServerLLDN.c  **** 		
+ 186:ServerLLDN.c  **** 		nodes_info_arr[i].req_timeslot_duration = node->ts_dir.tsDuration;
+ 187:ServerLLDN.c  **** 		nodes_info_arr[i].mac_addr = node->macAddr;
+ 188:ServerLLDN.c  **** 		nodes_info_arr[i].assigned_time_slot = (uint8_t)i;
+ 189:ServerLLDN.c  **** 		
+ 190:ServerLLDN.c  **** 		if(conf_req_list != NULL)
+ 191:ServerLLDN.c  **** 		{
+ 192:ServerLLDN.c  **** 			nodes_info_list_t *tmp = (nodes_info_list_t*)malloc(sizeof(nodes_info_list_t));
+ 193:ServerLLDN.c  **** 			tmp->node = &nodes_info_arr[i];
+ 194:ServerLLDN.c  **** 			tmp->next = conf_req_list;
+ 195:ServerLLDN.c  **** 			conf_req_list = tmp;
+ 196:ServerLLDN.c  **** 		}
+ 197:ServerLLDN.c  **** 		else
+ 198:ServerLLDN.c  **** 		{
+ 199:ServerLLDN.c  **** 			conf_req_list = (nodes_info_list_t*)malloc(sizeof(nodes_info_list_t));
+ 200:ServerLLDN.c  **** 			conf_req_list->node = &nodes_info_arr[i];
+ 201:ServerLLDN.c  **** 			conf_req_list->next = NULL;
+ 202:ServerLLDN.c  **** 		}
+ 203:ServerLLDN.c  **** 	}
+ 204:ServerLLDN.c  **** 
+ 205:ServerLLDN.c  **** 	static void CopyToConfigRequest()
+ 206:ServerLLDN.c  **** 	{
+ 207:ServerLLDN.c  **** 		config_request_frame.assTimeSlot = conf_req_list->node->assigned_time_slot;
+ 208:ServerLLDN.c  **** 		config_request_frame.macAddr = conf_req_list->node->mac_addr;
+ 209:ServerLLDN.c  **** 		nodes_info_list_t *tmp = conf_req_list;
+ 210:ServerLLDN.c  **** 		conf_req_list = conf_req_list->next;
+ 211:ServerLLDN.c  **** 		tmp->node = NULL;
+ 212:ServerLLDN.c  **** 		tmp->next = NULL;
+ 213:ServerLLDN.c  **** 		free(tmp);
+ 214:ServerLLDN.c  **** 	}
+ 215:ServerLLDN.c  **** 
+ 216:ServerLLDN.c  **** 
+ 217:ServerLLDN.c  **** 	static bool appCommandInd(NWK_DataInd_t *ind)
+ 218:ServerLLDN.c  **** 	{
+ 219:ServerLLDN.c  **** 		if(ind->data[0] == LL_DISCOVER_RESPONSE)
+ 220:ServerLLDN.c  **** 		{
+ 221:ServerLLDN.c  **** 			NWK_DiscoverResponse_t *msg = (NWK_DiscoverResponse_t*)ind->data;
+ 222:ServerLLDN.c  **** 			addToAckArray(msg->macAddr);	
+ 223:ServerLLDN.c  **** 					
+ 224:ServerLLDN.c  **** 			#if PRINT
+ 225:ServerLLDN.c  **** 			printf("\nDISC %hhx", msg->macAddr);	
+ 226:ServerLLDN.c  **** 			#endif
+ 227:ServerLLDN.c  **** 		}
+ 228:ServerLLDN.c  **** 		else if(ind->data[0] == LL_CONFIGURATION_STATUS)
+ 229:ServerLLDN.c  **** 		{
+ 230:ServerLLDN.c  **** 			NWK_ConfigStatus_t *msg = (NWK_ConfigStatus_t*)ind->data;
+ 231:ServerLLDN.c  **** 			addConfRequestArray(msg);
+ 232:ServerLLDN.c  **** 			#if PRINT
+ 233:ServerLLDN.c  **** 			printf("\nCONF %d", msg->macAddr);	
+ 234:ServerLLDN.c  **** 			#endif
+ 235:ServerLLDN.c  **** 		}
+ 236:ServerLLDN.c  **** 		else return false;			
+ 237:ServerLLDN.c  **** 		return true;
+ 238:ServerLLDN.c  **** 	}
+ 239:ServerLLDN.c  **** 	
+ 240:ServerLLDN.c  **** 	static bool appDataInd(NWK_DataInd_t *ind)
+ 241:ServerLLDN.c  **** 	{
+ 242:ServerLLDN.c  **** 		
+ 243:ServerLLDN.c  **** 		int curr_ts = timeslot_counter - 2*MacLLDNMgmtTS;
  244:ServerLLDN.c  **** 		
- 245:ServerLLDN.c  **** 		printf("\n %d payload: ", curr_ts);
- 246:ServerLLDN.c  **** 		for (int i = 0; i < ind->size; i++)
- 247:ServerLLDN.c  **** 			printf("%hhx", ind->data[i]);
- 248:ServerLLDN.c  **** 			
- 249:ServerLLDN.c  **** 	}
- 250:ServerLLDN.c  **** 	
- 251:ServerLLDN.c  **** 	static void appPanPrepareACK(void)
- 252:ServerLLDN.c  **** 	{
- 253:ServerLLDN.c  **** 		msgReq.dstAddr		= 0;
- 254:ServerLLDN.c  **** 		msgReq.dstEndpoint	= APP_BEACON_ENDPOINT;
- 255:ServerLLDN.c  **** 		msgReq.srcEndpoint	= APP_BEACON_ENDPOINT;
- 256:ServerLLDN.c  **** 		msgReq.options		= NWK_OPT_LLDN_ACK;
- 257:ServerLLDN.c  **** 		msgReq.data	= (uint8_t *)&ACKFrame;
- 258:ServerLLDN.c  **** 		msgReq.size	= sizeof(uint8_t)*(ACKFrame_size + 1);
- 259:ServerLLDN.c  **** 
- 260:ServerLLDN.c  **** 	}
- 261:ServerLLDN.c  **** 
- 262:ServerLLDN.c  **** 	static void appPanReset(void)
- 263:ServerLLDN.c  **** 	{
- 264:ServerLLDN.c  **** 		// prepare beacon reset message
- 265:ServerLLDN.c  **** 		msgReq.dstAddr		= 0;
- 266:ServerLLDN.c  **** 		msgReq.dstEndpoint	= APP_BEACON_ENDPOINT;
- 267:ServerLLDN.c  **** 		msgReq.srcEndpoint	= APP_BEACON_ENDPOINT;
- 268:ServerLLDN.c  **** 		msgReq.options		= NWK_OPT_LLDN_BEACON | NWK_OPT_RESET_STATE;
- 269:ServerLLDN.c  **** 		msgReq.data			= NULL;
- 270:ServerLLDN.c  **** 		msgReq.size			= 0;
- 271:ServerLLDN.c  **** 
- 272:ServerLLDN.c  **** 		for(int i = 0; i < 32; i++)
- 273:ServerLLDN.c  **** 			ACKFrame.ackFlags[i] = 0;
- 274:ServerLLDN.c  **** 			
- 275:ServerLLDN.c  **** 		for (int i = 0; i < 50; i++)
- 276:ServerLLDN.c  **** 		{
- 277:ServerLLDN.c  **** 			nodes_info_arr[i].mac_addr = 0;
- 278:ServerLLDN.c  **** 			msg_info_array[i].mac_addr = 0;
- 279:ServerLLDN.c  **** 			msg_info_array[i].coop_addr = 0;
- 280:ServerLLDN.c  **** 			
- 281:ServerLLDN.c  **** 			for (int j = 0; j < 50; j++)
- 282:ServerLLDN.c  **** 				nodes_info_arr[i].neighbors[j] = 0;
- 283:ServerLLDN.c  **** 		}
- 284:ServerLLDN.c  **** 		assTimeSlot = MacLLDNMgmtTS * 2;	
- 285:ServerLLDN.c  **** 		ACKFrame_size = 0;
- 286:ServerLLDN.c  **** 		counter_associados = 0;
- 287:ServerLLDN.c  **** 		n = 0;
- 288:ServerLLDN.c  **** 	}
- 289:ServerLLDN.c  **** 
- 290:ServerLLDN.c  **** 	static void appPanDiscInit(void)
- 291:ServerLLDN.c  **** 	{	
- 292:ServerLLDN.c  **** 		/* clear Ack array of previous discovery state */
- 293:ServerLLDN.c  **** 		for(int i = 0; i < 32; i++)
- 294:ServerLLDN.c  **** 			ACKFrame.ackFlags[i] = 0;
- 295:ServerLLDN.c  **** 		ACKFrame_size = 0;
- 296:ServerLLDN.c  **** 		/* Prepare Beacon Message as first beacon in discovery state */		
- 297:ServerLLDN.c  **** 		msgReq.dstAddr				= 0;
- 298:ServerLLDN.c  **** 		msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
- 299:ServerLLDN.c  **** 		msgReq.srcEndpoint			= APP_BEACON_ENDPOINT;
- 300:ServerLLDN.c  **** 		msgReq.options				= NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE;
- 301:ServerLLDN.c  **** 		msgReq.data					= NULL;
- 302:ServerLLDN.c  **** 		msgReq.size					= 0;
- 303:ServerLLDN.c  **** 		
- 304:ServerLLDN.c  **** 		
- 305:ServerLLDN.c  **** 		/* Only start timers if it is the first association process */
- 306:ServerLLDN.c  **** 		if(cycles_counter == 0) 
- 307:ServerLLDN.c  **** 		{
- 308:ServerLLDN.c  **** 			
- 309:ServerLLDN.c  **** 		/* Calculates Beacon Intervals according to 802.15.4e - 2012 p. 70 */
- 310:ServerLLDN.c  **** 		n = 127; 
- 311:ServerLLDN.c  **** 		tTS =  ((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var);
- 312:ServerLLDN.c  **** 		#if (MASTER_MACSC == 1)
- 313:ServerLLDN.c  **** 		
- 314:ServerLLDN.c  **** 			beaconInterval = 2 * numBaseTimeSlotperMgmt * (tTS) / (SYMBOL_TIME);
- 315:ServerLLDN.c  **** 			/*
- 316:ServerLLDN.c  **** 			* Configure interrupts callback functions
- 317:ServerLLDN.c  **** 			* overflow interrupt, compare 1,2,3 interrupts
- 318:ServerLLDN.c  **** 			*/
- 319:ServerLLDN.c  **** 			macsc_set_cmp1_int_cb(lldn_server_beacon);
+ 245:ServerLLDN.c  **** 		nodes_info_arr[curr_ts].rssi = ind->rssi;
+ 246:ServerLLDN.c  **** 		nodes_info_arr[curr_ts].msg_rec++;
+ 247:ServerLLDN.c  **** 		
+ 248:ServerLLDN.c  **** 		printf("\n %d payload: ", curr_ts);
+ 249:ServerLLDN.c  **** 		for (int i = 0; i < ind->size; i++)
+ 250:ServerLLDN.c  **** 			printf("%hhx", ind->data[i]);
+ 251:ServerLLDN.c  **** 			
+ 252:ServerLLDN.c  **** 	}
+ 253:ServerLLDN.c  **** 	
+ 254:ServerLLDN.c  **** 	static void appPanPrepareACK(void)
+ 255:ServerLLDN.c  **** 	{
+ 256:ServerLLDN.c  **** 		msgReq.dstAddr		= 0;
+ 257:ServerLLDN.c  **** 		msgReq.dstEndpoint	= APP_BEACON_ENDPOINT;
+ 258:ServerLLDN.c  **** 		msgReq.srcEndpoint	= APP_BEACON_ENDPOINT;
+ 259:ServerLLDN.c  **** 		msgReq.options		= NWK_OPT_LLDN_ACK;
+ 260:ServerLLDN.c  **** 		msgReq.data	= (uint8_t *)&ACKFrame;
+ 261:ServerLLDN.c  **** 		msgReq.size	= sizeof(uint8_t)*(ACKFrame_size + 1);
+ 262:ServerLLDN.c  **** 
+ 263:ServerLLDN.c  **** 	}
+ 264:ServerLLDN.c  **** 
+ 265:ServerLLDN.c  **** 	static void appPanReset(void)
+ 266:ServerLLDN.c  **** 	{
+ 267:ServerLLDN.c  **** 		// prepare beacon reset message
+ 268:ServerLLDN.c  **** 		msgReq.dstAddr		= 0;
+ 269:ServerLLDN.c  **** 		msgReq.dstEndpoint	= APP_BEACON_ENDPOINT;
+ 270:ServerLLDN.c  **** 		msgReq.srcEndpoint	= APP_BEACON_ENDPOINT;
+ 271:ServerLLDN.c  **** 		msgReq.options		= NWK_OPT_LLDN_BEACON | NWK_OPT_RESET_STATE;
+ 272:ServerLLDN.c  **** 		msgReq.data			= NULL;
+ 273:ServerLLDN.c  **** 		msgReq.size			= 0;
+ 274:ServerLLDN.c  **** 
+ 275:ServerLLDN.c  **** 		for(int i = 0; i < 32; i++)
+ 276:ServerLLDN.c  **** 			ACKFrame.ackFlags[i] = 0;
+ 277:ServerLLDN.c  **** 			
+ 278:ServerLLDN.c  **** 		for (int i = 0; i < 50; i++)
+ 279:ServerLLDN.c  **** 		{
+ 280:ServerLLDN.c  **** 			nodes_info_arr[i].mac_addr = 0;
+ 281:ServerLLDN.c  **** 			nodes_info_arr[i].msg_rec = 0;
+ 282:ServerLLDN.c  **** 
+ 283:ServerLLDN.c  **** 			
+ 284:ServerLLDN.c  **** 			msg_info_array[i].mac_addr = 0;
+ 285:ServerLLDN.c  **** 			msg_info_array[i].coop_addr = 0;
+ 286:ServerLLDN.c  **** 			for (int j = 0; j < 50; j++)
+ 287:ServerLLDN.c  **** 				nodes_info_arr[i].neighbors[j] = 0;
+ 288:ServerLLDN.c  **** 		}
+ 289:ServerLLDN.c  **** 		assTimeSlot = MacLLDNMgmtTS * 2;	
+ 290:ServerLLDN.c  **** 		ACKFrame_size = 0;
+ 291:ServerLLDN.c  **** 		counter_associados = 0;
+ 292:ServerLLDN.c  **** 		n = 0;
+ 293:ServerLLDN.c  **** 	}
+ 294:ServerLLDN.c  **** 
+ 295:ServerLLDN.c  **** 	static void appPanDiscInit(void)
+ 296:ServerLLDN.c  **** 	{	
+ 297:ServerLLDN.c  **** 		/* clear Ack array of previous discovery state */
+ 298:ServerLLDN.c  **** 		for(int i = 0; i < 32; i++)
+ 299:ServerLLDN.c  **** 			ACKFrame.ackFlags[i] = 0;
+ 300:ServerLLDN.c  **** 		ACKFrame_size = 0;
+ 301:ServerLLDN.c  **** 		/* Prepare Beacon Message as first beacon in discovery state */		
+ 302:ServerLLDN.c  **** 		msgReq.dstAddr				= 0;
+ 303:ServerLLDN.c  **** 		msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
+ 304:ServerLLDN.c  **** 		msgReq.srcEndpoint			= APP_BEACON_ENDPOINT;
+ 305:ServerLLDN.c  **** 		msgReq.options				= NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE;
+ 306:ServerLLDN.c  **** 		msgReq.data					= NULL;
+ 307:ServerLLDN.c  **** 		msgReq.size					= 0;
+ 308:ServerLLDN.c  **** 		
+ 309:ServerLLDN.c  **** 		
+ 310:ServerLLDN.c  **** 		/* Only start timers if it is the first association process */
+ 311:ServerLLDN.c  **** 		if(cycles_counter == 0) 
+ 312:ServerLLDN.c  **** 		{
+ 313:ServerLLDN.c  **** 			
+ 314:ServerLLDN.c  **** 		/* Calculates Beacon Intervals according to 802.15.4e - 2012 p. 70 */
+ 315:ServerLLDN.c  **** 		n = 127; 
+ 316:ServerLLDN.c  **** 		tTS =  ((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var);
+ 317:ServerLLDN.c  **** 		#if (MASTER_MACSC == 1)
+ 318:ServerLLDN.c  **** 		
+ 319:ServerLLDN.c  **** 			beaconInterval = 2 * numBaseTimeSlotperMgmt_association * (tTS) / (SYMBOL_TIME);
  320:ServerLLDN.c  **** 			/*
- 321:ServerLLDN.c  **** 			* Configure MACSC to generate compare interrupts from channels 1,2,3
- 322:ServerLLDN.c  **** 			* Set compare mode to absolute, set compare value.
+ 321:ServerLLDN.c  **** 			* Configure interrupts callback functions
+ 322:ServerLLDN.c  **** 			* overflow interrupt, compare 1,2,3 interrupts
  323:ServerLLDN.c  **** 			*/
- 324:ServerLLDN.c  **** 			macsc_enable_manual_bts();
- 325:ServerLLDN.c  **** 			macsc_enable_cmp_int(MACSC_CC1);
- 326:ServerLLDN.c  **** 
- 327:ServerLLDN.c  **** 			macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval , MACSC_CC1);
- 328:ServerLLDN.c  **** 			
- 329:ServerLLDN.c  **** 			/* Timer used in testing */
- 330:ServerLLDN.c  **** 			#if TIMESLOT_TIMER
- 331:ServerLLDN.c  **** 			macsc_set_cmp2_int_cb(teste_handler);	
- 332:ServerLLDN.c  **** 			macsc_enable_cmp_int(MACSC_CC2);
- 333:ServerLLDN.c  **** 			macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval / 2, MACSC_CC2);
- 334:ServerLLDN.c  **** 			#endif
- 335:ServerLLDN.c  **** 			
- 336:ServerLLDN.c  **** 		#endif
- 337:ServerLLDN.c  **** 		}
- 338:ServerLLDN.c  **** 	}
- 339:ServerLLDN.c  **** 
- 340:ServerLLDN.c  **** 	static void appPanOnlineInit()
- 341:ServerLLDN.c  **** 	{
- 342:ServerLLDN.c  **** 			timeslot_counter = 0;
- 343:ServerLLDN.c  **** 			
- 344:ServerLLDN.c  **** 			tTS =  ((p_var*sp + (m+ /*config_request_frame.conf.tsDuration */ 127 )*sm + macMinLIFSPeriod)/v
- 345:ServerLLDN.c  **** 			
- 346:ServerLLDN.c  **** 			n = /*config_request_frame.conf.tsDuration */ 127;
- 347:ServerLLDN.c  **** 			
- 348:ServerLLDN.c  **** 			msgReq.dstAddr				= 0;
- 349:ServerLLDN.c  **** 			msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
- 350:ServerLLDN.c  **** 			msgReq.srcEndpoint			= APP_BEACON_ENDPOINT;
- 351:ServerLLDN.c  **** 			msgReq.options				= NWK_OPT_LLDN_BEACON | NWK_OPT_ONLINE_STATE;
- 352:ServerLLDN.c  **** 			msgReq.data					= NULL;
- 353:ServerLLDN.c  **** 			msgReq.size					= 0;
- 354:ServerLLDN.c  **** 			
- 355:ServerLLDN.c  **** 			// (number of time slots x mgmt time solts) x base timelosts
- 356:ServerLLDN.c  **** 			beaconInterval = (assTimeSlot + 2*MacLLDNMgmtTS) * tTS / (SYMBOL_TIME);
- 357:ServerLLDN.c  **** 			
- 358:ServerLLDN.c  **** 			// Configure Timers
- 359:ServerLLDN.c  **** 			macsc_set_cmp1_int_cb(time_slot_handler);
- 360:ServerLLDN.c  **** 			
- 361:ServerLLDN.c  **** 			macsc_enable_manual_bts();
+ 324:ServerLLDN.c  **** 			macsc_set_cmp1_int_cb(lldn_server_beacon);
+ 325:ServerLLDN.c  **** 			/*
+ 326:ServerLLDN.c  **** 			* Configure MACSC to generate compare interrupts from channels 1,2,3
+ 327:ServerLLDN.c  **** 			* Set compare mode to absolute, set compare value.
+ 328:ServerLLDN.c  **** 			*/
+ 329:ServerLLDN.c  **** 			macsc_enable_manual_bts();
+ 330:ServerLLDN.c  **** 			macsc_enable_cmp_int(MACSC_CC1);
+ 331:ServerLLDN.c  **** 
+ 332:ServerLLDN.c  **** 			macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval , MACSC_CC1);
+ 333:ServerLLDN.c  **** 			
+ 334:ServerLLDN.c  **** 			/* Timer used in testing */
+ 335:ServerLLDN.c  **** 			#if TIMESLOT_TIMER
+ 336:ServerLLDN.c  **** 			macsc_set_cmp2_int_cb(teste_handler);	
+ 337:ServerLLDN.c  **** 			macsc_enable_cmp_int(MACSC_CC2);
+ 338:ServerLLDN.c  **** 			macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval / 2, MACSC_CC2);
+ 339:ServerLLDN.c  **** 			#endif
+ 340:ServerLLDN.c  **** 			
+ 341:ServerLLDN.c  **** 		#endif
+ 342:ServerLLDN.c  **** 		}
+ 343:ServerLLDN.c  **** 	}
+ 344:ServerLLDN.c  **** 
+ 345:ServerLLDN.c  **** 	static void appPanOnlineInit()
+ 346:ServerLLDN.c  **** 	{
+ 347:ServerLLDN.c  **** 			timeslot_counter = 0;
+ 348:ServerLLDN.c  **** 			
+ 349:ServerLLDN.c  **** 			tTS =  ((p_var*sp + (m+ config_request_frame.conf.tsDuration )*sm + macMinLIFSPeriod)/v_var);
+ 350:ServerLLDN.c  **** 			
+ 351:ServerLLDN.c  **** 			n = config_request_frame.conf.tsDuration;
+ 352:ServerLLDN.c  **** 			
+ 353:ServerLLDN.c  **** 			msgReq.dstAddr				= 0;
+ 354:ServerLLDN.c  **** 			msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
+ 355:ServerLLDN.c  **** 			msgReq.srcEndpoint			= APP_BEACON_ENDPOINT;
+ 356:ServerLLDN.c  **** 			msgReq.options				= NWK_OPT_LLDN_BEACON | NWK_OPT_ONLINE_STATE;
+ 357:ServerLLDN.c  **** 			msgReq.data					= NULL;
+ 358:ServerLLDN.c  **** 			msgReq.size					= 0;
+ 359:ServerLLDN.c  **** 			
+ 360:ServerLLDN.c  **** 			// (number of time slots x mgmt time solts) x base timelosts
+ 361:ServerLLDN.c  **** 			beaconInterval = (assTimeSlot + 2*MacLLDNMgmtTS) * tTS / (SYMBOL_TIME);
  362:ServerLLDN.c  **** 			
- 363:ServerLLDN.c  **** 			macsc_enable_cmp_int(MACSC_CC1);
- 364:ServerLLDN.c  **** 			macsc_use_cmp(MACSC_RELATIVE_CMP, tTS / (SYMBOL_TIME), MACSC_CC1);
+ 363:ServerLLDN.c  **** 			// Configure Timers
+ 364:ServerLLDN.c  **** 			macsc_set_cmp1_int_cb(time_slot_handler);
  365:ServerLLDN.c  **** 			
- 366:ServerLLDN.c  **** 			NWK_OpenEndpoint(APP_DATA_ENDPOINT, appDataInd);
- 367:ServerLLDN.c  **** 
- 368:ServerLLDN.c  **** 			
- 369:ServerLLDN.c  **** 	}
- 370:ServerLLDN.c  **** 
- 371:ServerLLDN.c  **** 
- 372:ServerLLDN.c  **** #else 
- 373:ServerLLDN.c  **** 	uint8_t payloadSize = 22;
- 374:ServerLLDN.c  **** 	uint8_t assTimeSlot = 0xFF;
- 375:ServerLLDN.c  **** 	uint8_t n = 0;
- 376:ServerLLDN.c  **** 	
- 377:ServerLLDN.c  **** 	static NwkFrameBeaconHeaderLLDN_t *rec_beacon;
- 378:ServerLLDN.c  **** 	static NWK_DiscoverResponse_t msgDiscResponse = { .id = LL_DISCOVER_RESPONSE,
- 379:ServerLLDN.c  **** 													 .macAddr = APP_ADDR,
- 380:ServerLLDN.c  **** 													 .ts_dir.tsDuration = 22,
- 381:ServerLLDN.c  **** 													 .ts_dir.dirIndicator = 0b1 };
- 382:ServerLLDN.c  **** 	static NWK_ConfigStatus_t msgConfigStatus = { .id = LL_CONFIGURATION_STATUS,
- 383:ServerLLDN.c  **** 												 .macAddr = APP_ADDR,
- 384:ServerLLDN.c  **** 												 .s_macAddr = APP_ADDR,
- 385:ServerLLDN.c  **** 												 .ts_dir.tsDuration = 22,
- 386:ServerLLDN.c  **** 												 .ts_dir.dirIndicator = 1,
- 387:ServerLLDN.c  **** 												 .assTimeSlot = 0xff };
- 388:ServerLLDN.c  **** 	uint8_t data_payload = APP_ADDR;
- 389:ServerLLDN.c  **** 	static bool ack_received;
- 390:ServerLLDN.c  **** 	bool MacLLDNMgmtTS = 0; 
- 391:ServerLLDN.c  **** 	bool associated = 0;
- 392:ServerLLDN.c  **** 	
- 393:ServerLLDN.c  **** 	static void send_message_timeHandler(void)
- 394:ServerLLDN.c  **** 	{
- 632               		.loc 6 394 0
+ 366:ServerLLDN.c  **** 			macsc_enable_manual_bts();
+ 367:ServerLLDN.c  **** 			
+ 368:ServerLLDN.c  **** 			macsc_enable_cmp_int(MACSC_CC1);
+ 369:ServerLLDN.c  **** 			macsc_use_cmp(MACSC_RELATIVE_CMP, numBaseTimeSlotperMgmt_online * tTS / (SYMBOL_TIME), MACSC_CC1
+ 370:ServerLLDN.c  **** 			
+ 371:ServerLLDN.c  **** 			NWK_OpenEndpoint(APP_DATA_ENDPOINT, appDataInd);
+ 372:ServerLLDN.c  **** 
+ 373:ServerLLDN.c  **** 			
+ 374:ServerLLDN.c  **** 	}
+ 375:ServerLLDN.c  **** 
+ 376:ServerLLDN.c  **** 
+ 377:ServerLLDN.c  **** #else 
+ 378:ServerLLDN.c  **** 	uint8_t payloadSize = 22;
+ 379:ServerLLDN.c  **** 	uint8_t assTimeSlot = 0xFF;
+ 380:ServerLLDN.c  **** 	uint8_t n = 0;
+ 381:ServerLLDN.c  **** 	
+ 382:ServerLLDN.c  **** 	static NwkFrameBeaconHeaderLLDN_t *rec_beacon;
+ 383:ServerLLDN.c  **** 	static NWK_DiscoverResponse_t msgDiscResponse = { .id = LL_DISCOVER_RESPONSE,
+ 384:ServerLLDN.c  **** 													 .macAddr = APP_ADDR,
+ 385:ServerLLDN.c  **** 													 .ts_dir.tsDuration = 22,
+ 386:ServerLLDN.c  **** 													 .ts_dir.dirIndicator = 0b1 };
+ 387:ServerLLDN.c  **** 	static NWK_ConfigStatus_t msgConfigStatus = { .id = LL_CONFIGURATION_STATUS,
+ 388:ServerLLDN.c  **** 												 .macAddr = APP_ADDR,
+ 389:ServerLLDN.c  **** 												 .s_macAddr = APP_ADDR,
+ 390:ServerLLDN.c  **** 												 .ts_dir.tsDuration = 22,
+ 391:ServerLLDN.c  **** 												 .ts_dir.dirIndicator = 1,
+ 392:ServerLLDN.c  **** 												 .assTimeSlot = 0xff };
+ 393:ServerLLDN.c  **** 	uint8_t data_payload = APP_ADDR;
+ 394:ServerLLDN.c  **** 	static bool ack_received;
+ 395:ServerLLDN.c  **** 	bool MacLLDNMgmtTS = 0; 
+ 396:ServerLLDN.c  **** 	bool associated = 0;
+ 397:ServerLLDN.c  **** 	
+ 398:ServerLLDN.c  **** 	static void send_message_timeHandler(void)
+ 399:ServerLLDN.c  **** 	{
+ 632               		.loc 6 399 0
  633               		.cfi_startproc
  634 021e CF93      		push r28
  635               	.LCFI32:
@@ -2481,8 +2486,8 @@
  647               	/* frame size = 0 */
  648               	/* stack size = 2 */
  649               	.L__stack_usage = 2
- 395:ServerLLDN.c  **** 		printf("\nmsg_hdlr");
- 650               		.loc 6 395 0
+ 400:ServerLLDN.c  **** 		printf("\nmsg_hdlr");
+ 650               		.loc 6 400 0
  651 0226 80E0      		ldi r24,lo8(.LC2)
  652 0228 90E0      		ldi r25,hi8(.LC2)
  653 022a 892F      		mov r24,r25
@@ -2493,15 +2498,15 @@
  658 0234 0E94 0000 		call printf
  659 0238 0F90      		pop __tmp_reg__
  660 023a 0F90      		pop __tmp_reg__
- 396:ServerLLDN.c  **** 		appState = APP_STATE_SEND;	
- 661               		.loc 6 396 0
+ 401:ServerLLDN.c  **** 		appState = APP_STATE_SEND;	
+ 661               		.loc 6 401 0
  662 023c 82E0      		ldi r24,lo8(2)
  663 023e 8093 0000 		sts appState,r24
- 397:ServerLLDN.c  **** 		#if MASTER_MACSC == 0
- 398:ServerLLDN.c  **** 			timer_stop();
- 399:ServerLLDN.c  **** 		#endif
- 400:ServerLLDN.c  **** 	}
- 664               		.loc 6 400 0
+ 402:ServerLLDN.c  **** 		#if MASTER_MACSC == 0
+ 403:ServerLLDN.c  **** 			timer_stop();
+ 404:ServerLLDN.c  **** 		#endif
+ 405:ServerLLDN.c  **** 	}
+ 664               		.loc 6 405 0
  665 0242 0000      		nop
  666               	/* epilogue start */
  667 0244 DF91      		pop r29
@@ -2511,10 +2516,10 @@
  671               	.LFE131:
  674               	start_timer:
  675               	.LFB132:
- 401:ServerLLDN.c  **** 
- 402:ServerLLDN.c  **** 	static void start_timer(int delay)
- 403:ServerLLDN.c  **** 	{
- 676               		.loc 6 403 0
+ 406:ServerLLDN.c  **** 
+ 407:ServerLLDN.c  **** 	static void start_timer(int delay)
+ 408:ServerLLDN.c  **** 	{
+ 676               		.loc 6 408 0
  677               		.cfi_startproc
  678 024a CF93      		push r28
  679               	.LCFI35:
@@ -2537,21 +2542,21 @@
  696               	.L__stack_usage = 4
  697 0254 9A83      		std Y+2,r25
  698 0256 8983      		std Y+1,r24
- 404:ServerLLDN.c  **** 		#if MASTER_MACSC
- 405:ServerLLDN.c  **** 		macsc_enable_manual_bts();
- 699               		.loc 6 405 0
+ 409:ServerLLDN.c  **** 		#if MASTER_MACSC
+ 410:ServerLLDN.c  **** 		macsc_enable_manual_bts();
+ 699               		.loc 6 410 0
  700 0258 0E94 0000 		call macsc_enable_manual_bts
- 406:ServerLLDN.c  **** 		macsc_set_cmp1_int_cb(send_message_timeHandler);
- 701               		.loc 6 406 0
+ 411:ServerLLDN.c  **** 		macsc_set_cmp1_int_cb(send_message_timeHandler);
+ 701               		.loc 6 411 0
  702 025c 80E0      		ldi r24,lo8(gs(send_message_timeHandler))
  703 025e 90E0      		ldi r25,hi8(gs(send_message_timeHandler))
  704 0260 0E94 0000 		call macsc_set_cmp1_int_cb
- 407:ServerLLDN.c  **** 		macsc_enable_cmp_int(MACSC_CC1);
- 705               		.loc 6 407 0
+ 412:ServerLLDN.c  **** 		macsc_enable_cmp_int(MACSC_CC1);
+ 705               		.loc 6 412 0
  706 0264 81E0      		ldi r24,lo8(1)
  707 0266 0E94 0000 		call macsc_enable_cmp_int
- 408:ServerLLDN.c  **** 		macsc_use_cmp(MACSC_RELATIVE_CMP, delay - 195, MACSC_CC1);
- 708               		.loc 6 408 0
+ 413:ServerLLDN.c  **** 		macsc_use_cmp(MACSC_RELATIVE_CMP, delay - 195, MACSC_CC1);
+ 708               		.loc 6 413 0
  709 026a 8981      		ldd r24,Y+1
  710 026c 9A81      		ldd r25,Y+2
  711 026e 835C      		subi r24,-61
@@ -2565,14 +2570,14 @@
  719 027e BD01      		movw r22,r26
  720 0280 81E0      		ldi r24,lo8(1)
  721 0282 0E94 0000 		call macsc_use_cmp
- 409:ServerLLDN.c  **** 		#else
- 410:ServerLLDN.c  **** 		timer_init();
- 411:ServerLLDN.c  **** 		timer_delay(delay/2);
- 412:ServerLLDN.c  **** 		hw_timer_setup_handler(send_message_timeHandler);
- 413:ServerLLDN.c  **** 		timer_start();
- 414:ServerLLDN.c  **** 		#endif
- 415:ServerLLDN.c  **** 	}
- 722               		.loc 6 415 0
+ 414:ServerLLDN.c  **** 		#else
+ 415:ServerLLDN.c  **** 		timer_init();
+ 416:ServerLLDN.c  **** 		timer_delay(delay/2);
+ 417:ServerLLDN.c  **** 		hw_timer_setup_handler(send_message_timeHandler);
+ 418:ServerLLDN.c  **** 		timer_start();
+ 419:ServerLLDN.c  **** 		#endif
+ 420:ServerLLDN.c  **** 	}
+ 722               		.loc 6 420 0
  723 0286 0000      		nop
  724               	/* epilogue start */
  725 0288 0F90      		pop __tmp_reg__
@@ -2601,10 +2606,10 @@
  742               		.text
  744               	appBeaconInd:
  745               	.LFB133:
- 416:ServerLLDN.c  **** 	
- 417:ServerLLDN.c  **** 	static bool appBeaconInd(NWK_DataInd_t *ind)
- 418:ServerLLDN.c  **** 	{
- 746               		.loc 6 418 0
+ 421:ServerLLDN.c  **** 	
+ 422:ServerLLDN.c  **** 	static bool appBeaconInd(NWK_DataInd_t *ind)
+ 423:ServerLLDN.c  **** 	{
+ 746               		.loc 6 423 0
  747               		.cfi_startproc
  748 0292 CF93      		push r28
  749               	.LCFI39:
@@ -2632,8 +2637,8 @@
  771               	.L__stack_usage = 12
  772 02a6 9A87      		std Y+10,r25
  773 02a8 8987      		std Y+9,r24
- 419:ServerLLDN.c  **** 		rec_beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
- 774               		.loc 6 419 0
+ 424:ServerLLDN.c  **** 		rec_beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
+ 774               		.loc 6 424 0
  775 02aa 8985      		ldd r24,Y+9
  776 02ac 9A85      		ldd r25,Y+10
  777 02ae FC01      		movw r30,r24
@@ -2641,16 +2646,16 @@
  779 02b2 9185      		ldd r25,Z+9
  780 02b4 9093 0000 		sts rec_beacon+1,r25
  781 02b8 8093 0000 		sts rec_beacon,r24
- 420:ServerLLDN.c  **** 		PanId = rec_beacon->PanId;
- 782               		.loc 6 420 0
+ 425:ServerLLDN.c  **** 		PanId = rec_beacon->PanId;
+ 782               		.loc 6 425 0
  783 02bc 8091 0000 		lds r24,rec_beacon
  784 02c0 9091 0000 		lds r25,rec_beacon+1
  785 02c4 FC01      		movw r30,r24
  786 02c6 8481      		ldd r24,Z+4
  787 02c8 8093 0000 		sts PanId,r24
- 421:ServerLLDN.c  **** 		// é bom implementar rotinas pra se o nodo estiver associado a um coordeandor e se não estiver
- 422:ServerLLDN.c  **** 		if( ((rec_beacon->Flags.txState == DISC_MODE && !ack_received && rec_beacon->confSeqNumber == 0x0
- 788               		.loc 6 422 0
+ 426:ServerLLDN.c  **** 		// é bom implementar rotinas pra se o nodo estiver associado a um coordeandor e se não estiver
+ 427:ServerLLDN.c  **** 		if( ((rec_beacon->Flags.txState == DISC_MODE && !ack_received && rec_beacon->confSeqNumber == 0x0
+ 788               		.loc 6 427 0
  789 02cc 8091 0000 		lds r24,rec_beacon
  790 02d0 9091 0000 		lds r25,rec_beacon+1
  791 02d4 FC01      		movw r30,r24
@@ -2658,13 +2663,13 @@
  793 02d8 8770      		andi r24,lo8(7)
  794 02da 8430      		cpi r24,lo8(4)
  795 02dc 01F4      		brne .L21
- 796               		.loc 6 422 0 is_stmt 0 discriminator 1
+ 796               		.loc 6 427 0 is_stmt 0 discriminator 1
  797 02de 9091 0000 		lds r25,ack_received
  798 02e2 81E0      		ldi r24,lo8(1)
  799 02e4 8927      		eor r24,r25
  800 02e6 8823      		tst r24
  801 02e8 01F0      		breq .L21
- 802               		.loc 6 422 0 discriminator 3
+ 802               		.loc 6 427 0 discriminator 3
  803 02ea 8091 0000 		lds r24,rec_beacon
  804 02ee 9091 0000 		lds r25,rec_beacon+1
  805 02f2 FC01      		movw r30,r24
@@ -2672,25 +2677,25 @@
  807 02f6 8823      		tst r24
  808 02f8 01F0      		breq .L22
  809               	.L21:
- 423:ServerLLDN.c  **** 			(rec_beacon->Flags.txState == CONFIG_MODE && ack_received)) && associated == 0)
- 810               		.loc 6 423 0 is_stmt 1 discriminator 5
+ 428:ServerLLDN.c  **** 			(rec_beacon->Flags.txState == CONFIG_MODE && ack_received)) && associated == 0)
+ 810               		.loc 6 428 0 is_stmt 1 discriminator 5
  811 02fa 8091 0000 		lds r24,rec_beacon
  812 02fe 9091 0000 		lds r25,rec_beacon+1
  813 0302 FC01      		movw r30,r24
  814 0304 8381      		ldd r24,Z+3
  815 0306 8770      		andi r24,lo8(7)
- 422:ServerLLDN.c  **** 			(rec_beacon->Flags.txState == CONFIG_MODE && ack_received)) && associated == 0)
- 816               		.loc 6 422 0 discriminator 5
+ 427:ServerLLDN.c  **** 			(rec_beacon->Flags.txState == CONFIG_MODE && ack_received)) && associated == 0)
+ 816               		.loc 6 427 0 discriminator 5
  817 0308 8630      		cpi r24,lo8(6)
  818 030a 01F0      		breq .+2
  819 030c 00C0      		rjmp .L23
- 820               		.loc 6 423 0
+ 820               		.loc 6 428 0
  821 030e 8091 0000 		lds r24,ack_received
  822 0312 8823      		tst r24
  823 0314 01F4      		brne .+2
  824 0316 00C0      		rjmp .L23
  825               	.L22:
- 826               		.loc 6 423 0 is_stmt 0 discriminator 1
+ 826               		.loc 6 428 0 is_stmt 0 discriminator 1
  827 0318 9091 0000 		lds r25,associated
  828 031c 81E0      		ldi r24,lo8(1)
  829 031e 8927      		eor r24,r25
@@ -2698,10 +2703,10 @@
  831 0322 01F4      		brne .+2
  832 0324 00C0      		rjmp .L23
  833               	.LBB2:
- 424:ServerLLDN.c  **** 		{
- 425:ServerLLDN.c  **** 	
- 426:ServerLLDN.c  **** 			int ts_time =  ((p_var*sp + (m+ rec_beacon->TimeSlotSize  )*sm + macMinLIFSPeriod)/v_var)  / (SY
- 834               		.loc 6 426 0 is_stmt 1
+ 429:ServerLLDN.c  **** 		{
+ 430:ServerLLDN.c  **** 	
+ 431:ServerLLDN.c  **** 			int ts_time =  ((p_var*sp + (m+ rec_beacon->TimeSlotSize  )*sm + macMinLIFSPeriod)/v_var)  / (SY
+ 834               		.loc 6 431 0 is_stmt 1
  835 0326 8091 0000 		lds r24,rec_beacon
  836 032a 9091 0000 		lds r25,rec_beacon+1
  837 032e FC01      		movw r30,r24
@@ -2763,8 +2768,8 @@
  893 03aa CB01      		movw r24,r22
  894 03ac 9A83      		std Y+2,r25
  895 03ae 8983      		std Y+1,r24
- 427:ServerLLDN.c  **** 			int msg_wait_time = rec_beacon->Flags.numBaseMgmtTimeslots * rec_beacon->TimeSlotSize * 2; // sy
- 896               		.loc 6 427 0
+ 432:ServerLLDN.c  **** 			int msg_wait_time = rec_beacon->Flags.numBaseMgmtTimeslots * rec_beacon->TimeSlotSize * 2; // sy
+ 896               		.loc 6 432 0
  897 03b0 8091 0000 		lds r24,rec_beacon
  898 03b4 9091 0000 		lds r25,rec_beacon+1
  899 03b8 FC01      		movw r30,r24
@@ -2791,15 +2796,15 @@
  920 03e6 991F      		rol r25
  921 03e8 9C83      		std Y+4,r25
  922 03ea 8B83      		std Y+3,r24
- 428:ServerLLDN.c  **** 			
- 429:ServerLLDN.c  **** 			start_timer(msg_wait_time);
- 923               		.loc 6 429 0
+ 433:ServerLLDN.c  **** 			
+ 434:ServerLLDN.c  **** 			start_timer(msg_wait_time);
+ 923               		.loc 6 434 0
  924 03ec 8B81      		ldd r24,Y+3
  925 03ee 9C81      		ldd r25,Y+4
  926 03f0 0E94 0000 		call start_timer
- 430:ServerLLDN.c  **** 			
- 431:ServerLLDN.c  **** 			appState = (rec_beacon->Flags.txState == DISC_MODE) ? APP_STATE_PREP_DISC_REPONSE : APP_STATE_PR
- 927               		.loc 6 431 0
+ 435:ServerLLDN.c  **** 			
+ 436:ServerLLDN.c  **** 			appState = (rec_beacon->Flags.txState == DISC_MODE) ? APP_STATE_PREP_DISC_REPONSE : APP_STATE_PR
+ 927               		.loc 6 436 0
  928 03f4 8091 0000 		lds r24,rec_beacon
  929 03f8 9091 0000 		lds r25,rec_beacon+1
  930 03fc FC01      		movw r30,r24
@@ -2807,23 +2812,23 @@
  932 0400 8770      		andi r24,lo8(7)
  933 0402 8430      		cpi r24,lo8(4)
  934 0404 01F4      		brne .L24
- 935               		.loc 6 431 0 is_stmt 0 discriminator 1
+ 935               		.loc 6 436 0 is_stmt 0 discriminator 1
  936 0406 84E0      		ldi r24,lo8(4)
  937 0408 00C0      		rjmp .L25
  938               	.L24:
- 939               		.loc 6 431 0 discriminator 2
+ 939               		.loc 6 436 0 discriminator 2
  940 040a 85E0      		ldi r24,lo8(5)
  941               	.L25:
- 942               		.loc 6 431 0 discriminator 4
+ 942               		.loc 6 436 0 discriminator 4
  943 040c 8093 0000 		sts appState,r24
  944               	.LBE2:
- 424:ServerLLDN.c  **** 	
- 945               		.loc 6 424 0 is_stmt 1 discriminator 4
+ 429:ServerLLDN.c  **** 	
+ 945               		.loc 6 429 0 is_stmt 1 discriminator 4
  946 0410 00C0      		rjmp .L26
  947               	.L23:
- 432:ServerLLDN.c  **** 		}
- 433:ServerLLDN.c  **** 		else if (rec_beacon->Flags.txState == ONLINE_MODE && assTimeSlot != 0xFF && associated == 1)
- 948               		.loc 6 433 0
+ 437:ServerLLDN.c  **** 		}
+ 438:ServerLLDN.c  **** 		else if (rec_beacon->Flags.txState == ONLINE_MODE && assTimeSlot != 0xFF && associated == 1)
+ 948               		.loc 6 438 0
  949 0412 8091 0000 		lds r24,rec_beacon
  950 0416 9091 0000 		lds r25,rec_beacon+1
  951 041a FC01      		movw r30,r24
@@ -2832,20 +2837,20 @@
  954 0420 8823      		tst r24
  955 0422 01F0      		breq .+2
  956 0424 00C0      		rjmp .L27
- 957               		.loc 6 433 0 is_stmt 0 discriminator 1
+ 957               		.loc 6 438 0 is_stmt 0 discriminator 1
  958 0426 8091 0000 		lds r24,assTimeSlot
  959 042a 8F3F      		cpi r24,lo8(-1)
  960 042c 01F4      		brne .+2
  961 042e 00C0      		rjmp .L27
- 962               		.loc 6 433 0 discriminator 2
+ 962               		.loc 6 438 0 discriminator 2
  963 0430 8091 0000 		lds r24,associated
  964 0434 8823      		tst r24
  965 0436 01F4      		brne .+2
  966 0438 00C0      		rjmp .L27
  967               	.LBB3:
- 434:ServerLLDN.c  **** 		{
- 435:ServerLLDN.c  **** 			int ts_time = ((p_var*sp + (m+ n)*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
- 968               		.loc 6 435 0 is_stmt 1
+ 439:ServerLLDN.c  **** 		{
+ 440:ServerLLDN.c  **** 			int ts_time = ((p_var*sp + (m+ n)*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
+ 968               		.loc 6 440 0 is_stmt 1
  969 043a 8091 0000 		lds r24,n
  970 043e 882F      		mov r24,r24
  971 0440 90E0      		ldi r25,0
@@ -2904,8 +2909,8 @@
  1024 04b6 CB01      		movw r24,r22
  1025 04b8 9E83      		std Y+6,r25
  1026 04ba 8D83      		std Y+5,r24
- 436:ServerLLDN.c  **** 			int msg_wait_time = (2*rec_beacon->Flags.numBaseMgmtTimeslots + assTimeSlot) * ts_time;
- 1027               		.loc 6 436 0
+ 441:ServerLLDN.c  **** 			int msg_wait_time = (2*rec_beacon->Flags.numBaseMgmtTimeslots + assTimeSlot) * ts_time;
+ 1027               		.loc 6 441 0
  1028 04bc 8091 0000 		lds r24,rec_beacon
  1029 04c0 9091 0000 		lds r25,rec_beacon+1
  1030 04c4 FC01      		movw r30,r24
@@ -2935,8 +2940,8 @@
  1054 04f6 1124      		clr r1
  1055 04f8 9887      		std Y+8,r25
  1056 04fa 8F83      		std Y+7,r24
- 437:ServerLLDN.c  **** 			printf("msg_wait_time: %d", msg_wait_time);
- 1057               		.loc 6 437 0
+ 442:ServerLLDN.c  **** 			printf("msg_wait_time: %d", msg_wait_time);
+ 1057               		.loc 6 442 0
  1058 04fc 8885      		ldd r24,Y+8
  1059 04fe 8F93      		push r24
  1060 0500 8F81      		ldd r24,Y+7
@@ -2953,1236 +2958,1238 @@
  1071 0518 0F90      		pop __tmp_reg__
  1072 051a 0F90      		pop __tmp_reg__
  1073 051c 0F90      		pop __tmp_reg__
- 438:ServerLLDN.c  **** 			start_timer(msg_wait_time);
- 1074               		.loc 6 438 0
+ 443:ServerLLDN.c  **** 			start_timer(msg_wait_time - 80);
+ 1074               		.loc 6 443 0
  1075 051e 8F81      		ldd r24,Y+7
  1076 0520 9885      		ldd r25,Y+8
- 1077 0522 0E94 0000 		call start_timer
- 439:ServerLLDN.c  **** 			appState = APP_STATE_PREP_DATA_FRAME;
- 1078               		.loc 6 439 0
- 1079 0526 86E0      		ldi r24,lo8(6)
- 1080 0528 8093 0000 		sts appState,r24
- 1081               	.LBE3:
- 434:ServerLLDN.c  **** 			int ts_time = ((p_var*sp + (m+ n)*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
- 1082               		.loc 6 434 0
- 1083 052c 00C0      		rjmp .L26
- 1084               	.L27:
- 440:ServerLLDN.c  **** 		}
- 441:ServerLLDN.c  **** 		else if (rec_beacon->Flags.txState == RESET_MODE)
- 1085               		.loc 6 441 0
- 1086 052e 8091 0000 		lds r24,rec_beacon
- 1087 0532 9091 0000 		lds r25,rec_beacon+1
- 1088 0536 FC01      		movw r30,r24
- 1089 0538 8381      		ldd r24,Z+3
- 1090 053a 8770      		andi r24,lo8(7)
- 1091 053c 8730      		cpi r24,lo8(7)
- 1092 053e 01F4      		brne .L26
- 442:ServerLLDN.c  **** 		{
- 443:ServerLLDN.c  **** 			printf("\n Reset beacon");
- 1093               		.loc 6 443 0
- 1094 0540 80E0      		ldi r24,lo8(.LC4)
- 1095 0542 90E0      		ldi r25,hi8(.LC4)
- 1096 0544 892F      		mov r24,r25
- 1097 0546 8F93      		push r24
- 1098 0548 80E0      		ldi r24,lo8(.LC4)
- 1099 054a 90E0      		ldi r25,hi8(.LC4)
- 1100 054c 8F93      		push r24
- 1101 054e 0E94 0000 		call printf
- 1102 0552 0F90      		pop __tmp_reg__
- 1103 0554 0F90      		pop __tmp_reg__
- 444:ServerLLDN.c  **** 			ack_received = 0;
- 1104               		.loc 6 444 0
- 1105 0556 1092 0000 		sts ack_received,__zero_reg__
- 445:ServerLLDN.c  **** 			associated = 0;
- 1106               		.loc 6 445 0
- 1107 055a 1092 0000 		sts associated,__zero_reg__
- 1108               	.L26:
- 446:ServerLLDN.c  **** 		}
- 447:ServerLLDN.c  **** 		return true;
- 1109               		.loc 6 447 0
- 1110 055e 81E0      		ldi r24,lo8(1)
- 1111               	/* epilogue start */
- 448:ServerLLDN.c  **** 	}
- 1112               		.loc 6 448 0
- 1113 0560 2A96      		adiw r28,10
- 1114 0562 0FB6      		in __tmp_reg__,__SREG__
- 1115 0564 F894      		cli
- 1116 0566 DEBF      		out __SP_H__,r29
- 1117 0568 0FBE      		out __SREG__,__tmp_reg__
- 1118 056a CDBF      		out __SP_L__,r28
- 1119 056c DF91      		pop r29
- 1120 056e CF91      		pop r28
- 1121 0570 0895      		ret
- 1122               		.cfi_endproc
- 1123               	.LFE133:
- 1125               		.section	.rodata
- 1126               	.LC5:
- 1127 003c 0A20 6163 		.string	"\n ack true"
- 1127      6B20 7472 
- 1127      7565 00
- 1128               		.text
- 1130               	appAckInd:
- 1131               	.LFB134:
- 449:ServerLLDN.c  **** 	
- 450:ServerLLDN.c  **** 	static bool appAckInd(NWK_DataInd_t *ind)
- 451:ServerLLDN.c  **** 	{
- 1132               		.loc 6 451 0
- 1133               		.cfi_startproc
- 1134 0572 CF93      		push r28
- 1135               	.LCFI43:
- 1136               		.cfi_def_cfa_offset 3
- 1137               		.cfi_offset 28, -2
- 1138 0574 DF93      		push r29
- 1139               	.LCFI44:
- 1140               		.cfi_def_cfa_offset 4
- 1141               		.cfi_offset 29, -3
- 1142 0576 CDB7      		in r28,__SP_L__
- 1143 0578 DEB7      		in r29,__SP_H__
- 1144               	.LCFI45:
- 1145               		.cfi_def_cfa_register 28
- 1146 057a 2897      		sbiw r28,8
- 1147               	.LCFI46:
- 1148               		.cfi_def_cfa_offset 12
- 1149 057c 0FB6      		in __tmp_reg__,__SREG__
- 1150 057e F894      		cli
- 1151 0580 DEBF      		out __SP_H__,r29
- 1152 0582 0FBE      		out __SREG__,__tmp_reg__
- 1153 0584 CDBF      		out __SP_L__,r28
- 1154               	/* prologue: function */
- 1155               	/* frame size = 8 */
- 1156               	/* stack size = 10 */
- 1157               	.L__stack_usage = 10
- 1158 0586 9887      		std Y+8,r25
- 1159 0588 8F83      		std Y+7,r24
- 452:ServerLLDN.c  **** 		#if !MASTER_MACSC
- 453:ServerLLDN.c  **** 		ind->data = ind->data - (uint8_t) 1;
- 454:ServerLLDN.c  **** 		#endif
- 455:ServerLLDN.c  **** 		NWK_ACKFormat_t *ackframe = (NWK_ACKFormat_t*)ind->data;
- 1160               		.loc 6 455 0
- 1161 058a 8F81      		ldd r24,Y+7
- 1162 058c 9885      		ldd r25,Y+8
- 1163 058e FC01      		movw r30,r24
- 1164 0590 8085      		ldd r24,Z+8
- 1165 0592 9185      		ldd r25,Z+9
- 1166 0594 9A83      		std Y+2,r25
- 1167 0596 8983      		std Y+1,r24
- 456:ServerLLDN.c  **** 		if(PanId == ackframe->sourceId)
- 1168               		.loc 6 456 0
- 1169 0598 8981      		ldd r24,Y+1
- 1170 059a 9A81      		ldd r25,Y+2
- 1171 059c FC01      		movw r30,r24
- 1172 059e 9081      		ld r25,Z
- 1173 05a0 8091 0000 		lds r24,PanId
- 1174 05a4 9817      		cp r25,r24
- 1175 05a6 01F4      		brne .L30
- 1176               	.LBB4:
- 457:ServerLLDN.c  **** 		{
- 458:ServerLLDN.c  **** 			int pos = (int) APP_ADDR / 8;
- 1177               		.loc 6 458 0
- 1178 05a8 1C82      		std Y+4,__zero_reg__
- 1179 05aa 1B82      		std Y+3,__zero_reg__
- 459:ServerLLDN.c  **** 			int bit_shift = 8 - APP_ADDR % 8;
- 1180               		.loc 6 459 0
- 1181 05ac 86E0      		ldi r24,lo8(6)
- 1182 05ae 90E0      		ldi r25,0
- 1183 05b0 9E83      		std Y+6,r25
- 1184 05b2 8D83      		std Y+5,r24
- 460:ServerLLDN.c  **** 			if( ackframe->ackFlags[pos] & 1 << bit_shift)	
- 1185               		.loc 6 460 0
- 1186 05b4 2981      		ldd r18,Y+1
- 1187 05b6 3A81      		ldd r19,Y+2
- 1188 05b8 8B81      		ldd r24,Y+3
- 1189 05ba 9C81      		ldd r25,Y+4
- 1190 05bc 820F      		add r24,r18
- 1191 05be 931F      		adc r25,r19
- 1192 05c0 0196      		adiw r24,1
- 1193 05c2 FC01      		movw r30,r24
- 1194 05c4 8081      		ld r24,Z
- 1195 05c6 882F      		mov r24,r24
- 1196 05c8 90E0      		ldi r25,0
- 1197 05ca 0D80      		ldd r0,Y+5
- 1198 05cc 00C0      		rjmp 2f
- 1199               		1:
- 1200 05ce 9595      		asr r25
- 1201 05d0 8795      		ror r24
- 1202               		2:
- 1203 05d2 0A94      		dec r0
- 1204 05d4 02F4      		brpl 1b
- 1205 05d6 8170      		andi r24,1
- 1206 05d8 9927      		clr r25
- 1207 05da 892B      		or r24,r25
- 1208 05dc 01F0      		breq .L30
- 461:ServerLLDN.c  **** 			{
- 462:ServerLLDN.c  **** 				printf("\n ack true");
- 1209               		.loc 6 462 0
- 1210 05de 80E0      		ldi r24,lo8(.LC5)
- 1211 05e0 90E0      		ldi r25,hi8(.LC5)
- 1212 05e2 892F      		mov r24,r25
- 1213 05e4 8F93      		push r24
- 1214 05e6 80E0      		ldi r24,lo8(.LC5)
- 1215 05e8 90E0      		ldi r25,hi8(.LC5)
- 1216 05ea 8F93      		push r24
- 1217 05ec 0E94 0000 		call printf
- 1218 05f0 0F90      		pop __tmp_reg__
- 1219 05f2 0F90      		pop __tmp_reg__
- 463:ServerLLDN.c  **** 				ack_received = true;
- 1220               		.loc 6 463 0
- 1221 05f4 81E0      		ldi r24,lo8(1)
- 1222 05f6 8093 0000 		sts ack_received,r24
- 1223               	.L30:
- 1224               	.LBE4:
- 464:ServerLLDN.c  **** 			}
- 465:ServerLLDN.c  **** 		}
- 466:ServerLLDN.c  **** 		return true;
- 1225               		.loc 6 466 0
- 1226 05fa 81E0      		ldi r24,lo8(1)
- 1227               	/* epilogue start */
- 467:ServerLLDN.c  **** 	}
- 1228               		.loc 6 467 0
- 1229 05fc 2896      		adiw r28,8
- 1230 05fe 0FB6      		in __tmp_reg__,__SREG__
- 1231 0600 F894      		cli
- 1232 0602 DEBF      		out __SP_H__,r29
- 1233 0604 0FBE      		out __SREG__,__tmp_reg__
- 1234 0606 CDBF      		out __SP_L__,r28
- 1235 0608 DF91      		pop r29
- 1236 060a CF91      		pop r28
- 1237 060c 0895      		ret
- 1238               		.cfi_endproc
- 1239               	.LFE134:
- 1241               		.section	.rodata
- 1242               	.LC6:
- 1243 0047 0A41 7373 		.string	"\nAssociado!"
- 1243      6F63 6961 
- 1243      646F 2100 
- 1244               		.text
- 1246               	appCommandInd:
- 1247               	.LFB135:
- 468:ServerLLDN.c  **** 	
- 469:ServerLLDN.c  **** 	static bool appCommandInd(NWK_DataInd_t *ind)
- 470:ServerLLDN.c  **** 	{
- 1248               		.loc 6 470 0
- 1249               		.cfi_startproc
- 1250 060e CF93      		push r28
- 1251               	.LCFI47:
- 1252               		.cfi_def_cfa_offset 3
- 1253               		.cfi_offset 28, -2
- 1254 0610 DF93      		push r29
- 1255               	.LCFI48:
- 1256               		.cfi_def_cfa_offset 4
- 1257               		.cfi_offset 29, -3
- 1258 0612 00D0      		rcall .
- 1259 0614 00D0      		rcall .
- 1260               	.LCFI49:
- 1261               		.cfi_def_cfa_offset 8
- 1262 0616 CDB7      		in r28,__SP_L__
- 1263 0618 DEB7      		in r29,__SP_H__
- 1264               	.LCFI50:
- 1265               		.cfi_def_cfa_register 28
- 1266               	/* prologue: function */
- 1267               	/* frame size = 4 */
- 1268               	/* stack size = 6 */
- 1269               	.L__stack_usage = 6
- 1270 061a 9C83      		std Y+4,r25
- 1271 061c 8B83      		std Y+3,r24
- 471:ServerLLDN.c  **** 		#if !MASTER_MACSC
- 472:ServerLLDN.c  **** 		ind->data = ind->data - (uint8_t) 1;
- 473:ServerLLDN.c  **** 		#endif
- 474:ServerLLDN.c  **** 		
- 475:ServerLLDN.c  **** 		if(ind->data[0] == LL_CONFIGURATION_REQUEST)
- 1272               		.loc 6 475 0
- 1273 061e 8B81      		ldd r24,Y+3
- 1274 0620 9C81      		ldd r25,Y+4
- 1275 0622 FC01      		movw r30,r24
- 1276 0624 8085      		ldd r24,Z+8
- 1277 0626 9185      		ldd r25,Z+9
- 1278 0628 FC01      		movw r30,r24
- 1279 062a 8081      		ld r24,Z
- 1280 062c 8F30      		cpi r24,lo8(15)
- 1281 062e 01F4      		brne .L33
- 1282               	.LBB5:
- 476:ServerLLDN.c  **** 		{
- 477:ServerLLDN.c  **** 			NWK_ConfigRequest_t *msg = (NWK_ConfigRequest_t*)ind->data;
- 1283               		.loc 6 477 0
- 1284 0630 8B81      		ldd r24,Y+3
- 1285 0632 9C81      		ldd r25,Y+4
- 1286 0634 FC01      		movw r30,r24
- 1287 0636 8085      		ldd r24,Z+8
- 1288 0638 9185      		ldd r25,Z+9
- 1289 063a 9A83      		std Y+2,r25
- 1290 063c 8983      		std Y+1,r24
- 478:ServerLLDN.c  **** 			if(msg->macAddr == APP_ADDR)
- 1291               		.loc 6 478 0
- 1292 063e 8981      		ldd r24,Y+1
- 1293 0640 9A81      		ldd r25,Y+2
- 1294 0642 FC01      		movw r30,r24
- 1295 0644 8481      		ldd r24,Z+4
- 1296 0646 8230      		cpi r24,lo8(2)
- 1297 0648 01F4      		brne .L33
- 479:ServerLLDN.c  **** 			{
- 480:ServerLLDN.c  **** 				PHY_SetChannel(msg->tx_channel);
- 1298               		.loc 6 480 0
- 1299 064a 8981      		ldd r24,Y+1
- 1300 064c 9A81      		ldd r25,Y+2
- 1301 064e FC01      		movw r30,r24
- 1302 0650 8281      		ldd r24,Z+2
- 1303 0652 0E94 0000 		call PHY_SetChannel
- 481:ServerLLDN.c  **** 				NWK_SetPanId(msg->s_macAddr);
- 1304               		.loc 6 481 0
- 1305 0656 8981      		ldd r24,Y+1
- 1306 0658 9A81      		ldd r25,Y+2
- 1307 065a FC01      		movw r30,r24
- 1308 065c 8181      		ldd r24,Z+1
- 1309 065e 882F      		mov r24,r24
- 1310 0660 90E0      		ldi r25,0
- 1311 0662 0E94 0000 		call NWK_SetPanId
- 482:ServerLLDN.c  **** 				PanId = msg->s_macAddr;
- 1312               		.loc 6 482 0
- 1313 0666 8981      		ldd r24,Y+1
- 1314 0668 9A81      		ldd r25,Y+2
- 1315 066a FC01      		movw r30,r24
- 1316 066c 8181      		ldd r24,Z+1
- 1317 066e 8093 0000 		sts PanId,r24
- 483:ServerLLDN.c  **** 				assTimeSlot = msg->assTimeSlot;
- 1318               		.loc 6 483 0
- 1319 0672 8981      		ldd r24,Y+1
- 1320 0674 9A81      		ldd r25,Y+2
- 1321 0676 FC01      		movw r30,r24
- 1322 0678 8381      		ldd r24,Z+3
- 1323 067a 8093 0000 		sts assTimeSlot,r24
- 484:ServerLLDN.c  **** 				n = msg->conf.tsDuration;
- 1324               		.loc 6 484 0
- 1325 067e 8981      		ldd r24,Y+1
- 1326 0680 9A81      		ldd r25,Y+2
- 1327 0682 FC01      		movw r30,r24
- 1328 0684 8581      		ldd r24,Z+5
- 1329 0686 8F77      		andi r24,lo8(127)
- 1330 0688 8093 0000 		sts n,r24
- 485:ServerLLDN.c  **** 				associated = 1;
- 1331               		.loc 6 485 0
- 1332 068c 81E0      		ldi r24,lo8(1)
- 1333 068e 8093 0000 		sts associated,r24
- 486:ServerLLDN.c  **** 				printf("\nAssociado!");
- 1334               		.loc 6 486 0
- 1335 0692 80E0      		ldi r24,lo8(.LC6)
- 1336 0694 90E0      		ldi r25,hi8(.LC6)
- 1337 0696 892F      		mov r24,r25
- 1338 0698 8F93      		push r24
- 1339 069a 80E0      		ldi r24,lo8(.LC6)
- 1340 069c 90E0      		ldi r25,hi8(.LC6)
- 1341 069e 8F93      		push r24
- 1342 06a0 0E94 0000 		call printf
- 1343 06a4 0F90      		pop __tmp_reg__
- 1344 06a6 0F90      		pop __tmp_reg__
- 1345               	.L33:
- 1346               	.LBE5:
- 487:ServerLLDN.c  **** 			}
- 488:ServerLLDN.c  **** 		}
- 489:ServerLLDN.c  **** 		return true;
- 1347               		.loc 6 489 0
- 1348 06a8 81E0      		ldi r24,lo8(1)
- 1349               	/* epilogue start */
- 490:ServerLLDN.c  **** 	}
- 1350               		.loc 6 490 0
- 1351 06aa 0F90      		pop __tmp_reg__
- 1352 06ac 0F90      		pop __tmp_reg__
+ 1077 0522 8055      		subi r24,80
+ 1078 0524 9109      		sbc r25,__zero_reg__
+ 1079 0526 0E94 0000 		call start_timer
+ 444:ServerLLDN.c  **** 			appState = APP_STATE_PREP_DATA_FRAME;
+ 1080               		.loc 6 444 0
+ 1081 052a 86E0      		ldi r24,lo8(6)
+ 1082 052c 8093 0000 		sts appState,r24
+ 1083               	.LBE3:
+ 439:ServerLLDN.c  **** 			int ts_time = ((p_var*sp + (m+ n)*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
+ 1084               		.loc 6 439 0
+ 1085 0530 00C0      		rjmp .L26
+ 1086               	.L27:
+ 445:ServerLLDN.c  **** 		}
+ 446:ServerLLDN.c  **** 		else if (rec_beacon->Flags.txState == RESET_MODE)
+ 1087               		.loc 6 446 0
+ 1088 0532 8091 0000 		lds r24,rec_beacon
+ 1089 0536 9091 0000 		lds r25,rec_beacon+1
+ 1090 053a FC01      		movw r30,r24
+ 1091 053c 8381      		ldd r24,Z+3
+ 1092 053e 8770      		andi r24,lo8(7)
+ 1093 0540 8730      		cpi r24,lo8(7)
+ 1094 0542 01F4      		brne .L26
+ 447:ServerLLDN.c  **** 		{
+ 448:ServerLLDN.c  **** 			printf("\n Reset beacon");
+ 1095               		.loc 6 448 0
+ 1096 0544 80E0      		ldi r24,lo8(.LC4)
+ 1097 0546 90E0      		ldi r25,hi8(.LC4)
+ 1098 0548 892F      		mov r24,r25
+ 1099 054a 8F93      		push r24
+ 1100 054c 80E0      		ldi r24,lo8(.LC4)
+ 1101 054e 90E0      		ldi r25,hi8(.LC4)
+ 1102 0550 8F93      		push r24
+ 1103 0552 0E94 0000 		call printf
+ 1104 0556 0F90      		pop __tmp_reg__
+ 1105 0558 0F90      		pop __tmp_reg__
+ 449:ServerLLDN.c  **** 			ack_received = 0;
+ 1106               		.loc 6 449 0
+ 1107 055a 1092 0000 		sts ack_received,__zero_reg__
+ 450:ServerLLDN.c  **** 			associated = 0;
+ 1108               		.loc 6 450 0
+ 1109 055e 1092 0000 		sts associated,__zero_reg__
+ 1110               	.L26:
+ 451:ServerLLDN.c  **** 		}
+ 452:ServerLLDN.c  **** 		return true;
+ 1111               		.loc 6 452 0
+ 1112 0562 81E0      		ldi r24,lo8(1)
+ 1113               	/* epilogue start */
+ 453:ServerLLDN.c  **** 	}
+ 1114               		.loc 6 453 0
+ 1115 0564 2A96      		adiw r28,10
+ 1116 0566 0FB6      		in __tmp_reg__,__SREG__
+ 1117 0568 F894      		cli
+ 1118 056a DEBF      		out __SP_H__,r29
+ 1119 056c 0FBE      		out __SREG__,__tmp_reg__
+ 1120 056e CDBF      		out __SP_L__,r28
+ 1121 0570 DF91      		pop r29
+ 1122 0572 CF91      		pop r28
+ 1123 0574 0895      		ret
+ 1124               		.cfi_endproc
+ 1125               	.LFE133:
+ 1127               		.section	.rodata
+ 1128               	.LC5:
+ 1129 003c 0A20 6163 		.string	"\n ack true"
+ 1129      6B20 7472 
+ 1129      7565 00
+ 1130               		.text
+ 1132               	appAckInd:
+ 1133               	.LFB134:
+ 454:ServerLLDN.c  **** 	
+ 455:ServerLLDN.c  **** 	static bool appAckInd(NWK_DataInd_t *ind)
+ 456:ServerLLDN.c  **** 	{
+ 1134               		.loc 6 456 0
+ 1135               		.cfi_startproc
+ 1136 0576 CF93      		push r28
+ 1137               	.LCFI43:
+ 1138               		.cfi_def_cfa_offset 3
+ 1139               		.cfi_offset 28, -2
+ 1140 0578 DF93      		push r29
+ 1141               	.LCFI44:
+ 1142               		.cfi_def_cfa_offset 4
+ 1143               		.cfi_offset 29, -3
+ 1144 057a CDB7      		in r28,__SP_L__
+ 1145 057c DEB7      		in r29,__SP_H__
+ 1146               	.LCFI45:
+ 1147               		.cfi_def_cfa_register 28
+ 1148 057e 2897      		sbiw r28,8
+ 1149               	.LCFI46:
+ 1150               		.cfi_def_cfa_offset 12
+ 1151 0580 0FB6      		in __tmp_reg__,__SREG__
+ 1152 0582 F894      		cli
+ 1153 0584 DEBF      		out __SP_H__,r29
+ 1154 0586 0FBE      		out __SREG__,__tmp_reg__
+ 1155 0588 CDBF      		out __SP_L__,r28
+ 1156               	/* prologue: function */
+ 1157               	/* frame size = 8 */
+ 1158               	/* stack size = 10 */
+ 1159               	.L__stack_usage = 10
+ 1160 058a 9887      		std Y+8,r25
+ 1161 058c 8F83      		std Y+7,r24
+ 457:ServerLLDN.c  **** 		#if !MASTER_MACSC
+ 458:ServerLLDN.c  **** 		ind->data = ind->data - (uint8_t) 1;
+ 459:ServerLLDN.c  **** 		#endif
+ 460:ServerLLDN.c  **** 		NWK_ACKFormat_t *ackframe = (NWK_ACKFormat_t*)ind->data;
+ 1162               		.loc 6 460 0
+ 1163 058e 8F81      		ldd r24,Y+7
+ 1164 0590 9885      		ldd r25,Y+8
+ 1165 0592 FC01      		movw r30,r24
+ 1166 0594 8085      		ldd r24,Z+8
+ 1167 0596 9185      		ldd r25,Z+9
+ 1168 0598 9A83      		std Y+2,r25
+ 1169 059a 8983      		std Y+1,r24
+ 461:ServerLLDN.c  **** 		if(PanId == ackframe->sourceId)
+ 1170               		.loc 6 461 0
+ 1171 059c 8981      		ldd r24,Y+1
+ 1172 059e 9A81      		ldd r25,Y+2
+ 1173 05a0 FC01      		movw r30,r24
+ 1174 05a2 9081      		ld r25,Z
+ 1175 05a4 8091 0000 		lds r24,PanId
+ 1176 05a8 9817      		cp r25,r24
+ 1177 05aa 01F4      		brne .L30
+ 1178               	.LBB4:
+ 462:ServerLLDN.c  **** 		{
+ 463:ServerLLDN.c  **** 			int pos = (int) APP_ADDR / 8;
+ 1179               		.loc 6 463 0
+ 1180 05ac 1C82      		std Y+4,__zero_reg__
+ 1181 05ae 1B82      		std Y+3,__zero_reg__
+ 464:ServerLLDN.c  **** 			int bit_shift = 8 - APP_ADDR % 8;
+ 1182               		.loc 6 464 0
+ 1183 05b0 86E0      		ldi r24,lo8(6)
+ 1184 05b2 90E0      		ldi r25,0
+ 1185 05b4 9E83      		std Y+6,r25
+ 1186 05b6 8D83      		std Y+5,r24
+ 465:ServerLLDN.c  **** 			if( ackframe->ackFlags[pos] & 1 << bit_shift)	
+ 1187               		.loc 6 465 0
+ 1188 05b8 2981      		ldd r18,Y+1
+ 1189 05ba 3A81      		ldd r19,Y+2
+ 1190 05bc 8B81      		ldd r24,Y+3
+ 1191 05be 9C81      		ldd r25,Y+4
+ 1192 05c0 820F      		add r24,r18
+ 1193 05c2 931F      		adc r25,r19
+ 1194 05c4 0196      		adiw r24,1
+ 1195 05c6 FC01      		movw r30,r24
+ 1196 05c8 8081      		ld r24,Z
+ 1197 05ca 882F      		mov r24,r24
+ 1198 05cc 90E0      		ldi r25,0
+ 1199 05ce 0D80      		ldd r0,Y+5
+ 1200 05d0 00C0      		rjmp 2f
+ 1201               		1:
+ 1202 05d2 9595      		asr r25
+ 1203 05d4 8795      		ror r24
+ 1204               		2:
+ 1205 05d6 0A94      		dec r0
+ 1206 05d8 02F4      		brpl 1b
+ 1207 05da 8170      		andi r24,1
+ 1208 05dc 9927      		clr r25
+ 1209 05de 892B      		or r24,r25
+ 1210 05e0 01F0      		breq .L30
+ 466:ServerLLDN.c  **** 			{
+ 467:ServerLLDN.c  **** 				printf("\n ack true");
+ 1211               		.loc 6 467 0
+ 1212 05e2 80E0      		ldi r24,lo8(.LC5)
+ 1213 05e4 90E0      		ldi r25,hi8(.LC5)
+ 1214 05e6 892F      		mov r24,r25
+ 1215 05e8 8F93      		push r24
+ 1216 05ea 80E0      		ldi r24,lo8(.LC5)
+ 1217 05ec 90E0      		ldi r25,hi8(.LC5)
+ 1218 05ee 8F93      		push r24
+ 1219 05f0 0E94 0000 		call printf
+ 1220 05f4 0F90      		pop __tmp_reg__
+ 1221 05f6 0F90      		pop __tmp_reg__
+ 468:ServerLLDN.c  **** 				ack_received = true;
+ 1222               		.loc 6 468 0
+ 1223 05f8 81E0      		ldi r24,lo8(1)
+ 1224 05fa 8093 0000 		sts ack_received,r24
+ 1225               	.L30:
+ 1226               	.LBE4:
+ 469:ServerLLDN.c  **** 			}
+ 470:ServerLLDN.c  **** 		}
+ 471:ServerLLDN.c  **** 		return true;
+ 1227               		.loc 6 471 0
+ 1228 05fe 81E0      		ldi r24,lo8(1)
+ 1229               	/* epilogue start */
+ 472:ServerLLDN.c  **** 	}
+ 1230               		.loc 6 472 0
+ 1231 0600 2896      		adiw r28,8
+ 1232 0602 0FB6      		in __tmp_reg__,__SREG__
+ 1233 0604 F894      		cli
+ 1234 0606 DEBF      		out __SP_H__,r29
+ 1235 0608 0FBE      		out __SREG__,__tmp_reg__
+ 1236 060a CDBF      		out __SP_L__,r28
+ 1237 060c DF91      		pop r29
+ 1238 060e CF91      		pop r28
+ 1239 0610 0895      		ret
+ 1240               		.cfi_endproc
+ 1241               	.LFE134:
+ 1243               		.section	.rodata
+ 1244               	.LC6:
+ 1245 0047 0A41 7373 		.string	"\nAssociado!"
+ 1245      6F63 6961 
+ 1245      646F 2100 
+ 1246               		.text
+ 1248               	appCommandInd:
+ 1249               	.LFB135:
+ 473:ServerLLDN.c  **** 	
+ 474:ServerLLDN.c  **** 	static bool appCommandInd(NWK_DataInd_t *ind)
+ 475:ServerLLDN.c  **** 	{
+ 1250               		.loc 6 475 0
+ 1251               		.cfi_startproc
+ 1252 0612 CF93      		push r28
+ 1253               	.LCFI47:
+ 1254               		.cfi_def_cfa_offset 3
+ 1255               		.cfi_offset 28, -2
+ 1256 0614 DF93      		push r29
+ 1257               	.LCFI48:
+ 1258               		.cfi_def_cfa_offset 4
+ 1259               		.cfi_offset 29, -3
+ 1260 0616 00D0      		rcall .
+ 1261 0618 00D0      		rcall .
+ 1262               	.LCFI49:
+ 1263               		.cfi_def_cfa_offset 8
+ 1264 061a CDB7      		in r28,__SP_L__
+ 1265 061c DEB7      		in r29,__SP_H__
+ 1266               	.LCFI50:
+ 1267               		.cfi_def_cfa_register 28
+ 1268               	/* prologue: function */
+ 1269               	/* frame size = 4 */
+ 1270               	/* stack size = 6 */
+ 1271               	.L__stack_usage = 6
+ 1272 061e 9C83      		std Y+4,r25
+ 1273 0620 8B83      		std Y+3,r24
+ 476:ServerLLDN.c  **** 		#if !MASTER_MACSC
+ 477:ServerLLDN.c  **** 		ind->data = ind->data - (uint8_t) 1;
+ 478:ServerLLDN.c  **** 		#endif
+ 479:ServerLLDN.c  **** 		
+ 480:ServerLLDN.c  **** 		if(ind->data[0] == LL_CONFIGURATION_REQUEST)
+ 1274               		.loc 6 480 0
+ 1275 0622 8B81      		ldd r24,Y+3
+ 1276 0624 9C81      		ldd r25,Y+4
+ 1277 0626 FC01      		movw r30,r24
+ 1278 0628 8085      		ldd r24,Z+8
+ 1279 062a 9185      		ldd r25,Z+9
+ 1280 062c FC01      		movw r30,r24
+ 1281 062e 8081      		ld r24,Z
+ 1282 0630 8F30      		cpi r24,lo8(15)
+ 1283 0632 01F4      		brne .L33
+ 1284               	.LBB5:
+ 481:ServerLLDN.c  **** 		{
+ 482:ServerLLDN.c  **** 			NWK_ConfigRequest_t *msg = (NWK_ConfigRequest_t*)ind->data;
+ 1285               		.loc 6 482 0
+ 1286 0634 8B81      		ldd r24,Y+3
+ 1287 0636 9C81      		ldd r25,Y+4
+ 1288 0638 FC01      		movw r30,r24
+ 1289 063a 8085      		ldd r24,Z+8
+ 1290 063c 9185      		ldd r25,Z+9
+ 1291 063e 9A83      		std Y+2,r25
+ 1292 0640 8983      		std Y+1,r24
+ 483:ServerLLDN.c  **** 			if(msg->macAddr == APP_ADDR)
+ 1293               		.loc 6 483 0
+ 1294 0642 8981      		ldd r24,Y+1
+ 1295 0644 9A81      		ldd r25,Y+2
+ 1296 0646 FC01      		movw r30,r24
+ 1297 0648 8481      		ldd r24,Z+4
+ 1298 064a 8230      		cpi r24,lo8(2)
+ 1299 064c 01F4      		brne .L33
+ 484:ServerLLDN.c  **** 			{
+ 485:ServerLLDN.c  **** 				PHY_SetChannel(msg->tx_channel);
+ 1300               		.loc 6 485 0
+ 1301 064e 8981      		ldd r24,Y+1
+ 1302 0650 9A81      		ldd r25,Y+2
+ 1303 0652 FC01      		movw r30,r24
+ 1304 0654 8281      		ldd r24,Z+2
+ 1305 0656 0E94 0000 		call PHY_SetChannel
+ 486:ServerLLDN.c  **** 				NWK_SetPanId(msg->s_macAddr);
+ 1306               		.loc 6 486 0
+ 1307 065a 8981      		ldd r24,Y+1
+ 1308 065c 9A81      		ldd r25,Y+2
+ 1309 065e FC01      		movw r30,r24
+ 1310 0660 8181      		ldd r24,Z+1
+ 1311 0662 882F      		mov r24,r24
+ 1312 0664 90E0      		ldi r25,0
+ 1313 0666 0E94 0000 		call NWK_SetPanId
+ 487:ServerLLDN.c  **** 				PanId = msg->s_macAddr;
+ 1314               		.loc 6 487 0
+ 1315 066a 8981      		ldd r24,Y+1
+ 1316 066c 9A81      		ldd r25,Y+2
+ 1317 066e FC01      		movw r30,r24
+ 1318 0670 8181      		ldd r24,Z+1
+ 1319 0672 8093 0000 		sts PanId,r24
+ 488:ServerLLDN.c  **** 				assTimeSlot = msg->assTimeSlot;
+ 1320               		.loc 6 488 0
+ 1321 0676 8981      		ldd r24,Y+1
+ 1322 0678 9A81      		ldd r25,Y+2
+ 1323 067a FC01      		movw r30,r24
+ 1324 067c 8381      		ldd r24,Z+3
+ 1325 067e 8093 0000 		sts assTimeSlot,r24
+ 489:ServerLLDN.c  **** 				n = msg->conf.tsDuration;
+ 1326               		.loc 6 489 0
+ 1327 0682 8981      		ldd r24,Y+1
+ 1328 0684 9A81      		ldd r25,Y+2
+ 1329 0686 FC01      		movw r30,r24
+ 1330 0688 8581      		ldd r24,Z+5
+ 1331 068a 8F77      		andi r24,lo8(127)
+ 1332 068c 8093 0000 		sts n,r24
+ 490:ServerLLDN.c  **** 				associated = 1;
+ 1333               		.loc 6 490 0
+ 1334 0690 81E0      		ldi r24,lo8(1)
+ 1335 0692 8093 0000 		sts associated,r24
+ 491:ServerLLDN.c  **** 				printf("\nAssociado!");
+ 1336               		.loc 6 491 0
+ 1337 0696 80E0      		ldi r24,lo8(.LC6)
+ 1338 0698 90E0      		ldi r25,hi8(.LC6)
+ 1339 069a 892F      		mov r24,r25
+ 1340 069c 8F93      		push r24
+ 1341 069e 80E0      		ldi r24,lo8(.LC6)
+ 1342 06a0 90E0      		ldi r25,hi8(.LC6)
+ 1343 06a2 8F93      		push r24
+ 1344 06a4 0E94 0000 		call printf
+ 1345 06a8 0F90      		pop __tmp_reg__
+ 1346 06aa 0F90      		pop __tmp_reg__
+ 1347               	.L33:
+ 1348               	.LBE5:
+ 492:ServerLLDN.c  **** 			}
+ 493:ServerLLDN.c  **** 		}
+ 494:ServerLLDN.c  **** 		return true;
+ 1349               		.loc 6 494 0
+ 1350 06ac 81E0      		ldi r24,lo8(1)
+ 1351               	/* epilogue start */
+ 495:ServerLLDN.c  **** 	}
+ 1352               		.loc 6 495 0
  1353 06ae 0F90      		pop __tmp_reg__
  1354 06b0 0F90      		pop __tmp_reg__
- 1355 06b2 DF91      		pop r29
- 1356 06b4 CF91      		pop r28
- 1357 06b6 0895      		ret
- 1358               		.cfi_endproc
- 1359               	.LFE135:
- 1361               	.global	appPrepareDiscoverResponse
- 1363               	appPrepareDiscoverResponse:
- 1364               	.LFB136:
- 491:ServerLLDN.c  **** 
- 492:ServerLLDN.c  **** 	void appPrepareDiscoverResponse()
- 493:ServerLLDN.c  **** 	{
- 1365               		.loc 6 493 0
- 1366               		.cfi_startproc
- 1367 06b8 CF93      		push r28
- 1368               	.LCFI51:
- 1369               		.cfi_def_cfa_offset 3
- 1370               		.cfi_offset 28, -2
- 1371 06ba DF93      		push r29
- 1372               	.LCFI52:
- 1373               		.cfi_def_cfa_offset 4
- 1374               		.cfi_offset 29, -3
- 1375 06bc CDB7      		in r28,__SP_L__
- 1376 06be DEB7      		in r29,__SP_H__
- 1377               	.LCFI53:
- 1378               		.cfi_def_cfa_register 28
- 1379               	/* prologue: function */
- 1380               	/* frame size = 0 */
- 1381               	/* stack size = 2 */
- 1382               	.L__stack_usage = 2
- 494:ServerLLDN.c  **** 		msgReq.dstAddr				= 0;
- 1383               		.loc 6 494 0
- 1384 06c0 1092 0000 		sts msgReq+5+1,__zero_reg__
- 1385 06c4 1092 0000 		sts msgReq+5,__zero_reg__
- 495:ServerLLDN.c  **** 		msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
- 1386               		.loc 6 495 0
- 1387 06c8 83E0      		ldi r24,lo8(3)
- 1388 06ca 8093 0000 		sts msgReq+7,r24
- 496:ServerLLDN.c  **** 		msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
- 1389               		.loc 6 496 0
- 1390 06ce 83E0      		ldi r24,lo8(3)
- 1391 06d0 8093 0000 		sts msgReq+8,r24
- 497:ServerLLDN.c  **** 		msgReq.options				= NWK_OPT_MAC_COMMAND;
- 1392               		.loc 6 497 0
- 1393 06d4 80E0      		ldi r24,0
- 1394 06d6 90E8      		ldi r25,lo8(-128)
- 1395 06d8 9093 0000 		sts msgReq+9+1,r25
- 1396 06dc 8093 0000 		sts msgReq+9,r24
- 498:ServerLLDN.c  **** 		msgReq.data					= (uint8_t*)&msgDiscResponse;
- 1397               		.loc 6 498 0
- 1398 06e0 80E0      		ldi r24,lo8(msgDiscResponse)
- 1399 06e2 90E0      		ldi r25,hi8(msgDiscResponse)
- 1400 06e4 9093 0000 		sts msgReq+13+1,r25
- 1401 06e8 8093 0000 		sts msgReq+13,r24
- 499:ServerLLDN.c  **** 		msgReq.size					= sizeof(msgDiscResponse);
- 1402               		.loc 6 499 0
- 1403 06ec 83E0      		ldi r24,lo8(3)
- 1404 06ee 8093 0000 		sts msgReq+15,r24
- 500:ServerLLDN.c  **** 	}
- 1405               		.loc 6 500 0
- 1406 06f2 0000      		nop
- 1407               	/* epilogue start */
- 1408 06f4 DF91      		pop r29
- 1409 06f6 CF91      		pop r28
- 1410 06f8 0895      		ret
- 1411               		.cfi_endproc
- 1412               	.LFE136:
- 1414               	.global	appPrepareConfigurationStatus
- 1416               	appPrepareConfigurationStatus:
- 1417               	.LFB137:
- 501:ServerLLDN.c  **** 	
- 502:ServerLLDN.c  **** 	void appPrepareConfigurationStatus()
- 503:ServerLLDN.c  **** 	{		
- 1418               		.loc 6 503 0
- 1419               		.cfi_startproc
- 1420 06fa CF93      		push r28
- 1421               	.LCFI54:
- 1422               		.cfi_def_cfa_offset 3
- 1423               		.cfi_offset 28, -2
- 1424 06fc DF93      		push r29
- 1425               	.LCFI55:
- 1426               		.cfi_def_cfa_offset 4
- 1427               		.cfi_offset 29, -3
- 1428 06fe CDB7      		in r28,__SP_L__
- 1429 0700 DEB7      		in r29,__SP_H__
- 1430               	.LCFI56:
- 1431               		.cfi_def_cfa_register 28
- 1432               	/* prologue: function */
- 1433               	/* frame size = 0 */
- 1434               	/* stack size = 2 */
- 1435               	.L__stack_usage = 2
- 504:ServerLLDN.c  **** 		msgReq.dstAddr				= 0;
- 1436               		.loc 6 504 0
- 1437 0702 1092 0000 		sts msgReq+5+1,__zero_reg__
- 1438 0706 1092 0000 		sts msgReq+5,__zero_reg__
- 505:ServerLLDN.c  **** 		msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
- 1439               		.loc 6 505 0
- 1440 070a 83E0      		ldi r24,lo8(3)
- 1441 070c 8093 0000 		sts msgReq+7,r24
- 506:ServerLLDN.c  **** 		msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
- 1442               		.loc 6 506 0
- 1443 0710 83E0      		ldi r24,lo8(3)
- 1444 0712 8093 0000 		sts msgReq+8,r24
- 507:ServerLLDN.c  **** 		msgReq.options				= NWK_OPT_MAC_COMMAND;
- 1445               		.loc 6 507 0
- 1446 0716 80E0      		ldi r24,0
- 1447 0718 90E8      		ldi r25,lo8(-128)
- 1448 071a 9093 0000 		sts msgReq+9+1,r25
- 1449 071e 8093 0000 		sts msgReq+9,r24
- 508:ServerLLDN.c  **** 		msgReq.data					= (uint8_t*)&msgConfigStatus;
- 1450               		.loc 6 508 0
- 1451 0722 80E0      		ldi r24,lo8(msgConfigStatus)
- 1452 0724 90E0      		ldi r25,hi8(msgConfigStatus)
- 1453 0726 9093 0000 		sts msgReq+13+1,r25
- 1454 072a 8093 0000 		sts msgReq+13,r24
- 509:ServerLLDN.c  **** 		msgReq.size					= sizeof(msgConfigStatus);
- 1455               		.loc 6 509 0
- 1456 072e 85E0      		ldi r24,lo8(5)
- 1457 0730 8093 0000 		sts msgReq+15,r24
- 510:ServerLLDN.c  **** 	}
- 1458               		.loc 6 510 0
- 1459 0734 0000      		nop
- 1460               	/* epilogue start */
- 1461 0736 DF91      		pop r29
- 1462 0738 CF91      		pop r28
- 1463 073a 0895      		ret
- 1464               		.cfi_endproc
- 1465               	.LFE137:
- 1467               	.global	appPrepareDataFrame
- 1469               	appPrepareDataFrame:
- 1470               	.LFB138:
- 511:ServerLLDN.c  **** 	
- 512:ServerLLDN.c  **** 	void appPrepareDataFrame(void)
- 513:ServerLLDN.c  **** 	{
- 1471               		.loc 6 513 0
- 1472               		.cfi_startproc
- 1473 073c CF93      		push r28
- 1474               	.LCFI57:
- 1475               		.cfi_def_cfa_offset 3
- 1476               		.cfi_offset 28, -2
- 1477 073e DF93      		push r29
- 1478               	.LCFI58:
- 1479               		.cfi_def_cfa_offset 4
- 1480               		.cfi_offset 29, -3
- 1481 0740 CDB7      		in r28,__SP_L__
- 1482 0742 DEB7      		in r29,__SP_H__
- 1483               	.LCFI59:
- 1484               		.cfi_def_cfa_register 28
- 1485               	/* prologue: function */
- 1486               	/* frame size = 0 */
- 1487               	/* stack size = 2 */
- 1488               	.L__stack_usage = 2
- 514:ServerLLDN.c  **** 		
- 515:ServerLLDN.c  **** 		PHY_SetTdmaMode(false);
- 1489               		.loc 6 515 0
- 1490 0744 80E0      		ldi r24,0
- 1491 0746 0E94 0000 		call PHY_SetTdmaMode
- 516:ServerLLDN.c  **** 
- 517:ServerLLDN.c  **** 	
- 518:ServerLLDN.c  **** 		msgReq.dstAddr				= 0;
- 1492               		.loc 6 518 0
- 1493 074a 1092 0000 		sts msgReq+5+1,__zero_reg__
- 1494 074e 1092 0000 		sts msgReq+5,__zero_reg__
- 519:ServerLLDN.c  **** 		msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
- 1495               		.loc 6 519 0
- 1496 0752 83E0      		ldi r24,lo8(3)
- 1497 0754 8093 0000 		sts msgReq+7,r24
- 520:ServerLLDN.c  **** 		msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
- 1498               		.loc 6 520 0
- 1499 0758 83E0      		ldi r24,lo8(3)
- 1500 075a 8093 0000 		sts msgReq+8,r24
- 521:ServerLLDN.c  **** 		msgReq.options				= NWK_OPT_LLDN_DATA;
- 1501               		.loc 6 521 0
- 1502 075e 80E0      		ldi r24,0
- 1503 0760 90E2      		ldi r25,lo8(32)
- 1504 0762 9093 0000 		sts msgReq+9+1,r25
- 1505 0766 8093 0000 		sts msgReq+9,r24
- 522:ServerLLDN.c  **** 		msgReq.data					= (uint8_t *)&data_payload;
- 1506               		.loc 6 522 0
- 1507 076a 80E0      		ldi r24,lo8(data_payload)
- 1508 076c 90E0      		ldi r25,hi8(data_payload)
- 1509 076e 9093 0000 		sts msgReq+13+1,r25
- 1510 0772 8093 0000 		sts msgReq+13,r24
- 523:ServerLLDN.c  **** 		msgReq.size					= sizeof(data_payload);
- 1511               		.loc 6 523 0
- 1512 0776 81E0      		ldi r24,lo8(1)
- 1513 0778 8093 0000 		sts msgReq+15,r24
- 524:ServerLLDN.c  **** 	}
- 1514               		.loc 6 524 0
- 1515 077c 0000      		nop
- 1516               	/* epilogue start */
- 1517 077e DF91      		pop r29
- 1518 0780 CF91      		pop r28
- 1519 0782 0895      		ret
- 1520               		.cfi_endproc
- 1521               	.LFE138:
- 1524               	appInit:
- 1525               	.LFB139:
- 525:ServerLLDN.c  **** 	
- 526:ServerLLDN.c  **** 	
- 527:ServerLLDN.c  **** #endif // APP_COORDINATOR
- 528:ServerLLDN.c  **** 
- 529:ServerLLDN.c  **** static void appInit(void)
- 530:ServerLLDN.c  **** {
- 1526               		.loc 6 530 0
- 1527               		.cfi_startproc
- 1528 0784 CF93      		push r28
- 1529               	.LCFI60:
- 1530               		.cfi_def_cfa_offset 3
- 1531               		.cfi_offset 28, -2
- 1532 0786 DF93      		push r29
- 1533               	.LCFI61:
- 1534               		.cfi_def_cfa_offset 4
- 1535               		.cfi_offset 29, -3
- 1536 0788 CDB7      		in r28,__SP_L__
- 1537 078a DEB7      		in r29,__SP_H__
- 1538               	.LCFI62:
- 1539               		.cfi_def_cfa_register 28
- 1540               	/* prologue: function */
- 1541               	/* frame size = 0 */
- 1542               	/* stack size = 2 */
- 1543               	.L__stack_usage = 2
- 531:ServerLLDN.c  **** 	NWK_SetAddr(APP_ADDR);
- 1544               		.loc 6 531 0
- 1545 078c 82E0      		ldi r24,lo8(2)
- 1546 078e 90E0      		ldi r25,0
- 1547 0790 0E94 0000 		call NWK_SetAddr
- 532:ServerLLDN.c  **** 	PHY_SetChannel(APP_CHANNEL);
- 1548               		.loc 6 532 0
- 1549 0794 8FE0      		ldi r24,lo8(15)
- 1550 0796 0E94 0000 		call PHY_SetChannel
- 533:ServerLLDN.c  **** 	PHY_SetRxState(true);
- 1551               		.loc 6 533 0
- 1552 079a 81E0      		ldi r24,lo8(1)
- 1553 079c 0E94 0000 		call PHY_SetRxState
- 534:ServerLLDN.c  **** 		
- 535:ServerLLDN.c  **** 	#if APP_COORDINATOR	 
- 536:ServerLLDN.c  **** 		/* Timer used for delay between messages */
- 537:ServerLLDN.c  **** 		tmrDelay.interval = 2;
- 538:ServerLLDN.c  **** 		tmrDelay.mode = SYS_TIMER_INTERVAL_MODE;
- 539:ServerLLDN.c  **** 		tmrDelay.handler = tmrDelayHandler;
- 540:ServerLLDN.c  **** 	  
- 541:ServerLLDN.c  **** 		/* 
- 542:ServerLLDN.c  **** 		* Disable CSMA/CA
- 543:ServerLLDN.c  **** 		* Disable auto ACK
- 544:ServerLLDN.c  **** 		*/
- 545:ServerLLDN.c  **** 		NWK_SetPanId(APP_PANID);
- 546:ServerLLDN.c  **** 		PanId = APP_PANID;
- 547:ServerLLDN.c  **** 		ACKFrame.sourceId = APP_PANID;
- 548:ServerLLDN.c  **** 		PHY_SetTdmaMode(true);
- 549:ServerLLDN.c  **** 	NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appCommandInd);
- 550:ServerLLDN.c  **** 	#else
- 551:ServerLLDN.c  **** 		/*
- 552:ServerLLDN.c  **** 		 * Enable CSMA/CA
- 553:ServerLLDN.c  **** 		 * Enable Random CSMA seed generator
- 554:ServerLLDN.c  **** 		 */
- 555:ServerLLDN.c  **** 		PHY_SetTdmaMode(false);
- 1554               		.loc 6 555 0
- 1555 07a0 80E0      		ldi r24,0
- 1556 07a2 0E94 0000 		call PHY_SetTdmaMode
- 556:ServerLLDN.c  **** 		// PHY_SetOptimizedCSMAValues();
- 557:ServerLLDN.c  **** 		
- 558:ServerLLDN.c  **** 		payloadSize = 127;
- 1557               		.loc 6 558 0
- 1558 07a6 8FE7      		ldi r24,lo8(127)
- 1559 07a8 8093 0000 		sts payloadSize,r24
- 559:ServerLLDN.c  **** 		NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);
- 1560               		.loc 6 559 0
- 1561 07ac 60E0      		ldi r22,lo8(gs(appBeaconInd))
- 1562 07ae 70E0      		ldi r23,hi8(gs(appBeaconInd))
- 1563 07b0 80E0      		ldi r24,0
- 1564 07b2 0E94 0000 		call NWK_OpenEndpoint
- 560:ServerLLDN.c  **** 		NWK_OpenEndpoint(APP_ACK_ENDPOINT, appAckInd);
- 1565               		.loc 6 560 0
- 1566 07b6 60E0      		ldi r22,lo8(gs(appAckInd))
- 1567 07b8 70E0      		ldi r23,hi8(gs(appAckInd))
- 1568 07ba 84E0      		ldi r24,lo8(4)
- 1569 07bc 0E94 0000 		call NWK_OpenEndpoint
- 561:ServerLLDN.c  **** 		NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appCommandInd);
- 1570               		.loc 6 561 0
- 1571 07c0 60E0      		ldi r22,lo8(gs(appCommandInd))
- 1572 07c2 70E0      		ldi r23,hi8(gs(appCommandInd))
- 1573 07c4 83E0      		ldi r24,lo8(3)
- 1574 07c6 0E94 0000 		call NWK_OpenEndpoint
- 562:ServerLLDN.c  **** 		/*
- 563:ServerLLDN.c  **** 		* Configure interrupts callback functions
- 564:ServerLLDN.c  **** 		*/
- 565:ServerLLDN.c  **** 		
- 566:ServerLLDN.c  **** 	#endif // APP_COORDENATOR
- 567:ServerLLDN.c  **** 	PHY_SetPromiscuousMode(true);
- 1575               		.loc 6 567 0
- 1576 07ca 81E0      		ldi r24,lo8(1)
- 1577 07cc 0E94 0000 		call PHY_SetPromiscuousMode
- 568:ServerLLDN.c  **** 
- 569:ServerLLDN.c  **** }
- 1578               		.loc 6 569 0
- 1579 07d0 0000      		nop
- 1580               	/* epilogue start */
- 1581 07d2 DF91      		pop r29
- 1582 07d4 CF91      		pop r28
- 1583 07d6 0895      		ret
- 1584               		.cfi_endproc
- 1585               	.LFE139:
- 1588               	APP_TaskHandler:
- 1589               	.LFB140:
- 570:ServerLLDN.c  **** 
- 571:ServerLLDN.c  **** static void APP_TaskHandler(void)
- 572:ServerLLDN.c  **** {
- 1590               		.loc 6 572 0
- 1591               		.cfi_startproc
- 1592 07d8 CF93      		push r28
- 1593               	.LCFI63:
- 1594               		.cfi_def_cfa_offset 3
- 1595               		.cfi_offset 28, -2
- 1596 07da DF93      		push r29
- 1597               	.LCFI64:
- 1598               		.cfi_def_cfa_offset 4
- 1599               		.cfi_offset 29, -3
- 1600 07dc CDB7      		in r28,__SP_L__
- 1601 07de DEB7      		in r29,__SP_H__
- 1602               	.LCFI65:
- 1603               		.cfi_def_cfa_register 28
- 1604               	/* prologue: function */
- 1605               	/* frame size = 0 */
- 1606               	/* stack size = 2 */
- 1607               	.L__stack_usage = 2
- 573:ServerLLDN.c  **** 	switch (appState){
- 1608               		.loc 6 573 0
- 1609 07e0 8091 0000 		lds r24,appState
- 1610 07e4 882F      		mov r24,r24
- 1611 07e6 90E0      		ldi r25,0
- 1612 07e8 8430      		cpi r24,4
- 1613 07ea 9105      		cpc r25,__zero_reg__
- 1614 07ec 01F0      		breq .L41
- 1615 07ee 8530      		cpi r24,5
- 1616 07f0 9105      		cpc r25,__zero_reg__
- 1617 07f2 04F4      		brge .L42
- 1618 07f4 0097      		sbiw r24,0
- 1619 07f6 01F0      		breq .L43
- 1620 07f8 0297      		sbiw r24,2
- 1621 07fa 01F0      		breq .L44
- 574:ServerLLDN.c  **** 		case APP_STATE_INITIAL:
- 575:ServerLLDN.c  **** 		{
- 576:ServerLLDN.c  **** 			appInit();
- 577:ServerLLDN.c  **** 			#if APP_COORDINATOR
- 578:ServerLLDN.c  **** 				appState = APP_STATE_ATT_PAN_STATE;
- 579:ServerLLDN.c  **** 			#else
- 580:ServerLLDN.c  **** 				appState = APP_STATE_IDLE;
- 581:ServerLLDN.c  **** 			#endif
- 582:ServerLLDN.c  **** 			break;
- 583:ServerLLDN.c  **** 		}
- 584:ServerLLDN.c  **** 		case APP_STATE_SEND:
- 585:ServerLLDN.c  **** 		{
- 586:ServerLLDN.c  **** 			appSendData();
- 587:ServerLLDN.c  **** 			#if APP_COORDINATOR
- 588:ServerLLDN.c  **** 				/* Every time a message is send updates coordinator to prepare next message */
- 589:ServerLLDN.c  **** 				appState = APP_STATE_ATT_PAN_STATE;
- 590:ServerLLDN.c  **** 			#else
- 591:ServerLLDN.c  **** 				appState = APP_STATE_IDLE;
- 592:ServerLLDN.c  **** 			#endif
- 593:ServerLLDN.c  **** 			break;
- 594:ServerLLDN.c  **** 		}
- 595:ServerLLDN.c  **** 		#if APP_COORDINATOR // COORDINATOR SPECIFIC STATE MACHINE
- 596:ServerLLDN.c  **** 		case APP_STATE_ATT_PAN_STATE:
- 597:ServerLLDN.c  **** 		{
- 598:ServerLLDN.c  **** 			switch(appPanState)
- 599:ServerLLDN.c  **** 			{
- 600:ServerLLDN.c  **** 				/* Prepare beacon to desassociate all nodes */
- 601:ServerLLDN.c  **** 				case APP_PAN_STATE_RESET:
- 602:ServerLLDN.c  **** 				{
- 603:ServerLLDN.c  **** 					appPanReset();
- 604:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_DISC_INITIAL;
- 605:ServerLLDN.c  **** 					appState	= APP_STATE_SEND;
- 606:ServerLLDN.c  **** 					cycles_counter = 0;
- 607:ServerLLDN.c  **** 					break;
- 608:ServerLLDN.c  **** 				}
- 609:ServerLLDN.c  **** 				/* Prepare first Beacon of Discovery */
- 610:ServerLLDN.c  **** 				case APP_PAN_STATE_DISC_INITIAL:
- 611:ServerLLDN.c  **** 				{
- 612:ServerLLDN.c  **** 					/* if nodes associated is equal to expected number of associated nodes stop association proces
- 613:ServerLLDN.c  **** 					 * this implementation was done as is to be used in tests, for real network functionality 
- 614:ServerLLDN.c  **** 					 * the number of max association processes must be done through macLLDNdiscoveryModeTimeout
- 615:ServerLLDN.c  **** 					 */
- 616:ServerLLDN.c  **** 					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 2)
- 617:ServerLLDN.c  **** 					{	
- 618:ServerLLDN.c  **** 						printf("\n%d, %d", cycles_counter, counter_associados);
- 619:ServerLLDN.c  **** 						counter_associados = 0;
- 620:ServerLLDN.c  **** 						/* if all nodes expected where associated stop beacon generation interruptions */
- 621:ServerLLDN.c  **** 						// macsc_disable_cmp_int(MACSC_CC1);
- 622:ServerLLDN.c  **** 						macsc_disable_cmp_int(MACSC_CC2);
- 623:ServerLLDN.c  **** 						msgReq.options = 0;
- 624:ServerLLDN.c  **** 						/* set coordinator node to idle further implementation of online state must be done */
- 625:ServerLLDN.c  **** 						appState = APP_STATE_IDLE;
- 626:ServerLLDN.c  **** 						appPanState = APP_PAN_STATE_ONLINE_INITIAL; // APP_PAN_STATE_ONLINE_INIT
- 627:ServerLLDN.c  **** 						
- 628:ServerLLDN.c  **** 					}
- 629:ServerLLDN.c  **** 					/* if not all nodes expected where associated run through association process again */
- 630:ServerLLDN.c  **** 					else 
- 631:ServerLLDN.c  **** 					{
- 632:ServerLLDN.c  **** 						/* prepare beacon message and start timers for beacon */
- 633:ServerLLDN.c  **** 						appPanDiscInit();
- 634:ServerLLDN.c  **** 						appState	= APP_STATE_IDLE;
- 635:ServerLLDN.c  **** 						appPanState = APP_PAN_STATE_DISC_SECOND_BE;
- 636:ServerLLDN.c  **** 					}
- 637:ServerLLDN.c  **** 					break;
- 638:ServerLLDN.c  **** 				}
- 639:ServerLLDN.c  **** 				case APP_PAN_STATE_DISC_SECOND_BE:
- 640:ServerLLDN.c  **** 				{
- 641:ServerLLDN.c  **** 					/* Prepares message as: Discovery Beacon and Second Beacon */
- 642:ServerLLDN.c  **** 					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE | NWK_OPT_SECOND_BEACON ;
- 643:ServerLLDN.c  **** 					msgReq.data = NULL;
- 644:ServerLLDN.c  **** 					msgReq.size = 0;
- 645:ServerLLDN.c  **** 					
- 646:ServerLLDN.c  **** 					appState	= APP_PAN_STATE_DISC_PREPARE_ACK;
- 647:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_DISC_PREPARE_ACK;
- 648:ServerLLDN.c  **** 					break;
- 649:ServerLLDN.c  **** 				}
- 650:ServerLLDN.c  **** 				case APP_PAN_STATE_DISC_PREPARE_ACK:
- 651:ServerLLDN.c  **** 				{
- 652:ServerLLDN.c  **** 					/* This timer implements a delay between messages, 
- 653:ServerLLDN.c  **** 					 * if not used the nodes are not able to receive the message
- 654:ServerLLDN.c  **** 					 */
- 655:ServerLLDN.c  **** 					appPanPrepareACK();
- 656:ServerLLDN.c  **** 					SYS_TimerStart(&tmrDelay);
- 657:ServerLLDN.c  **** 					
- 658:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_CONFIG_INITIAL; 
- 659:ServerLLDN.c  **** 					appState = APP_STATE_IDLE;
- 660:ServerLLDN.c  **** 					break;
- 661:ServerLLDN.c  **** 				}
- 662:ServerLLDN.c  **** 				case APP_PAN_STATE_CONFIG_INITIAL:
- 663:ServerLLDN.c  **** 				{
- 664:ServerLLDN.c  **** 					/* Prepares the message as: Configuration Beacon and First State Beacon */
- 665:ServerLLDN.c  **** 					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_CONFIG_STATE;
- 666:ServerLLDN.c  **** 					msgReq.data = NULL;
- 667:ServerLLDN.c  **** 					msgReq.size = 0;
- 668:ServerLLDN.c  **** 					
- 669:ServerLLDN.c  **** 					appState	= APP_STATE_IDLE;
- 670:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_CONFIG_SECOND_BEACON;
- 671:ServerLLDN.c  **** 					break;
- 672:ServerLLDN.c  **** 
- 673:ServerLLDN.c  **** 				}
- 674:ServerLLDN.c  **** 				case APP_PAN_STATE_CONFIG_SECOND_BEACON:
- 675:ServerLLDN.c  **** 				{
- 676:ServerLLDN.c  **** 					/* Prepares the message as: Configuration Beacon and Second State Beacon */
- 677:ServerLLDN.c  **** 					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_CONFIG_STATE | NWK_OPT_SECOND_BEACON;
- 678:ServerLLDN.c  **** 					msgReq.data = NULL;
- 679:ServerLLDN.c  **** 					msgReq.size = 0;
- 680:ServerLLDN.c  **** 					
- 681:ServerLLDN.c  **** 					appState	= APP_STATE_IDLE;
- 682:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_SEND_CONF_REQUEST;
- 683:ServerLLDN.c  **** 					break;
- 684:ServerLLDN.c  **** 				}
- 685:ServerLLDN.c  **** 				case APP_PAN_STATE_SEND_CONF_REQUEST:
- 686:ServerLLDN.c  **** 				{
- 687:ServerLLDN.c  **** 
- 688:ServerLLDN.c  **** 					if(conf_req_list != NULL)
- 689:ServerLLDN.c  **** 					{
- 690:ServerLLDN.c  **** 						CopyToConfigRequest();
- 691:ServerLLDN.c  **** 						msgReq.options		= NWK_OPT_MAC_COMMAND;
- 692:ServerLLDN.c  **** 						msgReq.data			= (uint8_t*)&config_request_frame;
- 693:ServerLLDN.c  **** 						msgReq.size			= sizeof(NWK_ConfigRequest_t);
- 694:ServerLLDN.c  **** 						appState	= APP_STATE_IDLE;
- 695:ServerLLDN.c  **** 						appPanState = APP_PAN_STATE_SEND_CONF_REQUEST;
- 696:ServerLLDN.c  **** 						
- 697:ServerLLDN.c  **** 						counter_associados++;
- 698:ServerLLDN.c  **** 						SYS_TimerStart(&tmrDelay);
- 699:ServerLLDN.c  **** 					}
- 700:ServerLLDN.c  **** 					else
- 701:ServerLLDN.c  **** 					{
- 702:ServerLLDN.c  **** 						appPanState = APP_PAN_STATE_CONFIG_THIRD_BEACON;
- 703:ServerLLDN.c  **** 					}
- 704:ServerLLDN.c  **** 					break;
- 705:ServerLLDN.c  **** 				}
- 706:ServerLLDN.c  **** 				case APP_PAN_STATE_CONFIG_THIRD_BEACON:
- 707:ServerLLDN.c  **** 				{
- 708:ServerLLDN.c  **** 					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_CONFIG_STATE | NWK_OPT_THIRD_BEACON;
- 709:ServerLLDN.c  **** 					msgReq.data = NULL;
- 710:ServerLLDN.c  **** 					msgReq.size = 0;
- 711:ServerLLDN.c  **** 					
- 712:ServerLLDN.c  **** 					appState	= APP_STATE_IDLE;
- 713:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_DISC_INITIAL;
- 714:ServerLLDN.c  **** 					cycles_counter++;	
- 715:ServerLLDN.c  **** 					
- 716:ServerLLDN.c  **** 					break;
- 717:ServerLLDN.c  **** 				}
- 718:ServerLLDN.c  **** 				case APP_PAN_STATE_ONLINE_INITIAL:
- 719:ServerLLDN.c  **** 				{
- 720:ServerLLDN.c  **** 					appPanOnlineInit();
- 721:ServerLLDN.c  **** 					appState = APP_STATE_SEND;
- 722:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_CHECK_TS;
- 723:ServerLLDN.c  **** 
- 724:ServerLLDN.c  **** 					break;
- 725:ServerLLDN.c  **** 				}
- 726:ServerLLDN.c  **** 				case APP_PAN_STATE_CHECK_TS:
- 727:ServerLLDN.c  **** 				{
- 728:ServerLLDN.c  **** 					if(timeslot_counter >= assTimeSlot)
- 729:ServerLLDN.c  **** 					{
- 730:ServerLLDN.c  **** 						printf("\nFim de um Período");
- 731:ServerLLDN.c  **** 						macsc_disable_cmp_int(MACSC_CC1);
- 732:ServerLLDN.c  **** 						macsc_disable_cmp_int(MACSC_CC2);
- 733:ServerLLDN.c  **** 						appState = APP_STATE_IDLE;
- 734:ServerLLDN.c  **** 						appPanState = APP_PAN_STATE_IDLE;
- 735:ServerLLDN.c  **** 					}
- 736:ServerLLDN.c  **** 					else
- 737:ServerLLDN.c  **** 					{
- 738:ServerLLDN.c  **** 						/* check if coordinator received any message in last time slot, used to calculate success rat
- 739:ServerLLDN.c  **** 						if(timeslot_counter >= 2*MacLLDNMgmtTS && !data_received)
- 740:ServerLLDN.c  **** 							nodes_info_arr[timeslot_counter - 2*MacLLDNMgmtTS].msg_not_rec++;
- 741:ServerLLDN.c  **** 						data_received = false;
- 742:ServerLLDN.c  **** 						
- 743:ServerLLDN.c  **** 						printf("\n------- slot %d --------", timeslot_counter);
- 744:ServerLLDN.c  **** 						appState = APP_STATE_IDLE;
- 745:ServerLLDN.c  **** 						timeslot_counter++;
- 746:ServerLLDN.c  **** 					}
- 747:ServerLLDN.c  **** 					break;
- 748:ServerLLDN.c  **** 				}
- 749:ServerLLDN.c  **** 				case APP_PAN_STATE_ONLINE_END_BE:
- 750:ServerLLDN.c  **** 				{
- 751:ServerLLDN.c  **** 					if(0)
- 752:ServerLLDN.c  **** 					{
- 753:ServerLLDN.c  **** 						// implementar as condições para entrar no processo de associação
- 754:ServerLLDN.c  **** 					}
- 755:ServerLLDN.c  **** 					else
- 756:ServerLLDN.c  **** 					{
- 757:ServerLLDN.c  **** 						// posso calcular esse valor no onlineinit, o tTS precisa ser recalculado, o seu valor muda n
- 758:ServerLLDN.c  **** 						// pode voltar pro state_online_initial porque precisa reconfigurar os timers
- 759:ServerLLDN.c  **** 						// precisa revisar o macsc_enable_manual_bts()
- 760:ServerLLDN.c  **** 						/*
- 761:ServerLLDN.c  **** 						int idle_time =  2 * numBaseTimeSlotperMgmt * (tTS) * 5 / (SYMBOL_TIME); // 5 is the total of
- 762:ServerLLDN.c  **** 						macsc_set_cmp1_int_cb(lldn_server_beacon); // esta função pode só mandar o beacon do online, 
- 763:ServerLLDN.c  **** 						macsc_enable_manual_bts();
- 764:ServerLLDN.c  **** 						macsc_enable_cmp_int(MACSC_CC1);
- 765:ServerLLDN.c  **** 						macsc_use_cmp(MACSC_RELATIVE_CMP, idle_time, MACSC_CC1);
- 766:ServerLLDN.c  **** 						*/
- 767:ServerLLDN.c  **** 					}
- 768:ServerLLDN.c  **** 					break;
- 769:ServerLLDN.c  **** 				}
- 770:ServerLLDN.c  **** 				case APP_PAN_STATE_IDLE:
- 771:ServerLLDN.c  **** 				{
- 772:ServerLLDN.c  **** 					msgReq.options = 0;
- 773:ServerLLDN.c  **** 					appState = APP_STATE_IDLE;
- 774:ServerLLDN.c  **** 					break;
- 775:ServerLLDN.c  **** 				}
- 776:ServerLLDN.c  **** 			}
- 777:ServerLLDN.c  **** 			break;	
- 778:ServerLLDN.c  **** 		}
- 779:ServerLLDN.c  **** 		#else // NODES SPECIFIC STATE MACHINE
- 780:ServerLLDN.c  **** 		case APP_STATE_PREP_DISC_REPONSE:
- 781:ServerLLDN.c  **** 		{
- 782:ServerLLDN.c  **** 			appPrepareDiscoverResponse();
- 783:ServerLLDN.c  **** 			appState = APP_STATE_IDLE;	
- 784:ServerLLDN.c  **** 			break;
- 785:ServerLLDN.c  **** 		}
- 786:ServerLLDN.c  **** 		
- 787:ServerLLDN.c  **** 		case APP_STATE_PREP_CONFIG_STATUS:
- 788:ServerLLDN.c  **** 		{
- 789:ServerLLDN.c  **** 			// se o nodo recebeu ack na fase do discovery prepara a mensagem de configuration status
- 790:ServerLLDN.c  **** 			if(ack_received && rec_beacon->confSeqNumber == 0 && associated == 0) {
- 791:ServerLLDN.c  **** 				appPrepareConfigurationStatus();
- 792:ServerLLDN.c  **** 			}
- 793:ServerLLDN.c  **** 			// se o nodo não recebeu desativa o timer e fica em idle
- 794:ServerLLDN.c  **** 			else {
- 795:ServerLLDN.c  **** 				#if MASTER_MACSC
- 796:ServerLLDN.c  **** 				macsc_disable_cmp_int(MACSC_CC1);
- 797:ServerLLDN.c  **** 				#else
- 798:ServerLLDN.c  **** 				timer_stop();
- 799:ServerLLDN.c  **** 				#endif
- 800:ServerLLDN.c  **** 			}
- 801:ServerLLDN.c  **** 			ack_received = 0;
- 802:ServerLLDN.c  **** 			appState = APP_STATE_IDLE;
- 803:ServerLLDN.c  **** 			break;
- 804:ServerLLDN.c  **** 		}
- 805:ServerLLDN.c  **** 		case APP_STATE_PREP_DATA_FRAME:
- 806:ServerLLDN.c  **** 		{
- 807:ServerLLDN.c  **** 			appPrepareDataFrame();
- 808:ServerLLDN.c  **** 			appState = APP_STATE_IDLE;
- 809:ServerLLDN.c  **** 		}
- 810:ServerLLDN.c  **** 		#endif
- 811:ServerLLDN.c  **** 		default:
- 812:ServerLLDN.c  **** 		{
- 813:ServerLLDN.c  **** 			break;
- 1622               		.loc 6 813 0
- 1623 07fc 00C0      		rjmp .L50
- 1624               	.L42:
- 573:ServerLLDN.c  **** 	switch (appState){
- 1625               		.loc 6 573 0
- 1626 07fe 8530      		cpi r24,5
- 1627 0800 9105      		cpc r25,__zero_reg__
- 1628 0802 01F0      		breq .L45
- 1629 0804 0697      		sbiw r24,6
- 1630 0806 01F0      		breq .L46
- 1631               		.loc 6 813 0
- 1632 0808 00C0      		rjmp .L50
- 1633               	.L43:
- 576:ServerLLDN.c  **** 			#if APP_COORDINATOR
- 1634               		.loc 6 576 0
- 1635 080a 0E94 0000 		call appInit
- 580:ServerLLDN.c  **** 			#endif
- 1636               		.loc 6 580 0
- 1637 080e 81E0      		ldi r24,lo8(1)
- 1638 0810 8093 0000 		sts appState,r24
- 582:ServerLLDN.c  **** 		}
- 1639               		.loc 6 582 0
- 1640 0814 00C0      		rjmp .L47
- 1641               	.L44:
- 586:ServerLLDN.c  **** 			#if APP_COORDINATOR
- 1642               		.loc 6 586 0
- 1643 0816 0E94 0000 		call appSendData
- 591:ServerLLDN.c  **** 			#endif
- 1644               		.loc 6 591 0
- 1645 081a 81E0      		ldi r24,lo8(1)
- 1646 081c 8093 0000 		sts appState,r24
- 593:ServerLLDN.c  **** 		}
- 1647               		.loc 6 593 0
- 1648 0820 00C0      		rjmp .L47
- 1649               	.L41:
- 782:ServerLLDN.c  **** 			appState = APP_STATE_IDLE;	
- 1650               		.loc 6 782 0
- 1651 0822 0E94 0000 		call appPrepareDiscoverResponse
- 783:ServerLLDN.c  **** 			break;
- 1652               		.loc 6 783 0
- 1653 0826 81E0      		ldi r24,lo8(1)
- 1654 0828 8093 0000 		sts appState,r24
- 784:ServerLLDN.c  **** 		}
- 1655               		.loc 6 784 0
- 1656 082c 00C0      		rjmp .L47
- 1657               	.L45:
- 790:ServerLLDN.c  **** 				appPrepareConfigurationStatus();
- 1658               		.loc 6 790 0
- 1659 082e 8091 0000 		lds r24,ack_received
- 1660 0832 8823      		tst r24
- 1661 0834 01F0      		breq .L48
- 790:ServerLLDN.c  **** 				appPrepareConfigurationStatus();
- 1662               		.loc 6 790 0 is_stmt 0 discriminator 1
- 1663 0836 8091 0000 		lds r24,rec_beacon
- 1664 083a 9091 0000 		lds r25,rec_beacon+1
- 1665 083e FC01      		movw r30,r24
- 1666 0840 8581      		ldd r24,Z+5
- 1667 0842 8823      		tst r24
- 1668 0844 01F4      		brne .L48
- 790:ServerLLDN.c  **** 				appPrepareConfigurationStatus();
- 1669               		.loc 6 790 0 discriminator 2
- 1670 0846 9091 0000 		lds r25,associated
- 1671 084a 81E0      		ldi r24,lo8(1)
- 1672 084c 8927      		eor r24,r25
- 1673 084e 8823      		tst r24
- 1674 0850 01F0      		breq .L48
- 791:ServerLLDN.c  **** 			}
- 1675               		.loc 6 791 0 is_stmt 1
- 1676 0852 0E94 0000 		call appPrepareConfigurationStatus
- 1677 0856 00C0      		rjmp .L49
- 1678               	.L48:
- 796:ServerLLDN.c  **** 				#else
- 1679               		.loc 6 796 0
- 1680 0858 81E0      		ldi r24,lo8(1)
- 1681 085a 0E94 0000 		call macsc_disable_cmp_int
- 1682               	.L49:
- 801:ServerLLDN.c  **** 			appState = APP_STATE_IDLE;
- 1683               		.loc 6 801 0
- 1684 085e 1092 0000 		sts ack_received,__zero_reg__
- 802:ServerLLDN.c  **** 			break;
- 1685               		.loc 6 802 0
- 1686 0862 81E0      		ldi r24,lo8(1)
- 1687 0864 8093 0000 		sts appState,r24
- 803:ServerLLDN.c  **** 		}
- 1688               		.loc 6 803 0
- 1689 0868 00C0      		rjmp .L47
- 1690               	.L46:
+ 1355 06b2 0F90      		pop __tmp_reg__
+ 1356 06b4 0F90      		pop __tmp_reg__
+ 1357 06b6 DF91      		pop r29
+ 1358 06b8 CF91      		pop r28
+ 1359 06ba 0895      		ret
+ 1360               		.cfi_endproc
+ 1361               	.LFE135:
+ 1363               	.global	appPrepareDiscoverResponse
+ 1365               	appPrepareDiscoverResponse:
+ 1366               	.LFB136:
+ 496:ServerLLDN.c  **** 
+ 497:ServerLLDN.c  **** 	void appPrepareDiscoverResponse()
+ 498:ServerLLDN.c  **** 	{
+ 1367               		.loc 6 498 0
+ 1368               		.cfi_startproc
+ 1369 06bc CF93      		push r28
+ 1370               	.LCFI51:
+ 1371               		.cfi_def_cfa_offset 3
+ 1372               		.cfi_offset 28, -2
+ 1373 06be DF93      		push r29
+ 1374               	.LCFI52:
+ 1375               		.cfi_def_cfa_offset 4
+ 1376               		.cfi_offset 29, -3
+ 1377 06c0 CDB7      		in r28,__SP_L__
+ 1378 06c2 DEB7      		in r29,__SP_H__
+ 1379               	.LCFI53:
+ 1380               		.cfi_def_cfa_register 28
+ 1381               	/* prologue: function */
+ 1382               	/* frame size = 0 */
+ 1383               	/* stack size = 2 */
+ 1384               	.L__stack_usage = 2
+ 499:ServerLLDN.c  **** 		msgReq.dstAddr				= 0;
+ 1385               		.loc 6 499 0
+ 1386 06c4 1092 0000 		sts msgReq+5+1,__zero_reg__
+ 1387 06c8 1092 0000 		sts msgReq+5,__zero_reg__
+ 500:ServerLLDN.c  **** 		msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
+ 1388               		.loc 6 500 0
+ 1389 06cc 83E0      		ldi r24,lo8(3)
+ 1390 06ce 8093 0000 		sts msgReq+7,r24
+ 501:ServerLLDN.c  **** 		msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
+ 1391               		.loc 6 501 0
+ 1392 06d2 83E0      		ldi r24,lo8(3)
+ 1393 06d4 8093 0000 		sts msgReq+8,r24
+ 502:ServerLLDN.c  **** 		msgReq.options				= NWK_OPT_MAC_COMMAND;
+ 1394               		.loc 6 502 0
+ 1395 06d8 80E0      		ldi r24,0
+ 1396 06da 90E8      		ldi r25,lo8(-128)
+ 1397 06dc 9093 0000 		sts msgReq+9+1,r25
+ 1398 06e0 8093 0000 		sts msgReq+9,r24
+ 503:ServerLLDN.c  **** 		msgReq.data					= (uint8_t*)&msgDiscResponse;
+ 1399               		.loc 6 503 0
+ 1400 06e4 80E0      		ldi r24,lo8(msgDiscResponse)
+ 1401 06e6 90E0      		ldi r25,hi8(msgDiscResponse)
+ 1402 06e8 9093 0000 		sts msgReq+13+1,r25
+ 1403 06ec 8093 0000 		sts msgReq+13,r24
+ 504:ServerLLDN.c  **** 		msgReq.size					= sizeof(msgDiscResponse);
+ 1404               		.loc 6 504 0
+ 1405 06f0 83E0      		ldi r24,lo8(3)
+ 1406 06f2 8093 0000 		sts msgReq+15,r24
+ 505:ServerLLDN.c  **** 	}
+ 1407               		.loc 6 505 0
+ 1408 06f6 0000      		nop
+ 1409               	/* epilogue start */
+ 1410 06f8 DF91      		pop r29
+ 1411 06fa CF91      		pop r28
+ 1412 06fc 0895      		ret
+ 1413               		.cfi_endproc
+ 1414               	.LFE136:
+ 1416               	.global	appPrepareConfigurationStatus
+ 1418               	appPrepareConfigurationStatus:
+ 1419               	.LFB137:
+ 506:ServerLLDN.c  **** 	
+ 507:ServerLLDN.c  **** 	void appPrepareConfigurationStatus()
+ 508:ServerLLDN.c  **** 	{		
+ 1420               		.loc 6 508 0
+ 1421               		.cfi_startproc
+ 1422 06fe CF93      		push r28
+ 1423               	.LCFI54:
+ 1424               		.cfi_def_cfa_offset 3
+ 1425               		.cfi_offset 28, -2
+ 1426 0700 DF93      		push r29
+ 1427               	.LCFI55:
+ 1428               		.cfi_def_cfa_offset 4
+ 1429               		.cfi_offset 29, -3
+ 1430 0702 CDB7      		in r28,__SP_L__
+ 1431 0704 DEB7      		in r29,__SP_H__
+ 1432               	.LCFI56:
+ 1433               		.cfi_def_cfa_register 28
+ 1434               	/* prologue: function */
+ 1435               	/* frame size = 0 */
+ 1436               	/* stack size = 2 */
+ 1437               	.L__stack_usage = 2
+ 509:ServerLLDN.c  **** 		msgReq.dstAddr				= 0;
+ 1438               		.loc 6 509 0
+ 1439 0706 1092 0000 		sts msgReq+5+1,__zero_reg__
+ 1440 070a 1092 0000 		sts msgReq+5,__zero_reg__
+ 510:ServerLLDN.c  **** 		msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
+ 1441               		.loc 6 510 0
+ 1442 070e 83E0      		ldi r24,lo8(3)
+ 1443 0710 8093 0000 		sts msgReq+7,r24
+ 511:ServerLLDN.c  **** 		msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
+ 1444               		.loc 6 511 0
+ 1445 0714 83E0      		ldi r24,lo8(3)
+ 1446 0716 8093 0000 		sts msgReq+8,r24
+ 512:ServerLLDN.c  **** 		msgReq.options				= NWK_OPT_MAC_COMMAND;
+ 1447               		.loc 6 512 0
+ 1448 071a 80E0      		ldi r24,0
+ 1449 071c 90E8      		ldi r25,lo8(-128)
+ 1450 071e 9093 0000 		sts msgReq+9+1,r25
+ 1451 0722 8093 0000 		sts msgReq+9,r24
+ 513:ServerLLDN.c  **** 		msgReq.data					= (uint8_t*)&msgConfigStatus;
+ 1452               		.loc 6 513 0
+ 1453 0726 80E0      		ldi r24,lo8(msgConfigStatus)
+ 1454 0728 90E0      		ldi r25,hi8(msgConfigStatus)
+ 1455 072a 9093 0000 		sts msgReq+13+1,r25
+ 1456 072e 8093 0000 		sts msgReq+13,r24
+ 514:ServerLLDN.c  **** 		msgReq.size					= sizeof(msgConfigStatus);
+ 1457               		.loc 6 514 0
+ 1458 0732 85E0      		ldi r24,lo8(5)
+ 1459 0734 8093 0000 		sts msgReq+15,r24
+ 515:ServerLLDN.c  **** 	}
+ 1460               		.loc 6 515 0
+ 1461 0738 0000      		nop
+ 1462               	/* epilogue start */
+ 1463 073a DF91      		pop r29
+ 1464 073c CF91      		pop r28
+ 1465 073e 0895      		ret
+ 1466               		.cfi_endproc
+ 1467               	.LFE137:
+ 1469               	.global	appPrepareDataFrame
+ 1471               	appPrepareDataFrame:
+ 1472               	.LFB138:
+ 516:ServerLLDN.c  **** 	
+ 517:ServerLLDN.c  **** 	void appPrepareDataFrame(void)
+ 518:ServerLLDN.c  **** 	{
+ 1473               		.loc 6 518 0
+ 1474               		.cfi_startproc
+ 1475 0740 CF93      		push r28
+ 1476               	.LCFI57:
+ 1477               		.cfi_def_cfa_offset 3
+ 1478               		.cfi_offset 28, -2
+ 1479 0742 DF93      		push r29
+ 1480               	.LCFI58:
+ 1481               		.cfi_def_cfa_offset 4
+ 1482               		.cfi_offset 29, -3
+ 1483 0744 CDB7      		in r28,__SP_L__
+ 1484 0746 DEB7      		in r29,__SP_H__
+ 1485               	.LCFI59:
+ 1486               		.cfi_def_cfa_register 28
+ 1487               	/* prologue: function */
+ 1488               	/* frame size = 0 */
+ 1489               	/* stack size = 2 */
+ 1490               	.L__stack_usage = 2
+ 519:ServerLLDN.c  **** 		
+ 520:ServerLLDN.c  **** 		PHY_SetTdmaMode(false);
+ 1491               		.loc 6 520 0
+ 1492 0748 80E0      		ldi r24,0
+ 1493 074a 0E94 0000 		call PHY_SetTdmaMode
+ 521:ServerLLDN.c  **** 
+ 522:ServerLLDN.c  **** 	
+ 523:ServerLLDN.c  **** 		msgReq.dstAddr				= 0;
+ 1494               		.loc 6 523 0
+ 1495 074e 1092 0000 		sts msgReq+5+1,__zero_reg__
+ 1496 0752 1092 0000 		sts msgReq+5,__zero_reg__
+ 524:ServerLLDN.c  **** 		msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
+ 1497               		.loc 6 524 0
+ 1498 0756 83E0      		ldi r24,lo8(3)
+ 1499 0758 8093 0000 		sts msgReq+7,r24
+ 525:ServerLLDN.c  **** 		msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
+ 1500               		.loc 6 525 0
+ 1501 075c 83E0      		ldi r24,lo8(3)
+ 1502 075e 8093 0000 		sts msgReq+8,r24
+ 526:ServerLLDN.c  **** 		msgReq.options				= NWK_OPT_LLDN_DATA;
+ 1503               		.loc 6 526 0
+ 1504 0762 80E0      		ldi r24,0
+ 1505 0764 90E2      		ldi r25,lo8(32)
+ 1506 0766 9093 0000 		sts msgReq+9+1,r25
+ 1507 076a 8093 0000 		sts msgReq+9,r24
+ 527:ServerLLDN.c  **** 		msgReq.data					= (uint8_t *)&data_payload;
+ 1508               		.loc 6 527 0
+ 1509 076e 80E0      		ldi r24,lo8(data_payload)
+ 1510 0770 90E0      		ldi r25,hi8(data_payload)
+ 1511 0772 9093 0000 		sts msgReq+13+1,r25
+ 1512 0776 8093 0000 		sts msgReq+13,r24
+ 528:ServerLLDN.c  **** 		msgReq.size					= sizeof(data_payload);
+ 1513               		.loc 6 528 0
+ 1514 077a 81E0      		ldi r24,lo8(1)
+ 1515 077c 8093 0000 		sts msgReq+15,r24
+ 529:ServerLLDN.c  **** 	}
+ 1516               		.loc 6 529 0
+ 1517 0780 0000      		nop
+ 1518               	/* epilogue start */
+ 1519 0782 DF91      		pop r29
+ 1520 0784 CF91      		pop r28
+ 1521 0786 0895      		ret
+ 1522               		.cfi_endproc
+ 1523               	.LFE138:
+ 1526               	appInit:
+ 1527               	.LFB139:
+ 530:ServerLLDN.c  **** 	
+ 531:ServerLLDN.c  **** 	
+ 532:ServerLLDN.c  **** #endif // APP_COORDINATOR
+ 533:ServerLLDN.c  **** 
+ 534:ServerLLDN.c  **** static void appInit(void)
+ 535:ServerLLDN.c  **** {
+ 1528               		.loc 6 535 0
+ 1529               		.cfi_startproc
+ 1530 0788 CF93      		push r28
+ 1531               	.LCFI60:
+ 1532               		.cfi_def_cfa_offset 3
+ 1533               		.cfi_offset 28, -2
+ 1534 078a DF93      		push r29
+ 1535               	.LCFI61:
+ 1536               		.cfi_def_cfa_offset 4
+ 1537               		.cfi_offset 29, -3
+ 1538 078c CDB7      		in r28,__SP_L__
+ 1539 078e DEB7      		in r29,__SP_H__
+ 1540               	.LCFI62:
+ 1541               		.cfi_def_cfa_register 28
+ 1542               	/* prologue: function */
+ 1543               	/* frame size = 0 */
+ 1544               	/* stack size = 2 */
+ 1545               	.L__stack_usage = 2
+ 536:ServerLLDN.c  **** 	NWK_SetAddr(APP_ADDR);
+ 1546               		.loc 6 536 0
+ 1547 0790 82E0      		ldi r24,lo8(2)
+ 1548 0792 90E0      		ldi r25,0
+ 1549 0794 0E94 0000 		call NWK_SetAddr
+ 537:ServerLLDN.c  **** 	PHY_SetChannel(APP_CHANNEL);
+ 1550               		.loc 6 537 0
+ 1551 0798 8FE0      		ldi r24,lo8(15)
+ 1552 079a 0E94 0000 		call PHY_SetChannel
+ 538:ServerLLDN.c  **** 	PHY_SetRxState(true);
+ 1553               		.loc 6 538 0
+ 1554 079e 81E0      		ldi r24,lo8(1)
+ 1555 07a0 0E94 0000 		call PHY_SetRxState
+ 539:ServerLLDN.c  **** 		
+ 540:ServerLLDN.c  **** 	#if APP_COORDINATOR	 
+ 541:ServerLLDN.c  **** 		/* Timer used for delay between messages */
+ 542:ServerLLDN.c  **** 		tmrDelay.interval = 2;
+ 543:ServerLLDN.c  **** 		tmrDelay.mode = SYS_TIMER_INTERVAL_MODE;
+ 544:ServerLLDN.c  **** 		tmrDelay.handler = tmrDelayHandler;
+ 545:ServerLLDN.c  **** 	  
+ 546:ServerLLDN.c  **** 		/* 
+ 547:ServerLLDN.c  **** 		* Disable CSMA/CA
+ 548:ServerLLDN.c  **** 		* Disable auto ACK
+ 549:ServerLLDN.c  **** 		*/
+ 550:ServerLLDN.c  **** 		NWK_SetPanId(APP_PANID);
+ 551:ServerLLDN.c  **** 		PanId = APP_PANID;
+ 552:ServerLLDN.c  **** 		ACKFrame.sourceId = APP_PANID;
+ 553:ServerLLDN.c  **** 		PHY_SetTdmaMode(true);
+ 554:ServerLLDN.c  **** 	NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appCommandInd);
+ 555:ServerLLDN.c  **** 	#else
+ 556:ServerLLDN.c  **** 		/*
+ 557:ServerLLDN.c  **** 		 * Enable CSMA/CA
+ 558:ServerLLDN.c  **** 		 * Enable Random CSMA seed generator
+ 559:ServerLLDN.c  **** 		 */
+ 560:ServerLLDN.c  **** 		PHY_SetTdmaMode(false);
+ 1556               		.loc 6 560 0
+ 1557 07a4 80E0      		ldi r24,0
+ 1558 07a6 0E94 0000 		call PHY_SetTdmaMode
+ 561:ServerLLDN.c  **** 		// PHY_SetOptimizedCSMAValues();
+ 562:ServerLLDN.c  **** 		
+ 563:ServerLLDN.c  **** 		payloadSize = 127;
+ 1559               		.loc 6 563 0
+ 1560 07aa 8FE7      		ldi r24,lo8(127)
+ 1561 07ac 8093 0000 		sts payloadSize,r24
+ 564:ServerLLDN.c  **** 		NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);
+ 1562               		.loc 6 564 0
+ 1563 07b0 60E0      		ldi r22,lo8(gs(appBeaconInd))
+ 1564 07b2 70E0      		ldi r23,hi8(gs(appBeaconInd))
+ 1565 07b4 80E0      		ldi r24,0
+ 1566 07b6 0E94 0000 		call NWK_OpenEndpoint
+ 565:ServerLLDN.c  **** 		NWK_OpenEndpoint(APP_ACK_ENDPOINT, appAckInd);
+ 1567               		.loc 6 565 0
+ 1568 07ba 60E0      		ldi r22,lo8(gs(appAckInd))
+ 1569 07bc 70E0      		ldi r23,hi8(gs(appAckInd))
+ 1570 07be 84E0      		ldi r24,lo8(4)
+ 1571 07c0 0E94 0000 		call NWK_OpenEndpoint
+ 566:ServerLLDN.c  **** 		NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appCommandInd);
+ 1572               		.loc 6 566 0
+ 1573 07c4 60E0      		ldi r22,lo8(gs(appCommandInd))
+ 1574 07c6 70E0      		ldi r23,hi8(gs(appCommandInd))
+ 1575 07c8 83E0      		ldi r24,lo8(3)
+ 1576 07ca 0E94 0000 		call NWK_OpenEndpoint
+ 567:ServerLLDN.c  **** 		/*
+ 568:ServerLLDN.c  **** 		* Configure interrupts callback functions
+ 569:ServerLLDN.c  **** 		*/
+ 570:ServerLLDN.c  **** 		
+ 571:ServerLLDN.c  **** 	#endif // APP_COORDENATOR
+ 572:ServerLLDN.c  **** 	PHY_SetPromiscuousMode(true);
+ 1577               		.loc 6 572 0
+ 1578 07ce 81E0      		ldi r24,lo8(1)
+ 1579 07d0 0E94 0000 		call PHY_SetPromiscuousMode
+ 573:ServerLLDN.c  **** 
+ 574:ServerLLDN.c  **** }
+ 1580               		.loc 6 574 0
+ 1581 07d4 0000      		nop
+ 1582               	/* epilogue start */
+ 1583 07d6 DF91      		pop r29
+ 1584 07d8 CF91      		pop r28
+ 1585 07da 0895      		ret
+ 1586               		.cfi_endproc
+ 1587               	.LFE139:
+ 1590               	APP_TaskHandler:
+ 1591               	.LFB140:
+ 575:ServerLLDN.c  **** 
+ 576:ServerLLDN.c  **** static void APP_TaskHandler(void)
+ 577:ServerLLDN.c  **** {
+ 1592               		.loc 6 577 0
+ 1593               		.cfi_startproc
+ 1594 07dc CF93      		push r28
+ 1595               	.LCFI63:
+ 1596               		.cfi_def_cfa_offset 3
+ 1597               		.cfi_offset 28, -2
+ 1598 07de DF93      		push r29
+ 1599               	.LCFI64:
+ 1600               		.cfi_def_cfa_offset 4
+ 1601               		.cfi_offset 29, -3
+ 1602 07e0 CDB7      		in r28,__SP_L__
+ 1603 07e2 DEB7      		in r29,__SP_H__
+ 1604               	.LCFI65:
+ 1605               		.cfi_def_cfa_register 28
+ 1606               	/* prologue: function */
+ 1607               	/* frame size = 0 */
+ 1608               	/* stack size = 2 */
+ 1609               	.L__stack_usage = 2
+ 578:ServerLLDN.c  **** 	switch (appState){
+ 1610               		.loc 6 578 0
+ 1611 07e4 8091 0000 		lds r24,appState
+ 1612 07e8 882F      		mov r24,r24
+ 1613 07ea 90E0      		ldi r25,0
+ 1614 07ec 8430      		cpi r24,4
+ 1615 07ee 9105      		cpc r25,__zero_reg__
+ 1616 07f0 01F0      		breq .L41
+ 1617 07f2 8530      		cpi r24,5
+ 1618 07f4 9105      		cpc r25,__zero_reg__
+ 1619 07f6 04F4      		brge .L42
+ 1620 07f8 0097      		sbiw r24,0
+ 1621 07fa 01F0      		breq .L43
+ 1622 07fc 0297      		sbiw r24,2
+ 1623 07fe 01F0      		breq .L44
+ 579:ServerLLDN.c  **** 		case APP_STATE_INITIAL:
+ 580:ServerLLDN.c  **** 		{
+ 581:ServerLLDN.c  **** 			appInit();
+ 582:ServerLLDN.c  **** 			#if APP_COORDINATOR
+ 583:ServerLLDN.c  **** 				appState = APP_STATE_ATT_PAN_STATE;
+ 584:ServerLLDN.c  **** 			#else
+ 585:ServerLLDN.c  **** 				appState = APP_STATE_IDLE;
+ 586:ServerLLDN.c  **** 			#endif
+ 587:ServerLLDN.c  **** 			break;
+ 588:ServerLLDN.c  **** 		}
+ 589:ServerLLDN.c  **** 		case APP_STATE_SEND:
+ 590:ServerLLDN.c  **** 		{
+ 591:ServerLLDN.c  **** 			appSendData();
+ 592:ServerLLDN.c  **** 			#if APP_COORDINATOR
+ 593:ServerLLDN.c  **** 				/* Every time a message is send updates coordinator to prepare next message */
+ 594:ServerLLDN.c  **** 				appState = APP_STATE_ATT_PAN_STATE;
+ 595:ServerLLDN.c  **** 			#else
+ 596:ServerLLDN.c  **** 				appState = APP_STATE_IDLE;
+ 597:ServerLLDN.c  **** 			#endif
+ 598:ServerLLDN.c  **** 			break;
+ 599:ServerLLDN.c  **** 		}
+ 600:ServerLLDN.c  **** 		#if APP_COORDINATOR // COORDINATOR SPECIFIC STATE MACHINE
+ 601:ServerLLDN.c  **** 		case APP_STATE_ATT_PAN_STATE:
+ 602:ServerLLDN.c  **** 		{
+ 603:ServerLLDN.c  **** 			switch(appPanState)
+ 604:ServerLLDN.c  **** 			{
+ 605:ServerLLDN.c  **** 				/* Prepare beacon to desassociate all nodes */
+ 606:ServerLLDN.c  **** 				case APP_PAN_STATE_RESET:
+ 607:ServerLLDN.c  **** 				{
+ 608:ServerLLDN.c  **** 					appPanReset();
+ 609:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_DISC_INITIAL;
+ 610:ServerLLDN.c  **** 					appState	= APP_STATE_SEND;
+ 611:ServerLLDN.c  **** 					cycles_counter = 0;
+ 612:ServerLLDN.c  **** 					break;
+ 613:ServerLLDN.c  **** 				}
+ 614:ServerLLDN.c  **** 				/* Prepare first Beacon of Discovery */
+ 615:ServerLLDN.c  **** 				case APP_PAN_STATE_DISC_INITIAL:
+ 616:ServerLLDN.c  **** 				{
+ 617:ServerLLDN.c  **** 					/* if nodes associated is equal to expected number of associated nodes stop association proces
+ 618:ServerLLDN.c  **** 					 * this implementation was done as is to be used in tests, for real network functionality 
+ 619:ServerLLDN.c  **** 					 * the number of max association processes must be done through macLLDNdiscoveryModeTimeout
+ 620:ServerLLDN.c  **** 					 */
+ 621:ServerLLDN.c  **** 					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 2)
+ 622:ServerLLDN.c  **** 					{	
+ 623:ServerLLDN.c  **** 						printf("\n%d, %d", cycles_counter, counter_associados);
+ 624:ServerLLDN.c  **** 						counter_associados = 0;
+ 625:ServerLLDN.c  **** 						/* if all nodes expected where associated stop beacon generation interruptions */
+ 626:ServerLLDN.c  **** 						// macsc_disable_cmp_int(MACSC_CC1);
+ 627:ServerLLDN.c  **** 						macsc_disable_cmp_int(MACSC_CC2);
+ 628:ServerLLDN.c  **** 						msgReq.options = 0;
+ 629:ServerLLDN.c  **** 						/* set coordinator node to idle further implementation of online state must be done */
+ 630:ServerLLDN.c  **** 						appState = APP_STATE_IDLE;
+ 631:ServerLLDN.c  **** 						appPanState = APP_PAN_STATE_ONLINE_INITIAL; // APP_PAN_STATE_ONLINE_INIT
+ 632:ServerLLDN.c  **** 						
+ 633:ServerLLDN.c  **** 					}
+ 634:ServerLLDN.c  **** 					/* if not all nodes expected where associated run through association process again */
+ 635:ServerLLDN.c  **** 					else 
+ 636:ServerLLDN.c  **** 					{
+ 637:ServerLLDN.c  **** 						/* prepare beacon message and start timers for beacon */
+ 638:ServerLLDN.c  **** 						appPanDiscInit();
+ 639:ServerLLDN.c  **** 						appState	= APP_STATE_IDLE;
+ 640:ServerLLDN.c  **** 						appPanState = APP_PAN_STATE_DISC_SECOND_BE;
+ 641:ServerLLDN.c  **** 					}
+ 642:ServerLLDN.c  **** 					break;
+ 643:ServerLLDN.c  **** 				}
+ 644:ServerLLDN.c  **** 				case APP_PAN_STATE_DISC_SECOND_BE:
+ 645:ServerLLDN.c  **** 				{
+ 646:ServerLLDN.c  **** 					/* Prepares message as: Discovery Beacon and Second Beacon */
+ 647:ServerLLDN.c  **** 					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE | NWK_OPT_SECOND_BEACON ;
+ 648:ServerLLDN.c  **** 					msgReq.data = NULL;
+ 649:ServerLLDN.c  **** 					msgReq.size = 0;
+ 650:ServerLLDN.c  **** 					
+ 651:ServerLLDN.c  **** 					appState	= APP_PAN_STATE_DISC_PREPARE_ACK;
+ 652:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_DISC_PREPARE_ACK;
+ 653:ServerLLDN.c  **** 					break;
+ 654:ServerLLDN.c  **** 				}
+ 655:ServerLLDN.c  **** 				case APP_PAN_STATE_DISC_PREPARE_ACK:
+ 656:ServerLLDN.c  **** 				{
+ 657:ServerLLDN.c  **** 					/* This timer implements a delay between messages, 
+ 658:ServerLLDN.c  **** 					 * if not used the nodes are not able to receive the message
+ 659:ServerLLDN.c  **** 					 */
+ 660:ServerLLDN.c  **** 					appPanPrepareACK();
+ 661:ServerLLDN.c  **** 					SYS_TimerStart(&tmrDelay);
+ 662:ServerLLDN.c  **** 					
+ 663:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_CONFIG_INITIAL; 
+ 664:ServerLLDN.c  **** 					appState = APP_STATE_IDLE;
+ 665:ServerLLDN.c  **** 					break;
+ 666:ServerLLDN.c  **** 				}
+ 667:ServerLLDN.c  **** 				case APP_PAN_STATE_CONFIG_INITIAL:
+ 668:ServerLLDN.c  **** 				{
+ 669:ServerLLDN.c  **** 					/* Prepares the message as: Configuration Beacon and First State Beacon */
+ 670:ServerLLDN.c  **** 					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_CONFIG_STATE;
+ 671:ServerLLDN.c  **** 					msgReq.data = NULL;
+ 672:ServerLLDN.c  **** 					msgReq.size = 0;
+ 673:ServerLLDN.c  **** 					
+ 674:ServerLLDN.c  **** 					appState	= APP_STATE_IDLE;
+ 675:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_CONFIG_SECOND_BEACON;
+ 676:ServerLLDN.c  **** 					break;
+ 677:ServerLLDN.c  **** 
+ 678:ServerLLDN.c  **** 				}
+ 679:ServerLLDN.c  **** 				case APP_PAN_STATE_CONFIG_SECOND_BEACON:
+ 680:ServerLLDN.c  **** 				{
+ 681:ServerLLDN.c  **** 					/* Prepares the message as: Configuration Beacon and Second State Beacon */
+ 682:ServerLLDN.c  **** 					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_CONFIG_STATE | NWK_OPT_SECOND_BEACON;
+ 683:ServerLLDN.c  **** 					msgReq.data = NULL;
+ 684:ServerLLDN.c  **** 					msgReq.size = 0;
+ 685:ServerLLDN.c  **** 					
+ 686:ServerLLDN.c  **** 					appState	= APP_STATE_IDLE;
+ 687:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_SEND_CONF_REQUEST;
+ 688:ServerLLDN.c  **** 					break;
+ 689:ServerLLDN.c  **** 				}
+ 690:ServerLLDN.c  **** 				case APP_PAN_STATE_SEND_CONF_REQUEST:
+ 691:ServerLLDN.c  **** 				{
+ 692:ServerLLDN.c  **** 
+ 693:ServerLLDN.c  **** 					if(conf_req_list != NULL)
+ 694:ServerLLDN.c  **** 					{
+ 695:ServerLLDN.c  **** 						CopyToConfigRequest();
+ 696:ServerLLDN.c  **** 						msgReq.options		= NWK_OPT_MAC_COMMAND;
+ 697:ServerLLDN.c  **** 						msgReq.data			= (uint8_t*)&config_request_frame;
+ 698:ServerLLDN.c  **** 						msgReq.size			= sizeof(NWK_ConfigRequest_t);
+ 699:ServerLLDN.c  **** 						appState	= APP_STATE_IDLE;
+ 700:ServerLLDN.c  **** 						appPanState = APP_PAN_STATE_SEND_CONF_REQUEST;
+ 701:ServerLLDN.c  **** 						
+ 702:ServerLLDN.c  **** 						counter_associados++;
+ 703:ServerLLDN.c  **** 						SYS_TimerStart(&tmrDelay);
+ 704:ServerLLDN.c  **** 					}
+ 705:ServerLLDN.c  **** 					else
+ 706:ServerLLDN.c  **** 					{
+ 707:ServerLLDN.c  **** 						appPanState = APP_PAN_STATE_CONFIG_THIRD_BEACON;
+ 708:ServerLLDN.c  **** 					}
+ 709:ServerLLDN.c  **** 					break;
+ 710:ServerLLDN.c  **** 				}
+ 711:ServerLLDN.c  **** 				case APP_PAN_STATE_CONFIG_THIRD_BEACON:
+ 712:ServerLLDN.c  **** 				{
+ 713:ServerLLDN.c  **** 					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_CONFIG_STATE | NWK_OPT_THIRD_BEACON;
+ 714:ServerLLDN.c  **** 					msgReq.data = NULL;
+ 715:ServerLLDN.c  **** 					msgReq.size = 0;
+ 716:ServerLLDN.c  **** 					
+ 717:ServerLLDN.c  **** 					appState	= APP_STATE_IDLE;
+ 718:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_DISC_INITIAL;
+ 719:ServerLLDN.c  **** 					cycles_counter++;	
+ 720:ServerLLDN.c  **** 					
+ 721:ServerLLDN.c  **** 					break;
+ 722:ServerLLDN.c  **** 				}
+ 723:ServerLLDN.c  **** 				case APP_PAN_STATE_ONLINE_INITIAL:
+ 724:ServerLLDN.c  **** 				{
+ 725:ServerLLDN.c  **** 					appPanOnlineInit();
+ 726:ServerLLDN.c  **** 					appState = APP_STATE_SEND;
+ 727:ServerLLDN.c  **** 					appPanState = APP_PAN_STATE_CHECK_TS;
+ 728:ServerLLDN.c  **** 
+ 729:ServerLLDN.c  **** 					break;
+ 730:ServerLLDN.c  **** 				}
+ 731:ServerLLDN.c  **** 				case APP_PAN_STATE_CHECK_TS:
+ 732:ServerLLDN.c  **** 				{
+ 733:ServerLLDN.c  **** 					if(timeslot_counter >= assTimeSlot)
+ 734:ServerLLDN.c  **** 					{
+ 735:ServerLLDN.c  **** 						printf("\nFim de um Período");
+ 736:ServerLLDN.c  **** 						macsc_disable_cmp_int(MACSC_CC1);
+ 737:ServerLLDN.c  **** 						macsc_disable_cmp_int(MACSC_CC2);
+ 738:ServerLLDN.c  **** 						appState = APP_STATE_IDLE;
+ 739:ServerLLDN.c  **** 						appPanState = APP_PAN_STATE_IDLE;
+ 740:ServerLLDN.c  **** 					}
+ 741:ServerLLDN.c  **** 					else
+ 742:ServerLLDN.c  **** 					{
+ 743:ServerLLDN.c  **** 						/* check if coordinator received any message in last time slot, used to calculate success rat
+ 744:ServerLLDN.c  **** 						if(timeslot_counter >= 2*MacLLDNMgmtTS && !data_received)
+ 745:ServerLLDN.c  **** 							nodes_info_arr[timeslot_counter - 2*MacLLDNMgmtTS].msg_not_rec++;
+ 746:ServerLLDN.c  **** 						data_received = false;
+ 747:ServerLLDN.c  **** 						
+ 748:ServerLLDN.c  **** 						printf("\n------- slot %d --------", timeslot_counter);
+ 749:ServerLLDN.c  **** 						appState = APP_STATE_IDLE;
+ 750:ServerLLDN.c  **** 						timeslot_counter++;
+ 751:ServerLLDN.c  **** 					}
+ 752:ServerLLDN.c  **** 					break;
+ 753:ServerLLDN.c  **** 				}
+ 754:ServerLLDN.c  **** 				case APP_PAN_STATE_ONLINE_END_BE:
+ 755:ServerLLDN.c  **** 				{
+ 756:ServerLLDN.c  **** 					if(0)
+ 757:ServerLLDN.c  **** 					{
+ 758:ServerLLDN.c  **** 						// implementar as condições para entrar no processo de associação
+ 759:ServerLLDN.c  **** 					}
+ 760:ServerLLDN.c  **** 					else
+ 761:ServerLLDN.c  **** 					{
+ 762:ServerLLDN.c  **** 						// posso calcular esse valor no onlineinit, o tTS precisa ser recalculado, o seu valor muda n
+ 763:ServerLLDN.c  **** 						// pode voltar pro state_online_initial porque precisa reconfigurar os timers
+ 764:ServerLLDN.c  **** 						// precisa revisar o macsc_enable_manual_bts()
+ 765:ServerLLDN.c  **** 						/*
+ 766:ServerLLDN.c  **** 						int idle_time =  2 * numBaseTimeSlotperMgmt * (tTS) * 5 / (SYMBOL_TIME); // 5 is the total of
+ 767:ServerLLDN.c  **** 						macsc_set_cmp1_int_cb(lldn_server_beacon); // esta função pode só mandar o beacon do online, 
+ 768:ServerLLDN.c  **** 						macsc_enable_manual_bts();
+ 769:ServerLLDN.c  **** 						macsc_enable_cmp_int(MACSC_CC1);
+ 770:ServerLLDN.c  **** 						macsc_use_cmp(MACSC_RELATIVE_CMP, idle_time, MACSC_CC1);
+ 771:ServerLLDN.c  **** 						*/
+ 772:ServerLLDN.c  **** 					}
+ 773:ServerLLDN.c  **** 					break;
+ 774:ServerLLDN.c  **** 				}
+ 775:ServerLLDN.c  **** 				case APP_PAN_STATE_IDLE:
+ 776:ServerLLDN.c  **** 				{
+ 777:ServerLLDN.c  **** 					msgReq.options = 0;
+ 778:ServerLLDN.c  **** 					appState = APP_STATE_IDLE;
+ 779:ServerLLDN.c  **** 					break;
+ 780:ServerLLDN.c  **** 				}
+ 781:ServerLLDN.c  **** 			}
+ 782:ServerLLDN.c  **** 			break;	
+ 783:ServerLLDN.c  **** 		}
+ 784:ServerLLDN.c  **** 		#else // NODES SPECIFIC STATE MACHINE
+ 785:ServerLLDN.c  **** 		case APP_STATE_PREP_DISC_REPONSE:
+ 786:ServerLLDN.c  **** 		{
+ 787:ServerLLDN.c  **** 			appPrepareDiscoverResponse();
+ 788:ServerLLDN.c  **** 			appState = APP_STATE_IDLE;	
+ 789:ServerLLDN.c  **** 			break;
+ 790:ServerLLDN.c  **** 		}
+ 791:ServerLLDN.c  **** 		
+ 792:ServerLLDN.c  **** 		case APP_STATE_PREP_CONFIG_STATUS:
+ 793:ServerLLDN.c  **** 		{
+ 794:ServerLLDN.c  **** 			// se o nodo recebeu ack na fase do discovery prepara a mensagem de configuration status
+ 795:ServerLLDN.c  **** 			if(ack_received && rec_beacon->confSeqNumber == 0 && associated == 0) {
+ 796:ServerLLDN.c  **** 				appPrepareConfigurationStatus();
+ 797:ServerLLDN.c  **** 			}
+ 798:ServerLLDN.c  **** 			// se o nodo não recebeu desativa o timer e fica em idle
+ 799:ServerLLDN.c  **** 			else {
+ 800:ServerLLDN.c  **** 				#if MASTER_MACSC
+ 801:ServerLLDN.c  **** 				macsc_disable_cmp_int(MACSC_CC1);
+ 802:ServerLLDN.c  **** 				#else
+ 803:ServerLLDN.c  **** 				timer_stop();
+ 804:ServerLLDN.c  **** 				#endif
+ 805:ServerLLDN.c  **** 			}
+ 806:ServerLLDN.c  **** 			ack_received = 0;
  807:ServerLLDN.c  **** 			appState = APP_STATE_IDLE;
- 1691               		.loc 6 807 0
- 1692 086a 0E94 0000 		call appPrepareDataFrame
- 808:ServerLLDN.c  **** 		}
- 1693               		.loc 6 808 0
- 1694 086e 81E0      		ldi r24,lo8(1)
- 1695 0870 8093 0000 		sts appState,r24
- 1696               	.L50:
- 1697               		.loc 6 813 0
- 1698 0874 0000      		nop
- 1699               	.L47:
+ 808:ServerLLDN.c  **** 			break;
+ 809:ServerLLDN.c  **** 		}
+ 810:ServerLLDN.c  **** 		case APP_STATE_PREP_DATA_FRAME:
+ 811:ServerLLDN.c  **** 		{
+ 812:ServerLLDN.c  **** 			appPrepareDataFrame();
+ 813:ServerLLDN.c  **** 			appState = APP_STATE_IDLE;
  814:ServerLLDN.c  **** 		}
- 815:ServerLLDN.c  **** 	}
- 816:ServerLLDN.c  **** }
- 1700               		.loc 6 816 0
- 1701 0876 0000      		nop
- 1702               	/* epilogue start */
- 1703 0878 DF91      		pop r29
- 1704 087a CF91      		pop r28
- 1705 087c 0895      		ret
- 1706               		.cfi_endproc
- 1707               	.LFE140:
- 1709               		.section	.rodata
- 1710               	.LC0:
- 1711 0053 00        		.byte	0
- 1712 0054 C2        		.byte	-62
- 1713 0055 01        		.byte	1
- 1714 0056 00        		.byte	0
- 1715 0057 03        		.byte	3
- 1716 0058 00        		.byte	0
- 1717 0059 00        		.byte	0
- 1718               		.text
- 1719               	.global	main
- 1721               	main:
- 1722               	.LFB141:
- 817:ServerLLDN.c  **** 
- 818:ServerLLDN.c  **** 	/*****************************************************************************
- 819:ServerLLDN.c  **** 	*****************************************************************************/
- 820:ServerLLDN.c  **** 	int main(void)
- 821:ServerLLDN.c  **** 	{
- 1723               		.loc 6 821 0
- 1724               		.cfi_startproc
- 1725 087e 0F93      		push r16
- 1726               	.LCFI66:
- 1727               		.cfi_def_cfa_offset 3
- 1728               		.cfi_offset 16, -2
- 1729 0880 1F93      		push r17
- 1730               	.LCFI67:
- 1731               		.cfi_def_cfa_offset 4
- 1732               		.cfi_offset 17, -3
- 1733 0882 CF93      		push r28
- 1734               	.LCFI68:
- 1735               		.cfi_def_cfa_offset 5
- 1736               		.cfi_offset 28, -4
- 1737 0884 DF93      		push r29
- 1738               	.LCFI69:
- 1739               		.cfi_def_cfa_offset 6
- 1740               		.cfi_offset 29, -5
- 1741 0886 CDB7      		in r28,__SP_L__
- 1742 0888 DEB7      		in r29,__SP_H__
- 1743               	.LCFI70:
- 1744               		.cfi_def_cfa_register 28
- 1745 088a 2797      		sbiw r28,7
- 1746               	.LCFI71:
- 1747               		.cfi_def_cfa_offset 13
- 1748 088c 0FB6      		in __tmp_reg__,__SREG__
- 1749 088e F894      		cli
- 1750 0890 DEBF      		out __SP_H__,r29
- 1751 0892 0FBE      		out __SREG__,__tmp_reg__
- 1752 0894 CDBF      		out __SP_L__,r28
- 1753               	/* prologue: function */
- 1754               	/* frame size = 7 */
- 1755               	/* stack size = 11 */
- 1756               	.L__stack_usage = 11
- 822:ServerLLDN.c  **** 		sysclk_init();
- 1757               		.loc 6 822 0
- 1758 0896 0E94 0000 		call sysclk_init
- 823:ServerLLDN.c  **** 		board_init();
- 1759               		.loc 6 823 0
- 1760 089a 0E94 0000 		call board_init
- 824:ServerLLDN.c  **** 
- 825:ServerLLDN.c  **** 		SYS_Init();
- 1761               		.loc 6 825 0
- 1762 089e 0E94 0000 		call SYS_Init
- 826:ServerLLDN.c  **** 		/* Disable CSMA/CA
- 827:ServerLLDN.c  **** 		 * Disable auto ACK
- 828:ServerLLDN.c  **** 		 * Enable Rx of LLDN Frame Type as described in 802.15.4e - 2012 
- 829:ServerLLDN.c  **** 		 */
- 830:ServerLLDN.c  **** 
- 831:ServerLLDN.c  **** 		sm_init();
- 1763               		.loc 6 831 0
- 1764 08a2 0E94 0000 		call sm_init
- 832:ServerLLDN.c  **** 
- 833:ServerLLDN.c  **** 		// Initialize interrupt vector table support.
- 834:ServerLLDN.c  **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
- 835:ServerLLDN.c  **** 		irq_initialize_vectors();
- 836:ServerLLDN.c  **** 	#endif
- 837:ServerLLDN.c  **** 		cpu_irq_enable();
- 1765               		.loc 6 837 0
- 1766               	/* #APP */
- 1767               	 ;  837 "ServerLLDN.c" 1
- 1768 08a6 7894      		sei
- 1769               	 ;  0 "" 2
- 838:ServerLLDN.c  **** 
- 839:ServerLLDN.c  **** 	#if 1
- 840:ServerLLDN.c  **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
- 841:ServerLLDN.c  **** 		stdio_usb_init();
- 842:ServerLLDN.c  **** 	#else
- 843:ServerLLDN.c  **** 		const usart_serial_options_t usart_serial_options =
- 1770               		.loc 6 843 0
- 1771               	/* #NOAPP */
- 1772 08a8 27E0      		ldi r18,lo8(7)
- 1773 08aa E0E0      		ldi r30,lo8(.LC0)
- 1774 08ac F0E0      		ldi r31,hi8(.LC0)
- 1775 08ae CE01      		movw r24,r28
- 1776 08b0 0196      		adiw r24,1
- 1777 08b2 DC01      		movw r26,r24
- 1778               		0:
- 1779 08b4 0190      		ld r0,Z+
- 1780 08b6 0D92      		st X+,r0
- 1781 08b8 2A95      		dec r18
- 1782 08ba 01F4      		brne 0b
- 844:ServerLLDN.c  **** 		{
- 845:ServerLLDN.c  **** 			.baudrate     = USART_HOST_BAUDRATE,
- 846:ServerLLDN.c  **** 			.charlength   = USART_HOST_CHAR_LENGTH,
- 847:ServerLLDN.c  **** 			.paritytype   = USART_HOST_PARITY,
- 848:ServerLLDN.c  **** 			.stopbits     = USART_HOST_STOP_BITS
- 849:ServerLLDN.c  **** 		};
- 850:ServerLLDN.c  **** 
- 851:ServerLLDN.c  **** 		stdio_serial_init(USART_HOST, &usart_serial_options);
- 1783               		.loc 6 851 0
- 1784 08bc CE01      		movw r24,r28
- 1785 08be 0196      		adiw r24,1
- 1786 08c0 BC01      		movw r22,r24
- 1787 08c2 80EC      		ldi r24,lo8(-64)
- 1788 08c4 90E0      		ldi r25,0
- 1789 08c6 0E94 0000 		call stdio_serial_init
- 852:ServerLLDN.c  **** 		usart_double_baud_enable(USART_HOST);
- 1790               		.loc 6 852 0
- 1791 08ca 80EC      		ldi r24,lo8(-64)
- 1792 08cc 90E0      		ldi r25,0
- 1793 08ce 0E94 0000 		call usart_double_baud_enable
- 853:ServerLLDN.c  **** 		usart_set_baudrate_precalculated(USART_HOST, USART_HOST_BAUDRATE, sysclk_get_source_clock_hz());
- 1794               		.loc 6 853 0
- 1795 08d2 0E94 0000 		call sysclk_get_source_clock_hz
- 1796 08d6 DC01      		movw r26,r24
- 1797 08d8 CB01      		movw r24,r22
- 1798 08da 8C01      		movw r16,r24
- 1799 08dc 9D01      		movw r18,r26
- 1800 08de 40E0      		ldi r20,0
- 1801 08e0 52EC      		ldi r21,lo8(-62)
- 1802 08e2 61E0      		ldi r22,lo8(1)
- 1803 08e4 70E0      		ldi r23,0
- 1804 08e6 80EC      		ldi r24,lo8(-64)
- 1805 08e8 90E0      		ldi r25,0
- 1806 08ea 0E94 0000 		call usart_set_baudrate_precalculated
- 1807               	.L52:
- 854:ServerLLDN.c  **** 
- 855:ServerLLDN.c  **** 	#endif
- 856:ServerLLDN.c  **** 	#endif
- 857:ServerLLDN.c  **** 		for(;;)
- 858:ServerLLDN.c  **** 		{
- 859:ServerLLDN.c  **** 			SYS_TaskHandler();
- 1808               		.loc 6 859 0 discriminator 1
- 1809 08ee 0E94 0000 		call SYS_TaskHandler
- 860:ServerLLDN.c  **** 			APP_TaskHandler();
- 1810               		.loc 6 860 0 discriminator 1
- 1811 08f2 0E94 0000 		call APP_TaskHandler
- 861:ServerLLDN.c  **** 		}
- 1812               		.loc 6 861 0 discriminator 1
- 1813 08f6 00C0      		rjmp .L52
- 1814               		.cfi_endproc
- 1815               	.LFE141:
- 1817               	.Letext0:
- 1818               		.file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
- 1819               		.file 8 "../../../stack/LwMesh/TDMA/nwk/inc/nwkFrame.h"
- 1820               		.file 9 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
- 1821               		.file 10 "../../../stack/LwMesh/TDMA/nwk/inc/nwkDataReq.h"
- 1822               		.file 11 "lldn.h"
- 1823               		.file 12 "../../../platform/mega_rf/drivers/sleep/sleep.h"
- 1824               		.file 13 "../../../platform/mega_rf/utils/status_codes.h"
- 1825               		.file 14 "config/config.h"
- 1826               		.file 15 "../../../platform/common/services/sleepmgr/mega_rf/sleepmgr.h"
+ 815:ServerLLDN.c  **** 		#endif
+ 816:ServerLLDN.c  **** 		default:
+ 817:ServerLLDN.c  **** 		{
+ 818:ServerLLDN.c  **** 			break;
+ 1624               		.loc 6 818 0
+ 1625 0800 00C0      		rjmp .L50
+ 1626               	.L42:
+ 578:ServerLLDN.c  **** 	switch (appState){
+ 1627               		.loc 6 578 0
+ 1628 0802 8530      		cpi r24,5
+ 1629 0804 9105      		cpc r25,__zero_reg__
+ 1630 0806 01F0      		breq .L45
+ 1631 0808 0697      		sbiw r24,6
+ 1632 080a 01F0      		breq .L46
+ 1633               		.loc 6 818 0
+ 1634 080c 00C0      		rjmp .L50
+ 1635               	.L43:
+ 581:ServerLLDN.c  **** 			#if APP_COORDINATOR
+ 1636               		.loc 6 581 0
+ 1637 080e 0E94 0000 		call appInit
+ 585:ServerLLDN.c  **** 			#endif
+ 1638               		.loc 6 585 0
+ 1639 0812 81E0      		ldi r24,lo8(1)
+ 1640 0814 8093 0000 		sts appState,r24
+ 587:ServerLLDN.c  **** 		}
+ 1641               		.loc 6 587 0
+ 1642 0818 00C0      		rjmp .L47
+ 1643               	.L44:
+ 591:ServerLLDN.c  **** 			#if APP_COORDINATOR
+ 1644               		.loc 6 591 0
+ 1645 081a 0E94 0000 		call appSendData
+ 596:ServerLLDN.c  **** 			#endif
+ 1646               		.loc 6 596 0
+ 1647 081e 81E0      		ldi r24,lo8(1)
+ 1648 0820 8093 0000 		sts appState,r24
+ 598:ServerLLDN.c  **** 		}
+ 1649               		.loc 6 598 0
+ 1650 0824 00C0      		rjmp .L47
+ 1651               	.L41:
+ 787:ServerLLDN.c  **** 			appState = APP_STATE_IDLE;	
+ 1652               		.loc 6 787 0
+ 1653 0826 0E94 0000 		call appPrepareDiscoverResponse
+ 788:ServerLLDN.c  **** 			break;
+ 1654               		.loc 6 788 0
+ 1655 082a 81E0      		ldi r24,lo8(1)
+ 1656 082c 8093 0000 		sts appState,r24
+ 789:ServerLLDN.c  **** 		}
+ 1657               		.loc 6 789 0
+ 1658 0830 00C0      		rjmp .L47
+ 1659               	.L45:
+ 795:ServerLLDN.c  **** 				appPrepareConfigurationStatus();
+ 1660               		.loc 6 795 0
+ 1661 0832 8091 0000 		lds r24,ack_received
+ 1662 0836 8823      		tst r24
+ 1663 0838 01F0      		breq .L48
+ 795:ServerLLDN.c  **** 				appPrepareConfigurationStatus();
+ 1664               		.loc 6 795 0 is_stmt 0 discriminator 1
+ 1665 083a 8091 0000 		lds r24,rec_beacon
+ 1666 083e 9091 0000 		lds r25,rec_beacon+1
+ 1667 0842 FC01      		movw r30,r24
+ 1668 0844 8581      		ldd r24,Z+5
+ 1669 0846 8823      		tst r24
+ 1670 0848 01F4      		brne .L48
+ 795:ServerLLDN.c  **** 				appPrepareConfigurationStatus();
+ 1671               		.loc 6 795 0 discriminator 2
+ 1672 084a 9091 0000 		lds r25,associated
+ 1673 084e 81E0      		ldi r24,lo8(1)
+ 1674 0850 8927      		eor r24,r25
+ 1675 0852 8823      		tst r24
+ 1676 0854 01F0      		breq .L48
+ 796:ServerLLDN.c  **** 			}
+ 1677               		.loc 6 796 0 is_stmt 1
+ 1678 0856 0E94 0000 		call appPrepareConfigurationStatus
+ 1679 085a 00C0      		rjmp .L49
+ 1680               	.L48:
+ 801:ServerLLDN.c  **** 				#else
+ 1681               		.loc 6 801 0
+ 1682 085c 81E0      		ldi r24,lo8(1)
+ 1683 085e 0E94 0000 		call macsc_disable_cmp_int
+ 1684               	.L49:
+ 806:ServerLLDN.c  **** 			appState = APP_STATE_IDLE;
+ 1685               		.loc 6 806 0
+ 1686 0862 1092 0000 		sts ack_received,__zero_reg__
+ 807:ServerLLDN.c  **** 			break;
+ 1687               		.loc 6 807 0
+ 1688 0866 81E0      		ldi r24,lo8(1)
+ 1689 0868 8093 0000 		sts appState,r24
+ 808:ServerLLDN.c  **** 		}
+ 1690               		.loc 6 808 0
+ 1691 086c 00C0      		rjmp .L47
+ 1692               	.L46:
+ 812:ServerLLDN.c  **** 			appState = APP_STATE_IDLE;
+ 1693               		.loc 6 812 0
+ 1694 086e 0E94 0000 		call appPrepareDataFrame
+ 813:ServerLLDN.c  **** 		}
+ 1695               		.loc 6 813 0
+ 1696 0872 81E0      		ldi r24,lo8(1)
+ 1697 0874 8093 0000 		sts appState,r24
+ 1698               	.L50:
+ 1699               		.loc 6 818 0
+ 1700 0878 0000      		nop
+ 1701               	.L47:
+ 819:ServerLLDN.c  **** 		}
+ 820:ServerLLDN.c  **** 	}
+ 821:ServerLLDN.c  **** }
+ 1702               		.loc 6 821 0
+ 1703 087a 0000      		nop
+ 1704               	/* epilogue start */
+ 1705 087c DF91      		pop r29
+ 1706 087e CF91      		pop r28
+ 1707 0880 0895      		ret
+ 1708               		.cfi_endproc
+ 1709               	.LFE140:
+ 1711               		.section	.rodata
+ 1712               	.LC0:
+ 1713 0053 00        		.byte	0
+ 1714 0054 C2        		.byte	-62
+ 1715 0055 01        		.byte	1
+ 1716 0056 00        		.byte	0
+ 1717 0057 03        		.byte	3
+ 1718 0058 00        		.byte	0
+ 1719 0059 00        		.byte	0
+ 1720               		.text
+ 1721               	.global	main
+ 1723               	main:
+ 1724               	.LFB141:
+ 822:ServerLLDN.c  **** 
+ 823:ServerLLDN.c  **** 	/*****************************************************************************
+ 824:ServerLLDN.c  **** 	*****************************************************************************/
+ 825:ServerLLDN.c  **** 	int main(void)
+ 826:ServerLLDN.c  **** 	{
+ 1725               		.loc 6 826 0
+ 1726               		.cfi_startproc
+ 1727 0882 0F93      		push r16
+ 1728               	.LCFI66:
+ 1729               		.cfi_def_cfa_offset 3
+ 1730               		.cfi_offset 16, -2
+ 1731 0884 1F93      		push r17
+ 1732               	.LCFI67:
+ 1733               		.cfi_def_cfa_offset 4
+ 1734               		.cfi_offset 17, -3
+ 1735 0886 CF93      		push r28
+ 1736               	.LCFI68:
+ 1737               		.cfi_def_cfa_offset 5
+ 1738               		.cfi_offset 28, -4
+ 1739 0888 DF93      		push r29
+ 1740               	.LCFI69:
+ 1741               		.cfi_def_cfa_offset 6
+ 1742               		.cfi_offset 29, -5
+ 1743 088a CDB7      		in r28,__SP_L__
+ 1744 088c DEB7      		in r29,__SP_H__
+ 1745               	.LCFI70:
+ 1746               		.cfi_def_cfa_register 28
+ 1747 088e 2797      		sbiw r28,7
+ 1748               	.LCFI71:
+ 1749               		.cfi_def_cfa_offset 13
+ 1750 0890 0FB6      		in __tmp_reg__,__SREG__
+ 1751 0892 F894      		cli
+ 1752 0894 DEBF      		out __SP_H__,r29
+ 1753 0896 0FBE      		out __SREG__,__tmp_reg__
+ 1754 0898 CDBF      		out __SP_L__,r28
+ 1755               	/* prologue: function */
+ 1756               	/* frame size = 7 */
+ 1757               	/* stack size = 11 */
+ 1758               	.L__stack_usage = 11
+ 827:ServerLLDN.c  **** 		sysclk_init();
+ 1759               		.loc 6 827 0
+ 1760 089a 0E94 0000 		call sysclk_init
+ 828:ServerLLDN.c  **** 		board_init();
+ 1761               		.loc 6 828 0
+ 1762 089e 0E94 0000 		call board_init
+ 829:ServerLLDN.c  **** 
+ 830:ServerLLDN.c  **** 		SYS_Init();
+ 1763               		.loc 6 830 0
+ 1764 08a2 0E94 0000 		call SYS_Init
+ 831:ServerLLDN.c  **** 		/* Disable CSMA/CA
+ 832:ServerLLDN.c  **** 		 * Disable auto ACK
+ 833:ServerLLDN.c  **** 		 * Enable Rx of LLDN Frame Type as described in 802.15.4e - 2012 
+ 834:ServerLLDN.c  **** 		 */
+ 835:ServerLLDN.c  **** 
+ 836:ServerLLDN.c  **** 		sm_init();
+ 1765               		.loc 6 836 0
+ 1766 08a6 0E94 0000 		call sm_init
+ 837:ServerLLDN.c  **** 
+ 838:ServerLLDN.c  **** 		// Initialize interrupt vector table support.
+ 839:ServerLLDN.c  **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
+ 840:ServerLLDN.c  **** 		irq_initialize_vectors();
+ 841:ServerLLDN.c  **** 	#endif
+ 842:ServerLLDN.c  **** 		cpu_irq_enable();
+ 1767               		.loc 6 842 0
+ 1768               	/* #APP */
+ 1769               	 ;  842 "ServerLLDN.c" 1
+ 1770 08aa 7894      		sei
+ 1771               	 ;  0 "" 2
+ 843:ServerLLDN.c  **** 
+ 844:ServerLLDN.c  **** 	#if 1
+ 845:ServerLLDN.c  **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
+ 846:ServerLLDN.c  **** 		stdio_usb_init();
+ 847:ServerLLDN.c  **** 	#else
+ 848:ServerLLDN.c  **** 		const usart_serial_options_t usart_serial_options =
+ 1772               		.loc 6 848 0
+ 1773               	/* #NOAPP */
+ 1774 08ac 27E0      		ldi r18,lo8(7)
+ 1775 08ae E0E0      		ldi r30,lo8(.LC0)
+ 1776 08b0 F0E0      		ldi r31,hi8(.LC0)
+ 1777 08b2 CE01      		movw r24,r28
+ 1778 08b4 0196      		adiw r24,1
+ 1779 08b6 DC01      		movw r26,r24
+ 1780               		0:
+ 1781 08b8 0190      		ld r0,Z+
+ 1782 08ba 0D92      		st X+,r0
+ 1783 08bc 2A95      		dec r18
+ 1784 08be 01F4      		brne 0b
+ 849:ServerLLDN.c  **** 		{
+ 850:ServerLLDN.c  **** 			.baudrate     = USART_HOST_BAUDRATE,
+ 851:ServerLLDN.c  **** 			.charlength   = USART_HOST_CHAR_LENGTH,
+ 852:ServerLLDN.c  **** 			.paritytype   = USART_HOST_PARITY,
+ 853:ServerLLDN.c  **** 			.stopbits     = USART_HOST_STOP_BITS
+ 854:ServerLLDN.c  **** 		};
+ 855:ServerLLDN.c  **** 
+ 856:ServerLLDN.c  **** 		stdio_serial_init(USART_HOST, &usart_serial_options);
+ 1785               		.loc 6 856 0
+ 1786 08c0 CE01      		movw r24,r28
+ 1787 08c2 0196      		adiw r24,1
+ 1788 08c4 BC01      		movw r22,r24
+ 1789 08c6 80EC      		ldi r24,lo8(-64)
+ 1790 08c8 90E0      		ldi r25,0
+ 1791 08ca 0E94 0000 		call stdio_serial_init
+ 857:ServerLLDN.c  **** 		usart_double_baud_enable(USART_HOST);
+ 1792               		.loc 6 857 0
+ 1793 08ce 80EC      		ldi r24,lo8(-64)
+ 1794 08d0 90E0      		ldi r25,0
+ 1795 08d2 0E94 0000 		call usart_double_baud_enable
+ 858:ServerLLDN.c  **** 		usart_set_baudrate_precalculated(USART_HOST, USART_HOST_BAUDRATE, sysclk_get_source_clock_hz());
+ 1796               		.loc 6 858 0
+ 1797 08d6 0E94 0000 		call sysclk_get_source_clock_hz
+ 1798 08da DC01      		movw r26,r24
+ 1799 08dc CB01      		movw r24,r22
+ 1800 08de 8C01      		movw r16,r24
+ 1801 08e0 9D01      		movw r18,r26
+ 1802 08e2 40E0      		ldi r20,0
+ 1803 08e4 52EC      		ldi r21,lo8(-62)
+ 1804 08e6 61E0      		ldi r22,lo8(1)
+ 1805 08e8 70E0      		ldi r23,0
+ 1806 08ea 80EC      		ldi r24,lo8(-64)
+ 1807 08ec 90E0      		ldi r25,0
+ 1808 08ee 0E94 0000 		call usart_set_baudrate_precalculated
+ 1809               	.L52:
+ 859:ServerLLDN.c  **** 
+ 860:ServerLLDN.c  **** 	#endif
+ 861:ServerLLDN.c  **** 	#endif
+ 862:ServerLLDN.c  **** 		for(;;)
+ 863:ServerLLDN.c  **** 		{
+ 864:ServerLLDN.c  **** 			SYS_TaskHandler();
+ 1810               		.loc 6 864 0 discriminator 1
+ 1811 08f2 0E94 0000 		call SYS_TaskHandler
+ 865:ServerLLDN.c  **** 			APP_TaskHandler();
+ 1812               		.loc 6 865 0 discriminator 1
+ 1813 08f6 0E94 0000 		call APP_TaskHandler
+ 866:ServerLLDN.c  **** 		}
+ 1814               		.loc 6 866 0 discriminator 1
+ 1815 08fa 00C0      		rjmp .L52
+ 1816               		.cfi_endproc
+ 1817               	.LFE141:
+ 1819               	.Letext0:
+ 1820               		.file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 1821               		.file 8 "../../../stack/LwMesh/TDMA/nwk/inc/nwkFrame.h"
+ 1822               		.file 9 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
+ 1823               		.file 10 "../../../stack/LwMesh/TDMA/nwk/inc/nwkDataReq.h"
+ 1824               		.file 11 "lldn.h"
+ 1825               		.file 12 "../../../platform/mega_rf/drivers/sleep/sleep.h"
+ 1826               		.file 13 "../../../platform/mega_rf/utils/status_codes.h"
+ 1827               		.file 14 "config/config.h"
+ 1828               		.file 15 "../../../platform/common/services/sleepmgr/mega_rf/sleepmgr.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 ServerLLDN.c
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:2      *ABS*:0000003e __SP_H__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:3      *ABS*:0000003d __SP_L__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:4      *ABS*:0000003f __SREG__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:5      *ABS*:0000003b __RAMPZ__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:6      *ABS*:00000000 __tmp_reg__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:7      *ABS*:00000001 __zero_reg__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:15     .bss.n:00000000 n
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:2      *ABS*:0000003e __SP_H__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:3      *ABS*:0000003d __SP_L__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:4      *ABS*:0000003f __SREG__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:15     .bss.n:00000000 n
                             *COM*:00000004 tTS
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:20     .text:00000000 sysclk_get_main_hz
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:57     .text:0000001a sysclk_get_source_clock_hz
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:94     .progmem.data.baudctrl_1mhz:00000000 baudctrl_1mhz
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:106    .progmem.data.baudctrl_8mhz:00000000 baudctrl_8mhz
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:118    .progmem.data.baudctrl_16mhz:00000000 baudctrl_16mhz
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:129    .text:00000034 usart_double_baud_enable
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:178    .text:00000062 usart_serial_init
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:273    .text:000000de usart_serial_putchar
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:317    .text:00000106 usart_serial_getchar
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:368    .text:0000013c stdio_serial_init
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:439    .text:0000019e macsc_enable_manual_bts
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:493    .bss.appState:00000000 appState
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:498    .bss.msgReq:00000000 msgReq
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:503    .bss.PanId:00000000 PanId
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:511    .text:000001d2 appSendData
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:573    .data.payloadSize:00000000 payloadSize
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:579    .data.assTimeSlot:00000000 assTimeSlot
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:584    .bss.rec_beacon:00000000 rec_beacon
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:589    .data.msgDiscResponse:00000000 msgDiscResponse
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:596    .data.msgConfigStatus:00000000 msgConfigStatus
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:606    .data.data_payload:00000000 data_payload
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:611    .bss.ack_received:00000000 ack_received
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:617    .bss.MacLLDNMgmtTS:00000000 MacLLDNMgmtTS
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:623    .bss.associated:00000000 associated
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:630    .text:0000021e send_message_timeHandler
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:674    .text:0000024a start_timer
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:744    .text:00000292 appBeaconInd
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:1130   .text:00000572 appAckInd
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:1246   .text:0000060e appCommandInd
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:1363   .text:000006b8 appPrepareDiscoverResponse
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:1416   .text:000006fa appPrepareConfigurationStatus
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:1469   .text:0000073c appPrepareDataFrame
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:1524   .text:00000784 appInit
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:1588   .text:000007d8 APP_TaskHandler
-C:\Users\GUILHE~1\AppData\Local\Temp\ccoF6pQj.s:1721   .text:0000087e main
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:20     .text:00000000 sysclk_get_main_hz
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:57     .text:0000001a sysclk_get_source_clock_hz
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:94     .progmem.data.baudctrl_1mhz:00000000 baudctrl_1mhz
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:106    .progmem.data.baudctrl_8mhz:00000000 baudctrl_8mhz
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:118    .progmem.data.baudctrl_16mhz:00000000 baudctrl_16mhz
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:129    .text:00000034 usart_double_baud_enable
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:178    .text:00000062 usart_serial_init
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:273    .text:000000de usart_serial_putchar
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:317    .text:00000106 usart_serial_getchar
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:368    .text:0000013c stdio_serial_init
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:439    .text:0000019e macsc_enable_manual_bts
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:493    .bss.appState:00000000 appState
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:498    .bss.msgReq:00000000 msgReq
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:503    .bss.PanId:00000000 PanId
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:511    .text:000001d2 appSendData
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:573    .data.payloadSize:00000000 payloadSize
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:579    .data.assTimeSlot:00000000 assTimeSlot
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:584    .bss.rec_beacon:00000000 rec_beacon
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:589    .data.msgDiscResponse:00000000 msgDiscResponse
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:596    .data.msgConfigStatus:00000000 msgConfigStatus
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:606    .data.data_payload:00000000 data_payload
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:611    .bss.ack_received:00000000 ack_received
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:617    .bss.MacLLDNMgmtTS:00000000 MacLLDNMgmtTS
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:623    .bss.associated:00000000 associated
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:630    .text:0000021e send_message_timeHandler
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:674    .text:0000024a start_timer
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:744    .text:00000292 appBeaconInd
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:1132   .text:00000576 appAckInd
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:1248   .text:00000612 appCommandInd
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:1365   .text:000006bc appPrepareDiscoverResponse
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:1418   .text:000006fe appPrepareConfigurationStatus
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:1471   .text:00000740 appPrepareDataFrame
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:1526   .text:00000788 appInit
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:1590   .text:000007dc APP_TaskHandler
+C:\Users\GUILHE~1\AppData\Local\Temp\ccddlOsL.s:1723   .text:00000882 main
 
 UNDEFINED SYMBOLS
 usart_init_rs232

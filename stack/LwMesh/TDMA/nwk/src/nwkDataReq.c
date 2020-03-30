@@ -146,7 +146,7 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 		frame->LLbeacon.Flags.txDir 	= 0b0;
 		frame->LLbeacon.Flags.reserved 	= 0b0;
 		// set number of managment timeslots
-		frame->LLbeacon.Flags.numBaseMgmtTimeslots = numBaseTimeSlotperMgmt;
+		frame->LLbeacon.Flags.numBaseMgmtTimeslots = ((req->options & NWK_OPT_ONLINE_STATE) ? numBaseTimeSlotperMgmt_online : numBaseTimeSlotperMgmt_association);
 
 		if (req->options & 	NWK_OPT_SECOND_BEACON)
 		 frame->LLbeacon.confSeqNumber = 0x01;

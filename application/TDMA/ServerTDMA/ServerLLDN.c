@@ -125,6 +125,9 @@ static uint8_t PanId;
 	
 	static void time_slot_handler(void)
 	{
+		if (timeslot_counter > 0)
+			macsc_use_cmp(MACSC_RELATIVE_CMP, tTS / (SYMBOL_TIME), MACSC_CC1);
+		
 		macsc_enable_manual_bts();
 		appState = APP_STATE_ATT_PAN_STATE;
 	}
@@ -275,9 +278,11 @@ static uint8_t PanId;
 		for (int i = 0; i < 50; i++)
 		{
 			nodes_info_arr[i].mac_addr = 0;
+			nodes_info_arr[i].msg_rec = 0;
+
+			
 			msg_info_array[i].mac_addr = 0;
 			msg_info_array[i].coop_addr = 0;
-			
 			for (int j = 0; j < 50; j++)
 				nodes_info_arr[i].neighbors[j] = 0;
 		}
@@ -311,7 +316,7 @@ static uint8_t PanId;
 		tTS =  ((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var);
 		#if (MASTER_MACSC == 1)
 		
-			beaconInterval = 2 * numBaseTimeSlotperMgmt * (tTS) / (SYMBOL_TIME);
+			beaconInterval = 2 * numBaseTimeSlotperMgmt_association * (tTS) / (SYMBOL_TIME);
 			/*
 			* Configure interrupts callback functions
 			* overflow interrupt, compare 1,2,3 interrupts
@@ -341,9 +346,9 @@ static uint8_t PanId;
 	{
 			timeslot_counter = 0;
 			
-			tTS =  ((p_var*sp + (m+ /*config_request_frame.conf.tsDuration */ 127 )*sm + macMinLIFSPeriod)/v_var);
+			tTS =  ((p_var*sp + (m+ config_request_frame.conf.tsDuration )*sm + macMinLIFSPeriod)/v_var);
 			
-			n = /*config_request_frame.conf.tsDuration */ 127;
+			n = config_request_frame.conf.tsDuration;
 			
 			msgReq.dstAddr				= 0;
 			msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
@@ -361,7 +366,7 @@ static uint8_t PanId;
 			macsc_enable_manual_bts();
 			
 			macsc_enable_cmp_int(MACSC_CC1);
-			macsc_use_cmp(MACSC_RELATIVE_CMP, tTS / (SYMBOL_TIME), MACSC_CC1);
+			macsc_use_cmp(MACSC_RELATIVE_CMP, numBaseTimeSlotperMgmt_online * tTS / (SYMBOL_TIME), MACSC_CC1);
 			
 			NWK_OpenEndpoint(APP_DATA_ENDPOINT, appDataInd);
 
@@ -435,7 +440,7 @@ static uint8_t PanId;
 			int ts_time = ((p_var*sp + (m+ n)*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
 			int msg_wait_time = (2*rec_beacon->Flags.numBaseMgmtTimeslots + assTimeSlot) * ts_time;
 			printf("msg_wait_time: %d", msg_wait_time);
-			start_timer(msg_wait_time);
+			start_timer(msg_wait_time - 80);
 			appState = APP_STATE_PREP_DATA_FRAME;
 		}
 		else if (rec_beacon->Flags.txState == RESET_MODE)

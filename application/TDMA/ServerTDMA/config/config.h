@@ -93,7 +93,9 @@
 uint8_t n; // Expected maximum number of octets of data payload
 float tTS;
 
-#define numBaseTimeSlotperMgmt  2
+#define numBaseTimeSlotperMgmt_association  2
+ #define numBaseTimeSlotperMgmt_online  2
+
  
  /* MAC Command frames identifier defined by Table 5 : 802.15.4e - 2012 */
 
