@@ -239,16 +239,17 @@ static uint8_t PanId;
 	
 	static bool appDataInd(NWK_DataInd_t *ind)
 	{
-		
+		if(!data_received)
+		{
 		int curr_ts = timeslot_counter - 2*MacLLDNMgmtTS;
-		
+		data_received = true;
 		nodes_info_arr[curr_ts].rssi = ind->rssi;
 		nodes_info_arr[curr_ts].msg_rec++;
 		
 		printf("\n %d payload: ", curr_ts);
 		for (int i = 0; i < ind->size; i++)
 			printf("%hhx", ind->data[i]);
-			
+		}
 	}
 	
 	static void appPanPrepareACK(void)
