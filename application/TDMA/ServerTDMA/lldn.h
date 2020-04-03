@@ -25,6 +25,10 @@ typedef enum {
 	#define DELAY 200 // symbols
 	#define MacLLDNMgmtTS 0x01
 
+	#define NUMERO_CICLOS_ONLINE 5
+	#define GROUP_ACK 0
+
+
 	typedef enum {
 		APP_PAN_STATE_IDLE,
 		APP_PAN_STATE_RESET,
@@ -37,8 +41,8 @@ typedef enum {
 		APP_PAN_STATE_CONFIG_THIRD_BEACON,
 		APP_PAN_STATE_ONLINE_INITIAL,
 		APP_PAN_STATE_ONLINE_END_BE,
-			APP_PAN_STATE_CHECK_TS,
-
+		APP_PAN_STATE_ONLINE_PREPARE_ACK,
+		APP_PAN_STATE_CHECK_TS,
 	} AppPanState_t;
 	
 	typedef struct nodes_info_t{
@@ -47,6 +51,7 @@ typedef enum {
 		uint8_t req_timeslot_duration;
 		
 		uint8_t rssi;
+		double average_rssi;
 		
 		uint8_t neighbors[50]; // size limited by hardware
 		unsigned int num_neighbors;
@@ -64,6 +69,7 @@ typedef enum {
 	typedef struct msg_info_t{
 		uint16_t mac_addr;
 		uint16_t coop_addr;
+		uint8_t size;
 		uint8_t data_payload[NWK_FRAME_MAX_PAYLOAD_SIZE];
 	}msg_info_t;
 	
