@@ -487,7 +487,7 @@ static uint8_t PanId;
 			if(rec_beacon->Flags.txState == ONLINE_MODE)
 			{
 				tmp_addr = assTimeSlot;
-				
+				appState = APP_STATE_RETRANSMIT_DATA;
 			}
 			else
 				assTimeSlot = APP_ADDR;
@@ -658,8 +658,10 @@ static void APP_TaskHandler(void)
 						// macsc_disable_cmp_int(MACSC_CC1);
 						macsc_disable_cmp_int(MACSC_CC2);
 						msgReq.options = 0;
+						
 						macLLDNnumUplinkTS = (assTimeSlot) * 2 + 1;
 						macLLDNRetransmitTS = assTimeSlot;
+						macLLDNnumTimeSlots = macLLDNnumUplinkTS + 2 *MacLLDNMgmtTS;
 						
 						for(int i = 0; i < 32; i++)
 						ACKFrame.ackFlags[i] = 0;
@@ -890,6 +892,17 @@ static void APP_TaskHandler(void)
 		case APP_STATE_PREP_DATA_FRAME:
 		{
 			appPrepareDataFrame();
+			appState = APP_STATE_IDLE;
+			break;
+		}
+		case APP_STATE_RETRANSMIT_DATA:
+		{
+			if(!ack_received)
+			{
+				int retransmition_slot = 0;
+				for(int i = 0; i < assTimeSlot && i < (rec_beacon->NumberOfBaseTimeslotsinSuperframe - 3)/2; i++)
+					retransmition_slot++;
+			}
 			appState = APP_STATE_IDLE;
 		}
 		#endif
