@@ -43,6 +43,7 @@ typedef enum {
 		APP_PAN_STATE_ONLINE_END_BE,
 		APP_PAN_STATE_ONLINE_PREPARE_ACK,
 		APP_PAN_STATE_CHECK_TS,
+		APP_PAN_STATE_ONLINE_PREPARE_ACK_GROUP,
 	} AppPanState_t;
 	
 	typedef struct nodes_info_t{
