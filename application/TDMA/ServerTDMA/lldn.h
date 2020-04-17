@@ -23,7 +23,7 @@ typedef enum {
 } AppState_t;
 
 #if APP_COORDINATOR
-	#define DELAY 200 // symbols
+	#define DELAY 75 // symbols
 	#define MacLLDNMgmtTS 0x01
 
 	#define NUMERO_CICLOS_ONLINE 5

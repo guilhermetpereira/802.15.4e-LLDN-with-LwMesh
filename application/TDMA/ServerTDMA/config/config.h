@@ -101,7 +101,7 @@ int macLLDNRetransmitTS;
 
 
 
-#define numBaseTimeSlotperMgmt_association  2
+#define numBaseTimeSlotperMgmt_association 2
 #define numBaseTimeSlotperMgmt_online  2
 
  
