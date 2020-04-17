@@ -166,11 +166,11 @@ static uint8_t PanId;
 		int pos =(int) addres / 8;
 		int bit_shift = 8 - (addres % 8);
 		
-		if(ACKFrame.ackFlags[pos] & 1 << bit_shift)
-		{
-			printf("\nAddr rep %d", addres);
-			return false;
-		}
+// 		if(ACKFrame.ackFlags[pos] & 1 << bit_shift)
+// 		{
+// 			printf("\nAddr rep %d", addres);
+// 			return false;
+// 		}
 		ACKFrame.ackFlags[pos] |= 1 << bit_shift;
 		if (pos + 1 > ACKFrame_size)
 			ACKFrame_size = pos + 1;
@@ -243,11 +243,39 @@ static uint8_t PanId;
 		return true;
 	}
 	
+	bool check_ack_pan(int addr)
+	{
+		int pos =  addr / 8;
+		int bit_shift = 8 - addr % 8;
+		
+		if( ACKFrame.ackFlags[pos] & 1 << bit_shift)
+		{
+			return true;
+		}
+		else
+			return false;
+	}
+	
 	static bool appDataInd(NWK_DataInd_t *ind)
 	{
 		if(!data_received && timeslot_counter > 1)
 		{
-		int curr_ts = timeslot_counter - 2*MacLLDNMgmtTS;
+		int curr_ts = timeslot_counter - 2*MacLLDNMgmtTS - 1;
+		if(curr_ts > macLLDNRetransmitTS)
+		{
+			int retransmition_slot = 0;
+			int i;
+			curr_ts = curr_ts - macLLDNRetransmitTS - 1;
+			for(i = 1; retransmition_slot == curr_ts && i <= macLLDNRetransmitTS; i++) 
+				if( !check_ack_pan(i) )
+					retransmition_slot++;
+			
+			if(i == macLLDNRetransmitTS + 1)
+				return false;
+			
+			curr_ts = i;
+			
+		}
 		data_received = true;
 		
 		nodes_info_arr[curr_ts].rssi = ind->rssi;
@@ -255,7 +283,7 @@ static uint8_t PanId;
 															/(nodes_info_arr[curr_ts].msg_rec + 1);
 		nodes_info_arr[curr_ts].msg_rec++;
 
-		addToAckArray(curr_ts);
+		addToAckArray(curr_ts+1);
 		
 		printf("\n %d payload: ", curr_ts);
 		
@@ -375,6 +403,7 @@ static uint8_t PanId;
 			
 			if(macLLDNRetransmitTS > 0)
 			{
+				// precisa repensar isto
 				msgReq.data		= &ACKFrame.ackFlags[macLLDNRetransmitTS + 1];
 				msgReq.size		= macLLDNRetransmitTS;
 			}
@@ -912,6 +941,7 @@ static void APP_TaskHandler(void)
 				for(int i = 0; i < assTimeSlot && i < (rec_beacon->NumberOfBaseTimeslotsinSuperframe - 3)/2; i++) // -3 because of 2 mgmt and 1 gack
 					if( check_ack(i) )
 						retransmition_slot++;
+						
 				printf("\nretransmition_slot %d", retransmition_slot);
 				if(retransmition_slot == 0)
 				{
