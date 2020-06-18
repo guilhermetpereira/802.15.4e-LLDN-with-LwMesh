@@ -127,14 +127,21 @@ static uint8_t PanId;
 		appState = APP_STATE_SEND;
 	}
 	
+	
 	static void time_slot_handler(void)
 	{
-		if (timeslot_counter > 0)
+		/*
+		if (timeslot_counter == 1)
+		{
+			macsc_disable_cmp_int(MACSC_CC1);
 			macsc_use_cmp(MACSC_RELATIVE_CMP, tTS / (SYMBOL_TIME), MACSC_CC1);
-		
-		macsc_enable_manual_bts();
+			macsc_enable_cmp_int(MACSC_CC1);
+		} 
+		*/
+		// macsc_enable_manual_bts();
 		appState = APP_STATE_ATT_PAN_STATE;
 		appPanState = APP_PAN_STATE_CHECK_TS;
+		printf("\ntmr_slot_hndlr");		
 	}
 	
 	static void downlink_delay_handler(void)
@@ -265,8 +272,8 @@ static uint8_t PanId;
 		{
 			int retransmition_slot = 0;
 			int i;
-			curr_ts = curr_ts - macLLDNRetransmitTS - 1;
-			for(i = 1; retransmition_slot == curr_ts && i <= macLLDNRetransmitTS; i++) 
+			curr_ts = curr_ts - macLLDNRetransmitTS;
+			for(i = 1; retransmition_slot > curr_ts && i <= macLLDNRetransmitTS; i++) 
 				if( !check_ack_pan(i) )
 					retransmition_slot++;
 			
@@ -282,6 +289,8 @@ static uint8_t PanId;
 		nodes_info_arr[curr_ts].average_rssi = (nodes_info_arr[curr_ts].rssi + nodes_info_arr[curr_ts].average_rssi*nodes_info_arr[curr_ts].msg_rec)
 															/(nodes_info_arr[curr_ts].msg_rec + 1);
 		nodes_info_arr[curr_ts].msg_rec++;
+
+		// printf("\n addrs %hhx, msg_rec %d, curr_ts %d", nodes_info_arr[curr_ts].mac_addr, nodes_info_arr[curr_ts].msg_rec, curr_ts);
 
 		addToAckArray(curr_ts+1);
 		
@@ -456,7 +465,10 @@ static uint8_t PanId;
 		appState = APP_STATE_SEND;	
 		#if MASTER_MACSC == 0
 			timer_stop();
+		#else 
+		macsc_disable_cmp_int(MACSC_CC1);
 		#endif
+	
 	}
 
 	static void start_timer(int delay)
@@ -827,6 +839,28 @@ static void APP_TaskHandler(void)
 	
 					cycles_counter--;
 					}
+					else
+					{
+						appState = APP_STATE_IDLE;
+						appPanState = APP_PAN_STATE_IDLE;
+						macsc_disable_cmp_int(MACSC_CC1);
+						
+						printf("\n\n Métricas:\n");
+						int total_msg = 0;
+						for(int i = 0; nodes_info_arr[i].mac_addr != 0 && assTimeSlot > i; i++)
+						{
+							printf("\nAddrs %hhx", nodes_info_arr[i].mac_addr);
+							printf("\nMensagens Recebidas  %d", nodes_info_arr[i].msg_rec);
+							printf("\nRssi Médio %f\n", nodes_info_arr[i].average_rssi);
+							
+							total_msg = total_msg + nodes_info_arr[i].msg_rec;
+						}
+						if(assTimeSlot > 0 && total_msg > 0)
+						{
+							succes_rate = total_msg /(assTimeSlot * (float)NUMERO_CICLOS_ONLINE);
+							printf("Taxa de Sucesso : %.2f", succes_rate);
+						}
+					}
 					break;
 				}
 				case APP_PAN_STATE_ONLINE_PREPARE_ACK_GROUP:
@@ -878,16 +912,36 @@ static void APP_TaskHandler(void)
 						
 						printf("\n------- slot %d --------", timeslot_counter);
 						
+						if(timeslot_counter == 1)
+						{
+							macsc_disable_cmp_int(MACSC_CC1);
+							macsc_use_cmp(MACSC_RELATIVE_CMP, tTS / (SYMBOL_TIME), MACSC_CC1);
+							macsc_enable_cmp_int(MACSC_CC1);
+						}
+						
 						if(timeslot_counter == 2*MacLLDNMgmtTS + macLLDNRetransmitTS)
 						{
 							data_received = true;
 							printf("\nack_frame %hhx", ACKFrame.ackFlags[0]);
-							appState = APP_STATE_SEND;
+							appSendData();
 							appPanState = APP_PAN_STATE_IDLE;
 						}
 						else
 							appState = APP_STATE_IDLE;
 						timeslot_counter++;
+						appPanState = APP_PAN_STATE_IDLE;
+						appState = APP_STATE_IDLE;
+						
+						/*
+						if (timeslot_counter == 1)
+						{
+							macsc_disable_cmp_int(MACSC_CC1);
+							macsc_use_cmp(MACSC_RELATIVE_CMP, tTS / (SYMBOL_TIME), MACSC_CC1);
+							macsc_enable_cmp_int(MACSC_CC1);
+						} 
+						*/
+						macsc_enable_manual_bts();
+						
 					}
 					break;
 				}
@@ -936,13 +990,16 @@ static void APP_TaskHandler(void)
 		{
 			if(!ack_received)
 			{
+				appState = APP_STATE_SEND;
+				/*
 				int retransmition_slot = 0;
 				
 				for(int i = 0; i < assTimeSlot && i < (rec_beacon->NumberOfBaseTimeslotsinSuperframe - 3)/2; i++) // -3 because of 2 mgmt and 1 gack
-					if( check_ack(i) )
+					if( !check_ack(i) )
 						retransmition_slot++;
 						
 				printf("\nretransmition_slot %d", retransmition_slot);
+				
 				if(retransmition_slot == 0)
 				{
 					appState = APP_STATE_SEND;			
@@ -956,10 +1013,12 @@ static void APP_TaskHandler(void)
 					macsc_use_cmp(MACSC_RELATIVE_CMP, ts_time * retransmition_slot, MACSC_CC1);
 					#endif
 				}
+				*/
 			}
 			else
 			{
-				appState = APP_STATE_IDLE;	
+				appSendData();
+				appState = APP_STATE_IDLE;
 			}
 			
 			break;
