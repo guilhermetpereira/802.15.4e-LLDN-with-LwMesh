@@ -22,11 +22,14 @@ typedef enum {
 	#endif
 } AppState_t;
 
+
+float received_packets = 0;
+
 #if APP_COORDINATOR
 	#define DELAY 75 // symbols
 	#define MacLLDNMgmtTS 0x01
 
-	#define NUMERO_CICLOS_ONLINE 5
+	#define NUMERO_CICLOS_ONLINE 21
 	#define GROUP_ACK 0
 
 
@@ -85,6 +88,7 @@ typedef enum {
 	#define CONFIG_MODE 0b110
 	#define RESET_MODE	0b111
 	#define ONLINE_MODE 0b000
+	#define SYNC_TIMER  0b1000
 #endif
 
 

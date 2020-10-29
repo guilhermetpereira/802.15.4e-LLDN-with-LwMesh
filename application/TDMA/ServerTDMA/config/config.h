@@ -78,7 +78,8 @@
 #define TDMA_FIRST_SLOT										(3125)							// Symbols
 #define TDMA_BATTERY_EXTENSION								1
 
-// Values of table 3e 802.15.4e-2012
+// // Values of table 3e 802.15.4e-2012
+// p_var*sp + (m+ n)*sm + macMinLIFSPeriod)/v_var
 #define p_var	6.0	// octets
 #define m	3		// octets
 #define sp  2		// symbols per octet
@@ -96,8 +97,6 @@ float tTS;
 int macLLDNnumTimeSlots;
 int macLLDNnumUplinkTS;
 int macLLDNRetransmitTS;
-
-#define GROUP_ACK 0
 
 
 

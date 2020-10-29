@@ -1,4 +1,4 @@
-   1               		.file	"teste_envio.c"
+   1               		.file	"test_sync_timers.c"
    2               	__SP_H__ = 0x3e
    3               	__SP_L__ = 0x3d
    4               	__SREG__ = 0x3f
@@ -1660,8 +1660,8 @@
  514 0206 0895      		ret
  515               		.cfi_endproc
  516               	.LFE108:
- 519               	macsc_write_count:
- 520               	.LFB113:
+ 519               	macsc_read_count:
+ 520               	.LFB114:
  134:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
  135:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /* ! compare modes */
  136:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** #define MACSC_ABSOLUTE_CMP 0
@@ -1874,7 +1874,17 @@
  343:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
  344:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline void macsc_write_count(uint32_t cnt_value)
  345:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
- 521               		.loc 5 345 0
+ 346:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	MACSC_WRITE32(SCCNT, cnt_value);
+ 347:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
+ 348:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
+ 349:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
+ 350:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Reads the Counter value of the MAC Symbol counter
+ 351:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
+ 352:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \note Output the Counter value
+ 353:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
+ 354:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline uint32_t macsc_read_count(void)
+ 355:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
+ 521               		.loc 5 355 0
  522               		.cfi_startproc
  523 0208 CF93      		push r28
  524               	.LCFI30:
@@ -1888,122 +1898,35 @@
  532 020e DEB7      		in r29,__SP_H__
  533               	.LCFI32:
  534               		.cfi_def_cfa_register 28
- 535 0210 2897      		sbiw r28,8
- 536               	.LCFI33:
- 537               		.cfi_def_cfa_offset 12
- 538 0212 0FB6      		in __tmp_reg__,__SREG__
- 539 0214 F894      		cli
- 540 0216 DEBF      		out __SP_H__,r29
- 541 0218 0FBE      		out __SREG__,__tmp_reg__
- 542 021a CDBF      		out __SP_L__,r28
- 543               	/* prologue: function */
- 544               	/* frame size = 8 */
- 545               	/* stack size = 10 */
- 546               	.L__stack_usage = 10
- 547 021c 6D83      		std Y+5,r22
- 548 021e 7E83      		std Y+6,r23
- 549 0220 8F83      		std Y+7,r24
- 550 0222 9887      		std Y+8,r25
- 551               	.LBB2:
- 346:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	MACSC_WRITE32(SCCNT, cnt_value);
- 552               		.loc 5 346 0
- 553 0224 8D81      		ldd r24,Y+5
- 554 0226 9E81      		ldd r25,Y+6
- 555 0228 AF81      		ldd r26,Y+7
- 556 022a B885      		ldd r27,Y+8
- 557 022c 8983      		std Y+1,r24
- 558 022e 9A83      		std Y+2,r25
- 559 0230 AB83      		std Y+3,r26
- 560 0232 BC83      		std Y+4,r27
- 561 0234 84EE      		ldi r24,lo8(-28)
- 562 0236 90E0      		ldi r25,0
- 563 0238 2C81      		ldd r18,Y+4
- 564 023a FC01      		movw r30,r24
- 565 023c 2083      		st Z,r18
- 566 023e 83EE      		ldi r24,lo8(-29)
- 567 0240 90E0      		ldi r25,0
- 568 0242 2B81      		ldd r18,Y+3
- 569 0244 FC01      		movw r30,r24
- 570 0246 2083      		st Z,r18
- 571 0248 82EE      		ldi r24,lo8(-30)
- 572 024a 90E0      		ldi r25,0
- 573 024c 2A81      		ldd r18,Y+2
- 574 024e FC01      		movw r30,r24
- 575 0250 2083      		st Z,r18
- 576 0252 81EE      		ldi r24,lo8(-31)
- 577 0254 90E0      		ldi r25,0
- 578 0256 2981      		ldd r18,Y+1
- 579 0258 FC01      		movw r30,r24
- 580 025a 2083      		st Z,r18
- 581               	.LBE2:
- 347:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
- 582               		.loc 5 347 0
- 583 025c 0000      		nop
- 584               	/* epilogue start */
- 585 025e 2896      		adiw r28,8
- 586 0260 0FB6      		in __tmp_reg__,__SREG__
- 587 0262 F894      		cli
- 588 0264 DEBF      		out __SP_H__,r29
- 589 0266 0FBE      		out __SREG__,__tmp_reg__
- 590 0268 CDBF      		out __SP_L__,r28
- 591 026a DF91      		pop r29
- 592 026c CF91      		pop r28
- 593 026e 0895      		ret
- 594               		.cfi_endproc
- 595               	.LFE113:
- 598               	macsc_read_count:
- 599               	.LFB114:
- 348:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
- 349:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
- 350:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Reads the Counter value of the MAC Symbol counter
- 351:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  *
- 352:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \note Output the Counter value
- 353:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
- 354:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline uint32_t macsc_read_count(void)
- 355:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
- 600               		.loc 5 355 0
- 601               		.cfi_startproc
- 602 0270 CF93      		push r28
- 603               	.LCFI34:
- 604               		.cfi_def_cfa_offset 3
- 605               		.cfi_offset 28, -2
- 606 0272 DF93      		push r29
- 607               	.LCFI35:
- 608               		.cfi_def_cfa_offset 4
- 609               		.cfi_offset 29, -3
- 610 0274 CDB7      		in r28,__SP_L__
- 611 0276 DEB7      		in r29,__SP_H__
- 612               	.LCFI36:
- 613               		.cfi_def_cfa_register 28
- 614               	/* prologue: function */
- 615               	/* frame size = 0 */
- 616               	/* stack size = 2 */
- 617               	.L__stack_usage = 2
+ 535               	/* prologue: function */
+ 536               	/* frame size = 0 */
+ 537               	/* stack size = 2 */
+ 538               	.L__stack_usage = 2
  356:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	return (MACSC_READ32(SCCNT));
- 618               		.loc 5 356 0
- 619 0278 21EE      		ldi r18,lo8(-31)
- 620 027a 30E0      		ldi r19,0
- 621 027c 42EE      		ldi r20,lo8(-30)
- 622 027e 50E0      		ldi r21,0
- 623 0280 63EE      		ldi r22,lo8(-29)
- 624 0282 70E0      		ldi r23,0
- 625 0284 84EE      		ldi r24,lo8(-28)
- 626 0286 90E0      		ldi r25,0
- 627 0288 0E94 0000 		call macsc_read32
- 628 028c DC01      		movw r26,r24
- 629 028e CB01      		movw r24,r22
+ 539               		.loc 5 356 0
+ 540 0210 21EE      		ldi r18,lo8(-31)
+ 541 0212 30E0      		ldi r19,0
+ 542 0214 42EE      		ldi r20,lo8(-30)
+ 543 0216 50E0      		ldi r21,0
+ 544 0218 63EE      		ldi r22,lo8(-29)
+ 545 021a 70E0      		ldi r23,0
+ 546 021c 84EE      		ldi r24,lo8(-28)
+ 547 021e 90E0      		ldi r25,0
+ 548 0220 0E94 0000 		call macsc_read32
+ 549 0224 DC01      		movw r26,r24
+ 550 0226 CB01      		movw r24,r22
  357:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
- 630               		.loc 5 357 0
- 631 0290 BC01      		movw r22,r24
- 632 0292 CD01      		movw r24,r26
- 633               	/* epilogue start */
- 634 0294 DF91      		pop r29
- 635 0296 CF91      		pop r28
- 636 0298 0895      		ret
- 637               		.cfi_endproc
- 638               	.LFE114:
- 641               	macsc_read_bts:
- 642               	.LFB120:
+ 551               		.loc 5 357 0
+ 552 0228 BC01      		movw r22,r24
+ 553 022a CD01      		movw r24,r26
+ 554               	/* epilogue start */
+ 555 022c DF91      		pop r29
+ 556 022e CF91      		pop r28
+ 557 0230 0895      		ret
+ 558               		.cfi_endproc
+ 559               	.LFE114:
+ 562               	macsc_enable_manual_bts:
+ 563               	.LFB121:
  358:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
  359:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
  360:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief enable back-off slot counter
@@ -2075,49 +1998,8 @@
  426:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
  427:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline uint32_t macsc_read_bts(void)
  428:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
- 643               		.loc 5 428 0
- 644               		.cfi_startproc
- 645 029a CF93      		push r28
- 646               	.LCFI37:
- 647               		.cfi_def_cfa_offset 3
- 648               		.cfi_offset 28, -2
- 649 029c DF93      		push r29
- 650               	.LCFI38:
- 651               		.cfi_def_cfa_offset 4
- 652               		.cfi_offset 29, -3
- 653 029e CDB7      		in r28,__SP_L__
- 654 02a0 DEB7      		in r29,__SP_H__
- 655               	.LCFI39:
- 656               		.cfi_def_cfa_register 28
- 657               	/* prologue: function */
- 658               	/* frame size = 0 */
- 659               	/* stack size = 2 */
- 660               	.L__stack_usage = 2
  429:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	return (MACSC_READ32(SCBTSR));
- 661               		.loc 5 429 0
- 662 02a2 25EE      		ldi r18,lo8(-27)
- 663 02a4 30E0      		ldi r19,0
- 664 02a6 46EE      		ldi r20,lo8(-26)
- 665 02a8 50E0      		ldi r21,0
- 666 02aa 67EE      		ldi r22,lo8(-25)
- 667 02ac 70E0      		ldi r23,0
- 668 02ae 88EE      		ldi r24,lo8(-24)
- 669 02b0 90E0      		ldi r25,0
- 670 02b2 0E94 0000 		call macsc_read32
- 671 02b6 DC01      		movw r26,r24
- 672 02b8 CB01      		movw r24,r22
  430:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
- 673               		.loc 5 430 0
- 674 02ba BC01      		movw r22,r24
- 675 02bc CD01      		movw r24,r26
- 676               	/* epilogue start */
- 677 02be DF91      		pop r29
- 678 02c0 CF91      		pop r28
- 679 02c2 0895      		ret
- 680               		.cfi_endproc
- 681               	.LFE120:
- 684               	macsc_enable_manual_bts:
- 685               	.LFB121:
  431:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 
  432:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** /**
  433:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  * \brief Write the Beacon Timestamp register of the MAC Symbol counter
@@ -2132,905 +2014,1166 @@
  442:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h ****  */
  443:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** static inline void macsc_enable_manual_bts(void)
  444:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** {
- 686               		.loc 5 444 0
- 687               		.cfi_startproc
- 688 02c4 CF93      		push r28
- 689               	.LCFI40:
- 690               		.cfi_def_cfa_offset 3
- 691               		.cfi_offset 28, -2
- 692 02c6 DF93      		push r29
- 693               	.LCFI41:
- 694               		.cfi_def_cfa_offset 4
- 695               		.cfi_offset 29, -3
- 696 02c8 CDB7      		in r28,__SP_L__
- 697 02ca DEB7      		in r29,__SP_H__
- 698               	.LCFI42:
- 699               		.cfi_def_cfa_register 28
- 700               	/* prologue: function */
- 701               	/* frame size = 0 */
- 702               	/* stack size = 2 */
- 703               	.L__stack_usage = 2
+ 564               		.loc 5 444 0
+ 565               		.cfi_startproc
+ 566 0232 CF93      		push r28
+ 567               	.LCFI33:
+ 568               		.cfi_def_cfa_offset 3
+ 569               		.cfi_offset 28, -2
+ 570 0234 DF93      		push r29
+ 571               	.LCFI34:
+ 572               		.cfi_def_cfa_offset 4
+ 573               		.cfi_offset 29, -3
+ 574 0236 CDB7      		in r28,__SP_L__
+ 575 0238 DEB7      		in r29,__SP_H__
+ 576               	.LCFI35:
+ 577               		.cfi_def_cfa_register 28
+ 578               	/* prologue: function */
+ 579               	/* frame size = 0 */
+ 580               	/* stack size = 2 */
+ 581               	.L__stack_usage = 2
  445:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	SCCR0 |= (1 << SCMBTS);
- 704               		.loc 5 445 0
- 705 02cc 8CED      		ldi r24,lo8(-36)
- 706 02ce 90E0      		ldi r25,0
- 707 02d0 2CED      		ldi r18,lo8(-36)
- 708 02d2 30E0      		ldi r19,0
- 709 02d4 F901      		movw r30,r18
- 710 02d6 2081      		ld r18,Z
- 711 02d8 2064      		ori r18,lo8(64)
- 712 02da FC01      		movw r30,r24
- 713 02dc 2083      		st Z,r18
+ 582               		.loc 5 445 0
+ 583 023a 8CED      		ldi r24,lo8(-36)
+ 584 023c 90E0      		ldi r25,0
+ 585 023e 2CED      		ldi r18,lo8(-36)
+ 586 0240 30E0      		ldi r19,0
+ 587 0242 F901      		movw r30,r18
+ 588 0244 2081      		ld r18,Z
+ 589 0246 2064      		ori r18,lo8(64)
+ 590 0248 FC01      		movw r30,r24
+ 591 024a 2083      		st Z,r18
  446:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** 	SCCR0 &= ~(1 << SCTSE);
- 714               		.loc 5 446 0
- 715 02de 8CED      		ldi r24,lo8(-36)
- 716 02e0 90E0      		ldi r25,0
- 717 02e2 2CED      		ldi r18,lo8(-36)
- 718 02e4 30E0      		ldi r19,0
- 719 02e6 F901      		movw r30,r18
- 720 02e8 2081      		ld r18,Z
- 721 02ea 277F      		andi r18,lo8(-9)
- 722 02ec FC01      		movw r30,r24
- 723 02ee 2083      		st Z,r18
+ 592               		.loc 5 446 0
+ 593 024c 8CED      		ldi r24,lo8(-36)
+ 594 024e 90E0      		ldi r25,0
+ 595 0250 2CED      		ldi r18,lo8(-36)
+ 596 0252 30E0      		ldi r19,0
+ 597 0254 F901      		movw r30,r18
+ 598 0256 2081      		ld r18,Z
+ 599 0258 277F      		andi r18,lo8(-9)
+ 600 025a FC01      		movw r30,r24
+ 601 025c 2083      		st Z,r18
  447:../../../platform/mega_rf/drivers/macsc/macsc_megarf.h **** }
- 724               		.loc 5 447 0
- 725 02f0 0000      		nop
- 726               	/* epilogue start */
- 727 02f2 DF91      		pop r29
- 728 02f4 CF91      		pop r28
- 729 02f6 0895      		ret
- 730               		.cfi_endproc
- 731               	.LFE121:
- 733               	.global	data_payload
- 734               		.section	.data.data_payload,"aw",@progbits
- 737               	data_payload:
- 738 0000 06        		.byte	6
- 739               	.global	appState
- 740               		.section	.bss.appState,"aw",@nobits
- 743               	appState:
- 744 0000 00        		.zero	1
- 745               		.section	.bss.PanId,"aw",@nobits
- 748               	PanId:
- 749 0000 00        		.zero	1
- 750               		.section	.bss.msgReq,"aw",@nobits
- 753               	msgReq:
- 754 0000 0000 0000 		.zero	20
- 754      0000 0000 
- 754      0000 0000 
- 754      0000 0000 
- 754      0000 0000 
- 755               		.section	.data.msgDiscResponse,"aw",@progbits
- 758               	msgDiscResponse:
- 759 0000 0D        		.byte	13
- 760 0001 06        		.byte	6
- 761 0002 B2        		.byte	178
- 762               		.section	.data.msgConfigStatus,"aw",@progbits
- 765               	msgConfigStatus:
- 766 0000 0E        		.byte	14
- 767 0001 06        		.byte	6
- 768 0002 FF        		.byte	-1
- 769 0003 06        		.byte	6
- 770 0004 B2        		.byte	178
- 771               		.section	.data.msgReqDiscResponse,"aw",@progbits
- 774               	msgReqDiscResponse:
- 775 0000 0000 0000 		.zero	5
- 775      00
- 776 0005 0000      		.word	0
- 777 0007 03        		.byte	3
- 778 0008 03        		.byte	3
- 779 0009 0080      		.word	-32768
- 780 000b 0000      		.zero	2
- 781 000d 0000      		.word	msgDiscResponse
- 782 000f 03        		.byte	3
- 783 0010 0000 0000 		.zero	4
- 784               		.section	.data.msgReqConfigStatus,"aw",@progbits
- 787               	msgReqConfigStatus:
- 788 0000 0000 0000 		.zero	5
- 788      00
- 789 0005 0000      		.word	0
- 790 0007 03        		.byte	3
- 791 0008 03        		.byte	3
- 792 0009 0080      		.word	-32768
- 793 000b 0000      		.zero	2
- 794 000d 0000      		.word	msgConfigStatus
- 795 000f 05        		.byte	5
- 796 0010 0000 0000 		.zero	4
- 797               		.section	.data.msgReqData,"aw",@progbits
- 800               	msgReqData:
- 801 0000 0000 0000 		.zero	5
- 801      00
- 802 0005 0000      		.word	0
- 803 0007 03        		.byte	3
- 804 0008 03        		.byte	3
- 805 0009 0020      		.word	8192
- 806 000b 0000      		.zero	2
- 807 000d 0000      		.word	data_payload
- 808 000f 01        		.byte	1
- 809 0010 0000 0000 		.zero	4
- 810               		.section	.rodata
- 811               	.LC1:
- 812 0000 0A25 6C75 		.string	"\n%lu"
- 812      00
- 813               	.LC2:
- 814 0005 0A61 6C00 		.string	"\nal"
- 815               		.text
- 817               	appCommandInd:
- 818               	.LFB130:
- 819               		.file 6 "teste_envio.c"
-   1:teste_envio.c **** /*
-   2:teste_envio.c **** 	* ServerLLDN.c
-   3:teste_envio.c **** 	*
-   4:teste_envio.c **** 	* Created: 10/18/2019 5:15:37 PM
-   5:teste_envio.c **** 	*  Author: guilherme
-   6:teste_envio.c **** 	*/ 
-   7:teste_envio.c **** 
-   8:teste_envio.c **** #include <stdlib.h>
-   9:teste_envio.c **** #include <stdio.h>
-  10:teste_envio.c **** #include <string.h>
-  11:teste_envio.c **** #include <inttypes.h>
-  12:teste_envio.c **** #include "config.h"
-  13:teste_envio.c **** #include "sys.h"
-  14:teste_envio.c **** #include "phy.h"
-  15:teste_envio.c **** #include "sys.h"
-  16:teste_envio.c **** #include "nwk.h"
-  17:teste_envio.c **** #include "sysclk.h"
-  18:teste_envio.c **** #include "sysTimer.h"
-  19:teste_envio.c **** #include "sleep_mgr.h"
-  20:teste_envio.c **** #include "sleepmgr.h"
-  21:teste_envio.c **** #include "led.h"
-  22:teste_envio.c **** #include "ioport.h"
-  23:teste_envio.c **** #include "conf_sleepmgr.h"
-  24:teste_envio.c **** #include "board.h"
-  25:teste_envio.c **** #include "platform.h"
-  26:teste_envio.c **** 
-  27:teste_envio.c **** #include "lldn.h"
-  28:teste_envio.c **** 
-  29:teste_envio.c **** 
-  30:teste_envio.c **** 
-  31:teste_envio.c **** #if 1
-  32:teste_envio.c **** #if (SIO2HOST_CHANNEL == SIO_USB)
-  33:teste_envio.c **** /* Only ARM */
-  34:teste_envio.c **** #include "hw_timer_lldn.h"
-  35:teste_envio.c **** #include "stdio_usb.h"
-  36:teste_envio.c **** #define MASTER_MACSC	0
-  37:teste_envio.c **** #else
-  38:teste_envio.c **** /* Only megarf series */
-  39:teste_envio.c **** #include "conf_sio2host.h"
-  40:teste_envio.c **** #define MASTER_MACSC	1
-  41:teste_envio.c **** #endif
-  42:teste_envio.c **** #else
-  43:teste_envio.c **** /* Only megarf series */
-  44:teste_envio.c **** #define MASTER_MACSC		1
-  45:teste_envio.c **** #endif
-  46:teste_envio.c **** 
-  47:teste_envio.c **** #define HUMAM_READABLE			1
-  48:teste_envio.c **** 
-  49:teste_envio.c **** #if (MASTER_MACSC == 1)
-  50:teste_envio.c **** #include "macsc_megarf.h"
-  51:teste_envio.c **** #define TIMESLOT_TIMER 0
-  52:teste_envio.c **** #else
-  53:teste_envio.c **** static SYS_Timer_t				tmrBeaconInterval;			// Beacon
-  54:teste_envio.c **** static SYS_Timer_t				tmrComputeData;				// Compute data
-  55:teste_envio.c **** #endif
-  56:teste_envio.c **** 
-  57:teste_envio.c **** #define PRINT 1
-  58:teste_envio.c **** 	uint8_t data_payload = APP_ADDR;
-  59:teste_envio.c **** 
-  60:teste_envio.c **** 	
-  61:teste_envio.c **** // equation for tTS gives time in seconds, the division by SYMBOL_TIME changes to symbols for count
-  62:teste_envio.c **** AppState_t	appState = APP_STATE_INITIAL;
-  63:teste_envio.c **** static uint8_t PanId;
-  64:teste_envio.c **** static NWK_DataReq_t msgReq;										
-  65:teste_envio.c **** static NWK_DiscoverResponse_t msgDiscResponse = { .id = LL_DISCOVER_RESPONSE,
-  66:teste_envio.c **** 	.macAddr = APP_ADDR,
-  67:teste_envio.c **** 	.ts_dir.tsDuration = 50,
-  68:teste_envio.c **** .ts_dir.dirIndicator = 0b1 };
-  69:teste_envio.c **** static NWK_ConfigStatus_t msgConfigStatus = { .id = LL_CONFIGURATION_STATUS,
-  70:teste_envio.c **** 	.macAddr = APP_ADDR,
-  71:teste_envio.c **** 	.s_macAddr = APP_ADDR,
-  72:teste_envio.c **** 	.ts_dir.tsDuration = 50,
-  73:teste_envio.c **** 	.ts_dir.dirIndicator = 1,
-  74:teste_envio.c **** .assTimeSlot = 0xff };
-  75:teste_envio.c **** 											
-  76:teste_envio.c **** static NWK_DataReq_t msgReqDiscResponse = { .dstAddr = 0,
-  77:teste_envio.c **** 	.dstEndpoint = APP_COMMAND_ENDPOINT,
-  78:teste_envio.c **** 	.srcEndpoint = APP_COMMAND_ENDPOINT,
-  79:teste_envio.c **** 	.options = NWK_OPT_MAC_COMMAND,
-  80:teste_envio.c **** 	.data = (uint8_t*)&msgDiscResponse,
-  81:teste_envio.c **** .size = sizeof(msgDiscResponse)};
-  82:teste_envio.c **** 											
-  83:teste_envio.c **** static NWK_DataReq_t msgReqConfigStatus = { .dstAddr =0,
-  84:teste_envio.c **** 	.dstEndpoint = APP_COMMAND_ENDPOINT,
-  85:teste_envio.c **** 	.srcEndpoint = APP_COMMAND_ENDPOINT,
-  86:teste_envio.c **** 	.options = NWK_OPT_MAC_COMMAND,
-  87:teste_envio.c **** 	.data = (uint8_t*)&msgConfigStatus,
-  88:teste_envio.c **** .size = sizeof(msgConfigStatus)};
-  89:teste_envio.c **** 											
-  90:teste_envio.c **** static NWK_DataReq_t msgReqData = { .dstAddr =0,
-  91:teste_envio.c **** 	.dstEndpoint = APP_COMMAND_ENDPOINT,
-  92:teste_envio.c **** 	.srcEndpoint = APP_COMMAND_ENDPOINT,
-  93:teste_envio.c **** 	.options = NWK_OPT_LLDN_DATA,
-  94:teste_envio.c **** 	.data = (uint8_t*)&data_payload,
-  95:teste_envio.c **** .size = sizeof(data_payload)};
-  96:teste_envio.c **** 
-  97:teste_envio.c **** 
-  98:teste_envio.c **** 
-  99:teste_envio.c **** static bool appCommandInd(NWK_DataInd_t *ind)
- 100:teste_envio.c **** {	
- 820               		.loc 6 100 0
- 821               		.cfi_startproc
- 822 02f8 CF93      		push r28
- 823               	.LCFI43:
- 824               		.cfi_def_cfa_offset 3
- 825               		.cfi_offset 28, -2
- 826 02fa DF93      		push r29
- 827               	.LCFI44:
- 828               		.cfi_def_cfa_offset 4
- 829               		.cfi_offset 29, -3
- 830 02fc 00D0      		rcall .
- 831 02fe 00D0      		rcall .
- 832 0300 00D0      		rcall .
- 833               	.LCFI45:
- 834               		.cfi_def_cfa_offset 10
- 835 0302 CDB7      		in r28,__SP_L__
- 836 0304 DEB7      		in r29,__SP_H__
- 837               	.LCFI46:
- 838               		.cfi_def_cfa_register 28
- 839               	/* prologue: function */
- 840               	/* frame size = 6 */
- 841               	/* stack size = 8 */
- 842               	.L__stack_usage = 8
- 843 0306 9E83      		std Y+6,r25
- 844 0308 8D83      		std Y+5,r24
- 101:teste_envio.c **** 	uint32_t cmp_value = macsc_read_count();
- 845               		.loc 6 101 0
- 846 030a 0E94 0000 		call macsc_read_count
- 847 030e DC01      		movw r26,r24
- 848 0310 CB01      		movw r24,r22
- 849 0312 8983      		std Y+1,r24
- 850 0314 9A83      		std Y+2,r25
- 851 0316 AB83      		std Y+3,r26
- 852 0318 BC83      		std Y+4,r27
- 102:teste_envio.c **** 	printf("\n%" PRIu32 "",cmp_value);
- 853               		.loc 6 102 0
- 854 031a 8C81      		ldd r24,Y+4
- 855 031c 8F93      		push r24
- 856 031e 8B81      		ldd r24,Y+3
- 857 0320 8F93      		push r24
- 858 0322 8A81      		ldd r24,Y+2
- 859 0324 8F93      		push r24
- 860 0326 8981      		ldd r24,Y+1
- 861 0328 8F93      		push r24
- 862 032a 80E0      		ldi r24,lo8(.LC1)
- 863 032c 90E0      		ldi r25,hi8(.LC1)
- 864 032e 892F      		mov r24,r25
- 865 0330 8F93      		push r24
- 866 0332 80E0      		ldi r24,lo8(.LC1)
- 867 0334 90E0      		ldi r25,hi8(.LC1)
- 868 0336 8F93      		push r24
- 869 0338 0E94 0000 		call printf
- 870 033c 0F90      		pop __tmp_reg__
- 871 033e 0F90      		pop __tmp_reg__
- 872 0340 0F90      		pop __tmp_reg__
- 873 0342 0F90      		pop __tmp_reg__
- 874 0344 0F90      		pop __tmp_reg__
- 875 0346 0F90      		pop __tmp_reg__
- 103:teste_envio.c **** 	printf("\nal");
- 876               		.loc 6 103 0
- 877 0348 80E0      		ldi r24,lo8(.LC2)
- 878 034a 90E0      		ldi r25,hi8(.LC2)
- 879 034c 892F      		mov r24,r25
- 880 034e 8F93      		push r24
- 881 0350 80E0      		ldi r24,lo8(.LC2)
- 882 0352 90E0      		ldi r25,hi8(.LC2)
- 883 0354 8F93      		push r24
- 884 0356 0E94 0000 		call printf
- 885 035a 0F90      		pop __tmp_reg__
- 886 035c 0F90      		pop __tmp_reg__
- 104:teste_envio.c **** 	
- 105:teste_envio.c **** }
- 887               		.loc 6 105 0
- 888 035e 0000      		nop
- 889               	/* epilogue start */
- 890 0360 2696      		adiw r28,6
- 891 0362 0FB6      		in __tmp_reg__,__SREG__
- 892 0364 F894      		cli
- 893 0366 DEBF      		out __SP_H__,r29
- 894 0368 0FBE      		out __SREG__,__tmp_reg__
- 895 036a CDBF      		out __SP_L__,r28
- 896 036c DF91      		pop r29
- 897 036e CF91      		pop r28
- 898 0370 0895      		ret
- 899               		.cfi_endproc
- 900               	.LFE130:
- 902               		.section	.bss.tmrInit,"aw",@nobits
- 905               	tmrInit:
- 906 0000 0000 0000 		.zero	13
- 906      0000 0000 
- 906      0000 0000 
+ 602               		.loc 5 447 0
+ 603 025e 0000      		nop
+ 604               	/* epilogue start */
+ 605 0260 DF91      		pop r29
+ 606 0262 CF91      		pop r28
+ 607 0264 0895      		ret
+ 608               		.cfi_endproc
+ 609               	.LFE121:
+ 611               	.global	state
+ 612               		.section	.bss.state,"aw",@nobits
+ 615               	state:
+ 616 0000 00        		.zero	1
+ 617               		.comm	rec_beacon,8,1
+ 618               		.section	.bss.msgReq,"aw",@nobits
+ 621               	msgReq:
+ 622 0000 0000 0000 		.zero	20
+ 622      0000 0000 
+ 622      0000 0000 
+ 622      0000 0000 
+ 622      0000 0000 
+ 623               		.section	.bss.PanId,"aw",@nobits
+ 626               	PanId:
+ 627 0000 00        		.zero	1
+ 628               	.global	beaconInterval_association
+ 629               		.section	.bss.beaconInterval_association,"aw",@nobits
+ 632               	beaconInterval_association:
+ 633 0000 0000 0000 		.zero	4
+ 634               	.global	counter
+ 635               		.section	.bss.counter,"aw",@nobits
+ 638               	counter:
+ 639 0000 0000      		.zero	2
+ 640               	.global	media
+ 641               		.section	.bss.media,"aw",@nobits
+ 644               	media:
+ 645 0000 0000      		.zero	2
+ 646               	.global	be_read
+ 647               		.section	.bss.be_read,"aw",@nobits
+ 650               	be_read:
+ 651 0000 0000 0000 		.zero	4
+ 652               	.global	anterior
+ 653               		.section	.bss.anterior,"aw",@nobits
+ 656               	anterior:
+ 657 0000 0000 0000 		.zero	4
+ 658               	.global	tmr_read
+ 659               		.section	.bss.tmr_read,"aw",@nobits
+ 662               	tmr_read:
+ 663 0000 0000 0000 		.zero	4
+ 664               	.global	beacon_tmr
+ 665               		.section	.bss.beacon_tmr,"aw",@nobits
+ 668               	beacon_tmr:
+ 669 0000 00        		.zero	1
+ 670               	.global	beacon_received
+ 671               		.section	.bss.beacon_received,"aw",@nobits
+ 674               	beacon_received:
+ 675 0000 0000      		.zero	2
+ 676               	.global	error
+ 677               		.section	.data.error,"aw",@progbits
+ 680               	error:
+ 681 0000 3200      		.word	50
+ 682               		.comm	msg_wait_time,2,1
+ 683               		.section	.rodata
+ 684               	.LC1:
+ 685 0000 0A62 2C20 		.string	"\nb, %lu "
+ 685      256C 7520 
+ 685      00
+ 686               		.text
+ 688               	lldn_server_beacon:
+ 689               	.LFB130:
+ 690               		.file 6 "test_sync_timers.c"
+   1:test_sync_timers.c **** /*
+   2:test_sync_timers.c ****  * test_sync_timers.c
+   3:test_sync_timers.c ****  *
+   4:test_sync_timers.c ****  * Created: 09/07/2020 22:48:19
+   5:test_sync_timers.c ****  *  Author: Guilherme
+   6:test_sync_timers.c ****  */ 
+   7:test_sync_timers.c **** 
+   8:test_sync_timers.c **** #include <stdlib.h>
+   9:test_sync_timers.c **** #include <stdio.h>
+  10:test_sync_timers.c **** #include <string.h>
+  11:test_sync_timers.c **** #include <inttypes.h>
+  12:test_sync_timers.c **** #include "config.h"
+  13:test_sync_timers.c **** #include "sys.h"
+  14:test_sync_timers.c **** #include "phy.h"
+  15:test_sync_timers.c **** #include "sys.h"
+  16:test_sync_timers.c **** #include "nwk.h"
+  17:test_sync_timers.c **** #include "sysclk.h"
+  18:test_sync_timers.c **** #include "sysTimer.h"
+  19:test_sync_timers.c **** #include "sleep_mgr.h"
+  20:test_sync_timers.c **** #include "sleepmgr.h"
+  21:test_sync_timers.c **** #include "led.h"
+  22:test_sync_timers.c **** #include "ioport.h"
+  23:test_sync_timers.c **** #include "conf_sleepmgr.h"
+  24:test_sync_timers.c **** #include "board.h"
+  25:test_sync_timers.c **** #include "platform.h"
+  26:test_sync_timers.c **** 
+  27:test_sync_timers.c **** #include "conf_sio2host.h"
+  28:test_sync_timers.c **** 
+  29:test_sync_timers.c **** #include "macsc_megarf.h"
+  30:test_sync_timers.c **** 
+  31:test_sync_timers.c **** typedef enum {
+  32:test_sync_timers.c **** 	APP_STATE_INITIAL,
+  33:test_sync_timers.c **** 	APP_STATE_IDLE,
+  34:test_sync_timers.c **** } AppState_t;
+  35:test_sync_timers.c **** 
+  36:test_sync_timers.c **** AppState_t state = APP_STATE_INITIAL;
+  37:test_sync_timers.c **** NwkFrameBeaconHeaderLLDN_t rec_beacon;
+  38:test_sync_timers.c **** static NWK_DataReq_t msgReq;
+  39:test_sync_timers.c **** static uint8_t PanId;
+  40:test_sync_timers.c **** float beaconInterval_association = 0;
+  41:test_sync_timers.c **** int counter = 0;
+  42:test_sync_timers.c **** int media = 0;
+  43:test_sync_timers.c **** uint32_t be_read = 0;
+  44:test_sync_timers.c **** uint32_t anterior = 0;
+  45:test_sync_timers.c **** uint32_t tmr_read= 0;
+  46:test_sync_timers.c **** bool beacon_tmr = false;
+  47:test_sync_timers.c **** int beacon_received = 0;
+  48:test_sync_timers.c **** int error = 50;
+  49:test_sync_timers.c **** int msg_wait_time;
+  50:test_sync_timers.c **** 
+  51:test_sync_timers.c **** static void lldn_server_beacon(void)
+  52:test_sync_timers.c **** {
+ 691               		.loc 6 52 0
+ 692               		.cfi_startproc
+ 693 0266 CF93      		push r28
+ 694               	.LCFI36:
+ 695               		.cfi_def_cfa_offset 3
+ 696               		.cfi_offset 28, -2
+ 697 0268 DF93      		push r29
+ 698               	.LCFI37:
+ 699               		.cfi_def_cfa_offset 4
+ 700               		.cfi_offset 29, -3
+ 701 026a 00D0      		rcall .
+ 702 026c 00D0      		rcall .
+ 703               	.LCFI38:
+ 704               		.cfi_def_cfa_offset 8
+ 705 026e CDB7      		in r28,__SP_L__
+ 706 0270 DEB7      		in r29,__SP_H__
+ 707               	.LCFI39:
+ 708               		.cfi_def_cfa_register 28
+ 709               	/* prologue: function */
+ 710               	/* frame size = 4 */
+ 711               	/* stack size = 6 */
+ 712               	.L__stack_usage = 6
+  53:test_sync_timers.c **** 	counter++;
+ 713               		.loc 6 53 0
+ 714 0272 8091 0000 		lds r24,counter
+ 715 0276 9091 0000 		lds r25,counter+1
+ 716 027a 0196      		adiw r24,1
+ 717 027c 9093 0000 		sts counter+1,r25
+ 718 0280 8093 0000 		sts counter,r24
+  54:test_sync_timers.c **** 		NWK_DataReq(&msgReq);
+ 719               		.loc 6 54 0
+ 720 0284 80E0      		ldi r24,lo8(msgReq)
+ 721 0286 90E0      		ldi r25,hi8(msgReq)
+ 722 0288 0E94 0000 		call NWK_DataReq
+  55:test_sync_timers.c **** 	uint32_t tmp = macsc_read_count();
+ 723               		.loc 6 55 0
+ 724 028c 0E94 0000 		call macsc_read_count
+ 725 0290 DC01      		movw r26,r24
+ 726 0292 CB01      		movw r24,r22
+ 727 0294 8983      		std Y+1,r24
+ 728 0296 9A83      		std Y+2,r25
+ 729 0298 AB83      		std Y+3,r26
+ 730 029a BC83      		std Y+4,r27
+  56:test_sync_timers.c **** 	printf("\nb, %" PRIu32 " ", tmp);
+ 731               		.loc 6 56 0
+ 732 029c 8C81      		ldd r24,Y+4
+ 733 029e 8F93      		push r24
+ 734 02a0 8B81      		ldd r24,Y+3
+ 735 02a2 8F93      		push r24
+ 736 02a4 8A81      		ldd r24,Y+2
+ 737 02a6 8F93      		push r24
+ 738 02a8 8981      		ldd r24,Y+1
+ 739 02aa 8F93      		push r24
+ 740 02ac 80E0      		ldi r24,lo8(.LC1)
+ 741 02ae 90E0      		ldi r25,hi8(.LC1)
+ 742 02b0 892F      		mov r24,r25
+ 743 02b2 8F93      		push r24
+ 744 02b4 80E0      		ldi r24,lo8(.LC1)
+ 745 02b6 90E0      		ldi r25,hi8(.LC1)
+ 746 02b8 8F93      		push r24
+ 747 02ba 0E94 0000 		call printf
+ 748 02be 0F90      		pop __tmp_reg__
+ 749 02c0 0F90      		pop __tmp_reg__
+ 750 02c2 0F90      		pop __tmp_reg__
+ 751 02c4 0F90      		pop __tmp_reg__
+ 752 02c6 0F90      		pop __tmp_reg__
+ 753 02c8 0F90      		pop __tmp_reg__
+  57:test_sync_timers.c **** 	if(counter < 20)
+ 754               		.loc 6 57 0
+ 755 02ca 8091 0000 		lds r24,counter
+ 756 02ce 9091 0000 		lds r25,counter+1
+ 757 02d2 4497      		sbiw r24,20
+ 758 02d4 04F4      		brge .L21
+  58:test_sync_timers.c **** 		macsc_enable_manual_bts();
+ 759               		.loc 6 58 0
+ 760 02d6 0E94 0000 		call macsc_enable_manual_bts
+ 761               	.L21:
+  59:test_sync_timers.c **** 
+  60:test_sync_timers.c **** }
+ 762               		.loc 6 60 0
+ 763 02da 0000      		nop
+ 764               	/* epilogue start */
+ 765 02dc 0F90      		pop __tmp_reg__
+ 766 02de 0F90      		pop __tmp_reg__
+ 767 02e0 0F90      		pop __tmp_reg__
+ 768 02e2 0F90      		pop __tmp_reg__
+ 769 02e4 DF91      		pop r29
+ 770 02e6 CF91      		pop r28
+ 771 02e8 0895      		ret
+ 772               		.cfi_endproc
+ 773               	.LFE130:
+ 775               		.section	.rodata
+ 776               	.LC2:
+ 777 0009 0A2D 00   		.string	"\n-"
+ 778               		.text
+ 780               	time_slot:
+ 781               	.LFB131:
+  61:test_sync_timers.c **** static void time_slot(void)
+  62:test_sync_timers.c **** {
+ 782               		.loc 6 62 0
+ 783               		.cfi_startproc
+ 784 02ea CF93      		push r28
+ 785               	.LCFI40:
+ 786               		.cfi_def_cfa_offset 3
+ 787               		.cfi_offset 28, -2
+ 788 02ec DF93      		push r29
+ 789               	.LCFI41:
+ 790               		.cfi_def_cfa_offset 4
+ 791               		.cfi_offset 29, -3
+ 792 02ee CDB7      		in r28,__SP_L__
+ 793 02f0 DEB7      		in r29,__SP_H__
+ 794               	.LCFI42:
+ 795               		.cfi_def_cfa_register 28
+ 796               	/* prologue: function */
+ 797               	/* frame size = 0 */
+ 798               	/* stack size = 2 */
+ 799               	.L__stack_usage = 2
+  63:test_sync_timers.c **** 	printf("\n-");
+ 800               		.loc 6 63 0
+ 801 02f2 80E0      		ldi r24,lo8(.LC2)
+ 802 02f4 90E0      		ldi r25,hi8(.LC2)
+ 803 02f6 892F      		mov r24,r25
+ 804 02f8 8F93      		push r24
+ 805 02fa 80E0      		ldi r24,lo8(.LC2)
+ 806 02fc 90E0      		ldi r25,hi8(.LC2)
+ 807 02fe 8F93      		push r24
+ 808 0300 0E94 0000 		call printf
+ 809 0304 0F90      		pop __tmp_reg__
+ 810 0306 0F90      		pop __tmp_reg__
+  64:test_sync_timers.c **** }
+ 811               		.loc 6 64 0
+ 812 0308 0000      		nop
+ 813               	/* epilogue start */
+ 814 030a DF91      		pop r29
+ 815 030c CF91      		pop r28
+ 816 030e 0895      		ret
+ 817               		.cfi_endproc
+ 818               	.LFE131:
+ 821               	send:
+ 822               	.LFB132:
+  65:test_sync_timers.c **** 
+  66:test_sync_timers.c **** 
+  67:test_sync_timers.c **** static void send(void)
+  68:test_sync_timers.c **** {
+ 823               		.loc 6 68 0
+ 824               		.cfi_startproc
+ 825 0310 CF93      		push r28
+ 826               	.LCFI43:
+ 827               		.cfi_def_cfa_offset 3
+ 828               		.cfi_offset 28, -2
+ 829 0312 DF93      		push r29
+ 830               	.LCFI44:
+ 831               		.cfi_def_cfa_offset 4
+ 832               		.cfi_offset 29, -3
+ 833 0314 CDB7      		in r28,__SP_L__
+ 834 0316 DEB7      		in r29,__SP_H__
+ 835               	.LCFI45:
+ 836               		.cfi_def_cfa_register 28
+ 837               	/* prologue: function */
+ 838               	/* frame size = 0 */
+ 839               	/* stack size = 2 */
+ 840               	.L__stack_usage = 2
+  69:test_sync_timers.c **** 	printf("S");
+ 841               		.loc 6 69 0
+ 842 0318 83E5      		ldi r24,lo8(83)
+ 843 031a 90E0      		ldi r25,0
+ 844 031c 0E94 0000 		call putchar
+  70:test_sync_timers.c **** 	macsc_set_cmp2_int_cb(0);
+ 845               		.loc 6 70 0
+ 846 0320 80E0      		ldi r24,0
+ 847 0322 90E0      		ldi r25,0
+ 848 0324 0E94 0000 		call macsc_set_cmp2_int_cb
+  71:test_sync_timers.c **** 
+  72:test_sync_timers.c **** 	NWK_DataReq(&msgReq);
+ 849               		.loc 6 72 0
+ 850 0328 80E0      		ldi r24,lo8(msgReq)
+ 851 032a 90E0      		ldi r25,hi8(msgReq)
+ 852 032c 0E94 0000 		call NWK_DataReq
+  73:test_sync_timers.c **** }
+ 853               		.loc 6 73 0
+ 854 0330 0000      		nop
+ 855               	/* epilogue start */
+ 856 0332 DF91      		pop r29
+ 857 0334 CF91      		pop r28
+ 858 0336 0895      		ret
+ 859               		.cfi_endproc
+ 860               	.LFE132:
+ 863               	node_time_handler:
+ 864               	.LFB133:
+  74:test_sync_timers.c **** static void node_time_handler(void)
+  75:test_sync_timers.c **** {
+ 865               		.loc 6 75 0
+ 866               		.cfi_startproc
+ 867 0338 CF93      		push r28
+ 868               	.LCFI46:
+ 869               		.cfi_def_cfa_offset 3
+ 870               		.cfi_offset 28, -2
+ 871 033a DF93      		push r29
+ 872               	.LCFI47:
+ 873               		.cfi_def_cfa_offset 4
+ 874               		.cfi_offset 29, -3
+ 875 033c CDB7      		in r28,__SP_L__
+ 876 033e DEB7      		in r29,__SP_H__
+ 877               	.LCFI48:
+ 878               		.cfi_def_cfa_register 28
+ 879               	/* prologue: function */
+ 880               	/* frame size = 0 */
+ 881               	/* stack size = 2 */
+ 882               	.L__stack_usage = 2
+  76:test_sync_timers.c **** 	beacon_tmr = true;
+ 883               		.loc 6 76 0
+ 884 0340 81E0      		ldi r24,lo8(1)
+ 885 0342 8093 0000 		sts beacon_tmr,r24
+  77:test_sync_timers.c **** 	tmr_read = macsc_read_count();
+ 886               		.loc 6 77 0
+ 887 0346 0E94 0000 		call macsc_read_count
+ 888 034a DC01      		movw r26,r24
+ 889 034c CB01      		movw r24,r22
+ 890 034e 8093 0000 		sts tmr_read,r24
+ 891 0352 9093 0000 		sts tmr_read+1,r25
+ 892 0356 A093 0000 		sts tmr_read+2,r26
+ 893 035a B093 0000 		sts tmr_read+3,r27
+  78:test_sync_timers.c **** 	return;
+ 894               		.loc 6 78 0
+ 895 035e 0000      		nop
+ 896               	/* epilogue start */
+  79:test_sync_timers.c **** }
+ 897               		.loc 6 79 0
+ 898 0360 DF91      		pop r29
+ 899 0362 CF91      		pop r28
+ 900 0364 0895      		ret
+ 901               		.cfi_endproc
+ 902               	.LFE133:
+ 904               		.section	.rodata
+ 905               	.LC3:
+ 906 000c 0A25 6420 		.string	"\n%d "
  906      00
  907               		.text
- 909               	tmrDelayHandler:
- 910               	.LFB131:
- 106:teste_envio.c **** 
- 107:teste_envio.c **** static SYS_Timer_t	tmrInit;	
- 108:teste_envio.c **** static void tmrDelayHandler(SYS_Timer_t *timer)
- 109:teste_envio.c **** {
- 911               		.loc 6 109 0
+ 909               	appBeaconInd:
+ 910               	.LFB134:
+  80:test_sync_timers.c **** 
+  81:test_sync_timers.c **** static bool appBeaconInd(NWK_DataInd_t *ind)
+  82:test_sync_timers.c **** {
+ 911               		.loc 6 82 0
  912               		.cfi_startproc
- 913 0372 CF93      		push r28
- 914               	.LCFI47:
+ 913 0366 CF93      		push r28
+ 914               	.LCFI49:
  915               		.cfi_def_cfa_offset 3
  916               		.cfi_offset 28, -2
- 917 0374 DF93      		push r29
- 918               	.LCFI48:
+ 917 0368 DF93      		push r29
+ 918               	.LCFI50:
  919               		.cfi_def_cfa_offset 4
  920               		.cfi_offset 29, -3
- 921 0376 00D0      		rcall .
- 922 0378 00D0      		rcall .
- 923 037a 00D0      		rcall .
- 924               	.LCFI49:
- 925               		.cfi_def_cfa_offset 10
- 926 037c CDB7      		in r28,__SP_L__
- 927 037e DEB7      		in r29,__SP_H__
- 928               	.LCFI50:
- 929               		.cfi_def_cfa_register 28
- 930               	/* prologue: function */
- 931               	/* frame size = 6 */
- 932               	/* stack size = 8 */
- 933               	.L__stack_usage = 8
- 934 0380 9E83      		std Y+6,r25
- 935 0382 8D83      		std Y+5,r24
- 110:teste_envio.c **** 	uint32_t cmp_value = macsc_read_bts();
- 936               		.loc 6 110 0
- 937 0384 0E94 0000 		call macsc_read_bts
- 938 0388 DC01      		movw r26,r24
- 939 038a CB01      		movw r24,r22
- 940 038c 8983      		std Y+1,r24
- 941 038e 9A83      		std Y+2,r25
- 942 0390 AB83      		std Y+3,r26
- 943 0392 BC83      		std Y+4,r27
- 111:teste_envio.c **** 	printf("\n%" PRIu32 "",cmp_value);
- 944               		.loc 6 111 0
- 945 0394 8C81      		ldd r24,Y+4
- 946 0396 8F93      		push r24
- 947 0398 8B81      		ldd r24,Y+3
- 948 039a 8F93      		push r24
- 949 039c 8A81      		ldd r24,Y+2
- 950 039e 8F93      		push r24
- 951 03a0 8981      		ldd r24,Y+1
- 952 03a2 8F93      		push r24
- 953 03a4 80E0      		ldi r24,lo8(.LC1)
- 954 03a6 90E0      		ldi r25,hi8(.LC1)
- 955 03a8 892F      		mov r24,r25
- 956 03aa 8F93      		push r24
- 957 03ac 80E0      		ldi r24,lo8(.LC1)
- 958 03ae 90E0      		ldi r25,hi8(.LC1)
- 959 03b0 8F93      		push r24
- 960 03b2 0E94 0000 		call printf
- 961 03b6 0F90      		pop __tmp_reg__
- 962 03b8 0F90      		pop __tmp_reg__
- 963 03ba 0F90      		pop __tmp_reg__
- 964 03bc 0F90      		pop __tmp_reg__
- 965 03be 0F90      		pop __tmp_reg__
- 966 03c0 0F90      		pop __tmp_reg__
- 112:teste_envio.c **** 	SYS_TimerStop(&tmrInit);
- 967               		.loc 6 112 0
- 968 03c2 80E0      		ldi r24,lo8(tmrInit)
- 969 03c4 90E0      		ldi r25,hi8(tmrInit)
- 970 03c6 0E94 0000 		call SYS_TimerStop
- 113:teste_envio.c **** 	return;
- 971               		.loc 6 113 0
- 972 03ca 0000      		nop
- 973               	/* epilogue start */
- 114:teste_envio.c **** }
- 974               		.loc 6 114 0
- 975 03cc 2696      		adiw r28,6
- 976 03ce 0FB6      		in __tmp_reg__,__SREG__
- 977 03d0 F894      		cli
- 978 03d2 DEBF      		out __SP_H__,r29
- 979 03d4 0FBE      		out __SREG__,__tmp_reg__
- 980 03d6 CDBF      		out __SP_L__,r28
- 981 03d8 DF91      		pop r29
- 982 03da CF91      		pop r28
- 983 03dc 0895      		ret
- 984               		.cfi_endproc
- 985               	.LFE131:
- 987               		.section	.rodata
- 988               	.LC3:
- 989 0009 0A44 6973 		.string	"\nDisc"
- 989      6300 
- 990               		.text
- 992               	disc_time_hndlr:
- 993               	.LFB132:
- 115:teste_envio.c **** 
- 116:teste_envio.c **** 
- 117:teste_envio.c **** 
- 118:teste_envio.c **** 	static void disc_time_hndlr(void)
- 119:teste_envio.c **** 	{
- 994               		.loc 6 119 0
- 995               		.cfi_startproc
- 996 03de CF93      		push r28
- 997               	.LCFI51:
- 998               		.cfi_def_cfa_offset 3
- 999               		.cfi_offset 28, -2
- 1000 03e0 DF93      		push r29
- 1001               	.LCFI52:
- 1002               		.cfi_def_cfa_offset 4
- 1003               		.cfi_offset 29, -3
- 1004 03e2 CDB7      		in r28,__SP_L__
- 1005 03e4 DEB7      		in r29,__SP_H__
- 1006               	.LCFI53:
- 1007               		.cfi_def_cfa_register 28
- 1008               	/* prologue: function */
- 1009               	/* frame size = 0 */
- 1010               	/* stack size = 2 */
- 1011               	.L__stack_usage = 2
- 120:teste_envio.c **** 		printf("\nDisc");
- 1012               		.loc 6 120 0
- 1013 03e6 80E0      		ldi r24,lo8(.LC3)
- 1014 03e8 90E0      		ldi r25,hi8(.LC3)
- 1015 03ea 892F      		mov r24,r25
- 1016 03ec 8F93      		push r24
- 1017 03ee 80E0      		ldi r24,lo8(.LC3)
- 1018 03f0 90E0      		ldi r25,hi8(.LC3)
- 1019 03f2 8F93      		push r24
- 1020 03f4 0E94 0000 		call printf
- 1021 03f8 0F90      		pop __tmp_reg__
- 1022 03fa 0F90      		pop __tmp_reg__
- 121:teste_envio.c **** 		NWK_DataReq(&msgReqDiscResponse);
- 1023               		.loc 6 121 0
- 1024 03fc 80E0      		ldi r24,lo8(msgReqDiscResponse)
- 1025 03fe 90E0      		ldi r25,hi8(msgReqDiscResponse)
- 1026 0400 0E94 0000 		call NWK_DataReq
- 122:teste_envio.c **** 		macsc_set_cmp1_int_cb(0);
- 1027               		.loc 6 122 0
- 1028 0404 80E0      		ldi r24,0
- 1029 0406 90E0      		ldi r25,0
- 1030 0408 0E94 0000 		call macsc_set_cmp1_int_cb
- 123:teste_envio.c **** 		
- 124:teste_envio.c **** 	}
- 1031               		.loc 6 124 0
- 1032 040c 0000      		nop
- 1033               	/* epilogue start */
- 1034 040e DF91      		pop r29
- 1035 0410 CF91      		pop r28
- 1036 0412 0895      		ret
- 1037               		.cfi_endproc
- 1038               	.LFE132:
- 1041               	config_time_hndlr:
- 1042               	.LFB133:
- 125:teste_envio.c **** 	
- 126:teste_envio.c **** 	static void config_time_hndlr(void)
- 127:teste_envio.c **** 	{
- 1043               		.loc 6 127 0
- 1044               		.cfi_startproc
- 1045 0414 CF93      		push r28
- 1046               	.LCFI54:
- 1047               		.cfi_def_cfa_offset 3
- 1048               		.cfi_offset 28, -2
- 1049 0416 DF93      		push r29
- 1050               	.LCFI55:
- 1051               		.cfi_def_cfa_offset 4
- 1052               		.cfi_offset 29, -3
- 1053 0418 CDB7      		in r28,__SP_L__
- 1054 041a DEB7      		in r29,__SP_H__
- 1055               	.LCFI56:
- 1056               		.cfi_def_cfa_register 28
- 1057               	/* prologue: function */
- 1058               	/* frame size = 0 */
- 1059               	/* stack size = 2 */
- 1060               	.L__stack_usage = 2
- 128:teste_envio.c **** 		if(1)
- 129:teste_envio.c **** 		{
- 130:teste_envio.c **** 			NWK_DataReq(&msgReqConfigStatus);
- 1061               		.loc 6 130 0
- 1062 041c 80E0      		ldi r24,lo8(msgReqConfigStatus)
- 1063 041e 90E0      		ldi r25,hi8(msgReqConfigStatus)
- 1064 0420 0E94 0000 		call NWK_DataReq
- 131:teste_envio.c **** 		}
- 132:teste_envio.c **** 		macsc_set_cmp1_int_cb(0);
- 1065               		.loc 6 132 0
- 1066 0424 80E0      		ldi r24,0
- 1067 0426 90E0      		ldi r25,0
- 1068 0428 0E94 0000 		call macsc_set_cmp1_int_cb
- 133:teste_envio.c **** 		
- 134:teste_envio.c **** 	}
- 1069               		.loc 6 134 0
- 1070 042c 0000      		nop
- 1071               	/* epilogue start */
- 1072 042e DF91      		pop r29
- 1073 0430 CF91      		pop r28
- 1074 0432 0895      		ret
- 1075               		.cfi_endproc
- 1076               	.LFE133:
- 1079               	online_time_hndlr:
- 1080               	.LFB134:
- 135:teste_envio.c **** 	
- 136:teste_envio.c **** 	
- 137:teste_envio.c **** 	static void online_time_hndlr(void)
- 138:teste_envio.c **** 	{
- 1081               		.loc 6 138 0
- 1082               		.cfi_startproc
- 1083 0434 CF93      		push r28
- 1084               	.LCFI57:
- 1085               		.cfi_def_cfa_offset 3
- 1086               		.cfi_offset 28, -2
- 1087 0436 DF93      		push r29
- 1088               	.LCFI58:
- 1089               		.cfi_def_cfa_offset 4
- 1090               		.cfi_offset 29, -3
- 1091 0438 CDB7      		in r28,__SP_L__
- 1092 043a DEB7      		in r29,__SP_H__
- 1093               	.LCFI59:
- 1094               		.cfi_def_cfa_register 28
- 1095               	/* prologue: function */
- 1096               	/* frame size = 0 */
- 1097               	/* stack size = 2 */
- 1098               	.L__stack_usage = 2
- 139:teste_envio.c **** // 	uint32_t cmp_value = macsc_read_count();
- 140:teste_envio.c **** // 	printf("\n%" PRIu32 "\n",cmp_value);
- 141:teste_envio.c **** 			NWK_DataReq(&msgReqData);
- 1099               		.loc 6 141 0
- 1100 043c 80E0      		ldi r24,lo8(msgReqData)
- 1101 043e 90E0      		ldi r25,hi8(msgReqData)
- 1102 0440 0E94 0000 		call NWK_DataReq
- 142:teste_envio.c **** 		//macsc_set_cmp1_int_cb(0);
- 143:teste_envio.c **** 	}
- 1103               		.loc 6 143 0
- 1104 0444 0000      		nop
- 1105               	/* epilogue start */
- 1106 0446 DF91      		pop r29
- 1107 0448 CF91      		pop r28
- 1108 044a 0895      		ret
- 1109               		.cfi_endproc
- 1110               	.LFE134:
- 1113               	APP_TaskHandler:
- 1114               	.LFB135:
- 144:teste_envio.c **** 	
- 145:teste_envio.c **** #if !APP_COORDINATOR
- 146:teste_envio.c **** #endif	
- 147:teste_envio.c **** 
- 148:teste_envio.c **** 
- 149:teste_envio.c **** static void APP_TaskHandler(void)
- 150:teste_envio.c **** {
- 1115               		.loc 6 150 0
- 1116               		.cfi_startproc
- 1117 044c CF93      		push r28
- 1118               	.LCFI60:
- 1119               		.cfi_def_cfa_offset 3
- 1120               		.cfi_offset 28, -2
- 1121 044e DF93      		push r29
- 1122               	.LCFI61:
- 1123               		.cfi_def_cfa_offset 4
- 1124               		.cfi_offset 29, -3
- 1125 0450 CDB7      		in r28,__SP_L__
- 1126 0452 DEB7      		in r29,__SP_H__
- 1127               	.LCFI62:
- 1128               		.cfi_def_cfa_register 28
- 1129               	/* prologue: function */
- 1130               	/* frame size = 0 */
- 1131               	/* stack size = 2 */
- 1132               	.L__stack_usage = 2
- 151:teste_envio.c **** 	switch (appState){
- 1133               		.loc 6 151 0
- 1134 0454 8091 0000 		lds r24,appState
- 1135 0458 882F      		mov r24,r24
- 1136 045a 90E0      		ldi r25,0
- 1137 045c 892B      		or r24,r25
- 1138 045e 01F0      		breq .L30
- 152:teste_envio.c **** 		case APP_STATE_INITIAL:
- 153:teste_envio.c **** 		{
- 154:teste_envio.c **** 
- 155:teste_envio.c **** 			NWK_SetAddr(APP_ADDR);
- 156:teste_envio.c **** 			PHY_SetChannel(APP_CHANNEL);
- 157:teste_envio.c **** 			PHY_SetRxState(true);
- 158:teste_envio.c **** 			PHY_SetTdmaMode(true);
- 159:teste_envio.c **** 
- 160:teste_envio.c **** 			PHY_SetPromiscuousMode(true);
- 161:teste_envio.c **** 				macsc_write_count(0);
- 162:teste_envio.c **** 
- 163:teste_envio.c **** 			macsc_enable_manual_bts();
- 164:teste_envio.c **** 
- 165:teste_envio.c **** 
- 166:teste_envio.c **** 			#if APP_COORDINATOR
- 167:teste_envio.c **** 					
- 168:teste_envio.c **** 								msgReq.dstAddr				= 0;
- 169:teste_envio.c **** 								msgReq.dstEndpoint			= APP_COMMAND_ENDPOINT;
- 170:teste_envio.c **** 								msgReq.srcEndpoint			= APP_COMMAND_ENDPOINT;
- 171:teste_envio.c **** 								msgReq.options				= NWK_OPT_MAC_COMMAND;
- 172:teste_envio.c **** 								msgReq.data					= (uint8_t*)&msgConfigStatus;
- 173:teste_envio.c **** 								msgReq.size					= sizeof(msgConfigStatus);
- 174:teste_envio.c **** 								
- 175:teste_envio.c **** 	
- 176:teste_envio.c **** 			
- 177:teste_envio.c **** 			NWK_DataReq(&msgReq);
- 178:teste_envio.c **** // 			macsc_enable_cmp_int(MACSC_CC1);
- 179:teste_envio.c **** // 					macsc_set_cmp1_int_cb(online_time_hndlr);
- 180:teste_envio.c **** // 
- 181:teste_envio.c **** // 			macsc_use_cmp(MACSC_RELATIVE_CMP, 1000/*msg_wait_time - 150*/, MACSC_CC1);
- 182:teste_envio.c **** // 				 tmrInit.interval = 1000;
- 183:teste_envio.c **** // 				 tmrInit.mode = SYS_TIMER_PERIODIC_MODE;
- 184:teste_envio.c **** // 				 tmrInit.handler = tmrDelayHandler;
- 185:teste_envio.c **** // 				 // SYS_TimerStart(&tmrInit);
- 186:teste_envio.c **** 			macsc_write_count(0);
- 187:teste_envio.c **** 
- 188:teste_envio.c **** 			macsc_enable_manual_bts();
- 189:teste_envio.c **** 			NWK_OpenEndpoint(APP_DATA_ENDPOINT, appCommandInd);
- 190:teste_envio.c **** 
- 191:teste_envio.c **** 			#else
- 192:teste_envio.c **** 			NWK_OpenEndpoint(APP_DATA_ENDPOINT, appCommandInd);
- 193:teste_envio.c **** 		
- 194:teste_envio.c **** 
- 195:teste_envio.c **** 			#endif
- 196:teste_envio.c **** 			
- 197:teste_envio.c **** 			appState = APP_STATE_IDLE;
- 198:teste_envio.c **** 		}
- 199:teste_envio.c **** 		
- 200:teste_envio.c **** 		default:
- 201:teste_envio.c **** 		break;
- 1139               		.loc 6 201 0
- 1140 0460 00C0      		rjmp .L32
- 1141               	.L30:
- 155:teste_envio.c **** 			PHY_SetChannel(APP_CHANNEL);
- 1142               		.loc 6 155 0
- 1143 0462 86E0      		ldi r24,lo8(6)
- 1144 0464 90E0      		ldi r25,0
- 1145 0466 0E94 0000 		call NWK_SetAddr
- 156:teste_envio.c **** 			PHY_SetRxState(true);
- 1146               		.loc 6 156 0
- 1147 046a 8FE0      		ldi r24,lo8(15)
- 1148 046c 0E94 0000 		call PHY_SetChannel
- 157:teste_envio.c **** 			PHY_SetTdmaMode(true);
- 1149               		.loc 6 157 0
- 1150 0470 81E0      		ldi r24,lo8(1)
- 1151 0472 0E94 0000 		call PHY_SetRxState
- 158:teste_envio.c **** 
- 1152               		.loc 6 158 0
- 1153 0476 81E0      		ldi r24,lo8(1)
- 1154 0478 0E94 0000 		call PHY_SetTdmaMode
- 160:teste_envio.c **** 				macsc_write_count(0);
- 1155               		.loc 6 160 0
- 1156 047c 81E0      		ldi r24,lo8(1)
- 1157 047e 0E94 0000 		call PHY_SetPromiscuousMode
- 161:teste_envio.c **** 
- 1158               		.loc 6 161 0
- 1159 0482 60E0      		ldi r22,0
- 1160 0484 70E0      		ldi r23,0
- 1161 0486 CB01      		movw r24,r22
- 1162 0488 0E94 0000 		call macsc_write_count
- 163:teste_envio.c **** 
- 1163               		.loc 6 163 0
- 1164 048c 0E94 0000 		call macsc_enable_manual_bts
- 192:teste_envio.c **** 		
- 1165               		.loc 6 192 0
- 1166 0490 60E0      		ldi r22,lo8(gs(appCommandInd))
- 1167 0492 70E0      		ldi r23,hi8(gs(appCommandInd))
- 1168 0494 81E0      		ldi r24,lo8(1)
- 1169 0496 0E94 0000 		call NWK_OpenEndpoint
- 197:teste_envio.c **** 		}
- 1170               		.loc 6 197 0
- 1171 049a 81E0      		ldi r24,lo8(1)
- 1172 049c 8093 0000 		sts appState,r24
- 1173               	.L32:
- 1174               		.loc 6 201 0
- 1175 04a0 0000      		nop
- 202:teste_envio.c **** 	}
- 203:teste_envio.c **** }
- 1176               		.loc 6 203 0
- 1177 04a2 0000      		nop
- 1178               	/* epilogue start */
- 1179 04a4 DF91      		pop r29
- 1180 04a6 CF91      		pop r28
- 1181 04a8 0895      		ret
- 1182               		.cfi_endproc
- 1183               	.LFE135:
- 1185               		.section	.rodata
- 1186               	.LC0:
- 1187 000f 00        		.byte	0
- 1188 0010 C2        		.byte	-62
- 1189 0011 01        		.byte	1
- 1190 0012 00        		.byte	0
- 1191 0013 03        		.byte	3
- 1192 0014 00        		.byte	0
- 1193 0015 00        		.byte	0
- 1194               		.text
- 1195               	.global	main
- 1197               	main:
- 1198               	.LFB136:
- 204:teste_envio.c **** 
- 205:teste_envio.c **** 	/*****************************************************************************
- 206:teste_envio.c **** 	*****************************************************************************/
- 207:teste_envio.c **** 	int main(void)
- 208:teste_envio.c **** 	{
- 1199               		.loc 6 208 0
- 1200               		.cfi_startproc
- 1201 04aa 0F93      		push r16
- 1202               	.LCFI63:
- 1203               		.cfi_def_cfa_offset 3
- 1204               		.cfi_offset 16, -2
- 1205 04ac 1F93      		push r17
- 1206               	.LCFI64:
- 1207               		.cfi_def_cfa_offset 4
- 1208               		.cfi_offset 17, -3
- 1209 04ae CF93      		push r28
- 1210               	.LCFI65:
- 1211               		.cfi_def_cfa_offset 5
- 1212               		.cfi_offset 28, -4
- 1213 04b0 DF93      		push r29
- 1214               	.LCFI66:
- 1215               		.cfi_def_cfa_offset 6
- 1216               		.cfi_offset 29, -5
- 1217 04b2 CDB7      		in r28,__SP_L__
- 1218 04b4 DEB7      		in r29,__SP_H__
- 1219               	.LCFI67:
- 1220               		.cfi_def_cfa_register 28
- 1221 04b6 2797      		sbiw r28,7
- 1222               	.LCFI68:
- 1223               		.cfi_def_cfa_offset 13
- 1224 04b8 0FB6      		in __tmp_reg__,__SREG__
- 1225 04ba F894      		cli
- 1226 04bc DEBF      		out __SP_H__,r29
- 1227 04be 0FBE      		out __SREG__,__tmp_reg__
- 1228 04c0 CDBF      		out __SP_L__,r28
- 1229               	/* prologue: function */
- 1230               	/* frame size = 7 */
- 1231               	/* stack size = 11 */
- 1232               	.L__stack_usage = 11
- 209:teste_envio.c **** 		sysclk_init();
- 1233               		.loc 6 209 0
- 1234 04c2 0E94 0000 		call sysclk_init
- 210:teste_envio.c **** 		board_init();
- 1235               		.loc 6 210 0
- 1236 04c6 0E94 0000 		call board_init
- 211:teste_envio.c **** 
- 212:teste_envio.c **** 		SYS_Init();
- 1237               		.loc 6 212 0
- 1238 04ca 0E94 0000 		call SYS_Init
- 213:teste_envio.c **** 		/* Disable CSMA/CA
- 214:teste_envio.c **** 		 * Disable auto ACK
- 215:teste_envio.c **** 		 * Enable Rx of LLDN Frame Type as described in 802.15.4e - 2012 
- 216:teste_envio.c **** 		 */
- 217:teste_envio.c **** 
- 218:teste_envio.c **** 		sm_init();
- 1239               		.loc 6 218 0
- 1240 04ce 0E94 0000 		call sm_init
- 219:teste_envio.c **** 
- 220:teste_envio.c **** 		// Initialize interrupt vector table support.
- 221:teste_envio.c **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
- 222:teste_envio.c **** 		irq_initialize_vectors();
- 223:teste_envio.c **** 	#endif
- 224:teste_envio.c **** 		cpu_irq_enable();
- 1241               		.loc 6 224 0
- 1242               	/* #APP */
- 1243               	 ;  224 "teste_envio.c" 1
- 1244 04d2 7894      		sei
- 1245               	 ;  0 "" 2
- 225:teste_envio.c **** 
- 226:teste_envio.c **** 	#if 1
- 227:teste_envio.c **** 	#if (SIO2HOST_CHANNEL == SIO_USB)
- 228:teste_envio.c **** 		stdio_usb_init();
- 229:teste_envio.c **** 	#else
- 230:teste_envio.c **** 		const usart_serial_options_t usart_serial_options =
- 1246               		.loc 6 230 0
- 1247               	/* #NOAPP */
- 1248 04d4 27E0      		ldi r18,lo8(7)
- 1249 04d6 E0E0      		ldi r30,lo8(.LC0)
- 1250 04d8 F0E0      		ldi r31,hi8(.LC0)
- 1251 04da CE01      		movw r24,r28
- 1252 04dc 0196      		adiw r24,1
- 1253 04de DC01      		movw r26,r24
- 1254               		0:
- 1255 04e0 0190      		ld r0,Z+
- 1256 04e2 0D92      		st X+,r0
- 1257 04e4 2A95      		dec r18
- 1258 04e6 01F4      		brne 0b
- 231:teste_envio.c **** 		{
- 232:teste_envio.c **** 			.baudrate     = USART_HOST_BAUDRATE,
- 233:teste_envio.c **** 			.charlength   = USART_HOST_CHAR_LENGTH,
- 234:teste_envio.c **** 			.paritytype   = USART_HOST_PARITY,
- 235:teste_envio.c **** 			.stopbits     = USART_HOST_STOP_BITS
- 236:teste_envio.c **** 		};
- 237:teste_envio.c **** 
- 238:teste_envio.c **** 		stdio_serial_init(USART_HOST, &usart_serial_options);
- 1259               		.loc 6 238 0
- 1260 04e8 CE01      		movw r24,r28
- 1261 04ea 0196      		adiw r24,1
- 1262 04ec BC01      		movw r22,r24
- 1263 04ee 80EC      		ldi r24,lo8(-64)
- 1264 04f0 90E0      		ldi r25,0
- 1265 04f2 0E94 0000 		call stdio_serial_init
- 239:teste_envio.c **** 		usart_double_baud_enable(USART_HOST);
- 1266               		.loc 6 239 0
- 1267 04f6 80EC      		ldi r24,lo8(-64)
- 1268 04f8 90E0      		ldi r25,0
- 1269 04fa 0E94 0000 		call usart_double_baud_enable
- 240:teste_envio.c **** 		usart_set_baudrate_precalculated(USART_HOST, USART_HOST_BAUDRATE, sysclk_get_source_clock_hz());
- 1270               		.loc 6 240 0
- 1271 04fe 0E94 0000 		call sysclk_get_source_clock_hz
- 1272 0502 DC01      		movw r26,r24
- 1273 0504 CB01      		movw r24,r22
- 1274 0506 8C01      		movw r16,r24
- 1275 0508 9D01      		movw r18,r26
- 1276 050a 40E0      		ldi r20,0
- 1277 050c 52EC      		ldi r21,lo8(-62)
- 1278 050e 61E0      		ldi r22,lo8(1)
- 1279 0510 70E0      		ldi r23,0
- 1280 0512 80EC      		ldi r24,lo8(-64)
- 1281 0514 90E0      		ldi r25,0
- 1282 0516 0E94 0000 		call usart_set_baudrate_precalculated
- 1283               	.L34:
- 241:teste_envio.c **** 
- 242:teste_envio.c **** 	#endif
- 243:teste_envio.c **** 	#endif
- 244:teste_envio.c **** 		for(;;)
- 245:teste_envio.c **** 		{
- 246:teste_envio.c **** 			SYS_TaskHandler();
- 1284               		.loc 6 246 0 discriminator 1
- 1285 051a 0E94 0000 		call SYS_TaskHandler
- 247:teste_envio.c **** 			APP_TaskHandler();
- 1286               		.loc 6 247 0 discriminator 1
- 1287 051e 0E94 0000 		call APP_TaskHandler
- 248:teste_envio.c **** 		}
- 1288               		.loc 6 248 0 discriminator 1
- 1289 0522 00C0      		rjmp .L34
- 1290               		.cfi_endproc
- 1291               	.LFE136:
- 1293               	.Letext0:
- 1294               		.file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
- 1295               		.file 8 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
- 1296               		.file 9 "../../../stack/LwMesh/TDMA/nwk/inc/nwkDataReq.h"
- 1297               		.file 10 "../../../stack/LwMesh/TDMA/sys/inc/sysTimer.h"
- 1298               		.file 11 "../../../platform/mega_rf/drivers/sleep/sleep.h"
- 1299               		.file 12 "lldn.h"
- 1300               		.file 13 "../../../platform/mega_rf/utils/status_codes.h"
- 1301               		.file 14 "config/config.h"
- 1302               		.file 15 "../../../platform/common/services/sleepmgr/mega_rf/sleepmgr.h"
+ 921 036a 00D0      		rcall .
+ 922 036c 00D0      		rcall .
+ 923               	.LCFI51:
+ 924               		.cfi_def_cfa_offset 8
+ 925 036e CDB7      		in r28,__SP_L__
+ 926 0370 DEB7      		in r29,__SP_H__
+ 927               	.LCFI52:
+ 928               		.cfi_def_cfa_register 28
+ 929               	/* prologue: function */
+ 930               	/* frame size = 4 */
+ 931               	/* stack size = 6 */
+ 932               	.L__stack_usage = 6
+ 933 0372 9C83      		std Y+4,r25
+ 934 0374 8B83      		std Y+3,r24
+  83:test_sync_timers.c **** 	printf("\n%d ",counter);
+ 935               		.loc 6 83 0
+ 936 0376 8091 0000 		lds r24,counter
+ 937 037a 9091 0000 		lds r25,counter+1
+ 938 037e 292F      		mov r18,r25
+ 939 0380 2F93      		push r18
+ 940 0382 8F93      		push r24
+ 941 0384 80E0      		ldi r24,lo8(.LC3)
+ 942 0386 90E0      		ldi r25,hi8(.LC3)
+ 943 0388 892F      		mov r24,r25
+ 944 038a 8F93      		push r24
+ 945 038c 80E0      		ldi r24,lo8(.LC3)
+ 946 038e 90E0      		ldi r25,hi8(.LC3)
+ 947 0390 8F93      		push r24
+ 948 0392 0E94 0000 		call printf
+ 949 0396 0F90      		pop __tmp_reg__
+ 950 0398 0F90      		pop __tmp_reg__
+ 951 039a 0F90      		pop __tmp_reg__
+ 952 039c 0F90      		pop __tmp_reg__
+  84:test_sync_timers.c **** 	beacon_received = true;
+ 953               		.loc 6 84 0
+ 954 039e 81E0      		ldi r24,lo8(1)
+ 955 03a0 90E0      		ldi r25,0
+ 956 03a2 9093 0000 		sts beacon_received+1,r25
+ 957 03a6 8093 0000 		sts beacon_received,r24
+  85:test_sync_timers.c **** 	
+  86:test_sync_timers.c **** 	macsc_disable_cmp_int(MACSC_CC1);
+ 958               		.loc 6 86 0
+ 959 03aa 81E0      		ldi r24,lo8(1)
+ 960 03ac 0E94 0000 		call macsc_disable_cmp_int
+  87:test_sync_timers.c **** 	macsc_disable_cmp_int(MACSC_CC2);
+ 961               		.loc 6 87 0
+ 962 03b0 82E0      		ldi r24,lo8(2)
+ 963 03b2 0E94 0000 		call macsc_disable_cmp_int
+  88:test_sync_timers.c **** 	
+  89:test_sync_timers.c **** 		NWK_DataReq(&msgReq);
+ 964               		.loc 6 89 0
+ 965 03b6 80E0      		ldi r24,lo8(msgReq)
+ 966 03b8 90E0      		ldi r25,hi8(msgReq)
+ 967 03ba 0E94 0000 		call NWK_DataReq
+  90:test_sync_timers.c **** 
+  91:test_sync_timers.c **** 	
+  92:test_sync_timers.c **** 	NwkFrameBeaconHeaderLLDN_t *tmp_beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
+ 968               		.loc 6 92 0
+ 969 03be 8B81      		ldd r24,Y+3
+ 970 03c0 9C81      		ldd r25,Y+4
+ 971 03c2 FC01      		movw r30,r24
+ 972 03c4 8085      		ldd r24,Z+8
+ 973 03c6 9185      		ldd r25,Z+9
+ 974 03c8 9A83      		std Y+2,r25
+ 975 03ca 8983      		std Y+1,r24
+  93:test_sync_timers.c **** 	rec_beacon = *tmp_beacon;
+ 976               		.loc 6 93 0
+ 977 03cc 8981      		ldd r24,Y+1
+ 978 03ce 9A81      		ldd r25,Y+2
+ 979 03d0 28E0      		ldi r18,lo8(8)
+ 980 03d2 FC01      		movw r30,r24
+ 981 03d4 A0E0      		ldi r26,lo8(rec_beacon)
+ 982 03d6 B0E0      		ldi r27,hi8(rec_beacon)
+ 983               		0:
+ 984 03d8 0190      		ld r0,Z+
+ 985 03da 0D92      		st X+,r0
+ 986 03dc 2A95      		dec r18
+ 987 03de 01F4      		brne 0b
+  94:test_sync_timers.c **** 	
+  95:test_sync_timers.c **** 	
+  96:test_sync_timers.c **** 	/*
+  97:test_sync_timers.c **** 	if(counter == 0 )
+  98:test_sync_timers.c **** 	{
+  99:test_sync_timers.c **** 		tTS =  ((p_var*sp + (m+ tmp_beacon->TimeSlotSize  )*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME
+ 100:test_sync_timers.c **** 		msg_wait_time = tmp_beacon->Flags.numBaseMgmtTimeslots * tTS * 2;
+ 101:test_sync_timers.c **** 		printf(" %d",  msg_wait_time );
+ 102:test_sync_timers.c **** 
+ 103:test_sync_timers.c ****  		macsc_set_cmp1_int_cb(node_time_handler);
+ 104:test_sync_timers.c **** 		macsc_set_cmp2_int_cb(send);
+ 105:test_sync_timers.c **** 
+ 106:test_sync_timers.c **** 		macsc_enable_cmp_int(MACSC_CC1);
+ 107:test_sync_timers.c **** 
+ 108:test_sync_timers.c **** 		macsc_use_cmp(MACSC_RELATIVE_CMP, msg_wait_time, MACSC_CC1);
+ 109:test_sync_timers.c **** 		
+ 110:test_sync_timers.c **** 		
+ 111:test_sync_timers.c **** 		macsc_enable_manual_bts();
+ 112:test_sync_timers.c **** 	}
+ 113:test_sync_timers.c **** 	else if(beacon_tmr)
+ 114:test_sync_timers.c **** 	{
+ 115:test_sync_timers.c **** 		beacon_tmr = false;
+ 116:test_sync_timers.c **** 		be_read = macsc_read_count();
+ 117:test_sync_timers.c **** 		int erro = be_read - tmr_read;
+ 118:test_sync_timers.c **** 		if(erro > 35)
+ 119:test_sync_timers.c **** 		{
+ 120:test_sync_timers.c **** 			macsc_disable_cmp_int(MACSC_CC1);
+ 121:test_sync_timers.c **** 			macsc_disable_cmp_int(MACSC_CC2);
+ 122:test_sync_timers.c **** 
+ 123:test_sync_timers.c **** 			msg_wait_time+=10;
+ 124:test_sync_timers.c **** 			macsc_enable_cmp_int(MACSC_CC1);
+ 125:test_sync_timers.c **** 			macsc_use_cmp(MACSC_RELATIVE_CMP, msg_wait_time, MACSC_CC1);
+ 126:test_sync_timers.c **** 			macsc_use_cmp(MACSC_RELATIVE_CMP, msg_wait_time/2, MACSC_CC2);
+ 127:test_sync_timers.c **** 
+ 128:test_sync_timers.c **** 			macsc_enable_manual_bts();
+ 129:test_sync_timers.c **** 		}
+ 130:test_sync_timers.c **** 		else
+ 131:test_sync_timers.c **** 		{
+ 132:test_sync_timers.c **** 			printf(" OK");
+ 133:test_sync_timers.c **** 			macsc_set_cmp2_int_cb(send);
+ 134:test_sync_timers.c **** 
+ 135:test_sync_timers.c **** 			macsc_use_cmp(MACSC_RELATIVE_CMP, msg_wait_time/2, MACSC_CC2);
+ 136:test_sync_timers.c **** 	
+ 137:test_sync_timers.c **** 			macsc_enable_cmp_int(MACSC_CC1);			
+ 138:test_sync_timers.c **** 			macsc_enable_cmp_int(MACSC_CC2);
+ 139:test_sync_timers.c **** 
+ 140:test_sync_timers.c **** 			macsc_enable_manual_bts();
+ 141:test_sync_timers.c **** 		}
+ 142:test_sync_timers.c **** 	}
+ 143:test_sync_timers.c **** 	else
+ 144:test_sync_timers.c **** 	{
+ 145:test_sync_timers.c **** 		macsc_disable_cmp_int(MACSC_CC1);
+ 146:test_sync_timers.c **** 		macsc_disable_cmp_int(MACSC_CC2);
+ 147:test_sync_timers.c **** 		
+ 148:test_sync_timers.c **** 		msg_wait_time-=10;
+ 149:test_sync_timers.c **** 		macsc_enable_cmp_int(MACSC_CC1);
+ 150:test_sync_timers.c **** 		macsc_use_cmp(MACSC_RELATIVE_CMP, msg_wait_time, MACSC_CC1);
+ 151:test_sync_timers.c **** 		macsc_enable_manual_bts();
+ 152:test_sync_timers.c **** 	}
+ 153:test_sync_timers.c **** 	counter++;*/
+ 154:test_sync_timers.c **** }
+ 988               		.loc 6 154 0
+ 989 03e0 0000      		nop
+ 990               	/* epilogue start */
+ 991 03e2 0F90      		pop __tmp_reg__
+ 992 03e4 0F90      		pop __tmp_reg__
+ 993 03e6 0F90      		pop __tmp_reg__
+ 994 03e8 0F90      		pop __tmp_reg__
+ 995 03ea DF91      		pop r29
+ 996 03ec CF91      		pop r28
+ 997 03ee 0895      		ret
+ 998               		.cfi_endproc
+ 999               	.LFE134:
+ 1001               		.section	.rodata
+ 1002               	.LC4:
+ 1003 0011 0A64 2C20 		.string	"\nd, %lu "
+ 1003      256C 7520 
+ 1003      00
+ 1004               		.text
+ 1006               	appBeaconInd_2:
+ 1007               	.LFB135:
+ 155:test_sync_timers.c **** 
+ 156:test_sync_timers.c **** static bool appBeaconInd_2(NWK_DataInd_t *ind)
+ 157:test_sync_timers.c **** {
+ 1008               		.loc 6 157 0
+ 1009               		.cfi_startproc
+ 1010 03f0 CF93      		push r28
+ 1011               	.LCFI53:
+ 1012               		.cfi_def_cfa_offset 3
+ 1013               		.cfi_offset 28, -2
+ 1014 03f2 DF93      		push r29
+ 1015               	.LCFI54:
+ 1016               		.cfi_def_cfa_offset 4
+ 1017               		.cfi_offset 29, -3
+ 1018 03f4 00D0      		rcall .
+ 1019 03f6 00D0      		rcall .
+ 1020 03f8 00D0      		rcall .
+ 1021               	.LCFI55:
+ 1022               		.cfi_def_cfa_offset 10
+ 1023 03fa CDB7      		in r28,__SP_L__
+ 1024 03fc DEB7      		in r29,__SP_H__
+ 1025               	.LCFI56:
+ 1026               		.cfi_def_cfa_register 28
+ 1027               	/* prologue: function */
+ 1028               	/* frame size = 6 */
+ 1029               	/* stack size = 8 */
+ 1030               	.L__stack_usage = 8
+ 1031 03fe 9E83      		std Y+6,r25
+ 1032 0400 8D83      		std Y+5,r24
+ 158:test_sync_timers.c **** 
+ 159:test_sync_timers.c **** 	uint32_t tmp = macsc_read_count();
+ 1033               		.loc 6 159 0
+ 1034 0402 0E94 0000 		call macsc_read_count
+ 1035 0406 DC01      		movw r26,r24
+ 1036 0408 CB01      		movw r24,r22
+ 1037 040a 8983      		std Y+1,r24
+ 1038 040c 9A83      		std Y+2,r25
+ 1039 040e AB83      		std Y+3,r26
+ 1040 0410 BC83      		std Y+4,r27
+ 160:test_sync_timers.c **** 	printf("\nd, %" PRIu32 " ", tmp);
+ 1041               		.loc 6 160 0
+ 1042 0412 8C81      		ldd r24,Y+4
+ 1043 0414 8F93      		push r24
+ 1044 0416 8B81      		ldd r24,Y+3
+ 1045 0418 8F93      		push r24
+ 1046 041a 8A81      		ldd r24,Y+2
+ 1047 041c 8F93      		push r24
+ 1048 041e 8981      		ldd r24,Y+1
+ 1049 0420 8F93      		push r24
+ 1050 0422 80E0      		ldi r24,lo8(.LC4)
+ 1051 0424 90E0      		ldi r25,hi8(.LC4)
+ 1052 0426 892F      		mov r24,r25
+ 1053 0428 8F93      		push r24
+ 1054 042a 80E0      		ldi r24,lo8(.LC4)
+ 1055 042c 90E0      		ldi r25,hi8(.LC4)
+ 1056 042e 8F93      		push r24
+ 1057 0430 0E94 0000 		call printf
+ 1058 0434 0F90      		pop __tmp_reg__
+ 1059 0436 0F90      		pop __tmp_reg__
+ 1060 0438 0F90      		pop __tmp_reg__
+ 1061 043a 0F90      		pop __tmp_reg__
+ 1062 043c 0F90      		pop __tmp_reg__
+ 1063 043e 0F90      		pop __tmp_reg__
+ 161:test_sync_timers.c **** 
+ 162:test_sync_timers.c **** }
+ 1064               		.loc 6 162 0
+ 1065 0440 0000      		nop
+ 1066               	/* epilogue start */
+ 1067 0442 2696      		adiw r28,6
+ 1068 0444 0FB6      		in __tmp_reg__,__SREG__
+ 1069 0446 F894      		cli
+ 1070 0448 DEBF      		out __SP_H__,r29
+ 1071 044a 0FBE      		out __SREG__,__tmp_reg__
+ 1072 044c CDBF      		out __SP_L__,r28
+ 1073 044e DF91      		pop r29
+ 1074 0450 CF91      		pop r28
+ 1075 0452 0895      		ret
+ 1076               		.cfi_endproc
+ 1077               	.LFE135:
+ 1079               	.global	__floatsisf
+ 1080               	.global	__addsf3
+ 1081               	.global	__divsf3
+ 1082               	.global	__mulsf3
+ 1083               	.global	__fixunssfsi
+ 1085               	appInit:
+ 1086               	.LFB136:
+ 163:test_sync_timers.c **** 
+ 164:test_sync_timers.c **** static void appInit(void)
+ 165:test_sync_timers.c **** {
+ 1087               		.loc 6 165 0
+ 1088               		.cfi_startproc
+ 1089 0454 CF93      		push r28
+ 1090               	.LCFI57:
+ 1091               		.cfi_def_cfa_offset 3
+ 1092               		.cfi_offset 28, -2
+ 1093 0456 DF93      		push r29
+ 1094               	.LCFI58:
+ 1095               		.cfi_def_cfa_offset 4
+ 1096               		.cfi_offset 29, -3
+ 1097 0458 CDB7      		in r28,__SP_L__
+ 1098 045a DEB7      		in r29,__SP_H__
+ 1099               	.LCFI59:
+ 1100               		.cfi_def_cfa_register 28
+ 1101               	/* prologue: function */
+ 1102               	/* frame size = 0 */
+ 1103               	/* stack size = 2 */
+ 1104               	.L__stack_usage = 2
+ 166:test_sync_timers.c **** 	NWK_SetAddr(APP_ADDR);
+ 1105               		.loc 6 166 0
+ 1106 045c 80E0      		ldi r24,0
+ 1107 045e 90E0      		ldi r25,0
+ 1108 0460 0E94 0000 		call NWK_SetAddr
+ 167:test_sync_timers.c **** 	PHY_SetChannel(APP_CHANNEL);
+ 1109               		.loc 6 167 0
+ 1110 0464 8FE0      		ldi r24,lo8(15)
+ 1111 0466 0E94 0000 		call PHY_SetChannel
+ 168:test_sync_timers.c **** 	PHY_SetRxState(true);
+ 1112               		.loc 6 168 0
+ 1113 046a 81E0      		ldi r24,lo8(1)
+ 1114 046c 0E94 0000 		call PHY_SetRxState
+ 169:test_sync_timers.c **** 	n = 50;
+ 1115               		.loc 6 169 0
+ 1116 0470 82E3      		ldi r24,lo8(50)
+ 1117 0472 8093 0000 		sts n,r24
+ 170:test_sync_timers.c **** 			/* prepare beacon */
+ 171:test_sync_timers.c **** 			msgReq.dstAddr				= 0;
+ 1118               		.loc 6 171 0
+ 1119 0476 1092 0000 		sts msgReq+5+1,__zero_reg__
+ 1120 047a 1092 0000 		sts msgReq+5,__zero_reg__
+ 172:test_sync_timers.c **** 			msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
+ 1121               		.loc 6 172 0
+ 1122 047e 1092 0000 		sts msgReq+7,__zero_reg__
+ 173:test_sync_timers.c **** 			msgReq.srcEndpoint			= APP_BEACON_ENDPOINT;
+ 1123               		.loc 6 173 0
+ 1124 0482 1092 0000 		sts msgReq+8,__zero_reg__
+ 174:test_sync_timers.c **** 			msgReq.options				= NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE;
+ 1125               		.loc 6 174 0
+ 1126 0486 80E4      		ldi r24,lo8(64)
+ 1127 0488 91E0      		ldi r25,lo8(1)
+ 1128 048a 9093 0000 		sts msgReq+9+1,r25
+ 1129 048e 8093 0000 		sts msgReq+9,r24
+ 175:test_sync_timers.c **** 			msgReq.data					= NULL;
+ 1130               		.loc 6 175 0
+ 1131 0492 1092 0000 		sts msgReq+13+1,__zero_reg__
+ 1132 0496 1092 0000 		sts msgReq+13,__zero_reg__
+ 176:test_sync_timers.c **** 			msgReq.size					= 0;
+ 1133               		.loc 6 176 0
+ 1134 049a 1092 0000 		sts msgReq+15,__zero_reg__
+ 177:test_sync_timers.c **** 			
+ 178:test_sync_timers.c **** 	#if APP_COORDINATOR	 
+ 179:test_sync_timers.c **** 		/* 
+ 180:test_sync_timers.c **** 		* Disable CSMA/CA
+ 181:test_sync_timers.c **** 		* Disable auto ACK
+ 182:test_sync_timers.c **** 		*/
+ 183:test_sync_timers.c **** 		NWK_SetPanId(APP_PANID);
+ 1135               		.loc 6 183 0
+ 1136 049e 8EEF      		ldi r24,lo8(-2)
+ 1137 04a0 9AEC      		ldi r25,lo8(-54)
+ 1138 04a2 0E94 0000 		call NWK_SetPanId
+ 184:test_sync_timers.c **** 		PanId = APP_PANID;
+ 1139               		.loc 6 184 0
+ 1140 04a6 8EEF      		ldi r24,lo8(-2)
+ 1141 04a8 8093 0000 		sts PanId,r24
+ 185:test_sync_timers.c **** 		PHY_SetTdmaMode(true);
+ 1142               		.loc 6 185 0
+ 1143 04ac 81E0      		ldi r24,lo8(1)
+ 1144 04ae 0E94 0000 		call PHY_SetTdmaMode
+ 186:test_sync_timers.c **** 		
+ 187:test_sync_timers.c **** 			
+ 188:test_sync_timers.c **** 		tTS =  ((p_var*sp + (m+ n)*sm + macMinLIFSPeriod)/v_var);
+ 1145               		.loc 6 188 0
+ 1146 04b2 8091 0000 		lds r24,n
+ 1147 04b6 882F      		mov r24,r24
+ 1148 04b8 90E0      		ldi r25,0
+ 1149 04ba 0396      		adiw r24,3
+ 1150 04bc 880F      		lsl r24
+ 1151 04be 991F      		rol r25
+ 1152 04c0 092E      		mov __tmp_reg__,r25
+ 1153 04c2 000C      		lsl r0
+ 1154 04c4 AA0B      		sbc r26,r26
+ 1155 04c6 BB0B      		sbc r27,r27
+ 1156 04c8 BC01      		movw r22,r24
+ 1157 04ca CD01      		movw r24,r26
+ 1158 04cc 0E94 0000 		call __floatsisf
+ 1159 04d0 DC01      		movw r26,r24
+ 1160 04d2 CB01      		movw r24,r22
+ 1161 04d4 20E0      		ldi r18,0
+ 1162 04d6 30E0      		ldi r19,0
+ 1163 04d8 40E4      		ldi r20,lo8(64)
+ 1164 04da 51E4      		ldi r21,lo8(65)
+ 1165 04dc BC01      		movw r22,r24
+ 1166 04de CD01      		movw r24,r26
+ 1167 04e0 0E94 0000 		call __addsf3
+ 1168 04e4 DC01      		movw r26,r24
+ 1169 04e6 CB01      		movw r24,r22
+ 1170 04e8 20E0      		ldi r18,0
+ 1171 04ea 30E0      		ldi r19,0
+ 1172 04ec 40E2      		ldi r20,lo8(32)
+ 1173 04ee 52E4      		ldi r21,lo8(66)
+ 1174 04f0 BC01      		movw r22,r24
+ 1175 04f2 CD01      		movw r24,r26
+ 1176 04f4 0E94 0000 		call __addsf3
+ 1177 04f8 DC01      		movw r26,r24
+ 1178 04fa CB01      		movw r24,r22
+ 1179 04fc 20E0      		ldi r18,0
+ 1180 04fe 34E2      		ldi r19,lo8(36)
+ 1181 0500 44E7      		ldi r20,lo8(116)
+ 1182 0502 57E4      		ldi r21,lo8(71)
+ 1183 0504 BC01      		movw r22,r24
+ 1184 0506 CD01      		movw r24,r26
+ 1185 0508 0E94 0000 		call __divsf3
+ 1186 050c DC01      		movw r26,r24
+ 1187 050e CB01      		movw r24,r22
+ 1188 0510 8093 0000 		sts tTS,r24
+ 1189 0514 9093 0000 		sts tTS+1,r25
+ 1190 0518 A093 0000 		sts tTS+2,r26
+ 1191 051c B093 0000 		sts tTS+3,r27
+ 189:test_sync_timers.c **** 		beaconInterval_association = 2 * numBaseTimeSlotperMgmt_association * (tTS) / (SYMBOL_TIME);
+ 1192               		.loc 6 189 0
+ 1193 0520 8091 0000 		lds r24,tTS
+ 1194 0524 9091 0000 		lds r25,tTS+1
+ 1195 0528 A091 0000 		lds r26,tTS+2
+ 1196 052c B091 0000 		lds r27,tTS+3
+ 1197 0530 20E0      		ldi r18,0
+ 1198 0532 30E0      		ldi r19,0
+ 1199 0534 40E8      		ldi r20,lo8(-128)
+ 1200 0536 50E4      		ldi r21,lo8(64)
+ 1201 0538 BC01      		movw r22,r24
+ 1202 053a CD01      		movw r24,r26
+ 1203 053c 0E94 0000 		call __mulsf3
+ 1204 0540 DC01      		movw r26,r24
+ 1205 0542 CB01      		movw r24,r22
+ 1206 0544 2DEB      		ldi r18,lo8(-67)
+ 1207 0546 37E3      		ldi r19,lo8(55)
+ 1208 0548 46E8      		ldi r20,lo8(-122)
+ 1209 054a 57E3      		ldi r21,lo8(55)
+ 1210 054c BC01      		movw r22,r24
+ 1211 054e CD01      		movw r24,r26
+ 1212 0550 0E94 0000 		call __divsf3
+ 1213 0554 DC01      		movw r26,r24
+ 1214 0556 CB01      		movw r24,r22
+ 1215 0558 8093 0000 		sts beaconInterval_association,r24
+ 1216 055c 9093 0000 		sts beaconInterval_association+1,r25
+ 1217 0560 A093 0000 		sts beaconInterval_association+2,r26
+ 1218 0564 B093 0000 		sts beaconInterval_association+3,r27
+ 190:test_sync_timers.c **** 		macsc_set_cmp1_int_cb(lldn_server_beacon);
+ 1219               		.loc 6 190 0
+ 1220 0568 80E0      		ldi r24,lo8(gs(lldn_server_beacon))
+ 1221 056a 90E0      		ldi r25,hi8(gs(lldn_server_beacon))
+ 1222 056c 0E94 0000 		call macsc_set_cmp1_int_cb
+ 191:test_sync_timers.c **** 		macsc_set_cmp2_int_cb(time_slot);
+ 1223               		.loc 6 191 0
+ 1224 0570 80E0      		ldi r24,lo8(gs(time_slot))
+ 1225 0572 90E0      		ldi r25,hi8(gs(time_slot))
+ 1226 0574 0E94 0000 		call macsc_set_cmp2_int_cb
+ 192:test_sync_timers.c **** 		macsc_set_cmp3_int_cb(time_slot);
+ 1227               		.loc 6 192 0
+ 1228 0578 80E0      		ldi r24,lo8(gs(time_slot))
+ 1229 057a 90E0      		ldi r25,hi8(gs(time_slot))
+ 1230 057c 0E94 0000 		call macsc_set_cmp3_int_cb
+ 193:test_sync_timers.c **** 
+ 194:test_sync_timers.c **** 		
+ 195:test_sync_timers.c **** 		macsc_enable_manual_bts();
+ 1231               		.loc 6 195 0
+ 1232 0580 0E94 0000 		call macsc_enable_manual_bts
+ 196:test_sync_timers.c **** 		macsc_enable_cmp_int(MACSC_CC1);
+ 1233               		.loc 6 196 0
+ 1234 0584 81E0      		ldi r24,lo8(1)
+ 1235 0586 0E94 0000 		call macsc_enable_cmp_int
+ 197:test_sync_timers.c **** // 		macsc_enable_cmp_int(MACSC_CC3);
+ 198:test_sync_timers.c **** // 
+ 199:test_sync_timers.c **** // 		macsc_enable_cmp_int(MACSC_CC2);
+ 200:test_sync_timers.c **** 
+ 201:test_sync_timers.c **** 		macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval_association , MACSC_CC1);
+ 1236               		.loc 6 201 0
+ 1237 058a 8091 0000 		lds r24,beaconInterval_association
+ 1238 058e 9091 0000 		lds r25,beaconInterval_association+1
+ 1239 0592 A091 0000 		lds r26,beaconInterval_association+2
+ 1240 0596 B091 0000 		lds r27,beaconInterval_association+3
+ 1241 059a BC01      		movw r22,r24
+ 1242 059c CD01      		movw r24,r26
+ 1243 059e 0E94 0000 		call __fixunssfsi
+ 1244 05a2 DC01      		movw r26,r24
+ 1245 05a4 CB01      		movw r24,r22
+ 1246 05a6 21E0      		ldi r18,lo8(1)
+ 1247 05a8 AC01      		movw r20,r24
+ 1248 05aa BD01      		movw r22,r26
+ 1249 05ac 81E0      		ldi r24,lo8(1)
+ 1250 05ae 0E94 0000 		call macsc_use_cmp
+ 202:test_sync_timers.c **** // 		macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval_association/4 , MACSC_CC2);
+ 203:test_sync_timers.c **** // 		macsc_use_cmp(MACSC_RELATIVE_CMP, 2*beaconInterval_association/4 , MACSC_CC3);
+ 204:test_sync_timers.c **** 
+ 205:test_sync_timers.c **** 		NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appBeaconInd_2);
+ 1251               		.loc 6 205 0
+ 1252 05b2 60E0      		ldi r22,lo8(gs(appBeaconInd_2))
+ 1253 05b4 70E0      		ldi r23,hi8(gs(appBeaconInd_2))
+ 1254 05b6 83E0      		ldi r24,lo8(3)
+ 1255 05b8 0E94 0000 		call NWK_OpenEndpoint
+ 206:test_sync_timers.c **** 
+ 207:test_sync_timers.c **** 		
+ 208:test_sync_timers.c **** 		
+ 209:test_sync_timers.c **** 	#else
+ 210:test_sync_timers.c **** 		PHY_SetTdmaMode(false);
+ 211:test_sync_timers.c **** 		
+ 212:test_sync_timers.c **** 		NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);
+ 213:test_sync_timers.c **** 		
+ 214:test_sync_timers.c **** 
+ 215:test_sync_timers.c **** 	#endif // APP_COORDENATOR
+ 216:test_sync_timers.c **** 	PHY_SetPromiscuousMode(true);
+ 1256               		.loc 6 216 0
+ 1257 05bc 81E0      		ldi r24,lo8(1)
+ 1258 05be 0E94 0000 		call PHY_SetPromiscuousMode
+ 217:test_sync_timers.c **** 
+ 218:test_sync_timers.c **** }
+ 1259               		.loc 6 218 0
+ 1260 05c2 0000      		nop
+ 1261               	/* epilogue start */
+ 1262 05c4 DF91      		pop r29
+ 1263 05c6 CF91      		pop r28
+ 1264 05c8 0895      		ret
+ 1265               		.cfi_endproc
+ 1266               	.LFE136:
+ 1268               	.global	APP_TaskHandler
+ 1270               	APP_TaskHandler:
+ 1271               	.LFB137:
+ 219:test_sync_timers.c **** 
+ 220:test_sync_timers.c **** 
+ 221:test_sync_timers.c **** void APP_TaskHandler(void)
+ 222:test_sync_timers.c **** {
+ 1272               		.loc 6 222 0
+ 1273               		.cfi_startproc
+ 1274 05ca CF93      		push r28
+ 1275               	.LCFI60:
+ 1276               		.cfi_def_cfa_offset 3
+ 1277               		.cfi_offset 28, -2
+ 1278 05cc DF93      		push r29
+ 1279               	.LCFI61:
+ 1280               		.cfi_def_cfa_offset 4
+ 1281               		.cfi_offset 29, -3
+ 1282 05ce CDB7      		in r28,__SP_L__
+ 1283 05d0 DEB7      		in r29,__SP_H__
+ 1284               	.LCFI62:
+ 1285               		.cfi_def_cfa_register 28
+ 1286               	/* prologue: function */
+ 1287               	/* frame size = 0 */
+ 1288               	/* stack size = 2 */
+ 1289               	.L__stack_usage = 2
+ 223:test_sync_timers.c **** 	switch(state)
+ 1290               		.loc 6 223 0
+ 1291 05d2 8091 0000 		lds r24,state
+ 1292 05d6 882F      		mov r24,r24
+ 1293 05d8 90E0      		ldi r25,0
+ 1294 05da 892B      		or r24,r25
+ 1295 05dc 01F0      		breq .L31
+ 224:test_sync_timers.c **** 	{
+ 225:test_sync_timers.c **** 		case APP_STATE_INITIAL:
+ 226:test_sync_timers.c **** 			appInit();
+ 227:test_sync_timers.c **** 			state = APP_STATE_IDLE;
+ 228:test_sync_timers.c **** 		break;
+ 229:test_sync_timers.c **** 		default:
+ 230:test_sync_timers.c **** 		break;
+ 1296               		.loc 6 230 0
+ 1297 05de 00C0      		rjmp .L32
+ 1298               	.L31:
+ 226:test_sync_timers.c **** 			state = APP_STATE_IDLE;
+ 1299               		.loc 6 226 0
+ 1300 05e0 0E94 0000 		call appInit
+ 227:test_sync_timers.c **** 		break;
+ 1301               		.loc 6 227 0
+ 1302 05e4 81E0      		ldi r24,lo8(1)
+ 1303 05e6 8093 0000 		sts state,r24
+ 228:test_sync_timers.c **** 		default:
+ 1304               		.loc 6 228 0
+ 1305 05ea 0000      		nop
+ 1306               	.L32:
+ 231:test_sync_timers.c **** 		
+ 232:test_sync_timers.c **** 	}
+ 233:test_sync_timers.c **** }
+ 1307               		.loc 6 233 0
+ 1308 05ec 0000      		nop
+ 1309               	/* epilogue start */
+ 1310 05ee DF91      		pop r29
+ 1311 05f0 CF91      		pop r28
+ 1312 05f2 0895      		ret
+ 1313               		.cfi_endproc
+ 1314               	.LFE137:
+ 1316               		.section	.rodata
+ 1317               	.LC0:
+ 1318 001a 00        		.byte	0
+ 1319 001b C2        		.byte	-62
+ 1320 001c 01        		.byte	1
+ 1321 001d 00        		.byte	0
+ 1322 001e 03        		.byte	3
+ 1323 001f 00        		.byte	0
+ 1324 0020 00        		.byte	0
+ 1325               		.text
+ 1326               	.global	main
+ 1328               	main:
+ 1329               	.LFB138:
+ 234:test_sync_timers.c **** 
+ 235:test_sync_timers.c **** 
+ 236:test_sync_timers.c **** 
+ 237:test_sync_timers.c **** int main(void)
+ 238:test_sync_timers.c **** {
+ 1330               		.loc 6 238 0
+ 1331               		.cfi_startproc
+ 1332 05f4 0F93      		push r16
+ 1333               	.LCFI63:
+ 1334               		.cfi_def_cfa_offset 3
+ 1335               		.cfi_offset 16, -2
+ 1336 05f6 1F93      		push r17
+ 1337               	.LCFI64:
+ 1338               		.cfi_def_cfa_offset 4
+ 1339               		.cfi_offset 17, -3
+ 1340 05f8 CF93      		push r28
+ 1341               	.LCFI65:
+ 1342               		.cfi_def_cfa_offset 5
+ 1343               		.cfi_offset 28, -4
+ 1344 05fa DF93      		push r29
+ 1345               	.LCFI66:
+ 1346               		.cfi_def_cfa_offset 6
+ 1347               		.cfi_offset 29, -5
+ 1348 05fc CDB7      		in r28,__SP_L__
+ 1349 05fe DEB7      		in r29,__SP_H__
+ 1350               	.LCFI67:
+ 1351               		.cfi_def_cfa_register 28
+ 1352 0600 2797      		sbiw r28,7
+ 1353               	.LCFI68:
+ 1354               		.cfi_def_cfa_offset 13
+ 1355 0602 0FB6      		in __tmp_reg__,__SREG__
+ 1356 0604 F894      		cli
+ 1357 0606 DEBF      		out __SP_H__,r29
+ 1358 0608 0FBE      		out __SREG__,__tmp_reg__
+ 1359 060a CDBF      		out __SP_L__,r28
+ 1360               	/* prologue: function */
+ 1361               	/* frame size = 7 */
+ 1362               	/* stack size = 11 */
+ 1363               	.L__stack_usage = 11
+ 239:test_sync_timers.c **** 	sysclk_init();
+ 1364               		.loc 6 239 0
+ 1365 060c 0E94 0000 		call sysclk_init
+ 240:test_sync_timers.c **** 	board_init();
+ 1366               		.loc 6 240 0
+ 1367 0610 0E94 0000 		call board_init
+ 241:test_sync_timers.c **** 
+ 242:test_sync_timers.c **** 	SYS_Init();
+ 1368               		.loc 6 242 0
+ 1369 0614 0E94 0000 		call SYS_Init
+ 243:test_sync_timers.c **** 	/* Disable CSMA/CA
+ 244:test_sync_timers.c **** 		* Disable auto ACK
+ 245:test_sync_timers.c **** 		* Enable Rx of LLDN Frame Type as described in 802.15.4e - 2012 
+ 246:test_sync_timers.c **** 		*/
+ 247:test_sync_timers.c **** 
+ 248:test_sync_timers.c **** 	sm_init();
+ 1370               		.loc 6 248 0
+ 1371 0618 0E94 0000 		call sm_init
+ 249:test_sync_timers.c **** 
+ 250:test_sync_timers.c **** 	// Initialize interrupt vector table support.
+ 251:test_sync_timers.c **** 
+ 252:test_sync_timers.c **** 	cpu_irq_enable();
+ 1372               		.loc 6 252 0
+ 1373               	/* #APP */
+ 1374               	 ;  252 "test_sync_timers.c" 1
+ 1375 061c 7894      		sei
+ 1376               	 ;  0 "" 2
+ 253:test_sync_timers.c **** 	
+ 254:test_sync_timers.c **** 	const usart_serial_options_t usart_serial_options =
+ 1377               		.loc 6 254 0
+ 1378               	/* #NOAPP */
+ 1379 061e 27E0      		ldi r18,lo8(7)
+ 1380 0620 E0E0      		ldi r30,lo8(.LC0)
+ 1381 0622 F0E0      		ldi r31,hi8(.LC0)
+ 1382 0624 CE01      		movw r24,r28
+ 1383 0626 0196      		adiw r24,1
+ 1384 0628 DC01      		movw r26,r24
+ 1385               		0:
+ 1386 062a 0190      		ld r0,Z+
+ 1387 062c 0D92      		st X+,r0
+ 1388 062e 2A95      		dec r18
+ 1389 0630 01F4      		brne 0b
+ 255:test_sync_timers.c **** 	{
+ 256:test_sync_timers.c **** 		.baudrate     = USART_HOST_BAUDRATE,
+ 257:test_sync_timers.c **** 		.charlength   = USART_HOST_CHAR_LENGTH,
+ 258:test_sync_timers.c **** 		.paritytype   = USART_HOST_PARITY,
+ 259:test_sync_timers.c **** 		.stopbits     = USART_HOST_STOP_BITS
+ 260:test_sync_timers.c **** 	};
+ 261:test_sync_timers.c **** 
+ 262:test_sync_timers.c **** 	stdio_serial_init(USART_HOST, &usart_serial_options);
+ 1390               		.loc 6 262 0
+ 1391 0632 CE01      		movw r24,r28
+ 1392 0634 0196      		adiw r24,1
+ 1393 0636 BC01      		movw r22,r24
+ 1394 0638 80EC      		ldi r24,lo8(-64)
+ 1395 063a 90E0      		ldi r25,0
+ 1396 063c 0E94 0000 		call stdio_serial_init
+ 263:test_sync_timers.c **** 	usart_double_baud_enable(USART_HOST);
+ 1397               		.loc 6 263 0
+ 1398 0640 80EC      		ldi r24,lo8(-64)
+ 1399 0642 90E0      		ldi r25,0
+ 1400 0644 0E94 0000 		call usart_double_baud_enable
+ 264:test_sync_timers.c **** 	usart_set_baudrate_precalculated(USART_HOST, USART_HOST_BAUDRATE, sysclk_get_source_clock_hz());
+ 1401               		.loc 6 264 0
+ 1402 0648 0E94 0000 		call sysclk_get_source_clock_hz
+ 1403 064c DC01      		movw r26,r24
+ 1404 064e CB01      		movw r24,r22
+ 1405 0650 8C01      		movw r16,r24
+ 1406 0652 9D01      		movw r18,r26
+ 1407 0654 40E0      		ldi r20,0
+ 1408 0656 52EC      		ldi r21,lo8(-62)
+ 1409 0658 61E0      		ldi r22,lo8(1)
+ 1410 065a 70E0      		ldi r23,0
+ 1411 065c 80EC      		ldi r24,lo8(-64)
+ 1412 065e 90E0      		ldi r25,0
+ 1413 0660 0E94 0000 		call usart_set_baudrate_precalculated
+ 1414               	.L34:
+ 265:test_sync_timers.c **** 
+ 266:test_sync_timers.c **** 	for(;;)
+ 267:test_sync_timers.c **** 	{
+ 268:test_sync_timers.c **** 		SYS_TaskHandler();
+ 1415               		.loc 6 268 0 discriminator 1
+ 1416 0664 0E94 0000 		call SYS_TaskHandler
+ 269:test_sync_timers.c **** 		APP_TaskHandler();
+ 1417               		.loc 6 269 0 discriminator 1
+ 1418 0668 0E94 0000 		call APP_TaskHandler
+ 270:test_sync_timers.c **** 	}
+ 1419               		.loc 6 270 0 discriminator 1
+ 1420 066c 00C0      		rjmp .L34
+ 1421               		.cfi_endproc
+ 1422               	.LFE138:
+ 1424               	.Letext0:
+ 1425               		.file 7 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 1426               		.file 8 "../../../stack/LwMesh/TDMA/nwk/inc/nwkFrame.h"
+ 1427               		.file 9 "../../../stack/LwMesh/TDMA/nwk/inc/nwkRx.h"
+ 1428               		.file 10 "../../../stack/LwMesh/TDMA/nwk/inc/nwkDataReq.h"
+ 1429               		.file 11 "../../../platform/mega_rf/drivers/sleep/sleep.h"
+ 1430               		.file 12 "../../../platform/mega_rf/utils/status_codes.h"
+ 1431               		.file 13 "config/config.h"
+ 1432               		.file 14 "../../../platform/common/services/sleepmgr/mega_rf/sleepmgr.h"
 DEFINED SYMBOLS
-                            *ABS*:00000000 teste_envio.c
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:2      *ABS*:0000003e __SP_H__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:3      *ABS*:0000003d __SP_L__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:4      *ABS*:0000003f __SREG__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:5      *ABS*:0000003b __RAMPZ__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:6      *ABS*:00000000 __tmp_reg__
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:7      *ABS*:00000001 __zero_reg__
+                            *ABS*:00000000 test_sync_timers.c
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:2      *ABS*:0000003e __SP_H__
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:3      *ABS*:0000003d __SP_L__
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:4      *ABS*:0000003f __SREG__
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:7      *ABS*:00000001 __zero_reg__
                             *COM*:00000001 n
                             *COM*:00000004 tTS
                             *COM*:00000002 macLLDNnumTimeSlots
                             *COM*:00000002 macLLDNnumUplinkTS
                             *COM*:00000002 macLLDNRetransmitTS
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:17     .text:00000000 sysclk_get_main_hz
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:54     .text:0000001a sysclk_get_source_clock_hz
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:91     .progmem.data.baudctrl_1mhz:00000000 baudctrl_1mhz
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:103    .progmem.data.baudctrl_8mhz:00000000 baudctrl_8mhz
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:115    .progmem.data.baudctrl_16mhz:00000000 baudctrl_16mhz
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:126    .text:00000034 usart_double_baud_enable
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:175    .text:00000062 usart_serial_init
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:270    .text:000000de usart_serial_putchar
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:314    .text:00000106 usart_serial_getchar
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:365    .text:0000013c stdio_serial_init
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:436    .text:0000019e macsc_read32
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:519    .text:00000208 macsc_write_count
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:598    .text:00000270 macsc_read_count
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:641    .text:0000029a macsc_read_bts
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:684    .text:000002c4 macsc_enable_manual_bts
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:737    .data.data_payload:00000000 data_payload
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:743    .bss.appState:00000000 appState
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:748    .bss.PanId:00000000 PanId
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:753    .bss.msgReq:00000000 msgReq
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:758    .data.msgDiscResponse:00000000 msgDiscResponse
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:765    .data.msgConfigStatus:00000000 msgConfigStatus
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:774    .data.msgReqDiscResponse:00000000 msgReqDiscResponse
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:787    .data.msgReqConfigStatus:00000000 msgReqConfigStatus
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:800    .data.msgReqData:00000000 msgReqData
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:817    .text:000002f8 appCommandInd
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:905    .bss.tmrInit:00000000 tmrInit
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:909    .text:00000372 tmrDelayHandler
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:992    .text:000003de disc_time_hndlr
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:1041   .text:00000414 config_time_hndlr
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:1079   .text:00000434 online_time_hndlr
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:1113   .text:0000044c APP_TaskHandler
-C:\Users\GUILHE~1\AppData\Local\Temp\ccpNxIPD.s:1197   .text:000004aa main
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:17     .text:00000000 sysclk_get_main_hz
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:54     .text:0000001a sysclk_get_source_clock_hz
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:91     .progmem.data.baudctrl_1mhz:00000000 baudctrl_1mhz
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:103    .progmem.data.baudctrl_8mhz:00000000 baudctrl_8mhz
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:115    .progmem.data.baudctrl_16mhz:00000000 baudctrl_16mhz
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:126    .text:00000034 usart_double_baud_enable
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:175    .text:00000062 usart_serial_init
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:270    .text:000000de usart_serial_putchar
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:314    .text:00000106 usart_serial_getchar
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:365    .text:0000013c stdio_serial_init
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:436    .text:0000019e macsc_read32
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:519    .text:00000208 macsc_read_count
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:562    .text:00000232 macsc_enable_manual_bts
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:615    .bss.state:00000000 state
+                            *COM*:00000008 rec_beacon
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:621    .bss.msgReq:00000000 msgReq
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:626    .bss.PanId:00000000 PanId
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:632    .bss.beaconInterval_association:00000000 beaconInterval_association
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:638    .bss.counter:00000000 counter
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:644    .bss.media:00000000 media
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:650    .bss.be_read:00000000 be_read
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:656    .bss.anterior:00000000 anterior
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:662    .bss.tmr_read:00000000 tmr_read
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:668    .bss.beacon_tmr:00000000 beacon_tmr
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:674    .bss.beacon_received:00000000 beacon_received
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:680    .data.error:00000000 error
+                            *COM*:00000002 msg_wait_time
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:688    .text:00000266 lldn_server_beacon
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:780    .text:000002ea time_slot
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:821    .text:00000310 send
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:863    .text:00000338 node_time_handler
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:909    .text:00000366 appBeaconInd
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:1006   .text:000003f0 appBeaconInd_2
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:1085   .text:00000454 appInit
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:1270   .text:000005ca APP_TaskHandler
+C:\Users\GUILHE~1\AppData\Local\Temp\cconLJCd.s:1328   .text:000005f4 main
 
 UNDEFINED SYMBOLS
 usart_init_rs232
@@ -3042,16 +3185,27 @@ ptr_get
 _read
 _write
 fdevopen
-printf
-SYS_TimerStop
 NWK_DataReq
-macsc_set_cmp1_int_cb
+printf
+putchar
+macsc_set_cmp2_int_cb
+macsc_disable_cmp_int
+__floatsisf
+__addsf3
+__divsf3
+__mulsf3
+__fixunssfsi
 NWK_SetAddr
 PHY_SetChannel
 PHY_SetRxState
+NWK_SetPanId
 PHY_SetTdmaMode
-PHY_SetPromiscuousMode
+macsc_set_cmp1_int_cb
+macsc_set_cmp3_int_cb
+macsc_enable_cmp_int
+macsc_use_cmp
 NWK_OpenEndpoint
+PHY_SetPromiscuousMode
 sysclk_init
 board_init
 SYS_Init

@@ -416,6 +416,7 @@ void PHY_TaskHandler(void)
 
 			if (TRAC_STATUS_SUCCESS == status) {
 				status = PHY_STATUS_SUCCESS;
+				
 			} else if (TRAC_STATUS_CHANNEL_ACCESS_FAILURE ==
 					status) {
 				status = PHY_STATUS_CHANNEL_ACCESS_FAILURE;
