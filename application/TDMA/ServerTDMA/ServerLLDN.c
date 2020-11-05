@@ -89,23 +89,10 @@ static uint8_t PanId;
 												 .conf.macLLDNmgmtTS = MacLLDNMgmtTS };
 
 
-// 	for(int i = 0; i < 32; i++)
-// 	{
-// 		ACKFrame.ackFlags[i] = 0;
-// 		retransmit_ts_array[i] = 0;
-// 	}
-// 	retransmit_ts_array_counter = 0;
-// 	ACKFrame_size = 0;
-// 	
-// 											 					
-// 	msgReq.dstAddr		= 0;
-// 	msgReq.dstEndpoint	= APP_BEACON_ENDPOINT;
-// 	msgReq.srcEndpoint	= APP_BEACON_ENDPOINT;
-// 	msgReq.options		= NWK_OPT_LLDN_ACK;
-// 	msgReq.data	= (uint8_t *)&ACKFrame;
-// 	m_
-	nodes_info_list_t *conf_req_list = NULL;
 
+	nodes_info_list_t *conf_req_list = NULL;
+	uint8_t stack_conf_req[20];
+	
 	/* Acknowledge Frame and Array */
 	NWK_ACKFormat_t ACKFrame;	
 	NWK_ACKFormat_t ACKFrame_aux;
@@ -123,7 +110,6 @@ static uint8_t PanId;
 	
 	/*  Control variables for testing */	
 	int assTimeSlot = 0;
-	uint8_t timeslot_counter = 0;
 
 	int counter_associados = 0;		// Associated nodes counter
 	uint8_t cycles_counter = macLLDNdiscoveryModeTimeout;
@@ -220,6 +206,7 @@ static uint8_t PanId;
 		nodes_info_arr[i].mac_addr = node->macAddr;
 		nodes_info_arr[i].assigned_time_slot = (uint8_t)i;
 		
+// 		stack_conf_req
 		if(conf_req_list != NULL)
 		{
 			nodes_info_list_t *tmp = (nodes_info_list_t*)malloc(sizeof(nodes_info_list_t));
@@ -235,8 +222,10 @@ static uint8_t PanId;
 		}
 	}
 
-	static void CopyToConfigRequest()
+	static bool CopyToConfigRequest()
 	{
+		if(conf_req_list->node == NULL)
+			return false;
 		config_request_frame.assTimeSlot = conf_req_list->node->assigned_time_slot;
 		config_request_frame.macAddr = conf_req_list->node->mac_addr;
 		nodes_info_list_t *tmp = conf_req_list;
@@ -244,11 +233,13 @@ static uint8_t PanId;
 		tmp->node = NULL;
 		tmp->next = NULL;
 		free(tmp);
+		return true;
 	}
 
 
 	static bool appCommandInd(NWK_DataInd_t *ind)
 	{
+		if(n <127) return false;
 		if(ind->data[0] == LL_DISCOVER_RESPONSE)
 		{
 			NWK_DiscoverResponse_t *msg = (NWK_DiscoverResponse_t*)ind->data;
@@ -374,7 +365,6 @@ static uint8_t PanId;
 			for (int j = 0; j < 50; j++)
 				nodes_info_arr[i].neighbors[j] = 0;
 		}
-		// assTimeSlot = MacLLDNMgmtTS * 2;	
 		ACKFrame_size = 0;
 		counter_associados = 0;
 		macLLDNnumUplinkTS = 0;
@@ -465,7 +455,6 @@ static uint8_t PanId;
 
 	static void appPanOnlineInit()
 	{
-			timeslot_counter = 0;
 			
 			macLLDNnumUplinkTS = (assTimeSlot) * 2 + 1;
 			macLLDNRetransmitTS = assTimeSlot;
@@ -564,7 +553,6 @@ static uint8_t PanId;
 	uint8_t STATE = DISC_MODE;
 	int tmr_error = 0;
 	float delta_error = 0;
-	int timeslot_counter = 0;
 	bool beacon_tmr = false;
 	uint32_t be_read = 0;
 	uint32_t tmr_read= 0;
@@ -875,7 +863,7 @@ static void APP_TaskHandler(void)
 					 * this implementation was done as is to be used in tests, for real network functionality 
 					 * the number of max association processes must be done through macLLDNdiscoveryModeTimeout
 					 */
-					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 7)
+					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 12)
 					{	
 						printf("\n%d, %d", cycles_counter, counter_associados);
 						counter_associados = 0;
@@ -955,7 +943,8 @@ static void APP_TaskHandler(void)
 				{
 					if(conf_req_list != NULL)
 					{
-						CopyToConfigRequest();
+						if(CopyToConfigRequest())
+						{
 						msgReq.options		= NWK_OPT_MAC_COMMAND;
 						msgReq.data			= (uint8_t*)&config_request_frame;
 						msgReq.size			= sizeof(NWK_ConfigRequest_t);
@@ -963,6 +952,11 @@ static void APP_TaskHandler(void)
 						appPanState = APP_PAN_STATE_SEND_CONF_REQUEST;
 // 						printf("  assts %d %hhx",config_request_frame.assTimeSlot,  config_request_frame.macAddr);
 						// Delay between messages
+						}
+						else
+						{
+							msgReq.options = 0;
+						}
 						macsc_set_cmp1_int_cb(downlink_delay_handler);
 						macsc_disable_cmp_int(MACSC_CC1);
 						macsc_enable_manual_bts();
@@ -973,6 +967,8 @@ static void APP_TaskHandler(void)
 					}
 					else
 					{
+						msgReq.options = 0;
+
 						if(counter_delay_msg > 0)
 						{
 							macsc_set_cmp1_int_cb(lldn_server_beacon);

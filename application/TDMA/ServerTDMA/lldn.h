@@ -23,7 +23,6 @@ typedef enum {
 } AppState_t;
 
 
-float received_packets = 0;
 
 #if APP_COORDINATOR
 	#define DELAY 75 // symbols
@@ -34,7 +33,6 @@ float received_packets = 0;
 
 
 	typedef enum {
-		APP_PAN_STATE_IDLE,
 		APP_PAN_STATE_RESET,
 		APP_PAN_STATE_DISC_INITIAL,
 		APP_PAN_STATE_DISC_SECOND_BE,
@@ -48,6 +46,8 @@ float received_packets = 0;
 		APP_PAN_STATE_ONLINE_PREPARE_ACK,
 		APP_PAN_STATE_CHECK_TS,
 		APP_PAN_STATE_ONLINE_PREPARE_ACK_GROUP,
+				APP_PAN_STATE_IDLE,
+
 	} AppPanState_t;
 	
 	typedef struct nodes_info_t{
