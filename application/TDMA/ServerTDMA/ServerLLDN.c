@@ -66,7 +66,7 @@ static uint8_t PanId;
 	{
 		NWK_DataReq(&msgReq);
 		#if PRINT
-		printf("\nREQ %d",msgReq.options);
+		//printf("\nREQ %d",msgReq.options);
 		#endif
 	#if !APP_COORDINATOR
 			macsc_set_cmp2_int_cb(0);
@@ -77,7 +77,7 @@ static uint8_t PanId;
 #if APP_COORDINATOR
 
 	#define NODOS_ASSOCIADOS_ESPERADOS 12
-	
+	int accepting_requests = 1;
 	AppPanState_t appPanState = APP_PAN_STATE_RESET; // Initial state of PAN node
 	
 	/* Configuration Request Frames */
@@ -187,7 +187,7 @@ static uint8_t PanId;
 		ACKFrame.ackFlags[pos] |= 1 << bit_shift;
 		if (pos + 1 > ACKFrame_size)
 			ACKFrame_size = pos + 1;
-		
+		// printf("ACK, %hhx", ACKFrame.ackFlags[pos]);
 		return true;
 	}
 
@@ -239,7 +239,8 @@ static uint8_t PanId;
 
 	static bool appCommandInd(NWK_DataInd_t *ind)
 	{
-		if(n <127) return false;
+		if(!accepting_requests) return false;
+		// if(n <127) return false;
 		if(ind->data[0] == LL_DISCOVER_RESPONSE)
 		{
 			NWK_DiscoverResponse_t *msg = (NWK_DiscoverResponse_t*)ind->data;
@@ -248,7 +249,7 @@ static uint8_t PanId;
 			#if PRINT
 			uint32_t tmp = macsc_read_count();
 // 			printf("\n%" PRIu32 " ", tmp);			
-// 			printf(" DISC %hhx", msg->macAddr);	
+ 			// printf(" DISC %hhx", msg->macAddr);	
 			#endif
 		}
 		else if(ind->data[0] == LL_CONFIGURATION_STATUS)
@@ -256,7 +257,7 @@ static uint8_t PanId;
 			NWK_ConfigStatus_t *msg = (NWK_ConfigStatus_t*)ind->data;
 			addConfRequestArray(msg);
 			#if PRINT
-// 			printf("\nCONF %d", msg->macAddr);	
+			// printf("\nCONF %d", msg->macAddr);	
 			#endif
 		}
 		else return false;			
@@ -308,7 +309,7 @@ static uint8_t PanId;
 					curr_up_ts--;
 				}
 			}
-			curr_up_ts = i;
+			curr_up_ts = i-1*(i!=0);
 		}
 	
 		nodes_info_arr[curr_up_ts].rssi = ind->rssi;
@@ -318,13 +319,13 @@ static uint8_t PanId;
 
 		addToAckArray(curr_up_ts+1);
 		#if PRINT
-// 		printf("\n[%d] Data: ", curr_up_ts);
+ 		//printf("\n[%d] Data: ", curr_up_ts);
 		#endif
 		for (int i = 0; i < ind->size; i++)
 		{
 			msg_info_array[curr_up_ts].data_payload[i] = ind->data[i];
 			#if PRINT
-// 			printf("%hhx", msg_info_array[curr_up_ts].data_payload[i]);
+ 			//printf("%hhx", msg_info_array[curr_up_ts].data_payload[i]);
 			#endif
 		}		
 // 		printf(" cmp %d", relative_cmp);
@@ -386,7 +387,7 @@ static uint8_t PanId;
 		msgReq.size					= 0;
 		
 		macLLDNnumTimeSlots = 2;
-		
+		accepting_requests = 1;
 		/* Only start timers if it is the first association process */
 		if(cycles_counter == 0) 
 		{
@@ -876,6 +877,7 @@ static void APP_TaskHandler(void)
 						for(int i = 0; i < 32; i++)
 						ACKFrame.ackFlags[i] = 0;
 						ACKFrame_size = 0;
+						accepting_requests = 0;
 						appState = APP_STATE_ATT_PAN_STATE;
 						appPanState = APP_PAN_STATE_ONLINE_INITIAL; // APP_PAN_STATE_ONLINE_INIT
 						cycles_counter = NUMERO_CICLOS_ONLINE;
@@ -897,7 +899,7 @@ static void APP_TaskHandler(void)
 					msgReq.data = NULL;
 					msgReq.size = 0;
 					
-					appState	= APP_PAN_STATE_DISC_PREPARE_ACK;
+					appState	= APP_STATE_IDLE;
 					appPanState = APP_PAN_STATE_DISC_PREPARE_ACK;
 					break;
 				}
@@ -907,7 +909,8 @@ static void APP_TaskHandler(void)
 					 * if not used the nodes are not able to receive the message
 					 */
 					appPanPrepareACK();
-					SYS_TimerStart(&tmrDelay);
+					appState = APP_STATE_SEND;
+					// SYS_TimerStart(&tmrDelay);
 					
 					appPanState = APP_PAN_STATE_CONFIG_INITIAL;
 					appState = APP_STATE_IDLE;
@@ -1031,7 +1034,7 @@ static void APP_TaskHandler(void)
 						{
 							PLR = 1 - total_msg / expected_messages;
 							PER = uplink_lost_packets / expected_messages;
-							printf("\nPLR , %.3f\nPER , %.3f", PLR, PER);
+							printf("\nPLR , %.3f\nPER , %.3f, total_de_mensagens %d", PLR, PER, total_msg);
 							
 						}
 					}
