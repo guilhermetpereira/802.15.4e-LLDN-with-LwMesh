@@ -176,9 +176,17 @@ static uint8_t PanId;
 	
 	static bool addToAckArray(uint8_t addres)
 	{	
-		int pos =(int) addres / 8;
-		int bit_shift = 8 - (addres % 8);
-		
+		int pos,bit_shift;
+		if(addres == 8)
+		{
+			pos = 0;
+			bit_shift = 0;
+		}
+		else
+		{
+			pos =  addres / 8;
+			bit_shift = 8 - addres % 8;
+		}
 		if(ACKFrame.ackFlags[pos] & 1 << bit_shift)
 		{
 			// printf("\nAddr rep %d", addres);
@@ -266,9 +274,17 @@ static uint8_t PanId;
 	
 	bool check_ack_pan(int addr)
 	{
-		int pos =  addr / 8;
-		int bit_shift = 8 - addr % 8;
-		
+		int pos,bit_shift;
+		if(addr == 8)
+		{
+			pos = 0;
+			bit_shift = 0;
+		}
+		else
+		{
+			pos =  addr / 8;
+			bit_shift = 8 - addr % 8;
+		}
 		if( ACKFrame.ackFlags[pos] & 1 << bit_shift)
 		{
 			return true;
@@ -279,9 +295,17 @@ static uint8_t PanId;
 	
 	bool check_ack_aux(int addr)
 	{
-		int pos =  addr / 8;
-		int bit_shift = 8 - addr % 8;
-		
+		int pos,bit_shift;
+		if(addr == 8)
+		{
+			pos = 0;
+			bit_shift = 0;
+		}
+		else
+		{
+			pos =  addr / 8;
+			bit_shift = 8 - addr % 8;
+		}
 		if( ACKFrame_aux.ackFlags[pos] & 1 << bit_shift)
 		{
 			return true;
@@ -647,8 +671,17 @@ static uint8_t PanId;
 	
 	bool check_ack(int addr)
 	{
-		int pos =  addr / 8;
-		int bit_shift = 8 - addr % 8;
+		int pos,bit_shift;
+		if(addr == 8)
+		{
+			pos = 0;
+			bit_shift = 0;
+		}
+		else
+		{
+			pos =  addr / 8;
+			bit_shift = 8 - addr % 8;
+		}
 		printf("\n ack rec %hhx ", ackframe->ackFlags[pos]);
 		if( ackframe->ackFlags[pos] & 1 << bit_shift)
 		{
@@ -667,7 +700,7 @@ static uint8_t PanId;
 
 		if(PanId == ackframe->sourceId)
 		{
-			if(STATE == ONLINE_MODE)
+			if(STATE == ONLINE_MODE && rec_beacon.Flags.txState == ONLINE_MODE)
 			{
 				ack_received = check_ack(assTimeSlot + 1);
 				if(!ack_received)
