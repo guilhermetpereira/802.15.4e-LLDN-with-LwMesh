@@ -127,14 +127,16 @@ void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 {
 	NwkFrame_t *frame;
 	/* implementar contador */
-	
+// 	if(ind->size > 50)
+// 		return false;
 	// check frame control for a LL-Beacon frame
-
-// 		for (int i = 0; i < ind->size; i++)
-// 		{
-// 			printf("\ndata[%d] %hhx", i,ind->data[i]);
 // 
-// /  		}
+	printf("\n");
+		for (int i = 0; i < ind->size; i++)
+		{
+			printf("%hhx ", ind->data[i]);
+
+  		}
 
 	if(0x0c == ind->data[0])
 	{

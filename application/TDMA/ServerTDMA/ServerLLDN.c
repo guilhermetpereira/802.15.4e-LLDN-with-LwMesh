@@ -178,7 +178,12 @@ static uint8_t PanId;
 	{	
 		int pos =(int) addres / 8;
 		int bit_shift = 8 - (addres % 8);
-		
+// 		if(addres == 8)
+// 		{
+// 			pos = 0;
+// 			bit_shift = 0;
+// 			printf("\nadddr=8");
+// 		}
 		if(ACKFrame.ackFlags[pos] & 1 << bit_shift)
 		{
 			// printf("\nAddr rep %d", addres);
@@ -205,7 +210,6 @@ static uint8_t PanId;
 		nodes_info_arr[i].req_timeslot_duration = node->ts_dir.tsDuration;
 		nodes_info_arr[i].mac_addr = node->macAddr;
 		nodes_info_arr[i].assigned_time_slot = (uint8_t)i;
-		
 // 		stack_conf_req
 		if(conf_req_list != NULL)
 		{
@@ -311,7 +315,8 @@ static uint8_t PanId;
 			}
 			curr_up_ts = i-1*(i!=0);
 		}
-	
+// 		if(nodes_info_arr[curr_up_ts].mac_addr != ind->data[0])
+// 			return false;	
 		nodes_info_arr[curr_up_ts].rssi = ind->rssi;
 		nodes_info_arr[curr_up_ts].average_rssi = (nodes_info_arr[curr_up_ts].rssi + nodes_info_arr[curr_up_ts].average_rssi*nodes_info_arr[curr_up_ts].msg_rec)
 																				/(nodes_info_arr[curr_up_ts].msg_rec + 1);
@@ -378,6 +383,8 @@ static uint8_t PanId;
 		for(int i = 0; i < 32; i++)
 			ACKFrame.ackFlags[i] = 0;
 		ACKFrame_size = 0;
+
+
 		/* Prepare Beacon Message as first beacon in discovery state */		
 		msgReq.dstAddr				= 0;
 		msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
@@ -391,12 +398,15 @@ static uint8_t PanId;
 		/* Only start timers if it is the first association process */
 		if(cycles_counter == 0) 
 		{
+
+
 			
 		/* Calculates Beacon Intervals according to 802.15.4e - 2012 p. 70 */
 		n = 127; 
 		tTS =  ((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var);
 		#if (MASTER_MACSC == 1)
 		
+
 			beaconInterval_association = 2 * numBaseTimeSlotperMgmt_association * (tTS) / (SYMBOL_TIME);
 			#if PRINT
 // 			printf("\n Beacon interval %f", beaconInterval_association);
@@ -649,6 +659,11 @@ static uint8_t PanId;
 	{
 		int pos =  addr / 8;
 		int bit_shift = 8 - addr % 8;
+// 		if(addr == 8)
+// 		{
+// 			pos = 0;
+// 			bit_shift = 0;
+// 		}
 		printf("\n ack rec %hhx ", ackframe->ackFlags[pos]);
 		if( ackframe->ackFlags[pos] & 1 << bit_shift)
 		{
@@ -667,7 +682,7 @@ static uint8_t PanId;
 
 		if(PanId == ackframe->sourceId)
 		{
-			if(STATE == ONLINE_MODE)
+			if(STATE == ONLINE_MODE /*&& rec_beacon.Flags.txState == ONLINE_MODE*/)
 			{
 				ack_received = check_ack(assTimeSlot + 1);
 				if(!ack_received)
@@ -706,7 +721,10 @@ static uint8_t PanId;
 			{
 				ack_received = check_ack(APP_ADDR);								
 				if(STATE == DISC_MODE && ack_received)
+				{
+					printf("\nOK on conf");
 					STATE = CONFIG_MODE;
+				}
 			}
 		}
 		return true;
@@ -714,10 +732,7 @@ static uint8_t PanId;
 	
 	static bool appCommandInd(NWK_DataInd_t *ind)
 	{
-		#if !MASTER_MACSC
-		ind->data = ind->data - (uint8_t) 1;
-		#endif
-		
+		printf("\n Command ind");
 		if(ind->data[0] == LL_CONFIGURATION_REQUEST)
 		{
 			NWK_ConfigRequest_t *msg = (NWK_ConfigRequest_t*)ind->data;
@@ -864,7 +879,7 @@ static void APP_TaskHandler(void)
 					 * this implementation was done as is to be used in tests, for real network functionality 
 					 * the number of max association processes must be done through macLLDNdiscoveryModeTimeout
 					 */
-					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 12)
+					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 4)
 					{	
 						printf("\n%d, %d", cycles_counter, counter_associados);
 						counter_associados = 0;
