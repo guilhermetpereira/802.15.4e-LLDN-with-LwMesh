@@ -28,7 +28,7 @@ typedef enum {
 	#define DELAY 75 // symbols
 	#define MacLLDNMgmtTS 0x01
 
-	#define NUMERO_CICLOS_ONLINE 21
+	#define NUMERO_CICLOS_ONLINE 11
 	#define GROUP_ACK 0
 
 

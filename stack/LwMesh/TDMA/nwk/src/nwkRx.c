@@ -129,7 +129,7 @@ void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 	/* implementar contador */
 	
 	// check frame control for a LL-Beacon frame
-// 	printf("\n");
+	printf("\n");
 
 // 	for (int i = 0; i < ind->size; i++)
 // 	{

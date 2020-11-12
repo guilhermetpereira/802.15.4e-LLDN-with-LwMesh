@@ -66,6 +66,8 @@ static uint8_t PanId;
 	{
 		NWK_DataReq(&msgReq);
 		#if PRINT
+		if(msgReq.options & NWK_OPT_ONLINE_STATE)
+			printf("\n  BEACON ");
 		//printf("\nREQ %d",msgReq.options);
 		#endif
 	#if !APP_COORDINATOR
@@ -203,6 +205,13 @@ static uint8_t PanId;
 	{
 
 		uint8_t i;
+		for (int j = 0; j <= assTimeSlot ; j++)
+		{
+			if (nodes_info_arr[j].mac_addr == node->macAddr)
+			{	
+				return false;
+			}
+		}
 		for (i= 0;i < 256 && nodes_info_arr[i].mac_addr != 0; i++);
 		
 		assTimeSlot++;
@@ -336,6 +345,8 @@ static uint8_t PanId;
 			curr_up_ts = i-1*(i!=0);
 		}
 	
+		if(nodes_info_arr[curr_up_ts].mac_addr != ind->data[0])
+			return false;
 		nodes_info_arr[curr_up_ts].rssi = ind->rssi;
 		nodes_info_arr[curr_up_ts].average_rssi = (nodes_info_arr[curr_up_ts].rssi + nodes_info_arr[curr_up_ts].average_rssi*nodes_info_arr[curr_up_ts].msg_rec)
 																				/(nodes_info_arr[curr_up_ts].msg_rec + 1);
@@ -343,13 +354,13 @@ static uint8_t PanId;
 
 		addToAckArray(curr_up_ts+1);
 		#if PRINT
- 		//printf("\n[%d] Data: ", curr_up_ts);
+ 		printf("\n[%d] Data: ", curr_up_ts);
 		#endif
 		for (int i = 0; i < ind->size; i++)
 		{
 			msg_info_array[curr_up_ts].data_payload[i] = ind->data[i];
 			#if PRINT
- 			//printf("%hhx", msg_info_array[curr_up_ts].data_payload[i]);
+ 			printf("%hhx", msg_info_array[curr_up_ts].data_payload[i]);
 			#endif
 		}		
 // 		printf(" cmp %d", relative_cmp);
@@ -399,9 +410,7 @@ static uint8_t PanId;
 	static void appPanDiscInit(void)
 	{	
 		/* clearray of previous discovery state */
-		for(int i = 0; i < 32; i++)
-			ACKFrame.ackFlags[i] = 0;
-		ACKFrame_size = 0;
+
 		/* Prepare Beacon Message as first beacon in discovery state */		
 		msgReq.dstAddr				= 0;
 		msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
@@ -415,7 +424,9 @@ static uint8_t PanId;
 		/* Only start timers if it is the first association process */
 		if(cycles_counter == 0) 
 		{
-			
+		for(int i = 0; i < 32; i++)
+		ACKFrame.ackFlags[i] = 0;
+		ACKFrame_size = 0;
 		/* Calculates Beacon Intervals according to 802.15.4e - 2012 p. 70 */
 		n = 127; 
 		tTS =  ((p_var*sp + (m+n)*sm + macMinLIFSPeriod)/v_var);
@@ -897,7 +908,7 @@ static void APP_TaskHandler(void)
 					 * this implementation was done as is to be used in tests, for real network functionality 
 					 * the number of max association processes must be done through macLLDNdiscoveryModeTimeout
 					 */
-					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 12)
+					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 8)
 					{	
 						printf("\n%d, %d", cycles_counter, counter_associados);
 						counter_associados = 0;
