@@ -165,7 +165,6 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 		frame->LLbeacon.TimeSlotSize = n; 
 		frame->LLbeacon.NumberOfBaseTimeslotsinSuperframe = macLLDNnumTimeSlots;
 		
-		uint8_t* shortAddr = (uint8_t* )APP_PANID;
 		frame->LLbeacon.PanId = APP_PANID;
 		// set Frame Control, Security Header and Sequence Number fields
 	}

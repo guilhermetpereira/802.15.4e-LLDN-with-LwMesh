@@ -131,13 +131,13 @@ void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 	// check frame control for a LL-Beacon frame
 	
 	if(ind->size > 25)
-	return false;
-printf("\n");
-	for (int i = 0; i < ind->size; i++)
-	{
-		printf("%hhx",ind->data[i]);
-	}
-
+	return;
+// 	printf("\n");
+// 	for (int i = 0; i < ind->size; i++)
+// 	{
+// 		printf("%hhx",ind->data[i]);
+// 	}
+// 	
 	if(0x0c == ind->data[0])
 	{
 		if(ind->size < sizeof(NwkFrameBeaconHeaderLLDN_t))
@@ -619,7 +619,6 @@ static bool nwkRxIndicateLLCommandFrame(NwkFrame_t *frame)
 {
 	
 	
-	NwkFrameGeneralHeaderLLDN_t *header = &frame->LLgeneral;
 	NWK_DataInd_t ind;
 
 	frame->state = NWK_RX_STATE_FINISH;
@@ -650,7 +649,6 @@ static bool nwkRxIndicateLLCommandFrame(NwkFrame_t *frame)
 
 static bool nwkRxIndicateLLDataFrame(NwkFrame_t *frame)
 {		
-	NwkFrameGeneralHeaderLLDN_t *header = &frame->LLgeneral;
 	NWK_DataInd_t ind;
 
 	frame->state = NWK_RX_STATE_FINISH;
@@ -682,7 +680,6 @@ static bool nwkRxIndicateLLDataFrame(NwkFrame_t *frame)
 static bool nwkRxIndicateLLACKFrame(NwkFrame_t *frame)
 {
 	
-		NwkFrameGeneralHeaderLLDN_t *header = &frame->LLgeneral;
 	NWK_DataInd_t ind;
 
 	frame->state = NWK_RX_STATE_FINISH;

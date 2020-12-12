@@ -66,8 +66,8 @@ static uint8_t PanId;
 	{
 		NWK_DataReq(&msgReq);
 		#if PRINT
-		if(msgReq.options & NWK_OPT_ONLINE_STATE)
-			printf("\n  BEACON ");
+// 		if(msgReq.options & NWK_OPT_ONLINE_STATE)
+// 			printf("\n  BEACON ");
 		//printf("\nREQ %d",msgReq.options);
 		#endif
 	#if !APP_COORDINATOR
@@ -129,6 +129,8 @@ static uint8_t PanId;
 	
 	int counter_delay_msg = 0;
 	uint32_t cmp_value_start_superframe = 0;
+	float count_up = 0;
+	float count_lost_superframe = 0;
 	
 	static NWK_DataReq_t msgReqGACK = { .dstAddr = 0,
 										.dstEndpoint = APP_BEACON_ENDPOINT,
@@ -136,14 +138,6 @@ static uint8_t PanId;
 										.options = NWK_OPT_LLDN_ACK,
 										.data = (uint8_t*)&ACKFrame};
 
-	
-	static void tmrDelayHandler(SYS_Timer_t *timer)
-	{
-		#if PRINT
-		// printf("\ndelay handler");
-		#endif
-		appState = APP_STATE_SEND;
-	}
 	
 	static void lldn_server_beacon(void)
 	{
@@ -161,12 +155,7 @@ static uint8_t PanId;
 		}
 	}
 
-	static void end_of_association_delay_handler(void)
-	{
-		appState = APP_STATE_ATT_PAN_STATE;
-		appPanState = APP_PAN_STATE_ONLINE_INITIAL;
-	}
-	
+
 	#if TIMESLOT_TIMER
 	static void teste_handler(void)
 	{
@@ -209,7 +198,7 @@ static uint8_t PanId;
 		{
 			if (nodes_info_arr[j].mac_addr == node->macAddr)
 			{	
-				return false;
+				return;
 			}
 		}
 		for (i= 0;i < 256 && nodes_info_arr[i].mac_addr != 0; i++);
@@ -237,9 +226,10 @@ static uint8_t PanId;
 			conf_req_list->node = &nodes_info_arr[i];
 			conf_req_list->next = NULL;
 		}
+		return;
 	}
 
-	static bool CopyToConfigRequest()
+	static bool CopyToConfigRequest(void)
 	{
 		if(conf_req_list->node == NULL)
 			return false;
@@ -261,10 +251,12 @@ static uint8_t PanId;
 		if(ind->data[0] == LL_DISCOVER_RESPONSE)
 		{
 			NWK_DiscoverResponse_t *msg = (NWK_DiscoverResponse_t*)ind->data;
+			if(msg->macAddr > 0x0F)
+			return false;
 			addToAckArray(msg->macAddr);	
 					
 			#if PRINT
-			uint32_t tmp = macsc_read_count();
+			//uint32_t tmp = macsc_read_count();
 // 			printf("\n%" PRIu32 " ", tmp);			
  			// printf(" DISC %hhx", msg->macAddr);	
 			#endif
@@ -272,6 +264,8 @@ static uint8_t PanId;
 		else if(ind->data[0] == LL_CONFIGURATION_STATUS)
 		{
 			NWK_ConfigStatus_t *msg = (NWK_ConfigStatus_t*)ind->data;
+			if(msg->macAddr > 0x0F)
+			return false;
 			addConfRequestArray(msg);
 			#if PRINT
 			// printf("\nCONF %d", msg->macAddr);	
@@ -351,18 +345,19 @@ static uint8_t PanId;
 		nodes_info_arr[curr_up_ts].average_rssi = (nodes_info_arr[curr_up_ts].rssi + nodes_info_arr[curr_up_ts].average_rssi*nodes_info_arr[curr_up_ts].msg_rec)
 																				/(nodes_info_arr[curr_up_ts].msg_rec + 1);
 		nodes_info_arr[curr_up_ts].msg_rec++;
-
+	count_up++;
 		addToAckArray(curr_up_ts+1);
 		#if PRINT
- 		printf("\n[%d] Data: ", curr_up_ts);
+//  		printf("\n[%d] Data: ", curr_up_ts);
 		#endif
 		for (int i = 0; i < ind->size; i++)
 		{
 			msg_info_array[curr_up_ts].data_payload[i] = ind->data[i];
 			#if PRINT
- 			printf("%hhx", msg_info_array[curr_up_ts].data_payload[i]);
+//  			printf("%hhx", msg_info_array[curr_up_ts].data_payload[i]);
 			#endif
 		}		
+		return true;
 // 		printf(" cmp %d", relative_cmp);
 	}
 	
@@ -485,6 +480,7 @@ static uint8_t PanId;
 				if(!check_ack_pan(i+1))
 				{
 					nodes_info_arr[i].msg_not_rec++;
+					count_lost_superframe++;
 			}
 		}
 	}
@@ -499,7 +495,7 @@ static uint8_t PanId;
 // 			printf("\nmacLLDNnumUplinkTS : %d\nmacLLDNRetransmitTS : %d\nmacLLDNnumTimeSlots : %d",macLLDNnumUplinkTS,macLLDNRetransmitTS,macLLDNnumTimeSlots );
 			
 			config_request_frame.conf.tsDuration = 75;
-			
+
 			tTS =  ((p_var*sp + (m+ config_request_frame.conf.tsDuration )*sm + macMinLIFSPeriod)/v_var);
 				
 			n = config_request_frame.conf.tsDuration;
@@ -536,7 +532,12 @@ static uint8_t PanId;
 			}
 			retransmit_ts_array_counter = 0;
 			ACKFrame_size = 0;
-			
+			if (cycles_counter < NUMERO_CICLOS_ONLINE-1)
+			{
+				printf("\n%.3f %.3f",/*PER*/ count_lost_superframe/assTimeSlot , /*PLR*/1 - count_up/assTimeSlot);
+				count_up = 0;
+				count_lost_superframe = 0;
+			}
 			NWK_OpenEndpoint(APP_DATA_ENDPOINT, appDataInd);
 	}
 
@@ -826,10 +827,10 @@ static void appInit(void)
 		
 	#if APP_COORDINATOR	 
 		/* Timer used for delay between messages */
-		tmrDelay.interval = 1;
-		tmrDelay.mode = SYS_TIMER_INTERVAL_MODE;
-		tmrDelay.handler = tmrDelayHandler;
-	  
+// 		tmrDelay.interval = 1;
+// 		tmrDelay.mode = SYS_TIMER_INTERVAL_MODE;
+// 		tmrDelay.handler = tmrDelayHandler;
+// 	  
 		/* 
 		* Disable CSMA/CA
 		* Disable auto ACK
@@ -908,7 +909,7 @@ static void APP_TaskHandler(void)
 					 * this implementation was done as is to be used in tests, for real network functionality 
 					 * the number of max association processes must be done through macLLDNdiscoveryModeTimeout
 					 */
-					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 8)
+					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 10)
 					{	
 						printf("\n%d, %d", cycles_counter, counter_associados);
 						counter_associados = 0;
@@ -1078,7 +1079,7 @@ static void APP_TaskHandler(void)
 						{
 							PLR = 1 - total_msg / expected_messages;
 							PER = uplink_lost_packets / expected_messages;
-							printf("\nPLR , %.3f\nPER , %.3f, total_de_mensagens %d", PLR, PER, total_msg);
+							printf("\nPLR , %.3f\nPER , %.3f, nodos associados %d", PLR, PER, assTimeSlot);
 							
 						}
 					}
