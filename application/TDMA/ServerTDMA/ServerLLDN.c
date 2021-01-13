@@ -23,7 +23,7 @@
 #include "conf_sleepmgr.h"
 #include "board.h"
 #include "platform.h"
-
+#include "lp_lib.h"
 #include "lldn.h"
 
 #if 1
@@ -1206,7 +1206,7 @@ static void APP_TaskHandler(void)
 		 * Disable auto ACK
 		 * Enable Rx of LLDN Frame Type as described in 802.15.4e - 2012 
 		 */
-
+		lprec *lp;
 		sm_init();
 
 		// Initialize interrupt vector table support.
