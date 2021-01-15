@@ -108,7 +108,7 @@ static uint8_t PanId;
 	/* This timer implements a delay between messages, 
 	 * if not used the nodes are not able to receive the message
 	 */
-	static SYS_Timer_t tmrDelay;	
+	// static SYS_Timer_t tmrDelay;	
 	
 	/*  Control variables for testing */	
 	int assTimeSlot = 0;
