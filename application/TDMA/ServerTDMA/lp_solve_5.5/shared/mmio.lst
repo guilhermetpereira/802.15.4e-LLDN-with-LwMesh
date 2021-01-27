@@ -1,0 +1,4630 @@
+   1               		.file	"mmio.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               		.section	.rodata
+  12               	.LC0:
+  13 0000 7200      		.string	"r"
+  14               	.LC1:
+  15 0002 6D6D 5F72 		.string	"mm_read_unsymetric: Could not process Matrix Market banner "
+  15      6561 645F 
+  15      756E 7379 
+  15      6D65 7472 
+  15      6963 3A20 
+  16               	.LC2:
+  17 003e 2069 6E20 		.string	" in file [%s]\n"
+  17      6669 6C65 
+  17      205B 2573 
+  17      5D0A 00
+  18               	.LC3:
+  19 004d 536F 7272 		.string	"Sorry, this application does not support "
+  19      792C 2074 
+  19      6869 7320 
+  19      6170 706C 
+  19      6963 6174 
+  20               	.LC4:
+  21 0077 4D61 726B 		.string	"Market Market type: [%s]\n"
+  21      6574 204D 
+  21      6172 6B65 
+  21      7420 7479 
+  21      7065 3A20 
+  22               	.LC5:
+  23 0091 7265 6164 		.string	"read_unsymmetric_sparse(): could not parse matrix size.\n"
+  23      5F75 6E73 
+  23      796D 6D65 
+  23      7472 6963 
+  23      5F73 7061 
+  24               	.LC6:
+  25 00ca 2564 2025 		.string	"%d %d %lg\n"
+  25      6420 256C 
+  25      670A 00
+  26               		.text
+  27               	.global	mm_read_unsymmetric_sparse
+  29               	mm_read_unsymmetric_sparse:
+  30               	.LFB5:
+  31               		.file 1 "lp_solve_5.5/shared/mmio.c"
+   1:lp_solve_5.5/shared/mmio.c **** /*
+   2:lp_solve_5.5/shared/mmio.c **** *   Matrix Market I/O library for ANSI C
+   3:lp_solve_5.5/shared/mmio.c **** *
+   4:lp_solve_5.5/shared/mmio.c **** *   See http://math.nist.gov/MatrixMarket for details.
+   5:lp_solve_5.5/shared/mmio.c **** *
+   6:lp_solve_5.5/shared/mmio.c **** *   (Version 1.01, 5/2003)
+   7:lp_solve_5.5/shared/mmio.c **** */
+   8:lp_solve_5.5/shared/mmio.c **** 
+   9:lp_solve_5.5/shared/mmio.c **** 
+  10:lp_solve_5.5/shared/mmio.c **** #include <stdlib.h>
+  11:lp_solve_5.5/shared/mmio.c **** #include <stdio.h>
+  12:lp_solve_5.5/shared/mmio.c **** #include <string.h>
+  13:lp_solve_5.5/shared/mmio.c **** #include <ctype.h>
+  14:lp_solve_5.5/shared/mmio.c **** 
+  15:lp_solve_5.5/shared/mmio.c **** #include "mmio.h"
+  16:lp_solve_5.5/shared/mmio.c **** 
+  17:lp_solve_5.5/shared/mmio.c **** int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
+  18:lp_solve_5.5/shared/mmio.c ****                 double **val_, int **I_, int **J_)
+  19:lp_solve_5.5/shared/mmio.c **** {
+  32               		.loc 1 19 0
+  33               		.cfi_startproc
+  34 0000 CF92      		push r12
+  35               	.LCFI0:
+  36               		.cfi_def_cfa_offset 3
+  37               		.cfi_offset 12, -2
+  38 0002 DF92      		push r13
+  39               	.LCFI1:
+  40               		.cfi_def_cfa_offset 4
+  41               		.cfi_offset 13, -3
+  42 0004 EF92      		push r14
+  43               	.LCFI2:
+  44               		.cfi_def_cfa_offset 5
+  45               		.cfi_offset 14, -4
+  46 0006 FF92      		push r15
+  47               	.LCFI3:
+  48               		.cfi_def_cfa_offset 6
+  49               		.cfi_offset 15, -5
+  50 0008 0F93      		push r16
+  51               	.LCFI4:
+  52               		.cfi_def_cfa_offset 7
+  53               		.cfi_offset 16, -6
+  54 000a 1F93      		push r17
+  55               	.LCFI5:
+  56               		.cfi_def_cfa_offset 8
+  57               		.cfi_offset 17, -7
+  58 000c CF93      		push r28
+  59               	.LCFI6:
+  60               		.cfi_def_cfa_offset 9
+  61               		.cfi_offset 28, -8
+  62 000e DF93      		push r29
+  63               	.LCFI7:
+  64               		.cfi_def_cfa_offset 10
+  65               		.cfi_offset 29, -9
+  66 0010 CDB7      		in r28,__SP_L__
+  67 0012 DEB7      		in r29,__SP_H__
+  68               	.LCFI8:
+  69               		.cfi_def_cfa_register 28
+  70 0014 A497      		sbiw r28,36
+  71               	.LCFI9:
+  72               		.cfi_def_cfa_offset 46
+  73 0016 0FB6      		in __tmp_reg__,__SREG__
+  74 0018 F894      		cli
+  75 001a DEBF      		out __SP_H__,r29
+  76 001c 0FBE      		out __SREG__,__tmp_reg__
+  77 001e CDBF      		out __SP_L__,r28
+  78               	/* prologue: function */
+  79               	/* frame size = 36 */
+  80               	/* stack size = 44 */
+  81               	.L__stack_usage = 44
+  82 0020 988F      		std Y+24,r25
+  83 0022 8F8B      		std Y+23,r24
+  84 0024 7A8F      		std Y+26,r23
+  85 0026 698F      		std Y+25,r22
+  86 0028 5C8F      		std Y+28,r21
+  87 002a 4B8F      		std Y+27,r20
+  88 002c 3E8F      		std Y+30,r19
+  89 002e 2D8F      		std Y+29,r18
+  90 0030 18A3      		std Y+32,r17
+  91 0032 0F8F      		std Y+31,r16
+  92 0034 FAA2      		std Y+34,r15
+  93 0036 E9A2      		std Y+33,r14
+  94 0038 DCA2      		std Y+36,r13
+  95 003a CBA2      		std Y+35,r12
+  20:lp_solve_5.5/shared/mmio.c ****     FILE *f;
+  21:lp_solve_5.5/shared/mmio.c ****     MM_typecode matcode;
+  22:lp_solve_5.5/shared/mmio.c ****     int M, N, nz;
+  23:lp_solve_5.5/shared/mmio.c ****     int i;
+  24:lp_solve_5.5/shared/mmio.c ****     double *val;
+  25:lp_solve_5.5/shared/mmio.c ****     int *I, *J;
+  26:lp_solve_5.5/shared/mmio.c ****     int x;
+  27:lp_solve_5.5/shared/mmio.c **** 
+  28:lp_solve_5.5/shared/mmio.c ****     if ((f = fopen(fname, "r")) == NULL)
+  96               		.loc 1 28 0
+  97 003c 8F89      		ldd r24,Y+23
+  98 003e 988D      		ldd r25,Y+24
+  99 0040 60E0      		ldi r22,lo8(.LC0)
+ 100 0042 70E0      		ldi r23,hi8(.LC0)
+ 101 0044 0E94 0000 		call fopen
+ 102 0048 9C83      		std Y+4,r25
+ 103 004a 8B83      		std Y+3,r24
+ 104 004c 8B81      		ldd r24,Y+3
+ 105 004e 9C81      		ldd r25,Y+4
+ 106 0050 892B      		or r24,r25
+ 107 0052 01F4      		brne .L2
+  29:lp_solve_5.5/shared/mmio.c ****             return -1;
+ 108               		.loc 1 29 0
+ 109 0054 8FEF      		ldi r24,lo8(-1)
+ 110 0056 9FEF      		ldi r25,lo8(-1)
+ 111 0058 00C0      		rjmp .L10
+ 112               	.L2:
+  30:lp_solve_5.5/shared/mmio.c **** 
+  31:lp_solve_5.5/shared/mmio.c **** 
+  32:lp_solve_5.5/shared/mmio.c ****     if (mm_read_banner(f, &matcode) != 0)
+ 113               		.loc 1 32 0
+ 114 005a 9E01      		movw r18,r28
+ 115 005c 235F      		subi r18,-13
+ 116 005e 3F4F      		sbci r19,-1
+ 117 0060 8B81      		ldd r24,Y+3
+ 118 0062 9C81      		ldd r25,Y+4
+ 119 0064 B901      		movw r22,r18
+ 120 0066 0E94 0000 		call mm_read_banner
+ 121 006a 892B      		or r24,r25
+ 122 006c 01F0      		breq .L4
+  33:lp_solve_5.5/shared/mmio.c ****     {
+  34:lp_solve_5.5/shared/mmio.c ****         printf("mm_read_unsymetric: Could not process Matrix Market banner ");
+ 123               		.loc 1 34 0
+ 124 006e 80E0      		ldi r24,lo8(.LC1)
+ 125 0070 90E0      		ldi r25,hi8(.LC1)
+ 126 0072 892F      		mov r24,r25
+ 127 0074 8F93      		push r24
+ 128 0076 80E0      		ldi r24,lo8(.LC1)
+ 129 0078 90E0      		ldi r25,hi8(.LC1)
+ 130 007a 8F93      		push r24
+ 131 007c 0E94 0000 		call printf
+ 132 0080 0F90      		pop __tmp_reg__
+ 133 0082 0F90      		pop __tmp_reg__
+  35:lp_solve_5.5/shared/mmio.c ****         printf(" in file [%s]\n", fname);
+ 134               		.loc 1 35 0
+ 135 0084 888D      		ldd r24,Y+24
+ 136 0086 8F93      		push r24
+ 137 0088 8F89      		ldd r24,Y+23
+ 138 008a 8F93      		push r24
+ 139 008c 80E0      		ldi r24,lo8(.LC2)
+ 140 008e 90E0      		ldi r25,hi8(.LC2)
+ 141 0090 892F      		mov r24,r25
+ 142 0092 8F93      		push r24
+ 143 0094 80E0      		ldi r24,lo8(.LC2)
+ 144 0096 90E0      		ldi r25,hi8(.LC2)
+ 145 0098 8F93      		push r24
+ 146 009a 0E94 0000 		call printf
+ 147 009e 0F90      		pop __tmp_reg__
+ 148 00a0 0F90      		pop __tmp_reg__
+ 149 00a2 0F90      		pop __tmp_reg__
+ 150 00a4 0F90      		pop __tmp_reg__
+  36:lp_solve_5.5/shared/mmio.c ****         return -1;
+ 151               		.loc 1 36 0
+ 152 00a6 8FEF      		ldi r24,lo8(-1)
+ 153 00a8 9FEF      		ldi r25,lo8(-1)
+ 154 00aa 00C0      		rjmp .L10
+ 155               	.L4:
+  37:lp_solve_5.5/shared/mmio.c ****     }
+  38:lp_solve_5.5/shared/mmio.c **** 
+  39:lp_solve_5.5/shared/mmio.c **** 
+  40:lp_solve_5.5/shared/mmio.c **** 
+  41:lp_solve_5.5/shared/mmio.c ****     if ( !(mm_is_real(matcode) && mm_is_matrix(matcode) &&
+ 156               		.loc 1 41 0
+ 157 00ac 8F85      		ldd r24,Y+15
+ 158 00ae 8235      		cpi r24,lo8(82)
+ 159 00b0 01F4      		brne .L5
+ 160               		.loc 1 41 0 is_stmt 0 discriminator 1
+ 161 00b2 8D85      		ldd r24,Y+13
+ 162 00b4 8D34      		cpi r24,lo8(77)
+ 163 00b6 01F4      		brne .L5
+  42:lp_solve_5.5/shared/mmio.c ****             mm_is_sparse(matcode)))
+ 164               		.loc 1 42 0 is_stmt 1 discriminator 2
+ 165 00b8 8E85      		ldd r24,Y+14
+  41:lp_solve_5.5/shared/mmio.c ****             mm_is_sparse(matcode)))
+ 166               		.loc 1 41 0 discriminator 2
+ 167 00ba 8334      		cpi r24,lo8(67)
+ 168 00bc 01F0      		breq .L6
+ 169               	.L5:
+  43:lp_solve_5.5/shared/mmio.c ****     {
+  44:lp_solve_5.5/shared/mmio.c ****         fprintf(stderr, "Sorry, this application does not support ");
+ 170               		.loc 1 44 0
+ 171 00be 8091 0000 		lds r24,__iob+4
+ 172 00c2 9091 0000 		lds r25,__iob+4+1
+ 173 00c6 9C01      		movw r18,r24
+ 174 00c8 49E2      		ldi r20,lo8(41)
+ 175 00ca 50E0      		ldi r21,0
+ 176 00cc 61E0      		ldi r22,lo8(1)
+ 177 00ce 70E0      		ldi r23,0
+ 178 00d0 80E0      		ldi r24,lo8(.LC3)
+ 179 00d2 90E0      		ldi r25,hi8(.LC3)
+ 180 00d4 0E94 0000 		call fwrite
+  45:lp_solve_5.5/shared/mmio.c ****         fprintf(stderr, "Market Market type: [%s]\n",
+ 181               		.loc 1 45 0
+ 182 00d8 CE01      		movw r24,r28
+ 183 00da 0D96      		adiw r24,13
+ 184 00dc 0E94 0000 		call mm_typecode_to_str
+ 185 00e0 9C01      		movw r18,r24
+ 186 00e2 8091 0000 		lds r24,__iob+4
+ 187 00e6 9091 0000 		lds r25,__iob+4+1
+ 188 00ea 432F      		mov r20,r19
+ 189 00ec 4F93      		push r20
+ 190 00ee 2F93      		push r18
+ 191 00f0 20E0      		ldi r18,lo8(.LC4)
+ 192 00f2 30E0      		ldi r19,hi8(.LC4)
+ 193 00f4 232F      		mov r18,r19
+ 194 00f6 2F93      		push r18
+ 195 00f8 20E0      		ldi r18,lo8(.LC4)
+ 196 00fa 30E0      		ldi r19,hi8(.LC4)
+ 197 00fc 2F93      		push r18
+ 198 00fe 292F      		mov r18,r25
+ 199 0100 2F93      		push r18
+ 200 0102 8F93      		push r24
+ 201 0104 0E94 0000 		call fprintf
+ 202 0108 0F90      		pop __tmp_reg__
+ 203 010a 0F90      		pop __tmp_reg__
+ 204 010c 0F90      		pop __tmp_reg__
+ 205 010e 0F90      		pop __tmp_reg__
+ 206 0110 0F90      		pop __tmp_reg__
+ 207 0112 0F90      		pop __tmp_reg__
+  46:lp_solve_5.5/shared/mmio.c ****                 mm_typecode_to_str(matcode));
+  47:lp_solve_5.5/shared/mmio.c ****         return -1;
+ 208               		.loc 1 47 0
+ 209 0114 8FEF      		ldi r24,lo8(-1)
+ 210 0116 9FEF      		ldi r25,lo8(-1)
+ 211 0118 00C0      		rjmp .L10
+ 212               	.L6:
+  48:lp_solve_5.5/shared/mmio.c ****     }
+  49:lp_solve_5.5/shared/mmio.c **** 
+  50:lp_solve_5.5/shared/mmio.c ****     /* find out size of sparse matrix: M, N, nz .... */
+  51:lp_solve_5.5/shared/mmio.c **** 
+  52:lp_solve_5.5/shared/mmio.c ****     if (mm_read_mtx_crd_size(f, &M, &N, &nz) !=0)
+ 213               		.loc 1 52 0
+ 214 011a 9E01      		movw r18,r28
+ 215 011c 2B5E      		subi r18,-21
+ 216 011e 3F4F      		sbci r19,-1
+ 217 0120 AE01      		movw r20,r28
+ 218 0122 4D5E      		subi r20,-19
+ 219 0124 5F4F      		sbci r21,-1
+ 220 0126 BE01      		movw r22,r28
+ 221 0128 6F5E      		subi r22,-17
+ 222 012a 7F4F      		sbci r23,-1
+ 223 012c 8B81      		ldd r24,Y+3
+ 224 012e 9C81      		ldd r25,Y+4
+ 225 0130 0E94 0000 		call mm_read_mtx_crd_size
+ 226 0134 892B      		or r24,r25
+ 227 0136 01F0      		breq .L7
+  53:lp_solve_5.5/shared/mmio.c ****     {
+  54:lp_solve_5.5/shared/mmio.c ****         fprintf(stderr, "read_unsymmetric_sparse(): could not parse matrix size.\n");
+ 228               		.loc 1 54 0
+ 229 0138 8091 0000 		lds r24,__iob+4
+ 230 013c 9091 0000 		lds r25,__iob+4+1
+ 231 0140 9C01      		movw r18,r24
+ 232 0142 48E3      		ldi r20,lo8(56)
+ 233 0144 50E0      		ldi r21,0
+ 234 0146 61E0      		ldi r22,lo8(1)
+ 235 0148 70E0      		ldi r23,0
+ 236 014a 80E0      		ldi r24,lo8(.LC5)
+ 237 014c 90E0      		ldi r25,hi8(.LC5)
+ 238 014e 0E94 0000 		call fwrite
+  55:lp_solve_5.5/shared/mmio.c ****         return -1;
+ 239               		.loc 1 55 0
+ 240 0152 8FEF      		ldi r24,lo8(-1)
+ 241 0154 9FEF      		ldi r25,lo8(-1)
+ 242 0156 00C0      		rjmp .L10
+ 243               	.L7:
+  56:lp_solve_5.5/shared/mmio.c ****     }
+  57:lp_solve_5.5/shared/mmio.c **** 
+  58:lp_solve_5.5/shared/mmio.c ****     *M_ = M;
+ 244               		.loc 1 58 0
+ 245 0158 2989      		ldd r18,Y+17
+ 246 015a 3A89      		ldd r19,Y+18
+ 247 015c 898D      		ldd r24,Y+25
+ 248 015e 9A8D      		ldd r25,Y+26
+ 249 0160 FC01      		movw r30,r24
+ 250 0162 3183      		std Z+1,r19
+ 251 0164 2083      		st Z,r18
+  59:lp_solve_5.5/shared/mmio.c ****     *N_ = N;
+ 252               		.loc 1 59 0
+ 253 0166 2B89      		ldd r18,Y+19
+ 254 0168 3C89      		ldd r19,Y+20
+ 255 016a 8B8D      		ldd r24,Y+27
+ 256 016c 9C8D      		ldd r25,Y+28
+ 257 016e FC01      		movw r30,r24
+ 258 0170 3183      		std Z+1,r19
+ 259 0172 2083      		st Z,r18
+  60:lp_solve_5.5/shared/mmio.c ****     *nz_ = nz;
+ 260               		.loc 1 60 0
+ 261 0174 2D89      		ldd r18,Y+21
+ 262 0176 3E89      		ldd r19,Y+22
+ 263 0178 8D8D      		ldd r24,Y+29
+ 264 017a 9E8D      		ldd r25,Y+30
+ 265 017c FC01      		movw r30,r24
+ 266 017e 3183      		std Z+1,r19
+ 267 0180 2083      		st Z,r18
+  61:lp_solve_5.5/shared/mmio.c **** 
+  62:lp_solve_5.5/shared/mmio.c ****     /* reseve memory for matrices */
+  63:lp_solve_5.5/shared/mmio.c **** 
+  64:lp_solve_5.5/shared/mmio.c ****     I = (int *) malloc(nz * sizeof(int));
+ 268               		.loc 1 64 0
+ 269 0182 8D89      		ldd r24,Y+21
+ 270 0184 9E89      		ldd r25,Y+22
+ 271 0186 880F      		lsl r24
+ 272 0188 991F      		rol r25
+ 273 018a 0E94 0000 		call malloc
+ 274 018e 9E83      		std Y+6,r25
+ 275 0190 8D83      		std Y+5,r24
+  65:lp_solve_5.5/shared/mmio.c ****     J = (int *) malloc(nz * sizeof(int));
+ 276               		.loc 1 65 0
+ 277 0192 8D89      		ldd r24,Y+21
+ 278 0194 9E89      		ldd r25,Y+22
+ 279 0196 880F      		lsl r24
+ 280 0198 991F      		rol r25
+ 281 019a 0E94 0000 		call malloc
+ 282 019e 9887      		std Y+8,r25
+ 283 01a0 8F83      		std Y+7,r24
+  66:lp_solve_5.5/shared/mmio.c ****     val = (double *) malloc(nz * sizeof(double));
+ 284               		.loc 1 66 0
+ 285 01a2 8D89      		ldd r24,Y+21
+ 286 01a4 9E89      		ldd r25,Y+22
+ 287 01a6 880F      		lsl r24
+ 288 01a8 991F      		rol r25
+ 289 01aa 880F      		lsl r24
+ 290 01ac 991F      		rol r25
+ 291 01ae 0E94 0000 		call malloc
+ 292 01b2 9A87      		std Y+10,r25
+ 293 01b4 8987      		std Y+9,r24
+  67:lp_solve_5.5/shared/mmio.c **** 
+  68:lp_solve_5.5/shared/mmio.c ****     *val_ = val;
+ 294               		.loc 1 68 0
+ 295 01b6 8F8D      		ldd r24,Y+31
+ 296 01b8 98A1      		ldd r25,Y+32
+ 297 01ba 2985      		ldd r18,Y+9
+ 298 01bc 3A85      		ldd r19,Y+10
+ 299 01be FC01      		movw r30,r24
+ 300 01c0 3183      		std Z+1,r19
+ 301 01c2 2083      		st Z,r18
+  69:lp_solve_5.5/shared/mmio.c ****     *I_ = I;
+ 302               		.loc 1 69 0
+ 303 01c4 89A1      		ldd r24,Y+33
+ 304 01c6 9AA1      		ldd r25,Y+34
+ 305 01c8 2D81      		ldd r18,Y+5
+ 306 01ca 3E81      		ldd r19,Y+6
+ 307 01cc FC01      		movw r30,r24
+ 308 01ce 3183      		std Z+1,r19
+ 309 01d0 2083      		st Z,r18
+  70:lp_solve_5.5/shared/mmio.c ****     *J_ = J;
+ 310               		.loc 1 70 0
+ 311 01d2 8BA1      		ldd r24,Y+35
+ 312 01d4 9CA1      		ldd r25,Y+36
+ 313 01d6 2F81      		ldd r18,Y+7
+ 314 01d8 3885      		ldd r19,Y+8
+ 315 01da FC01      		movw r30,r24
+ 316 01dc 3183      		std Z+1,r19
+ 317 01de 2083      		st Z,r18
+  71:lp_solve_5.5/shared/mmio.c **** 
+  72:lp_solve_5.5/shared/mmio.c ****     /* NOTE: when reading in doubles, ANSI C requires the use of the "l"  */
+  73:lp_solve_5.5/shared/mmio.c ****     /*   specifier as in "%lg", "%lf", "%le", otherwise errors will occur */
+  74:lp_solve_5.5/shared/mmio.c ****     /*  (ANSI C X3.159-1989, Sec. 4.9.6.2, p. 136 lines 13-15)            */
+  75:lp_solve_5.5/shared/mmio.c **** 
+  76:lp_solve_5.5/shared/mmio.c ****     for (i=0; i<nz; i++)
+ 318               		.loc 1 76 0
+ 319 01e0 1A82      		std Y+2,__zero_reg__
+ 320 01e2 1982      		std Y+1,__zero_reg__
+ 321 01e4 00C0      		rjmp .L8
+ 322               	.L9:
+  77:lp_solve_5.5/shared/mmio.c ****     {
+  78:lp_solve_5.5/shared/mmio.c ****         x = fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
+ 323               		.loc 1 78 0 discriminator 3
+ 324 01e6 8981      		ldd r24,Y+1
+ 325 01e8 9A81      		ldd r25,Y+2
+ 326 01ea 880F      		lsl r24
+ 327 01ec 991F      		rol r25
+ 328 01ee 880F      		lsl r24
+ 329 01f0 991F      		rol r25
+ 330 01f2 2985      		ldd r18,Y+9
+ 331 01f4 3A85      		ldd r19,Y+10
+ 332 01f6 B901      		movw r22,r18
+ 333 01f8 680F      		add r22,r24
+ 334 01fa 791F      		adc r23,r25
+ 335 01fc 8981      		ldd r24,Y+1
+ 336 01fe 9A81      		ldd r25,Y+2
+ 337 0200 880F      		lsl r24
+ 338 0202 991F      		rol r25
+ 339 0204 2F81      		ldd r18,Y+7
+ 340 0206 3885      		ldd r19,Y+8
+ 341 0208 A901      		movw r20,r18
+ 342 020a 480F      		add r20,r24
+ 343 020c 591F      		adc r21,r25
+ 344 020e 8981      		ldd r24,Y+1
+ 345 0210 9A81      		ldd r25,Y+2
+ 346 0212 880F      		lsl r24
+ 347 0214 991F      		rol r25
+ 348 0216 2D81      		ldd r18,Y+5
+ 349 0218 3E81      		ldd r19,Y+6
+ 350 021a 820F      		add r24,r18
+ 351 021c 931F      		adc r25,r19
+ 352 021e 272F      		mov r18,r23
+ 353 0220 2F93      		push r18
+ 354 0222 262F      		mov r18,r22
+ 355 0224 2F93      		push r18
+ 356 0226 252F      		mov r18,r21
+ 357 0228 2F93      		push r18
+ 358 022a 242F      		mov r18,r20
+ 359 022c 2F93      		push r18
+ 360 022e 292F      		mov r18,r25
+ 361 0230 2F93      		push r18
+ 362 0232 8F93      		push r24
+ 363 0234 80E0      		ldi r24,lo8(.LC6)
+ 364 0236 90E0      		ldi r25,hi8(.LC6)
+ 365 0238 892F      		mov r24,r25
+ 366 023a 8F93      		push r24
+ 367 023c 80E0      		ldi r24,lo8(.LC6)
+ 368 023e 90E0      		ldi r25,hi8(.LC6)
+ 369 0240 8F93      		push r24
+ 370 0242 8C81      		ldd r24,Y+4
+ 371 0244 8F93      		push r24
+ 372 0246 8B81      		ldd r24,Y+3
+ 373 0248 8F93      		push r24
+ 374 024a 0E94 0000 		call fscanf
+ 375 024e 2DB7      		in r18,__SP_L__
+ 376 0250 3EB7      		in r19,__SP_H__
+ 377 0252 265F      		subi r18,-10
+ 378 0254 3F4F      		sbci r19,-1
+ 379 0256 0FB6      		in __tmp_reg__,__SREG__
+ 380 0258 F894      		cli
+ 381 025a DEBF      		out __SP_H__,r29
+ 382 025c 0FBE      		out __SREG__,__tmp_reg__
+ 383 025e CDBF      		out __SP_L__,r28
+ 384 0260 9C87      		std Y+12,r25
+ 385 0262 8B87      		std Y+11,r24
+  79:lp_solve_5.5/shared/mmio.c ****         I[i]--;  /* adjust from 1-based to 0-based */
+ 386               		.loc 1 79 0 discriminator 3
+ 387 0264 8981      		ldd r24,Y+1
+ 388 0266 9A81      		ldd r25,Y+2
+ 389 0268 880F      		lsl r24
+ 390 026a 991F      		rol r25
+ 391 026c 2D81      		ldd r18,Y+5
+ 392 026e 3E81      		ldd r19,Y+6
+ 393 0270 820F      		add r24,r18
+ 394 0272 931F      		adc r25,r19
+ 395 0274 FC01      		movw r30,r24
+ 396 0276 2081      		ld r18,Z
+ 397 0278 3181      		ldd r19,Z+1
+ 398 027a 2150      		subi r18,1
+ 399 027c 3109      		sbc r19,__zero_reg__
+ 400 027e FC01      		movw r30,r24
+ 401 0280 3183      		std Z+1,r19
+ 402 0282 2083      		st Z,r18
+  80:lp_solve_5.5/shared/mmio.c ****         J[i]--;
+ 403               		.loc 1 80 0 discriminator 3
+ 404 0284 8981      		ldd r24,Y+1
+ 405 0286 9A81      		ldd r25,Y+2
+ 406 0288 880F      		lsl r24
+ 407 028a 991F      		rol r25
+ 408 028c 2F81      		ldd r18,Y+7
+ 409 028e 3885      		ldd r19,Y+8
+ 410 0290 820F      		add r24,r18
+ 411 0292 931F      		adc r25,r19
+ 412 0294 FC01      		movw r30,r24
+ 413 0296 2081      		ld r18,Z
+ 414 0298 3181      		ldd r19,Z+1
+ 415 029a 2150      		subi r18,1
+ 416 029c 3109      		sbc r19,__zero_reg__
+ 417 029e FC01      		movw r30,r24
+ 418 02a0 3183      		std Z+1,r19
+ 419 02a2 2083      		st Z,r18
+  76:lp_solve_5.5/shared/mmio.c ****     {
+ 420               		.loc 1 76 0 discriminator 3
+ 421 02a4 8981      		ldd r24,Y+1
+ 422 02a6 9A81      		ldd r25,Y+2
+ 423 02a8 0196      		adiw r24,1
+ 424 02aa 9A83      		std Y+2,r25
+ 425 02ac 8983      		std Y+1,r24
+ 426               	.L8:
+  76:lp_solve_5.5/shared/mmio.c ****     {
+ 427               		.loc 1 76 0 is_stmt 0 discriminator 1
+ 428 02ae 8D89      		ldd r24,Y+21
+ 429 02b0 9E89      		ldd r25,Y+22
+ 430 02b2 2981      		ldd r18,Y+1
+ 431 02b4 3A81      		ldd r19,Y+2
+ 432 02b6 2817      		cp r18,r24
+ 433 02b8 3907      		cpc r19,r25
+ 434 02ba 04F4      		brge .+2
+ 435 02bc 00C0      		rjmp .L9
+  81:lp_solve_5.5/shared/mmio.c ****     }
+  82:lp_solve_5.5/shared/mmio.c ****     fclose(f);
+ 436               		.loc 1 82 0 is_stmt 1
+ 437 02be 8B81      		ldd r24,Y+3
+ 438 02c0 9C81      		ldd r25,Y+4
+ 439 02c2 0E94 0000 		call fclose
+  83:lp_solve_5.5/shared/mmio.c **** 
+  84:lp_solve_5.5/shared/mmio.c ****     return 0;
+ 440               		.loc 1 84 0
+ 441 02c6 80E0      		ldi r24,0
+ 442 02c8 90E0      		ldi r25,0
+ 443               	.L10:
+ 444               	/* epilogue start */
+  85:lp_solve_5.5/shared/mmio.c **** }
+ 445               		.loc 1 85 0 discriminator 1
+ 446 02ca A496      		adiw r28,36
+ 447 02cc 0FB6      		in __tmp_reg__,__SREG__
+ 448 02ce F894      		cli
+ 449 02d0 DEBF      		out __SP_H__,r29
+ 450 02d2 0FBE      		out __SREG__,__tmp_reg__
+ 451 02d4 CDBF      		out __SP_L__,r28
+ 452 02d6 DF91      		pop r29
+ 453 02d8 CF91      		pop r28
+ 454 02da 1F91      		pop r17
+ 455 02dc 0F91      		pop r16
+ 456 02de FF90      		pop r15
+ 457 02e0 EF90      		pop r14
+ 458 02e2 DF90      		pop r13
+ 459 02e4 CF90      		pop r12
+ 460 02e6 0895      		ret
+ 461               		.cfi_endproc
+ 462               	.LFE5:
+ 464               	.global	mm_is_valid
+ 466               	mm_is_valid:
+ 467               	.LFB6:
+  86:lp_solve_5.5/shared/mmio.c **** 
+  87:lp_solve_5.5/shared/mmio.c **** int mm_is_valid(MM_typecode matcode)
+  88:lp_solve_5.5/shared/mmio.c **** {
+ 468               		.loc 1 88 0
+ 469               		.cfi_startproc
+ 470 02e8 CF93      		push r28
+ 471               	.LCFI10:
+ 472               		.cfi_def_cfa_offset 3
+ 473               		.cfi_offset 28, -2
+ 474 02ea DF93      		push r29
+ 475               	.LCFI11:
+ 476               		.cfi_def_cfa_offset 4
+ 477               		.cfi_offset 29, -3
+ 478 02ec 00D0      		rcall .
+ 479               	.LCFI12:
+ 480               		.cfi_def_cfa_offset 6
+ 481 02ee CDB7      		in r28,__SP_L__
+ 482 02f0 DEB7      		in r29,__SP_H__
+ 483               	.LCFI13:
+ 484               		.cfi_def_cfa_register 28
+ 485               	/* prologue: function */
+ 486               	/* frame size = 2 */
+ 487               	/* stack size = 4 */
+ 488               	.L__stack_usage = 4
+ 489 02f2 9A83      		std Y+2,r25
+ 490 02f4 8983      		std Y+1,r24
+  89:lp_solve_5.5/shared/mmio.c ****     if (!mm_is_matrix(matcode)) return 0;
+ 491               		.loc 1 89 0
+ 492 02f6 8981      		ldd r24,Y+1
+ 493 02f8 9A81      		ldd r25,Y+2
+ 494 02fa FC01      		movw r30,r24
+ 495 02fc 8081      		ld r24,Z
+ 496 02fe 8D34      		cpi r24,lo8(77)
+ 497 0300 01F0      		breq .L12
+ 498               		.loc 1 89 0 is_stmt 0 discriminator 1
+ 499 0302 80E0      		ldi r24,0
+ 500 0304 90E0      		ldi r25,0
+ 501 0306 00C0      		rjmp .L13
+ 502               	.L12:
+  90:lp_solve_5.5/shared/mmio.c ****     if (mm_is_dense(matcode) && mm_is_pattern(matcode)) return 0;
+ 503               		.loc 1 90 0 is_stmt 1
+ 504 0308 8981      		ldd r24,Y+1
+ 505 030a 9A81      		ldd r25,Y+2
+ 506 030c 0196      		adiw r24,1
+ 507 030e FC01      		movw r30,r24
+ 508 0310 8081      		ld r24,Z
+ 509 0312 8134      		cpi r24,lo8(65)
+ 510 0314 01F4      		brne .L14
+ 511               		.loc 1 90 0 is_stmt 0 discriminator 1
+ 512 0316 8981      		ldd r24,Y+1
+ 513 0318 9A81      		ldd r25,Y+2
+ 514 031a 0296      		adiw r24,2
+ 515 031c FC01      		movw r30,r24
+ 516 031e 8081      		ld r24,Z
+ 517 0320 8035      		cpi r24,lo8(80)
+ 518 0322 01F4      		brne .L14
+ 519               		.loc 1 90 0 discriminator 2
+ 520 0324 80E0      		ldi r24,0
+ 521 0326 90E0      		ldi r25,0
+ 522 0328 00C0      		rjmp .L13
+ 523               	.L14:
+  91:lp_solve_5.5/shared/mmio.c ****     if (mm_is_real(matcode) && mm_is_hermitian(matcode)) return 0;
+ 524               		.loc 1 91 0 is_stmt 1
+ 525 032a 8981      		ldd r24,Y+1
+ 526 032c 9A81      		ldd r25,Y+2
+ 527 032e 0296      		adiw r24,2
+ 528 0330 FC01      		movw r30,r24
+ 529 0332 8081      		ld r24,Z
+ 530 0334 8235      		cpi r24,lo8(82)
+ 531 0336 01F4      		brne .L15
+ 532               		.loc 1 91 0 is_stmt 0 discriminator 1
+ 533 0338 8981      		ldd r24,Y+1
+ 534 033a 9A81      		ldd r25,Y+2
+ 535 033c 0396      		adiw r24,3
+ 536 033e FC01      		movw r30,r24
+ 537 0340 8081      		ld r24,Z
+ 538 0342 8834      		cpi r24,lo8(72)
+ 539 0344 01F4      		brne .L15
+ 540               		.loc 1 91 0 discriminator 2
+ 541 0346 80E0      		ldi r24,0
+ 542 0348 90E0      		ldi r25,0
+ 543 034a 00C0      		rjmp .L13
+ 544               	.L15:
+  92:lp_solve_5.5/shared/mmio.c ****     if (mm_is_pattern(matcode) && (mm_is_hermitian(matcode) ||
+ 545               		.loc 1 92 0 is_stmt 1
+ 546 034c 8981      		ldd r24,Y+1
+ 547 034e 9A81      		ldd r25,Y+2
+ 548 0350 0296      		adiw r24,2
+ 549 0352 FC01      		movw r30,r24
+ 550 0354 8081      		ld r24,Z
+ 551 0356 8035      		cpi r24,lo8(80)
+ 552 0358 01F4      		brne .L16
+ 553               		.loc 1 92 0 is_stmt 0 discriminator 1
+ 554 035a 8981      		ldd r24,Y+1
+ 555 035c 9A81      		ldd r25,Y+2
+ 556 035e 0396      		adiw r24,3
+ 557 0360 FC01      		movw r30,r24
+ 558 0362 8081      		ld r24,Z
+ 559 0364 8834      		cpi r24,lo8(72)
+ 560 0366 01F0      		breq .L17
+  93:lp_solve_5.5/shared/mmio.c ****                 mm_is_skew(matcode))) return 0;
+ 561               		.loc 1 93 0 is_stmt 1 discriminator 2
+ 562 0368 8981      		ldd r24,Y+1
+ 563 036a 9A81      		ldd r25,Y+2
+ 564 036c 0396      		adiw r24,3
+ 565 036e FC01      		movw r30,r24
+ 566 0370 8081      		ld r24,Z
+  92:lp_solve_5.5/shared/mmio.c ****     if (mm_is_pattern(matcode) && (mm_is_hermitian(matcode) ||
+ 567               		.loc 1 92 0 discriminator 2
+ 568 0372 8B34      		cpi r24,lo8(75)
+ 569 0374 01F4      		brne .L16
+ 570               	.L17:
+ 571               		.loc 1 93 0
+ 572 0376 80E0      		ldi r24,0
+ 573 0378 90E0      		ldi r25,0
+ 574 037a 00C0      		rjmp .L13
+ 575               	.L16:
+  94:lp_solve_5.5/shared/mmio.c ****     return 1;
+ 576               		.loc 1 94 0
+ 577 037c 81E0      		ldi r24,lo8(1)
+ 578 037e 90E0      		ldi r25,0
+ 579               	.L13:
+ 580               	/* epilogue start */
+  95:lp_solve_5.5/shared/mmio.c **** }
+ 581               		.loc 1 95 0
+ 582 0380 0F90      		pop __tmp_reg__
+ 583 0382 0F90      		pop __tmp_reg__
+ 584 0384 DF91      		pop r29
+ 585 0386 CF91      		pop r28
+ 586 0388 0895      		ret
+ 587               		.cfi_endproc
+ 588               	.LFE6:
+ 590               		.section	.rodata
+ 591               	.LC7:
+ 592 00d5 2573 2025 		.string	"%s %s %s %s %s"
+ 592      7320 2573 
+ 592      2025 7320 
+ 592      2573 00
+ 593               	.LC8:
+ 594 00e4 2525 4D61 		.string	"%%MatrixMarket"
+ 594      7472 6978 
+ 594      4D61 726B 
+ 594      6574 00
+ 595               	.LC9:
+ 596 00f3 6D61 7472 		.string	"matrix"
+ 596      6978 00
+ 597               	.LC10:
+ 598 00fa 636F 6F72 		.string	"coordinate"
+ 598      6469 6E61 
+ 598      7465 00
+ 599               	.LC11:
+ 600 0105 6172 7261 		.string	"array"
+ 600      7900 
+ 601               	.LC12:
+ 602 010b 7265 616C 		.string	"real"
+ 602      00
+ 603               	.LC13:
+ 604 0110 636F 6D70 		.string	"complex"
+ 604      6C65 7800 
+ 605               	.LC14:
+ 606 0118 7061 7474 		.string	"pattern"
+ 606      6572 6E00 
+ 607               	.LC15:
+ 608 0120 696E 7465 		.string	"integer"
+ 608      6765 7200 
+ 609               	.LC16:
+ 610 0128 6765 6E65 		.string	"general"
+ 610      7261 6C00 
+ 611               	.LC17:
+ 612 0130 7379 6D6D 		.string	"symmetric"
+ 612      6574 7269 
+ 612      6300 
+ 613               	.LC18:
+ 614 013a 6865 726D 		.string	"hermitian"
+ 614      6974 6961 
+ 614      6E00 
+ 615               	.LC19:
+ 616 0144 736B 6577 		.string	"skew-symmetric"
+ 616      2D73 796D 
+ 616      6D65 7472 
+ 616      6963 00
+ 617               		.text
+ 618               	.global	mm_read_banner
+ 620               	mm_read_banner:
+ 621               	.LFB7:
+  96:lp_solve_5.5/shared/mmio.c **** 
+  97:lp_solve_5.5/shared/mmio.c **** int mm_read_banner(FILE *f, MM_typecode *matcode)
+  98:lp_solve_5.5/shared/mmio.c **** {
+ 622               		.loc 1 98 0
+ 623               		.cfi_startproc
+ 624 038a CF93      		push r28
+ 625               	.LCFI14:
+ 626               		.cfi_def_cfa_offset 3
+ 627               		.cfi_offset 28, -2
+ 628 038c DF93      		push r29
+ 629               	.LCFI15:
+ 630               		.cfi_def_cfa_offset 4
+ 631               		.cfi_offset 29, -3
+ 632 038e CDB7      		in r28,__SP_L__
+ 633 0390 DEB7      		in r29,__SP_H__
+ 634               	.LCFI16:
+ 635               		.cfi_def_cfa_register 28
+ 636 0392 C754      		subi r28,71
+ 637 0394 D540      		sbci r29,5
+ 638               	.LCFI17:
+ 639               		.cfi_def_cfa_offset 1355
+ 640 0396 0FB6      		in __tmp_reg__,__SREG__
+ 641 0398 F894      		cli
+ 642 039a DEBF      		out __SP_H__,r29
+ 643 039c 0FBE      		out __SREG__,__tmp_reg__
+ 644 039e CDBF      		out __SP_L__,r28
+ 645               	/* prologue: function */
+ 646               	/* frame size = 1351 */
+ 647               	/* stack size = 1353 */
+ 648               	.L__stack_usage = 1353
+ 649 03a0 9E01      		movw r18,r28
+ 650 03a2 2C5B      		subi r18,-68
+ 651 03a4 3A4F      		sbci r19,-6
+ 652 03a6 F901      		movw r30,r18
+ 653 03a8 9183      		std Z+1,r25
+ 654 03aa 8083      		st Z,r24
+ 655 03ac CE01      		movw r24,r28
+ 656 03ae 8A5B      		subi r24,-70
+ 657 03b0 9A4F      		sbci r25,-6
+ 658 03b2 FC01      		movw r30,r24
+ 659 03b4 7183      		std Z+1,r23
+ 660 03b6 6083      		st Z,r22
+  99:lp_solve_5.5/shared/mmio.c ****     char line[MM_MAX_LINE_LENGTH];
+ 100:lp_solve_5.5/shared/mmio.c ****     char banner[MM_MAX_TOKEN_LENGTH];
+ 101:lp_solve_5.5/shared/mmio.c ****     char mtx[MM_MAX_TOKEN_LENGTH];
+ 102:lp_solve_5.5/shared/mmio.c ****     char crd[MM_MAX_TOKEN_LENGTH];
+ 103:lp_solve_5.5/shared/mmio.c ****     char data_type[MM_MAX_TOKEN_LENGTH];
+ 104:lp_solve_5.5/shared/mmio.c ****     char storage_scheme[MM_MAX_TOKEN_LENGTH];
+ 105:lp_solve_5.5/shared/mmio.c ****     char *p;
+ 106:lp_solve_5.5/shared/mmio.c **** 
+ 107:lp_solve_5.5/shared/mmio.c **** 
+ 108:lp_solve_5.5/shared/mmio.c ****     mm_clear_typecode(matcode);
+ 661               		.loc 1 108 0
+ 662 03b8 CE01      		movw r24,r28
+ 663 03ba 8A5B      		subi r24,-70
+ 664 03bc 9A4F      		sbci r25,-6
+ 665 03be FC01      		movw r30,r24
+ 666 03c0 8081      		ld r24,Z
+ 667 03c2 9181      		ldd r25,Z+1
+ 668 03c4 20E2      		ldi r18,lo8(32)
+ 669 03c6 FC01      		movw r30,r24
+ 670 03c8 2283      		std Z+2,r18
+ 671 03ca CE01      		movw r24,r28
+ 672 03cc 8A5B      		subi r24,-70
+ 673 03ce 9A4F      		sbci r25,-6
+ 674 03d0 FC01      		movw r30,r24
+ 675 03d2 8081      		ld r24,Z
+ 676 03d4 9181      		ldd r25,Z+1
+ 677 03d6 FC01      		movw r30,r24
+ 678 03d8 2281      		ldd r18,Z+2
+ 679 03da CE01      		movw r24,r28
+ 680 03dc 8A5B      		subi r24,-70
+ 681 03de 9A4F      		sbci r25,-6
+ 682 03e0 FC01      		movw r30,r24
+ 683 03e2 8081      		ld r24,Z
+ 684 03e4 9181      		ldd r25,Z+1
+ 685 03e6 FC01      		movw r30,r24
+ 686 03e8 2183      		std Z+1,r18
+ 687 03ea CE01      		movw r24,r28
+ 688 03ec 8A5B      		subi r24,-70
+ 689 03ee 9A4F      		sbci r25,-6
+ 690 03f0 FC01      		movw r30,r24
+ 691 03f2 8081      		ld r24,Z
+ 692 03f4 9181      		ldd r25,Z+1
+ 693 03f6 FC01      		movw r30,r24
+ 694 03f8 2181      		ldd r18,Z+1
+ 695 03fa CE01      		movw r24,r28
+ 696 03fc 8A5B      		subi r24,-70
+ 697 03fe 9A4F      		sbci r25,-6
+ 698 0400 FC01      		movw r30,r24
+ 699 0402 8081      		ld r24,Z
+ 700 0404 9181      		ldd r25,Z+1
+ 701 0406 FC01      		movw r30,r24
+ 702 0408 2083      		st Z,r18
+ 703 040a CE01      		movw r24,r28
+ 704 040c 8A5B      		subi r24,-70
+ 705 040e 9A4F      		sbci r25,-6
+ 706 0410 FC01      		movw r30,r24
+ 707 0412 8081      		ld r24,Z
+ 708 0414 9181      		ldd r25,Z+1
+ 709 0416 27E4      		ldi r18,lo8(71)
+ 710 0418 FC01      		movw r30,r24
+ 711 041a 2383      		std Z+3,r18
+ 109:lp_solve_5.5/shared/mmio.c **** 
+ 110:lp_solve_5.5/shared/mmio.c ****     if (fgets(line, MM_MAX_LINE_LENGTH, f) == NULL)
+ 712               		.loc 1 110 0
+ 713 041c CE01      		movw r24,r28
+ 714 041e 8C5B      		subi r24,-68
+ 715 0420 9A4F      		sbci r25,-6
+ 716 0422 FC01      		movw r30,r24
+ 717 0424 2081      		ld r18,Z
+ 718 0426 3181      		ldd r19,Z+1
+ 719 0428 CE01      		movw r24,r28
+ 720 042a 0396      		adiw r24,3
+ 721 042c A901      		movw r20,r18
+ 722 042e 61E0      		ldi r22,lo8(1)
+ 723 0430 74E0      		ldi r23,lo8(4)
+ 724 0432 0E94 0000 		call fgets
+ 725 0436 892B      		or r24,r25
+ 726 0438 01F4      		brne .L19
+ 111:lp_solve_5.5/shared/mmio.c ****         return MM_PREMATURE_EOF;
+ 727               		.loc 1 111 0
+ 728 043a 8CE0      		ldi r24,lo8(12)
+ 729 043c 90E0      		ldi r25,0
+ 730 043e 00C0      		rjmp .L45
+ 731               	.L19:
+ 112:lp_solve_5.5/shared/mmio.c **** 
+ 113:lp_solve_5.5/shared/mmio.c ****     if (sscanf(line, "%s %s %s %s %s", banner, mtx, crd, data_type,
+ 732               		.loc 1 113 0
+ 733 0440 CE01      		movw r24,r28
+ 734 0442 8C5F      		subi r24,-4
+ 735 0444 9A4F      		sbci r25,-6
+ 736 0446 292F      		mov r18,r25
+ 737 0448 2F93      		push r18
+ 738 044a 8F93      		push r24
+ 739 044c CE01      		movw r24,r28
+ 740 044e 8C53      		subi r24,60
+ 741 0450 9B4F      		sbci r25,-5
+ 742 0452 292F      		mov r18,r25
+ 743 0454 2F93      		push r18
+ 744 0456 8F93      		push r24
+ 745 0458 CE01      		movw r24,r28
+ 746 045a 8C57      		subi r24,124
+ 747 045c 9B4F      		sbci r25,-5
+ 748 045e 292F      		mov r18,r25
+ 749 0460 2F93      		push r18
+ 750 0462 8F93      		push r24
+ 751 0464 CE01      		movw r24,r28
+ 752 0466 8C5B      		subi r24,-68
+ 753 0468 9B4F      		sbci r25,-5
+ 754 046a 292F      		mov r18,r25
+ 755 046c 2F93      		push r18
+ 756 046e 8F93      		push r24
+ 757 0470 CE01      		movw r24,r28
+ 758 0472 8C5F      		subi r24,-4
+ 759 0474 9B4F      		sbci r25,-5
+ 760 0476 292F      		mov r18,r25
+ 761 0478 2F93      		push r18
+ 762 047a 8F93      		push r24
+ 763 047c 80E0      		ldi r24,lo8(.LC7)
+ 764 047e 90E0      		ldi r25,hi8(.LC7)
+ 765 0480 892F      		mov r24,r25
+ 766 0482 8F93      		push r24
+ 767 0484 80E0      		ldi r24,lo8(.LC7)
+ 768 0486 90E0      		ldi r25,hi8(.LC7)
+ 769 0488 8F93      		push r24
+ 770 048a CE01      		movw r24,r28
+ 771 048c 0396      		adiw r24,3
+ 772 048e 292F      		mov r18,r25
+ 773 0490 2F93      		push r18
+ 774 0492 8F93      		push r24
+ 775 0494 0E94 0000 		call sscanf
+ 776 0498 2DB7      		in r18,__SP_L__
+ 777 049a 3EB7      		in r19,__SP_H__
+ 778 049c 225F      		subi r18,-14
+ 779 049e 3F4F      		sbci r19,-1
+ 780 04a0 0FB6      		in __tmp_reg__,__SREG__
+ 781 04a2 F894      		cli
+ 782 04a4 DEBF      		out __SP_H__,r29
+ 783 04a6 0FBE      		out __SREG__,__tmp_reg__
+ 784 04a8 CDBF      		out __SP_L__,r28
+ 785 04aa 0597      		sbiw r24,5
+ 786 04ac 01F0      		breq .L21
+ 114:lp_solve_5.5/shared/mmio.c ****         storage_scheme) != 5)
+ 115:lp_solve_5.5/shared/mmio.c ****         return MM_PREMATURE_EOF;
+ 787               		.loc 1 115 0
+ 788 04ae 8CE0      		ldi r24,lo8(12)
+ 789 04b0 90E0      		ldi r25,0
+ 790 04b2 00C0      		rjmp .L45
+ 791               	.L21:
+ 116:lp_solve_5.5/shared/mmio.c **** 
+ 117:lp_solve_5.5/shared/mmio.c **** 	/* convert to lower case */
+ 118:lp_solve_5.5/shared/mmio.c ****     for (p=mtx; *p!='\0'; *p= (char) tolower(*p),p++);
+ 792               		.loc 1 118 0
+ 793 04b4 CE01      		movw r24,r28
+ 794 04b6 8C5B      		subi r24,-68
+ 795 04b8 9B4F      		sbci r25,-5
+ 796 04ba 9A83      		std Y+2,r25
+ 797 04bc 8983      		std Y+1,r24
+ 798 04be 00C0      		rjmp .L22
+ 799               	.L23:
+ 800               		.loc 1 118 0 is_stmt 0 discriminator 3
+ 801 04c0 8981      		ldd r24,Y+1
+ 802 04c2 9A81      		ldd r25,Y+2
+ 803 04c4 FC01      		movw r30,r24
+ 804 04c6 8081      		ld r24,Z
+ 805 04c8 882F      		mov r24,r24
+ 806 04ca 90E0      		ldi r25,0
+ 807 04cc 0E94 0000 		call tolower
+ 808 04d0 282F      		mov r18,r24
+ 809 04d2 8981      		ldd r24,Y+1
+ 810 04d4 9A81      		ldd r25,Y+2
+ 811 04d6 FC01      		movw r30,r24
+ 812 04d8 2083      		st Z,r18
+ 813 04da 8981      		ldd r24,Y+1
+ 814 04dc 9A81      		ldd r25,Y+2
+ 815 04de 0196      		adiw r24,1
+ 816 04e0 9A83      		std Y+2,r25
+ 817 04e2 8983      		std Y+1,r24
+ 818               	.L22:
+ 819               		.loc 1 118 0 discriminator 1
+ 820 04e4 8981      		ldd r24,Y+1
+ 821 04e6 9A81      		ldd r25,Y+2
+ 822 04e8 FC01      		movw r30,r24
+ 823 04ea 8081      		ld r24,Z
+ 824 04ec 8823      		tst r24
+ 825 04ee 01F4      		brne .L23
+ 119:lp_solve_5.5/shared/mmio.c ****     for (p=crd; *p!='\0'; *p= (char) tolower(*p),p++);
+ 826               		.loc 1 119 0 is_stmt 1
+ 827 04f0 CE01      		movw r24,r28
+ 828 04f2 8C57      		subi r24,124
+ 829 04f4 9B4F      		sbci r25,-5
+ 830 04f6 9A83      		std Y+2,r25
+ 831 04f8 8983      		std Y+1,r24
+ 832 04fa 00C0      		rjmp .L24
+ 833               	.L25:
+ 834               		.loc 1 119 0 is_stmt 0 discriminator 3
+ 835 04fc 8981      		ldd r24,Y+1
+ 836 04fe 9A81      		ldd r25,Y+2
+ 837 0500 FC01      		movw r30,r24
+ 838 0502 8081      		ld r24,Z
+ 839 0504 882F      		mov r24,r24
+ 840 0506 90E0      		ldi r25,0
+ 841 0508 0E94 0000 		call tolower
+ 842 050c 282F      		mov r18,r24
+ 843 050e 8981      		ldd r24,Y+1
+ 844 0510 9A81      		ldd r25,Y+2
+ 845 0512 FC01      		movw r30,r24
+ 846 0514 2083      		st Z,r18
+ 847 0516 8981      		ldd r24,Y+1
+ 848 0518 9A81      		ldd r25,Y+2
+ 849 051a 0196      		adiw r24,1
+ 850 051c 9A83      		std Y+2,r25
+ 851 051e 8983      		std Y+1,r24
+ 852               	.L24:
+ 853               		.loc 1 119 0 discriminator 1
+ 854 0520 8981      		ldd r24,Y+1
+ 855 0522 9A81      		ldd r25,Y+2
+ 856 0524 FC01      		movw r30,r24
+ 857 0526 8081      		ld r24,Z
+ 858 0528 8823      		tst r24
+ 859 052a 01F4      		brne .L25
+ 120:lp_solve_5.5/shared/mmio.c ****     for (p=data_type; *p!='\0'; *p= (char) tolower(*p),p++);
+ 860               		.loc 1 120 0 is_stmt 1
+ 861 052c CE01      		movw r24,r28
+ 862 052e 8C53      		subi r24,60
+ 863 0530 9B4F      		sbci r25,-5
+ 864 0532 9A83      		std Y+2,r25
+ 865 0534 8983      		std Y+1,r24
+ 866 0536 00C0      		rjmp .L26
+ 867               	.L27:
+ 868               		.loc 1 120 0 is_stmt 0 discriminator 3
+ 869 0538 8981      		ldd r24,Y+1
+ 870 053a 9A81      		ldd r25,Y+2
+ 871 053c FC01      		movw r30,r24
+ 872 053e 8081      		ld r24,Z
+ 873 0540 882F      		mov r24,r24
+ 874 0542 90E0      		ldi r25,0
+ 875 0544 0E94 0000 		call tolower
+ 876 0548 282F      		mov r18,r24
+ 877 054a 8981      		ldd r24,Y+1
+ 878 054c 9A81      		ldd r25,Y+2
+ 879 054e FC01      		movw r30,r24
+ 880 0550 2083      		st Z,r18
+ 881 0552 8981      		ldd r24,Y+1
+ 882 0554 9A81      		ldd r25,Y+2
+ 883 0556 0196      		adiw r24,1
+ 884 0558 9A83      		std Y+2,r25
+ 885 055a 8983      		std Y+1,r24
+ 886               	.L26:
+ 887               		.loc 1 120 0 discriminator 1
+ 888 055c 8981      		ldd r24,Y+1
+ 889 055e 9A81      		ldd r25,Y+2
+ 890 0560 FC01      		movw r30,r24
+ 891 0562 8081      		ld r24,Z
+ 892 0564 8823      		tst r24
+ 893 0566 01F4      		brne .L27
+ 121:lp_solve_5.5/shared/mmio.c ****     for (p=storage_scheme; *p!='\0'; *p= (char) tolower(*p),p++);
+ 894               		.loc 1 121 0 is_stmt 1
+ 895 0568 CE01      		movw r24,r28
+ 896 056a 8C5F      		subi r24,-4
+ 897 056c 9A4F      		sbci r25,-6
+ 898 056e 9A83      		std Y+2,r25
+ 899 0570 8983      		std Y+1,r24
+ 900 0572 00C0      		rjmp .L28
+ 901               	.L29:
+ 902               		.loc 1 121 0 is_stmt 0 discriminator 3
+ 903 0574 8981      		ldd r24,Y+1
+ 904 0576 9A81      		ldd r25,Y+2
+ 905 0578 FC01      		movw r30,r24
+ 906 057a 8081      		ld r24,Z
+ 907 057c 882F      		mov r24,r24
+ 908 057e 90E0      		ldi r25,0
+ 909 0580 0E94 0000 		call tolower
+ 910 0584 282F      		mov r18,r24
+ 911 0586 8981      		ldd r24,Y+1
+ 912 0588 9A81      		ldd r25,Y+2
+ 913 058a FC01      		movw r30,r24
+ 914 058c 2083      		st Z,r18
+ 915 058e 8981      		ldd r24,Y+1
+ 916 0590 9A81      		ldd r25,Y+2
+ 917 0592 0196      		adiw r24,1
+ 918 0594 9A83      		std Y+2,r25
+ 919 0596 8983      		std Y+1,r24
+ 920               	.L28:
+ 921               		.loc 1 121 0 discriminator 1
+ 922 0598 8981      		ldd r24,Y+1
+ 923 059a 9A81      		ldd r25,Y+2
+ 924 059c FC01      		movw r30,r24
+ 925 059e 8081      		ld r24,Z
+ 926 05a0 8823      		tst r24
+ 927 05a2 01F4      		brne .L29
+ 122:lp_solve_5.5/shared/mmio.c **** 
+ 123:lp_solve_5.5/shared/mmio.c ****     /* check for banner */
+ 124:lp_solve_5.5/shared/mmio.c ****     if (strncmp(banner, MatrixMarketBanner, strlen(MatrixMarketBanner)) != 0)
+ 928               		.loc 1 124 0 is_stmt 1
+ 929 05a4 CE01      		movw r24,r28
+ 930 05a6 8C5F      		subi r24,-4
+ 931 05a8 9B4F      		sbci r25,-5
+ 932 05aa 4EE0      		ldi r20,lo8(14)
+ 933 05ac 50E0      		ldi r21,0
+ 934 05ae 60E0      		ldi r22,lo8(.LC8)
+ 935 05b0 70E0      		ldi r23,hi8(.LC8)
+ 936 05b2 0E94 0000 		call strncmp
+ 937 05b6 892B      		or r24,r25
+ 938 05b8 01F0      		breq .L30
+ 125:lp_solve_5.5/shared/mmio.c ****         return MM_NO_HEADER;
+ 939               		.loc 1 125 0
+ 940 05ba 8EE0      		ldi r24,lo8(14)
+ 941 05bc 90E0      		ldi r25,0
+ 942 05be 00C0      		rjmp .L45
+ 943               	.L30:
+ 126:lp_solve_5.5/shared/mmio.c **** 
+ 127:lp_solve_5.5/shared/mmio.c ****     /* first field should be "mtx" */
+ 128:lp_solve_5.5/shared/mmio.c ****     if (strcmp(mtx, MM_MTX_STR) != 0)
+ 944               		.loc 1 128 0
+ 945 05c0 CE01      		movw r24,r28
+ 946 05c2 8C5B      		subi r24,-68
+ 947 05c4 9B4F      		sbci r25,-5
+ 948 05c6 60E0      		ldi r22,lo8(.LC9)
+ 949 05c8 70E0      		ldi r23,hi8(.LC9)
+ 950 05ca 0E94 0000 		call strcmp
+ 951 05ce 892B      		or r24,r25
+ 952 05d0 01F0      		breq .L31
+ 129:lp_solve_5.5/shared/mmio.c ****         return  MM_UNSUPPORTED_TYPE;
+ 953               		.loc 1 129 0
+ 954 05d2 8FE0      		ldi r24,lo8(15)
+ 955 05d4 90E0      		ldi r25,0
+ 956 05d6 00C0      		rjmp .L45
+ 957               	.L31:
+ 130:lp_solve_5.5/shared/mmio.c ****     mm_set_matrix(matcode);
+ 958               		.loc 1 130 0
+ 959 05d8 CE01      		movw r24,r28
+ 960 05da 8A5B      		subi r24,-70
+ 961 05dc 9A4F      		sbci r25,-6
+ 962 05de FC01      		movw r30,r24
+ 963 05e0 8081      		ld r24,Z
+ 964 05e2 9181      		ldd r25,Z+1
+ 965 05e4 2DE4      		ldi r18,lo8(77)
+ 966 05e6 FC01      		movw r30,r24
+ 967 05e8 2083      		st Z,r18
+ 131:lp_solve_5.5/shared/mmio.c **** 
+ 132:lp_solve_5.5/shared/mmio.c **** 
+ 133:lp_solve_5.5/shared/mmio.c ****     /* second field describes whether this is a sparse matrix (in coordinate
+ 134:lp_solve_5.5/shared/mmio.c ****             storgae) or a dense array */
+ 135:lp_solve_5.5/shared/mmio.c **** 
+ 136:lp_solve_5.5/shared/mmio.c **** 
+ 137:lp_solve_5.5/shared/mmio.c ****     if (strcmp(crd, MM_SPARSE_STR) == 0)
+ 968               		.loc 1 137 0
+ 969 05ea CE01      		movw r24,r28
+ 970 05ec 8C57      		subi r24,124
+ 971 05ee 9B4F      		sbci r25,-5
+ 972 05f0 60E0      		ldi r22,lo8(.LC10)
+ 973 05f2 70E0      		ldi r23,hi8(.LC10)
+ 974 05f4 0E94 0000 		call strcmp
+ 975 05f8 892B      		or r24,r25
+ 976 05fa 01F4      		brne .L32
+ 138:lp_solve_5.5/shared/mmio.c ****         mm_set_sparse(matcode);
+ 977               		.loc 1 138 0
+ 978 05fc CE01      		movw r24,r28
+ 979 05fe 8A5B      		subi r24,-70
+ 980 0600 9A4F      		sbci r25,-6
+ 981 0602 FC01      		movw r30,r24
+ 982 0604 8081      		ld r24,Z
+ 983 0606 9181      		ldd r25,Z+1
+ 984 0608 23E4      		ldi r18,lo8(67)
+ 985 060a FC01      		movw r30,r24
+ 986 060c 2183      		std Z+1,r18
+ 987 060e 00C0      		rjmp .L33
+ 988               	.L32:
+ 139:lp_solve_5.5/shared/mmio.c ****     else
+ 140:lp_solve_5.5/shared/mmio.c ****     if (strcmp(crd, MM_DENSE_STR) == 0)
+ 989               		.loc 1 140 0
+ 990 0610 CE01      		movw r24,r28
+ 991 0612 8C57      		subi r24,124
+ 992 0614 9B4F      		sbci r25,-5
+ 993 0616 60E0      		ldi r22,lo8(.LC11)
+ 994 0618 70E0      		ldi r23,hi8(.LC11)
+ 995 061a 0E94 0000 		call strcmp
+ 996 061e 892B      		or r24,r25
+ 997 0620 01F4      		brne .L34
+ 141:lp_solve_5.5/shared/mmio.c ****             mm_set_dense(matcode);
+ 998               		.loc 1 141 0
+ 999 0622 CE01      		movw r24,r28
+ 1000 0624 8A5B      		subi r24,-70
+ 1001 0626 9A4F      		sbci r25,-6
+ 1002 0628 FC01      		movw r30,r24
+ 1003 062a 8081      		ld r24,Z
+ 1004 062c 9181      		ldd r25,Z+1
+ 1005 062e 21E4      		ldi r18,lo8(65)
+ 1006 0630 FC01      		movw r30,r24
+ 1007 0632 2183      		std Z+1,r18
+ 1008 0634 00C0      		rjmp .L33
+ 1009               	.L34:
+ 142:lp_solve_5.5/shared/mmio.c ****     else
+ 143:lp_solve_5.5/shared/mmio.c ****         return MM_UNSUPPORTED_TYPE;
+ 1010               		.loc 1 143 0
+ 1011 0636 8FE0      		ldi r24,lo8(15)
+ 1012 0638 90E0      		ldi r25,0
+ 1013 063a 00C0      		rjmp .L45
+ 1014               	.L33:
+ 144:lp_solve_5.5/shared/mmio.c **** 
+ 145:lp_solve_5.5/shared/mmio.c **** 
+ 146:lp_solve_5.5/shared/mmio.c ****     /* third field */
+ 147:lp_solve_5.5/shared/mmio.c **** 
+ 148:lp_solve_5.5/shared/mmio.c ****     if (strcmp(data_type, MM_REAL_STR) == 0)
+ 1015               		.loc 1 148 0
+ 1016 063c CE01      		movw r24,r28
+ 1017 063e 8C53      		subi r24,60
+ 1018 0640 9B4F      		sbci r25,-5
+ 1019 0642 60E0      		ldi r22,lo8(.LC12)
+ 1020 0644 70E0      		ldi r23,hi8(.LC12)
+ 1021 0646 0E94 0000 		call strcmp
+ 1022 064a 892B      		or r24,r25
+ 1023 064c 01F4      		brne .L35
+ 149:lp_solve_5.5/shared/mmio.c ****         mm_set_real(matcode);
+ 1024               		.loc 1 149 0
+ 1025 064e CE01      		movw r24,r28
+ 1026 0650 8A5B      		subi r24,-70
+ 1027 0652 9A4F      		sbci r25,-6
+ 1028 0654 FC01      		movw r30,r24
+ 1029 0656 8081      		ld r24,Z
+ 1030 0658 9181      		ldd r25,Z+1
+ 1031 065a 22E5      		ldi r18,lo8(82)
+ 1032 065c FC01      		movw r30,r24
+ 1033 065e 2283      		std Z+2,r18
+ 1034 0660 00C0      		rjmp .L36
+ 1035               	.L35:
+ 150:lp_solve_5.5/shared/mmio.c ****     else
+ 151:lp_solve_5.5/shared/mmio.c ****     if (strcmp(data_type, MM_COMPLEX_STR) == 0)
+ 1036               		.loc 1 151 0
+ 1037 0662 CE01      		movw r24,r28
+ 1038 0664 8C53      		subi r24,60
+ 1039 0666 9B4F      		sbci r25,-5
+ 1040 0668 60E0      		ldi r22,lo8(.LC13)
+ 1041 066a 70E0      		ldi r23,hi8(.LC13)
+ 1042 066c 0E94 0000 		call strcmp
+ 1043 0670 892B      		or r24,r25
+ 1044 0672 01F4      		brne .L37
+ 152:lp_solve_5.5/shared/mmio.c ****         mm_set_complex(matcode);
+ 1045               		.loc 1 152 0
+ 1046 0674 CE01      		movw r24,r28
+ 1047 0676 8A5B      		subi r24,-70
+ 1048 0678 9A4F      		sbci r25,-6
+ 1049 067a FC01      		movw r30,r24
+ 1050 067c 8081      		ld r24,Z
+ 1051 067e 9181      		ldd r25,Z+1
+ 1052 0680 23E4      		ldi r18,lo8(67)
+ 1053 0682 FC01      		movw r30,r24
+ 1054 0684 2283      		std Z+2,r18
+ 1055 0686 00C0      		rjmp .L36
+ 1056               	.L37:
+ 153:lp_solve_5.5/shared/mmio.c ****     else
+ 154:lp_solve_5.5/shared/mmio.c ****     if (strcmp(data_type, MM_PATTERN_STR) == 0)
+ 1057               		.loc 1 154 0
+ 1058 0688 CE01      		movw r24,r28
+ 1059 068a 8C53      		subi r24,60
+ 1060 068c 9B4F      		sbci r25,-5
+ 1061 068e 60E0      		ldi r22,lo8(.LC14)
+ 1062 0690 70E0      		ldi r23,hi8(.LC14)
+ 1063 0692 0E94 0000 		call strcmp
+ 1064 0696 892B      		or r24,r25
+ 1065 0698 01F4      		brne .L38
+ 155:lp_solve_5.5/shared/mmio.c ****         mm_set_pattern(matcode);
+ 1066               		.loc 1 155 0
+ 1067 069a CE01      		movw r24,r28
+ 1068 069c 8A5B      		subi r24,-70
+ 1069 069e 9A4F      		sbci r25,-6
+ 1070 06a0 FC01      		movw r30,r24
+ 1071 06a2 8081      		ld r24,Z
+ 1072 06a4 9181      		ldd r25,Z+1
+ 1073 06a6 20E5      		ldi r18,lo8(80)
+ 1074 06a8 FC01      		movw r30,r24
+ 1075 06aa 2283      		std Z+2,r18
+ 1076 06ac 00C0      		rjmp .L36
+ 1077               	.L38:
+ 156:lp_solve_5.5/shared/mmio.c ****     else
+ 157:lp_solve_5.5/shared/mmio.c ****     if (strcmp(data_type, MM_INT_STR) == 0)
+ 1078               		.loc 1 157 0
+ 1079 06ae CE01      		movw r24,r28
+ 1080 06b0 8C53      		subi r24,60
+ 1081 06b2 9B4F      		sbci r25,-5
+ 1082 06b4 60E0      		ldi r22,lo8(.LC15)
+ 1083 06b6 70E0      		ldi r23,hi8(.LC15)
+ 1084 06b8 0E94 0000 		call strcmp
+ 1085 06bc 892B      		or r24,r25
+ 1086 06be 01F4      		brne .L39
+ 158:lp_solve_5.5/shared/mmio.c ****         mm_set_integer(matcode);
+ 1087               		.loc 1 158 0
+ 1088 06c0 CE01      		movw r24,r28
+ 1089 06c2 8A5B      		subi r24,-70
+ 1090 06c4 9A4F      		sbci r25,-6
+ 1091 06c6 FC01      		movw r30,r24
+ 1092 06c8 8081      		ld r24,Z
+ 1093 06ca 9181      		ldd r25,Z+1
+ 1094 06cc 29E4      		ldi r18,lo8(73)
+ 1095 06ce FC01      		movw r30,r24
+ 1096 06d0 2283      		std Z+2,r18
+ 1097 06d2 00C0      		rjmp .L36
+ 1098               	.L39:
+ 159:lp_solve_5.5/shared/mmio.c ****     else
+ 160:lp_solve_5.5/shared/mmio.c ****         return MM_UNSUPPORTED_TYPE;
+ 1099               		.loc 1 160 0
+ 1100 06d4 8FE0      		ldi r24,lo8(15)
+ 1101 06d6 90E0      		ldi r25,0
+ 1102 06d8 00C0      		rjmp .L45
+ 1103               	.L36:
+ 161:lp_solve_5.5/shared/mmio.c **** 
+ 162:lp_solve_5.5/shared/mmio.c **** 
+ 163:lp_solve_5.5/shared/mmio.c ****     /* fourth field */
+ 164:lp_solve_5.5/shared/mmio.c **** 
+ 165:lp_solve_5.5/shared/mmio.c ****     if (strcmp(storage_scheme, MM_GENERAL_STR) == 0)
+ 1104               		.loc 1 165 0
+ 1105 06da CE01      		movw r24,r28
+ 1106 06dc 8C5F      		subi r24,-4
+ 1107 06de 9A4F      		sbci r25,-6
+ 1108 06e0 60E0      		ldi r22,lo8(.LC16)
+ 1109 06e2 70E0      		ldi r23,hi8(.LC16)
+ 1110 06e4 0E94 0000 		call strcmp
+ 1111 06e8 892B      		or r24,r25
+ 1112 06ea 01F4      		brne .L40
+ 166:lp_solve_5.5/shared/mmio.c ****         mm_set_general(matcode);
+ 1113               		.loc 1 166 0
+ 1114 06ec CE01      		movw r24,r28
+ 1115 06ee 8A5B      		subi r24,-70
+ 1116 06f0 9A4F      		sbci r25,-6
+ 1117 06f2 FC01      		movw r30,r24
+ 1118 06f4 8081      		ld r24,Z
+ 1119 06f6 9181      		ldd r25,Z+1
+ 1120 06f8 27E4      		ldi r18,lo8(71)
+ 1121 06fa FC01      		movw r30,r24
+ 1122 06fc 2383      		std Z+3,r18
+ 1123 06fe 00C0      		rjmp .L41
+ 1124               	.L40:
+ 167:lp_solve_5.5/shared/mmio.c ****     else
+ 168:lp_solve_5.5/shared/mmio.c ****     if (strcmp(storage_scheme, MM_SYMM_STR) == 0)
+ 1125               		.loc 1 168 0
+ 1126 0700 CE01      		movw r24,r28
+ 1127 0702 8C5F      		subi r24,-4
+ 1128 0704 9A4F      		sbci r25,-6
+ 1129 0706 60E0      		ldi r22,lo8(.LC17)
+ 1130 0708 70E0      		ldi r23,hi8(.LC17)
+ 1131 070a 0E94 0000 		call strcmp
+ 1132 070e 892B      		or r24,r25
+ 1133 0710 01F4      		brne .L42
+ 169:lp_solve_5.5/shared/mmio.c ****         mm_set_symmetric(matcode);
+ 1134               		.loc 1 169 0
+ 1135 0712 CE01      		movw r24,r28
+ 1136 0714 8A5B      		subi r24,-70
+ 1137 0716 9A4F      		sbci r25,-6
+ 1138 0718 FC01      		movw r30,r24
+ 1139 071a 8081      		ld r24,Z
+ 1140 071c 9181      		ldd r25,Z+1
+ 1141 071e 23E5      		ldi r18,lo8(83)
+ 1142 0720 FC01      		movw r30,r24
+ 1143 0722 2383      		std Z+3,r18
+ 1144 0724 00C0      		rjmp .L41
+ 1145               	.L42:
+ 170:lp_solve_5.5/shared/mmio.c ****     else
+ 171:lp_solve_5.5/shared/mmio.c ****     if (strcmp(storage_scheme, MM_HERM_STR) == 0)
+ 1146               		.loc 1 171 0
+ 1147 0726 CE01      		movw r24,r28
+ 1148 0728 8C5F      		subi r24,-4
+ 1149 072a 9A4F      		sbci r25,-6
+ 1150 072c 60E0      		ldi r22,lo8(.LC18)
+ 1151 072e 70E0      		ldi r23,hi8(.LC18)
+ 1152 0730 0E94 0000 		call strcmp
+ 1153 0734 892B      		or r24,r25
+ 1154 0736 01F4      		brne .L43
+ 172:lp_solve_5.5/shared/mmio.c ****         mm_set_hermitian(matcode);
+ 1155               		.loc 1 172 0
+ 1156 0738 CE01      		movw r24,r28
+ 1157 073a 8A5B      		subi r24,-70
+ 1158 073c 9A4F      		sbci r25,-6
+ 1159 073e FC01      		movw r30,r24
+ 1160 0740 8081      		ld r24,Z
+ 1161 0742 9181      		ldd r25,Z+1
+ 1162 0744 28E4      		ldi r18,lo8(72)
+ 1163 0746 FC01      		movw r30,r24
+ 1164 0748 2383      		std Z+3,r18
+ 1165 074a 00C0      		rjmp .L41
+ 1166               	.L43:
+ 173:lp_solve_5.5/shared/mmio.c ****     else
+ 174:lp_solve_5.5/shared/mmio.c ****     if (strcmp(storage_scheme, MM_SKEW_STR) == 0)
+ 1167               		.loc 1 174 0
+ 1168 074c CE01      		movw r24,r28
+ 1169 074e 8C5F      		subi r24,-4
+ 1170 0750 9A4F      		sbci r25,-6
+ 1171 0752 60E0      		ldi r22,lo8(.LC19)
+ 1172 0754 70E0      		ldi r23,hi8(.LC19)
+ 1173 0756 0E94 0000 		call strcmp
+ 1174 075a 892B      		or r24,r25
+ 1175 075c 01F4      		brne .L44
+ 175:lp_solve_5.5/shared/mmio.c ****         mm_set_skew(matcode);
+ 1176               		.loc 1 175 0
+ 1177 075e CE01      		movw r24,r28
+ 1178 0760 8A5B      		subi r24,-70
+ 1179 0762 9A4F      		sbci r25,-6
+ 1180 0764 FC01      		movw r30,r24
+ 1181 0766 8081      		ld r24,Z
+ 1182 0768 9181      		ldd r25,Z+1
+ 1183 076a 2BE4      		ldi r18,lo8(75)
+ 1184 076c FC01      		movw r30,r24
+ 1185 076e 2383      		std Z+3,r18
+ 1186 0770 00C0      		rjmp .L41
+ 1187               	.L44:
+ 176:lp_solve_5.5/shared/mmio.c ****     else
+ 177:lp_solve_5.5/shared/mmio.c ****         return MM_UNSUPPORTED_TYPE;
+ 1188               		.loc 1 177 0
+ 1189 0772 8FE0      		ldi r24,lo8(15)
+ 1190 0774 90E0      		ldi r25,0
+ 1191 0776 00C0      		rjmp .L45
+ 1192               	.L41:
+ 178:lp_solve_5.5/shared/mmio.c **** 
+ 179:lp_solve_5.5/shared/mmio.c **** 
+ 180:lp_solve_5.5/shared/mmio.c ****     return 0;
+ 1193               		.loc 1 180 0
+ 1194 0778 80E0      		ldi r24,0
+ 1195 077a 90E0      		ldi r25,0
+ 1196               	.L45:
+ 1197               	/* epilogue start */
+ 181:lp_solve_5.5/shared/mmio.c **** }
+ 1198               		.loc 1 181 0 discriminator 1
+ 1199 077c C95B      		subi r28,-71
+ 1200 077e DA4F      		sbci r29,-6
+ 1201 0780 0FB6      		in __tmp_reg__,__SREG__
+ 1202 0782 F894      		cli
+ 1203 0784 DEBF      		out __SP_H__,r29
+ 1204 0786 0FBE      		out __SREG__,__tmp_reg__
+ 1205 0788 CDBF      		out __SP_L__,r28
+ 1206 078a DF91      		pop r29
+ 1207 078c CF91      		pop r28
+ 1208 078e 0895      		ret
+ 1209               		.cfi_endproc
+ 1210               	.LFE7:
+ 1212               		.section	.rodata
+ 1213               	.LC20:
+ 1214 0153 2564 2025 		.string	"%d %d %d\n"
+ 1214      6420 2564 
+ 1214      0A00 
+ 1215               		.text
+ 1216               	.global	mm_write_mtx_crd_size
+ 1218               	mm_write_mtx_crd_size:
+ 1219               	.LFB8:
+ 182:lp_solve_5.5/shared/mmio.c **** 
+ 183:lp_solve_5.5/shared/mmio.c **** int mm_write_mtx_crd_size(FILE *f, int M, int N, int nz)
+ 184:lp_solve_5.5/shared/mmio.c **** {
+ 1220               		.loc 1 184 0
+ 1221               		.cfi_startproc
+ 1222 0790 CF93      		push r28
+ 1223               	.LCFI18:
+ 1224               		.cfi_def_cfa_offset 3
+ 1225               		.cfi_offset 28, -2
+ 1226 0792 DF93      		push r29
+ 1227               	.LCFI19:
+ 1228               		.cfi_def_cfa_offset 4
+ 1229               		.cfi_offset 29, -3
+ 1230 0794 CDB7      		in r28,__SP_L__
+ 1231 0796 DEB7      		in r29,__SP_H__
+ 1232               	.LCFI20:
+ 1233               		.cfi_def_cfa_register 28
+ 1234 0798 2897      		sbiw r28,8
+ 1235               	.LCFI21:
+ 1236               		.cfi_def_cfa_offset 12
+ 1237 079a 0FB6      		in __tmp_reg__,__SREG__
+ 1238 079c F894      		cli
+ 1239 079e DEBF      		out __SP_H__,r29
+ 1240 07a0 0FBE      		out __SREG__,__tmp_reg__
+ 1241 07a2 CDBF      		out __SP_L__,r28
+ 1242               	/* prologue: function */
+ 1243               	/* frame size = 8 */
+ 1244               	/* stack size = 10 */
+ 1245               	.L__stack_usage = 10
+ 1246 07a4 9A83      		std Y+2,r25
+ 1247 07a6 8983      		std Y+1,r24
+ 1248 07a8 7C83      		std Y+4,r23
+ 1249 07aa 6B83      		std Y+3,r22
+ 1250 07ac 5E83      		std Y+6,r21
+ 1251 07ae 4D83      		std Y+5,r20
+ 1252 07b0 3887      		std Y+8,r19
+ 1253 07b2 2F83      		std Y+7,r18
+ 185:lp_solve_5.5/shared/mmio.c ****     if (fprintf(f, "%d %d %d\n", M, N, nz) < 0)
+ 1254               		.loc 1 185 0
+ 1255 07b4 8885      		ldd r24,Y+8
+ 1256 07b6 8F93      		push r24
+ 1257 07b8 8F81      		ldd r24,Y+7
+ 1258 07ba 8F93      		push r24
+ 1259 07bc 8E81      		ldd r24,Y+6
+ 1260 07be 8F93      		push r24
+ 1261 07c0 8D81      		ldd r24,Y+5
+ 1262 07c2 8F93      		push r24
+ 1263 07c4 8C81      		ldd r24,Y+4
+ 1264 07c6 8F93      		push r24
+ 1265 07c8 8B81      		ldd r24,Y+3
+ 1266 07ca 8F93      		push r24
+ 1267 07cc 80E0      		ldi r24,lo8(.LC20)
+ 1268 07ce 90E0      		ldi r25,hi8(.LC20)
+ 1269 07d0 892F      		mov r24,r25
+ 1270 07d2 8F93      		push r24
+ 1271 07d4 80E0      		ldi r24,lo8(.LC20)
+ 1272 07d6 90E0      		ldi r25,hi8(.LC20)
+ 1273 07d8 8F93      		push r24
+ 1274 07da 8A81      		ldd r24,Y+2
+ 1275 07dc 8F93      		push r24
+ 1276 07de 8981      		ldd r24,Y+1
+ 1277 07e0 8F93      		push r24
+ 1278 07e2 0E94 0000 		call fprintf
+ 1279 07e6 2DB7      		in r18,__SP_L__
+ 1280 07e8 3EB7      		in r19,__SP_H__
+ 1281 07ea 265F      		subi r18,-10
+ 1282 07ec 3F4F      		sbci r19,-1
+ 1283 07ee 0FB6      		in __tmp_reg__,__SREG__
+ 1284 07f0 F894      		cli
+ 1285 07f2 DEBF      		out __SP_H__,r29
+ 1286 07f4 0FBE      		out __SREG__,__tmp_reg__
+ 1287 07f6 CDBF      		out __SP_L__,r28
+ 1288 07f8 9923      		tst r25
+ 1289 07fa 04F4      		brge .L47
+ 186:lp_solve_5.5/shared/mmio.c ****         return MM_COULD_NOT_WRITE_FILE;
+ 1290               		.loc 1 186 0
+ 1291 07fc 81E1      		ldi r24,lo8(17)
+ 1292 07fe 90E0      		ldi r25,0
+ 1293 0800 00C0      		rjmp .L48
+ 1294               	.L47:
+ 187:lp_solve_5.5/shared/mmio.c ****     else
+ 188:lp_solve_5.5/shared/mmio.c ****         return 0;
+ 1295               		.loc 1 188 0
+ 1296 0802 80E0      		ldi r24,0
+ 1297 0804 90E0      		ldi r25,0
+ 1298               	.L48:
+ 1299               	/* epilogue start */
+ 189:lp_solve_5.5/shared/mmio.c **** }
+ 1300               		.loc 1 189 0
+ 1301 0806 2896      		adiw r28,8
+ 1302 0808 0FB6      		in __tmp_reg__,__SREG__
+ 1303 080a F894      		cli
+ 1304 080c DEBF      		out __SP_H__,r29
+ 1305 080e 0FBE      		out __SREG__,__tmp_reg__
+ 1306 0810 CDBF      		out __SP_L__,r28
+ 1307 0812 DF91      		pop r29
+ 1308 0814 CF91      		pop r28
+ 1309 0816 0895      		ret
+ 1310               		.cfi_endproc
+ 1311               	.LFE8:
+ 1313               		.section	.rodata
+ 1314               	.LC21:
+ 1315 015d 2564 2025 		.string	"%d %d %d"
+ 1315      6420 2564 
+ 1315      00
+ 1316               		.text
+ 1317               	.global	mm_read_mtx_crd_size
+ 1319               	mm_read_mtx_crd_size:
+ 1320               	.LFB9:
+ 190:lp_solve_5.5/shared/mmio.c **** 
+ 191:lp_solve_5.5/shared/mmio.c **** int mm_read_mtx_crd_size(FILE *f, int *M, int *N, int *nz )
+ 192:lp_solve_5.5/shared/mmio.c **** {
+ 1321               		.loc 1 192 0
+ 1322               		.cfi_startproc
+ 1323 0818 CF93      		push r28
+ 1324               	.LCFI22:
+ 1325               		.cfi_def_cfa_offset 3
+ 1326               		.cfi_offset 28, -2
+ 1327 081a DF93      		push r29
+ 1328               	.LCFI23:
+ 1329               		.cfi_def_cfa_offset 4
+ 1330               		.cfi_offset 29, -3
+ 1331 081c CDB7      		in r28,__SP_L__
+ 1332 081e DEB7      		in r29,__SP_H__
+ 1333               	.LCFI24:
+ 1334               		.cfi_def_cfa_register 28
+ 1335 0820 CB50      		subi r28,11
+ 1336 0822 D440      		sbci r29,4
+ 1337               	.LCFI25:
+ 1338               		.cfi_def_cfa_offset 1039
+ 1339 0824 0FB6      		in __tmp_reg__,__SREG__
+ 1340 0826 F894      		cli
+ 1341 0828 DEBF      		out __SP_H__,r29
+ 1342 082a 0FBE      		out __SREG__,__tmp_reg__
+ 1343 082c CDBF      		out __SP_L__,r28
+ 1344               	/* prologue: function */
+ 1345               	/* frame size = 1035 */
+ 1346               	/* stack size = 1037 */
+ 1347               	.L__stack_usage = 1037
+ 1348 082e FE01      		movw r30,r28
+ 1349 0830 EC5F      		subi r30,-4
+ 1350 0832 FB4F      		sbci r31,-5
+ 1351 0834 9183      		std Z+1,r25
+ 1352 0836 8083      		st Z,r24
+ 1353 0838 CE01      		movw r24,r28
+ 1354 083a 8A5F      		subi r24,-6
+ 1355 083c 9B4F      		sbci r25,-5
+ 1356 083e FC01      		movw r30,r24
+ 1357 0840 7183      		std Z+1,r23
+ 1358 0842 6083      		st Z,r22
+ 1359 0844 CE01      		movw r24,r28
+ 1360 0846 885F      		subi r24,-8
+ 1361 0848 9B4F      		sbci r25,-5
+ 1362 084a FC01      		movw r30,r24
+ 1363 084c 5183      		std Z+1,r21
+ 1364 084e 4083      		st Z,r20
+ 1365 0850 CE01      		movw r24,r28
+ 1366 0852 865F      		subi r24,-10
+ 1367 0854 9B4F      		sbci r25,-5
+ 1368 0856 FC01      		movw r30,r24
+ 1369 0858 3183      		std Z+1,r19
+ 1370 085a 2083      		st Z,r18
+ 193:lp_solve_5.5/shared/mmio.c ****     char line[MM_MAX_LINE_LENGTH];
+ 194:lp_solve_5.5/shared/mmio.c ****     int num_items_read;
+ 195:lp_solve_5.5/shared/mmio.c **** 
+ 196:lp_solve_5.5/shared/mmio.c ****     /* set return null parameter values, in case we exit with errors */
+ 197:lp_solve_5.5/shared/mmio.c ****     *M = *N = *nz = 0;
+ 1371               		.loc 1 197 0
+ 1372 085c CE01      		movw r24,r28
+ 1373 085e 865F      		subi r24,-10
+ 1374 0860 9B4F      		sbci r25,-5
+ 1375 0862 FC01      		movw r30,r24
+ 1376 0864 8081      		ld r24,Z
+ 1377 0866 9181      		ldd r25,Z+1
+ 1378 0868 FC01      		movw r30,r24
+ 1379 086a 1182      		std Z+1,__zero_reg__
+ 1380 086c 1082      		st Z,__zero_reg__
+ 1381 086e CE01      		movw r24,r28
+ 1382 0870 865F      		subi r24,-10
+ 1383 0872 9B4F      		sbci r25,-5
+ 1384 0874 FC01      		movw r30,r24
+ 1385 0876 8081      		ld r24,Z
+ 1386 0878 9181      		ldd r25,Z+1
+ 1387 087a FC01      		movw r30,r24
+ 1388 087c 2081      		ld r18,Z
+ 1389 087e 3181      		ldd r19,Z+1
+ 1390 0880 CE01      		movw r24,r28
+ 1391 0882 885F      		subi r24,-8
+ 1392 0884 9B4F      		sbci r25,-5
+ 1393 0886 FC01      		movw r30,r24
+ 1394 0888 8081      		ld r24,Z
+ 1395 088a 9181      		ldd r25,Z+1
+ 1396 088c FC01      		movw r30,r24
+ 1397 088e 3183      		std Z+1,r19
+ 1398 0890 2083      		st Z,r18
+ 1399 0892 CE01      		movw r24,r28
+ 1400 0894 885F      		subi r24,-8
+ 1401 0896 9B4F      		sbci r25,-5
+ 1402 0898 FC01      		movw r30,r24
+ 1403 089a 8081      		ld r24,Z
+ 1404 089c 9181      		ldd r25,Z+1
+ 1405 089e FC01      		movw r30,r24
+ 1406 08a0 2081      		ld r18,Z
+ 1407 08a2 3181      		ldd r19,Z+1
+ 1408 08a4 CE01      		movw r24,r28
+ 1409 08a6 8A5F      		subi r24,-6
+ 1410 08a8 9B4F      		sbci r25,-5
+ 1411 08aa FC01      		movw r30,r24
+ 1412 08ac 8081      		ld r24,Z
+ 1413 08ae 9181      		ldd r25,Z+1
+ 1414 08b0 FC01      		movw r30,r24
+ 1415 08b2 3183      		std Z+1,r19
+ 1416 08b4 2083      		st Z,r18
+ 1417               	.L52:
+ 198:lp_solve_5.5/shared/mmio.c **** 
+ 199:lp_solve_5.5/shared/mmio.c ****     /* now continue scanning until you reach the end-of-comments */
+ 200:lp_solve_5.5/shared/mmio.c ****     do {
+ 201:lp_solve_5.5/shared/mmio.c ****       if (fgets(line,MM_MAX_LINE_LENGTH,f) == NULL)
+ 1418               		.loc 1 201 0
+ 1419 08b6 CE01      		movw r24,r28
+ 1420 08b8 8C5F      		subi r24,-4
+ 1421 08ba 9B4F      		sbci r25,-5
+ 1422 08bc FC01      		movw r30,r24
+ 1423 08be 2081      		ld r18,Z
+ 1424 08c0 3181      		ldd r19,Z+1
+ 1425 08c2 CE01      		movw r24,r28
+ 1426 08c4 0396      		adiw r24,3
+ 1427 08c6 A901      		movw r20,r18
+ 1428 08c8 61E0      		ldi r22,lo8(1)
+ 1429 08ca 74E0      		ldi r23,lo8(4)
+ 1430 08cc 0E94 0000 		call fgets
+ 1431 08d0 892B      		or r24,r25
+ 1432 08d2 01F4      		brne .L50
+ 202:lp_solve_5.5/shared/mmio.c ****           return MM_PREMATURE_EOF;
+ 1433               		.loc 1 202 0
+ 1434 08d4 8CE0      		ldi r24,lo8(12)
+ 1435 08d6 90E0      		ldi r25,0
+ 1436 08d8 00C0      		rjmp .L55
+ 1437               	.L50:
+ 203:lp_solve_5.5/shared/mmio.c ****     } while (line[0] == '%');
+ 1438               		.loc 1 203 0
+ 1439 08da 8B81      		ldd r24,Y+3
+ 1440 08dc 8532      		cpi r24,lo8(37)
+ 1441 08de 01F0      		breq .L52
+ 204:lp_solve_5.5/shared/mmio.c **** 
+ 205:lp_solve_5.5/shared/mmio.c ****     /* line[] is either blank, har M,N or M,N,nz */
+ 206:lp_solve_5.5/shared/mmio.c ****     if (sscanf(line, "%d %d %d", M, N, nz) >= 2)
+ 1442               		.loc 1 206 0
+ 1443 08e0 CE01      		movw r24,r28
+ 1444 08e2 865F      		subi r24,-10
+ 1445 08e4 9B4F      		sbci r25,-5
+ 1446 08e6 FC01      		movw r30,r24
+ 1447 08e8 2181      		ldd r18,Z+1
+ 1448 08ea 2F93      		push r18
+ 1449 08ec FC01      		movw r30,r24
+ 1450 08ee 8081      		ld r24,Z
+ 1451 08f0 8F93      		push r24
+ 1452 08f2 CE01      		movw r24,r28
+ 1453 08f4 885F      		subi r24,-8
+ 1454 08f6 9B4F      		sbci r25,-5
+ 1455 08f8 FC01      		movw r30,r24
+ 1456 08fa 2181      		ldd r18,Z+1
+ 1457 08fc 2F93      		push r18
+ 1458 08fe FC01      		movw r30,r24
+ 1459 0900 8081      		ld r24,Z
+ 1460 0902 8F93      		push r24
+ 1461 0904 CE01      		movw r24,r28
+ 1462 0906 8A5F      		subi r24,-6
+ 1463 0908 9B4F      		sbci r25,-5
+ 1464 090a FC01      		movw r30,r24
+ 1465 090c 2181      		ldd r18,Z+1
+ 1466 090e 2F93      		push r18
+ 1467 0910 FC01      		movw r30,r24
+ 1468 0912 8081      		ld r24,Z
+ 1469 0914 8F93      		push r24
+ 1470 0916 80E0      		ldi r24,lo8(.LC21)
+ 1471 0918 90E0      		ldi r25,hi8(.LC21)
+ 1472 091a 892F      		mov r24,r25
+ 1473 091c 8F93      		push r24
+ 1474 091e 80E0      		ldi r24,lo8(.LC21)
+ 1475 0920 90E0      		ldi r25,hi8(.LC21)
+ 1476 0922 8F93      		push r24
+ 1477 0924 CE01      		movw r24,r28
+ 1478 0926 0396      		adiw r24,3
+ 1479 0928 292F      		mov r18,r25
+ 1480 092a 2F93      		push r18
+ 1481 092c 8F93      		push r24
+ 1482 092e 0E94 0000 		call sscanf
+ 1483 0932 2DB7      		in r18,__SP_L__
+ 1484 0934 3EB7      		in r19,__SP_H__
+ 1485 0936 265F      		subi r18,-10
+ 1486 0938 3F4F      		sbci r19,-1
+ 1487 093a 0FB6      		in __tmp_reg__,__SREG__
+ 1488 093c F894      		cli
+ 1489 093e DEBF      		out __SP_H__,r29
+ 1490 0940 0FBE      		out __SREG__,__tmp_reg__
+ 1491 0942 CDBF      		out __SP_L__,r28
+ 1492 0944 0297      		sbiw r24,2
+ 1493 0946 04F0      		brlt .L53
+ 207:lp_solve_5.5/shared/mmio.c ****       return 0;
+ 1494               		.loc 1 207 0
+ 1495 0948 80E0      		ldi r24,0
+ 1496 094a 90E0      		ldi r25,0
+ 1497 094c 00C0      		rjmp .L55
+ 1498               	.L53:
+ 208:lp_solve_5.5/shared/mmio.c **** 
+ 209:lp_solve_5.5/shared/mmio.c ****     else
+ 210:lp_solve_5.5/shared/mmio.c ****     do {
+ 211:lp_solve_5.5/shared/mmio.c ****         num_items_read = fscanf(f, "%d %d %d", M, N, nz);
+ 1499               		.loc 1 211 0
+ 1500 094e CE01      		movw r24,r28
+ 1501 0950 865F      		subi r24,-10
+ 1502 0952 9B4F      		sbci r25,-5
+ 1503 0954 FC01      		movw r30,r24
+ 1504 0956 2181      		ldd r18,Z+1
+ 1505 0958 2F93      		push r18
+ 1506 095a FC01      		movw r30,r24
+ 1507 095c 8081      		ld r24,Z
+ 1508 095e 8F93      		push r24
+ 1509 0960 CE01      		movw r24,r28
+ 1510 0962 885F      		subi r24,-8
+ 1511 0964 9B4F      		sbci r25,-5
+ 1512 0966 FC01      		movw r30,r24
+ 1513 0968 2181      		ldd r18,Z+1
+ 1514 096a 2F93      		push r18
+ 1515 096c FC01      		movw r30,r24
+ 1516 096e 8081      		ld r24,Z
+ 1517 0970 8F93      		push r24
+ 1518 0972 CE01      		movw r24,r28
+ 1519 0974 8A5F      		subi r24,-6
+ 1520 0976 9B4F      		sbci r25,-5
+ 1521 0978 FC01      		movw r30,r24
+ 1522 097a 2181      		ldd r18,Z+1
+ 1523 097c 2F93      		push r18
+ 1524 097e FC01      		movw r30,r24
+ 1525 0980 8081      		ld r24,Z
+ 1526 0982 8F93      		push r24
+ 1527 0984 80E0      		ldi r24,lo8(.LC21)
+ 1528 0986 90E0      		ldi r25,hi8(.LC21)
+ 1529 0988 892F      		mov r24,r25
+ 1530 098a 8F93      		push r24
+ 1531 098c 80E0      		ldi r24,lo8(.LC21)
+ 1532 098e 90E0      		ldi r25,hi8(.LC21)
+ 1533 0990 8F93      		push r24
+ 1534 0992 CE01      		movw r24,r28
+ 1535 0994 8C5F      		subi r24,-4
+ 1536 0996 9B4F      		sbci r25,-5
+ 1537 0998 FC01      		movw r30,r24
+ 1538 099a 2181      		ldd r18,Z+1
+ 1539 099c 2F93      		push r18
+ 1540 099e FC01      		movw r30,r24
+ 1541 09a0 8081      		ld r24,Z
+ 1542 09a2 8F93      		push r24
+ 1543 09a4 0E94 0000 		call fscanf
+ 1544 09a8 2DB7      		in r18,__SP_L__
+ 1545 09aa 3EB7      		in r19,__SP_H__
+ 1546 09ac 265F      		subi r18,-10
+ 1547 09ae 3F4F      		sbci r19,-1
+ 1548 09b0 0FB6      		in __tmp_reg__,__SREG__
+ 1549 09b2 F894      		cli
+ 1550 09b4 DEBF      		out __SP_H__,r29
+ 1551 09b6 0FBE      		out __SREG__,__tmp_reg__
+ 1552 09b8 CDBF      		out __SP_L__,r28
+ 1553 09ba 9A83      		std Y+2,r25
+ 1554 09bc 8983      		std Y+1,r24
+ 212:lp_solve_5.5/shared/mmio.c ****         if (num_items_read == EOF) return MM_PREMATURE_EOF;
+ 1555               		.loc 1 212 0
+ 1556 09be 8981      		ldd r24,Y+1
+ 1557 09c0 9A81      		ldd r25,Y+2
+ 1558 09c2 0196      		adiw r24,1
+ 1559 09c4 01F4      		brne .L54
+ 1560               		.loc 1 212 0 is_stmt 0 discriminator 1
+ 1561 09c6 8CE0      		ldi r24,lo8(12)
+ 1562 09c8 90E0      		ldi r25,0
+ 1563 09ca 00C0      		rjmp .L55
+ 1564               	.L54:
+ 213:lp_solve_5.5/shared/mmio.c ****     } while (num_items_read < 2);
+ 1565               		.loc 1 213 0 is_stmt 1
+ 1566 09cc 8981      		ldd r24,Y+1
+ 1567 09ce 9A81      		ldd r25,Y+2
+ 1568 09d0 0297      		sbiw r24,2
+ 1569 09d2 04F4      		brge .+2
+ 1570 09d4 00C0      		rjmp .L53
+ 214:lp_solve_5.5/shared/mmio.c **** 
+ 215:lp_solve_5.5/shared/mmio.c ****     return 0;
+ 1571               		.loc 1 215 0
+ 1572 09d6 80E0      		ldi r24,0
+ 1573 09d8 90E0      		ldi r25,0
+ 1574               	.L55:
+ 1575               	/* epilogue start */
+ 216:lp_solve_5.5/shared/mmio.c **** }
+ 1576               		.loc 1 216 0 discriminator 1
+ 1577 09da C55F      		subi r28,-11
+ 1578 09dc DB4F      		sbci r29,-5
+ 1579 09de 0FB6      		in __tmp_reg__,__SREG__
+ 1580 09e0 F894      		cli
+ 1581 09e2 DEBF      		out __SP_H__,r29
+ 1582 09e4 0FBE      		out __SREG__,__tmp_reg__
+ 1583 09e6 CDBF      		out __SP_L__,r28
+ 1584 09e8 DF91      		pop r29
+ 1585 09ea CF91      		pop r28
+ 1586 09ec 0895      		ret
+ 1587               		.cfi_endproc
+ 1588               	.LFE9:
+ 1590               		.section	.rodata
+ 1591               	.LC22:
+ 1592 0166 2564 2025 		.string	"%d %d"
+ 1592      6400 
+ 1593               		.text
+ 1594               	.global	mm_read_mtx_array_size
+ 1596               	mm_read_mtx_array_size:
+ 1597               	.LFB10:
+ 217:lp_solve_5.5/shared/mmio.c **** 
+ 218:lp_solve_5.5/shared/mmio.c **** 
+ 219:lp_solve_5.5/shared/mmio.c **** int mm_read_mtx_array_size(FILE *f, int *M, int *N)
+ 220:lp_solve_5.5/shared/mmio.c **** {
+ 1598               		.loc 1 220 0
+ 1599               		.cfi_startproc
+ 1600 09ee CF93      		push r28
+ 1601               	.LCFI26:
+ 1602               		.cfi_def_cfa_offset 3
+ 1603               		.cfi_offset 28, -2
+ 1604 09f0 DF93      		push r29
+ 1605               	.LCFI27:
+ 1606               		.cfi_def_cfa_offset 4
+ 1607               		.cfi_offset 29, -3
+ 1608 09f2 CDB7      		in r28,__SP_L__
+ 1609 09f4 DEB7      		in r29,__SP_H__
+ 1610               	.LCFI28:
+ 1611               		.cfi_def_cfa_register 28
+ 1612 09f6 C950      		subi r28,9
+ 1613 09f8 D440      		sbci r29,4
+ 1614               	.LCFI29:
+ 1615               		.cfi_def_cfa_offset 1037
+ 1616 09fa 0FB6      		in __tmp_reg__,__SREG__
+ 1617 09fc F894      		cli
+ 1618 09fe DEBF      		out __SP_H__,r29
+ 1619 0a00 0FBE      		out __SREG__,__tmp_reg__
+ 1620 0a02 CDBF      		out __SP_L__,r28
+ 1621               	/* prologue: function */
+ 1622               	/* frame size = 1033 */
+ 1623               	/* stack size = 1035 */
+ 1624               	.L__stack_usage = 1035
+ 1625 0a04 9E01      		movw r18,r28
+ 1626 0a06 2C5F      		subi r18,-4
+ 1627 0a08 3B4F      		sbci r19,-5
+ 1628 0a0a F901      		movw r30,r18
+ 1629 0a0c 9183      		std Z+1,r25
+ 1630 0a0e 8083      		st Z,r24
+ 1631 0a10 CE01      		movw r24,r28
+ 1632 0a12 8A5F      		subi r24,-6
+ 1633 0a14 9B4F      		sbci r25,-5
+ 1634 0a16 FC01      		movw r30,r24
+ 1635 0a18 7183      		std Z+1,r23
+ 1636 0a1a 6083      		st Z,r22
+ 1637 0a1c CE01      		movw r24,r28
+ 1638 0a1e 885F      		subi r24,-8
+ 1639 0a20 9B4F      		sbci r25,-5
+ 1640 0a22 FC01      		movw r30,r24
+ 1641 0a24 5183      		std Z+1,r21
+ 1642 0a26 4083      		st Z,r20
+ 221:lp_solve_5.5/shared/mmio.c ****     char line[MM_MAX_LINE_LENGTH];
+ 222:lp_solve_5.5/shared/mmio.c ****     int num_items_read;
+ 223:lp_solve_5.5/shared/mmio.c ****     /* set return null parameter values, in case we exit with errors */
+ 224:lp_solve_5.5/shared/mmio.c ****     *M = *N = 0;
+ 1643               		.loc 1 224 0
+ 1644 0a28 CE01      		movw r24,r28
+ 1645 0a2a 885F      		subi r24,-8
+ 1646 0a2c 9B4F      		sbci r25,-5
+ 1647 0a2e FC01      		movw r30,r24
+ 1648 0a30 8081      		ld r24,Z
+ 1649 0a32 9181      		ldd r25,Z+1
+ 1650 0a34 FC01      		movw r30,r24
+ 1651 0a36 1182      		std Z+1,__zero_reg__
+ 1652 0a38 1082      		st Z,__zero_reg__
+ 1653 0a3a CE01      		movw r24,r28
+ 1654 0a3c 885F      		subi r24,-8
+ 1655 0a3e 9B4F      		sbci r25,-5
+ 1656 0a40 FC01      		movw r30,r24
+ 1657 0a42 8081      		ld r24,Z
+ 1658 0a44 9181      		ldd r25,Z+1
+ 1659 0a46 FC01      		movw r30,r24
+ 1660 0a48 2081      		ld r18,Z
+ 1661 0a4a 3181      		ldd r19,Z+1
+ 1662 0a4c CE01      		movw r24,r28
+ 1663 0a4e 8A5F      		subi r24,-6
+ 1664 0a50 9B4F      		sbci r25,-5
+ 1665 0a52 FC01      		movw r30,r24
+ 1666 0a54 8081      		ld r24,Z
+ 1667 0a56 9181      		ldd r25,Z+1
+ 1668 0a58 FC01      		movw r30,r24
+ 1669 0a5a 3183      		std Z+1,r19
+ 1670 0a5c 2083      		st Z,r18
+ 1671               	.L59:
+ 225:lp_solve_5.5/shared/mmio.c **** 
+ 226:lp_solve_5.5/shared/mmio.c ****     /* now continue scanning until you reach the end-of-comments */
+ 227:lp_solve_5.5/shared/mmio.c ****     do
+ 228:lp_solve_5.5/shared/mmio.c ****     {
+ 229:lp_solve_5.5/shared/mmio.c ****         if (fgets(line,MM_MAX_LINE_LENGTH,f) == NULL)
+ 1672               		.loc 1 229 0
+ 1673 0a5e CE01      		movw r24,r28
+ 1674 0a60 8C5F      		subi r24,-4
+ 1675 0a62 9B4F      		sbci r25,-5
+ 1676 0a64 FC01      		movw r30,r24
+ 1677 0a66 2081      		ld r18,Z
+ 1678 0a68 3181      		ldd r19,Z+1
+ 1679 0a6a CE01      		movw r24,r28
+ 1680 0a6c 0396      		adiw r24,3
+ 1681 0a6e A901      		movw r20,r18
+ 1682 0a70 61E0      		ldi r22,lo8(1)
+ 1683 0a72 74E0      		ldi r23,lo8(4)
+ 1684 0a74 0E94 0000 		call fgets
+ 1685 0a78 892B      		or r24,r25
+ 1686 0a7a 01F4      		brne .L57
+ 230:lp_solve_5.5/shared/mmio.c ****             return MM_PREMATURE_EOF;
+ 1687               		.loc 1 230 0
+ 1688 0a7c 8CE0      		ldi r24,lo8(12)
+ 1689 0a7e 90E0      		ldi r25,0
+ 1690 0a80 00C0      		rjmp .L62
+ 1691               	.L57:
+ 231:lp_solve_5.5/shared/mmio.c ****     }while (line[0] == '%');
+ 1692               		.loc 1 231 0
+ 1693 0a82 8B81      		ldd r24,Y+3
+ 1694 0a84 8532      		cpi r24,lo8(37)
+ 1695 0a86 01F0      		breq .L59
+ 232:lp_solve_5.5/shared/mmio.c **** 
+ 233:lp_solve_5.5/shared/mmio.c ****     /* line[] is either blank or has M,N, nz */
+ 234:lp_solve_5.5/shared/mmio.c ****     if (sscanf(line, "%d %d", M, N) == 2)
+ 1696               		.loc 1 234 0
+ 1697 0a88 CE01      		movw r24,r28
+ 1698 0a8a 885F      		subi r24,-8
+ 1699 0a8c 9B4F      		sbci r25,-5
+ 1700 0a8e FC01      		movw r30,r24
+ 1701 0a90 2181      		ldd r18,Z+1
+ 1702 0a92 2F93      		push r18
+ 1703 0a94 FC01      		movw r30,r24
+ 1704 0a96 8081      		ld r24,Z
+ 1705 0a98 8F93      		push r24
+ 1706 0a9a CE01      		movw r24,r28
+ 1707 0a9c 8A5F      		subi r24,-6
+ 1708 0a9e 9B4F      		sbci r25,-5
+ 1709 0aa0 FC01      		movw r30,r24
+ 1710 0aa2 2181      		ldd r18,Z+1
+ 1711 0aa4 2F93      		push r18
+ 1712 0aa6 FC01      		movw r30,r24
+ 1713 0aa8 8081      		ld r24,Z
+ 1714 0aaa 8F93      		push r24
+ 1715 0aac 80E0      		ldi r24,lo8(.LC22)
+ 1716 0aae 90E0      		ldi r25,hi8(.LC22)
+ 1717 0ab0 892F      		mov r24,r25
+ 1718 0ab2 8F93      		push r24
+ 1719 0ab4 80E0      		ldi r24,lo8(.LC22)
+ 1720 0ab6 90E0      		ldi r25,hi8(.LC22)
+ 1721 0ab8 8F93      		push r24
+ 1722 0aba CE01      		movw r24,r28
+ 1723 0abc 0396      		adiw r24,3
+ 1724 0abe 292F      		mov r18,r25
+ 1725 0ac0 2F93      		push r18
+ 1726 0ac2 8F93      		push r24
+ 1727 0ac4 0E94 0000 		call sscanf
+ 1728 0ac8 2DB7      		in r18,__SP_L__
+ 1729 0aca 3EB7      		in r19,__SP_H__
+ 1730 0acc 285F      		subi r18,-8
+ 1731 0ace 3F4F      		sbci r19,-1
+ 1732 0ad0 0FB6      		in __tmp_reg__,__SREG__
+ 1733 0ad2 F894      		cli
+ 1734 0ad4 DEBF      		out __SP_H__,r29
+ 1735 0ad6 0FBE      		out __SREG__,__tmp_reg__
+ 1736 0ad8 CDBF      		out __SP_L__,r28
+ 1737 0ada 0297      		sbiw r24,2
+ 1738 0adc 01F4      		brne .L60
+ 235:lp_solve_5.5/shared/mmio.c ****         return 0;
+ 1739               		.loc 1 235 0
+ 1740 0ade 80E0      		ldi r24,0
+ 1741 0ae0 90E0      		ldi r25,0
+ 1742 0ae2 00C0      		rjmp .L62
+ 1743               	.L60:
+ 236:lp_solve_5.5/shared/mmio.c **** 
+ 237:lp_solve_5.5/shared/mmio.c ****     else /* we have a blank line */
+ 238:lp_solve_5.5/shared/mmio.c ****     do
+ 239:lp_solve_5.5/shared/mmio.c ****     {
+ 240:lp_solve_5.5/shared/mmio.c ****         num_items_read = fscanf(f, "%d %d", M, N);
+ 1744               		.loc 1 240 0
+ 1745 0ae4 CE01      		movw r24,r28
+ 1746 0ae6 885F      		subi r24,-8
+ 1747 0ae8 9B4F      		sbci r25,-5
+ 1748 0aea FC01      		movw r30,r24
+ 1749 0aec 2181      		ldd r18,Z+1
+ 1750 0aee 2F93      		push r18
+ 1751 0af0 FC01      		movw r30,r24
+ 1752 0af2 8081      		ld r24,Z
+ 1753 0af4 8F93      		push r24
+ 1754 0af6 CE01      		movw r24,r28
+ 1755 0af8 8A5F      		subi r24,-6
+ 1756 0afa 9B4F      		sbci r25,-5
+ 1757 0afc FC01      		movw r30,r24
+ 1758 0afe 2181      		ldd r18,Z+1
+ 1759 0b00 2F93      		push r18
+ 1760 0b02 FC01      		movw r30,r24
+ 1761 0b04 8081      		ld r24,Z
+ 1762 0b06 8F93      		push r24
+ 1763 0b08 80E0      		ldi r24,lo8(.LC22)
+ 1764 0b0a 90E0      		ldi r25,hi8(.LC22)
+ 1765 0b0c 892F      		mov r24,r25
+ 1766 0b0e 8F93      		push r24
+ 1767 0b10 80E0      		ldi r24,lo8(.LC22)
+ 1768 0b12 90E0      		ldi r25,hi8(.LC22)
+ 1769 0b14 8F93      		push r24
+ 1770 0b16 CE01      		movw r24,r28
+ 1771 0b18 8C5F      		subi r24,-4
+ 1772 0b1a 9B4F      		sbci r25,-5
+ 1773 0b1c FC01      		movw r30,r24
+ 1774 0b1e 2181      		ldd r18,Z+1
+ 1775 0b20 2F93      		push r18
+ 1776 0b22 FC01      		movw r30,r24
+ 1777 0b24 8081      		ld r24,Z
+ 1778 0b26 8F93      		push r24
+ 1779 0b28 0E94 0000 		call fscanf
+ 1780 0b2c 2DB7      		in r18,__SP_L__
+ 1781 0b2e 3EB7      		in r19,__SP_H__
+ 1782 0b30 285F      		subi r18,-8
+ 1783 0b32 3F4F      		sbci r19,-1
+ 1784 0b34 0FB6      		in __tmp_reg__,__SREG__
+ 1785 0b36 F894      		cli
+ 1786 0b38 DEBF      		out __SP_H__,r29
+ 1787 0b3a 0FBE      		out __SREG__,__tmp_reg__
+ 1788 0b3c CDBF      		out __SP_L__,r28
+ 1789 0b3e 9A83      		std Y+2,r25
+ 1790 0b40 8983      		std Y+1,r24
+ 241:lp_solve_5.5/shared/mmio.c ****         if (num_items_read == EOF) return MM_PREMATURE_EOF;
+ 1791               		.loc 1 241 0
+ 1792 0b42 8981      		ldd r24,Y+1
+ 1793 0b44 9A81      		ldd r25,Y+2
+ 1794 0b46 0196      		adiw r24,1
+ 1795 0b48 01F4      		brne .L61
+ 1796               		.loc 1 241 0 is_stmt 0 discriminator 1
+ 1797 0b4a 8CE0      		ldi r24,lo8(12)
+ 1798 0b4c 90E0      		ldi r25,0
+ 1799 0b4e 00C0      		rjmp .L62
+ 1800               	.L61:
+ 242:lp_solve_5.5/shared/mmio.c ****     }
+ 243:lp_solve_5.5/shared/mmio.c ****     while (num_items_read != 2);
+ 1801               		.loc 1 243 0 is_stmt 1
+ 1802 0b50 8981      		ldd r24,Y+1
+ 1803 0b52 9A81      		ldd r25,Y+2
+ 1804 0b54 0297      		sbiw r24,2
+ 1805 0b56 01F4      		brne .L60
+ 244:lp_solve_5.5/shared/mmio.c **** 
+ 245:lp_solve_5.5/shared/mmio.c ****     return 0;
+ 1806               		.loc 1 245 0
+ 1807 0b58 80E0      		ldi r24,0
+ 1808 0b5a 90E0      		ldi r25,0
+ 1809               	.L62:
+ 1810               	/* epilogue start */
+ 246:lp_solve_5.5/shared/mmio.c **** }
+ 1811               		.loc 1 246 0 discriminator 1
+ 1812 0b5c C75F      		subi r28,-9
+ 1813 0b5e DB4F      		sbci r29,-5
+ 1814 0b60 0FB6      		in __tmp_reg__,__SREG__
+ 1815 0b62 F894      		cli
+ 1816 0b64 DEBF      		out __SP_H__,r29
+ 1817 0b66 0FBE      		out __SREG__,__tmp_reg__
+ 1818 0b68 CDBF      		out __SP_L__,r28
+ 1819 0b6a DF91      		pop r29
+ 1820 0b6c CF91      		pop r28
+ 1821 0b6e 0895      		ret
+ 1822               		.cfi_endproc
+ 1823               	.LFE10:
+ 1825               		.section	.rodata
+ 1826               	.LC23:
+ 1827 016c 2564 2025 		.string	"%d %d\n"
+ 1827      640A 00
+ 1828               		.text
+ 1829               	.global	mm_write_mtx_array_size
+ 1831               	mm_write_mtx_array_size:
+ 1832               	.LFB11:
+ 247:lp_solve_5.5/shared/mmio.c **** 
+ 248:lp_solve_5.5/shared/mmio.c **** int mm_write_mtx_array_size(FILE *f, int M, int N)
+ 249:lp_solve_5.5/shared/mmio.c **** {
+ 1833               		.loc 1 249 0
+ 1834               		.cfi_startproc
+ 1835 0b70 CF93      		push r28
+ 1836               	.LCFI30:
+ 1837               		.cfi_def_cfa_offset 3
+ 1838               		.cfi_offset 28, -2
+ 1839 0b72 DF93      		push r29
+ 1840               	.LCFI31:
+ 1841               		.cfi_def_cfa_offset 4
+ 1842               		.cfi_offset 29, -3
+ 1843 0b74 00D0      		rcall .
+ 1844 0b76 00D0      		rcall .
+ 1845 0b78 00D0      		rcall .
+ 1846               	.LCFI32:
+ 1847               		.cfi_def_cfa_offset 10
+ 1848 0b7a CDB7      		in r28,__SP_L__
+ 1849 0b7c DEB7      		in r29,__SP_H__
+ 1850               	.LCFI33:
+ 1851               		.cfi_def_cfa_register 28
+ 1852               	/* prologue: function */
+ 1853               	/* frame size = 6 */
+ 1854               	/* stack size = 8 */
+ 1855               	.L__stack_usage = 8
+ 1856 0b7e 9A83      		std Y+2,r25
+ 1857 0b80 8983      		std Y+1,r24
+ 1858 0b82 7C83      		std Y+4,r23
+ 1859 0b84 6B83      		std Y+3,r22
+ 1860 0b86 5E83      		std Y+6,r21
+ 1861 0b88 4D83      		std Y+5,r20
+ 250:lp_solve_5.5/shared/mmio.c ****     if (fprintf(f, "%d %d\n", M, N) < 0)
+ 1862               		.loc 1 250 0
+ 1863 0b8a 8E81      		ldd r24,Y+6
+ 1864 0b8c 8F93      		push r24
+ 1865 0b8e 8D81      		ldd r24,Y+5
+ 1866 0b90 8F93      		push r24
+ 1867 0b92 8C81      		ldd r24,Y+4
+ 1868 0b94 8F93      		push r24
+ 1869 0b96 8B81      		ldd r24,Y+3
+ 1870 0b98 8F93      		push r24
+ 1871 0b9a 80E0      		ldi r24,lo8(.LC23)
+ 1872 0b9c 90E0      		ldi r25,hi8(.LC23)
+ 1873 0b9e 892F      		mov r24,r25
+ 1874 0ba0 8F93      		push r24
+ 1875 0ba2 80E0      		ldi r24,lo8(.LC23)
+ 1876 0ba4 90E0      		ldi r25,hi8(.LC23)
+ 1877 0ba6 8F93      		push r24
+ 1878 0ba8 8A81      		ldd r24,Y+2
+ 1879 0baa 8F93      		push r24
+ 1880 0bac 8981      		ldd r24,Y+1
+ 1881 0bae 8F93      		push r24
+ 1882 0bb0 0E94 0000 		call fprintf
+ 1883 0bb4 2DB7      		in r18,__SP_L__
+ 1884 0bb6 3EB7      		in r19,__SP_H__
+ 1885 0bb8 285F      		subi r18,-8
+ 1886 0bba 3F4F      		sbci r19,-1
+ 1887 0bbc 0FB6      		in __tmp_reg__,__SREG__
+ 1888 0bbe F894      		cli
+ 1889 0bc0 DEBF      		out __SP_H__,r29
+ 1890 0bc2 0FBE      		out __SREG__,__tmp_reg__
+ 1891 0bc4 CDBF      		out __SP_L__,r28
+ 1892 0bc6 9923      		tst r25
+ 1893 0bc8 04F4      		brge .L64
+ 251:lp_solve_5.5/shared/mmio.c ****         return MM_COULD_NOT_WRITE_FILE;
+ 1894               		.loc 1 251 0
+ 1895 0bca 81E1      		ldi r24,lo8(17)
+ 1896 0bcc 90E0      		ldi r25,0
+ 1897 0bce 00C0      		rjmp .L65
+ 1898               	.L64:
+ 252:lp_solve_5.5/shared/mmio.c ****     else
+ 253:lp_solve_5.5/shared/mmio.c ****         return 0;
+ 1899               		.loc 1 253 0
+ 1900 0bd0 80E0      		ldi r24,0
+ 1901 0bd2 90E0      		ldi r25,0
+ 1902               	.L65:
+ 1903               	/* epilogue start */
+ 254:lp_solve_5.5/shared/mmio.c **** }
+ 1904               		.loc 1 254 0
+ 1905 0bd4 2696      		adiw r28,6
+ 1906 0bd6 0FB6      		in __tmp_reg__,__SREG__
+ 1907 0bd8 F894      		cli
+ 1908 0bda DEBF      		out __SP_H__,r29
+ 1909 0bdc 0FBE      		out __SREG__,__tmp_reg__
+ 1910 0bde CDBF      		out __SP_L__,r28
+ 1911 0be0 DF91      		pop r29
+ 1912 0be2 CF91      		pop r28
+ 1913 0be4 0895      		ret
+ 1914               		.cfi_endproc
+ 1915               	.LFE11:
+ 1917               		.section	.rodata
+ 1918               	.LC24:
+ 1919 0173 2564 2025 		.string	"%d %d %lg %lg"
+ 1919      6420 256C 
+ 1919      6720 256C 
+ 1919      6700 
+ 1920               		.text
+ 1921               	.global	mm_read_mtx_crd_data
+ 1923               	mm_read_mtx_crd_data:
+ 1924               	.LFB12:
+ 255:lp_solve_5.5/shared/mmio.c **** 
+ 256:lp_solve_5.5/shared/mmio.c **** 
+ 257:lp_solve_5.5/shared/mmio.c **** 
+ 258:lp_solve_5.5/shared/mmio.c **** /*-------------------------------------------------------------------------*/
+ 259:lp_solve_5.5/shared/mmio.c **** 
+ 260:lp_solve_5.5/shared/mmio.c **** /******************************************************************/
+ 261:lp_solve_5.5/shared/mmio.c **** /* use when I[], J[], and val[]J, and val[] are already allocated */
+ 262:lp_solve_5.5/shared/mmio.c **** /******************************************************************/
+ 263:lp_solve_5.5/shared/mmio.c **** 
+ 264:lp_solve_5.5/shared/mmio.c **** int mm_read_mtx_crd_data(FILE *f, int M, int N, int nz, int I[], int J[],
+ 265:lp_solve_5.5/shared/mmio.c ****         double val[], MM_typecode matcode)
+ 266:lp_solve_5.5/shared/mmio.c **** {
+ 1925               		.loc 1 266 0
+ 1926               		.cfi_startproc
+ 1927 0be6 AF92      		push r10
+ 1928               	.LCFI34:
+ 1929               		.cfi_def_cfa_offset 3
+ 1930               		.cfi_offset 10, -2
+ 1931 0be8 BF92      		push r11
+ 1932               	.LCFI35:
+ 1933               		.cfi_def_cfa_offset 4
+ 1934               		.cfi_offset 11, -3
+ 1935 0bea CF92      		push r12
+ 1936               	.LCFI36:
+ 1937               		.cfi_def_cfa_offset 5
+ 1938               		.cfi_offset 12, -4
+ 1939 0bec DF92      		push r13
+ 1940               	.LCFI37:
+ 1941               		.cfi_def_cfa_offset 6
+ 1942               		.cfi_offset 13, -5
+ 1943 0bee EF92      		push r14
+ 1944               	.LCFI38:
+ 1945               		.cfi_def_cfa_offset 7
+ 1946               		.cfi_offset 14, -6
+ 1947 0bf0 FF92      		push r15
+ 1948               	.LCFI39:
+ 1949               		.cfi_def_cfa_offset 8
+ 1950               		.cfi_offset 15, -7
+ 1951 0bf2 0F93      		push r16
+ 1952               	.LCFI40:
+ 1953               		.cfi_def_cfa_offset 9
+ 1954               		.cfi_offset 16, -8
+ 1955 0bf4 1F93      		push r17
+ 1956               	.LCFI41:
+ 1957               		.cfi_def_cfa_offset 10
+ 1958               		.cfi_offset 17, -9
+ 1959 0bf6 CF93      		push r28
+ 1960               	.LCFI42:
+ 1961               		.cfi_def_cfa_offset 11
+ 1962               		.cfi_offset 28, -10
+ 1963 0bf8 DF93      		push r29
+ 1964               	.LCFI43:
+ 1965               		.cfi_def_cfa_offset 12
+ 1966               		.cfi_offset 29, -11
+ 1967 0bfa CDB7      		in r28,__SP_L__
+ 1968 0bfc DEB7      		in r29,__SP_H__
+ 1969               	.LCFI44:
+ 1970               		.cfi_def_cfa_register 28
+ 1971 0bfe 6297      		sbiw r28,18
+ 1972               	.LCFI45:
+ 1973               		.cfi_def_cfa_offset 30
+ 1974 0c00 0FB6      		in __tmp_reg__,__SREG__
+ 1975 0c02 F894      		cli
+ 1976 0c04 DEBF      		out __SP_H__,r29
+ 1977 0c06 0FBE      		out __SREG__,__tmp_reg__
+ 1978 0c08 CDBF      		out __SP_L__,r28
+ 1979               	/* prologue: function */
+ 1980               	/* frame size = 18 */
+ 1981               	/* stack size = 28 */
+ 1982               	.L__stack_usage = 28
+ 1983 0c0a 9C83      		std Y+4,r25
+ 1984 0c0c 8B83      		std Y+3,r24
+ 1985 0c0e 7E83      		std Y+6,r23
+ 1986 0c10 6D83      		std Y+5,r22
+ 1987 0c12 5887      		std Y+8,r21
+ 1988 0c14 4F83      		std Y+7,r20
+ 1989 0c16 3A87      		std Y+10,r19
+ 1990 0c18 2987      		std Y+9,r18
+ 1991 0c1a 1C87      		std Y+12,r17
+ 1992 0c1c 0B87      		std Y+11,r16
+ 1993 0c1e FE86      		std Y+14,r15
+ 1994 0c20 ED86      		std Y+13,r14
+ 1995 0c22 D88A      		std Y+16,r13
+ 1996 0c24 CF86      		std Y+15,r12
+ 1997 0c26 BA8A      		std Y+18,r11
+ 1998 0c28 A98A      		std Y+17,r10
+ 267:lp_solve_5.5/shared/mmio.c ****     int i;
+ 268:lp_solve_5.5/shared/mmio.c ****     if (mm_is_complex(matcode))
+ 1999               		.loc 1 268 0
+ 2000 0c2a 8989      		ldd r24,Y+17
+ 2001 0c2c 9A89      		ldd r25,Y+18
+ 2002 0c2e 0296      		adiw r24,2
+ 2003 0c30 FC01      		movw r30,r24
+ 2004 0c32 8081      		ld r24,Z
+ 2005 0c34 8334      		cpi r24,lo8(67)
+ 2006 0c36 01F0      		breq .+2
+ 2007 0c38 00C0      		rjmp .L67
+ 269:lp_solve_5.5/shared/mmio.c ****     {
+ 270:lp_solve_5.5/shared/mmio.c ****         for (i=0; i<nz; i++)
+ 2008               		.loc 1 270 0
+ 2009 0c3a 1A82      		std Y+2,__zero_reg__
+ 2010 0c3c 1982      		std Y+1,__zero_reg__
+ 2011 0c3e 00C0      		rjmp .L68
+ 2012               	.L71:
+ 271:lp_solve_5.5/shared/mmio.c ****             if (fscanf(f, "%d %d %lg %lg", &I[i], &J[i], &val[2*i], &val[2*i+1])
+ 2013               		.loc 1 271 0
+ 2014 0c40 8981      		ldd r24,Y+1
+ 2015 0c42 9A81      		ldd r25,Y+2
+ 2016 0c44 880F      		lsl r24
+ 2017 0c46 991F      		rol r25
+ 2018 0c48 880F      		lsl r24
+ 2019 0c4a 991F      		rol r25
+ 2020 0c4c 880F      		lsl r24
+ 2021 0c4e 991F      		rol r25
+ 2022 0c50 0496      		adiw r24,4
+ 2023 0c52 2F85      		ldd r18,Y+15
+ 2024 0c54 3889      		ldd r19,Y+16
+ 2025 0c56 F901      		movw r30,r18
+ 2026 0c58 E80F      		add r30,r24
+ 2027 0c5a F91F      		adc r31,r25
+ 2028 0c5c 8981      		ldd r24,Y+1
+ 2029 0c5e 9A81      		ldd r25,Y+2
+ 2030 0c60 880F      		lsl r24
+ 2031 0c62 991F      		rol r25
+ 2032 0c64 880F      		lsl r24
+ 2033 0c66 991F      		rol r25
+ 2034 0c68 880F      		lsl r24
+ 2035 0c6a 991F      		rol r25
+ 2036 0c6c 9C01      		movw r18,r24
+ 2037 0c6e 8F85      		ldd r24,Y+15
+ 2038 0c70 9889      		ldd r25,Y+16
+ 2039 0c72 BC01      		movw r22,r24
+ 2040 0c74 620F      		add r22,r18
+ 2041 0c76 731F      		adc r23,r19
+ 2042 0c78 8981      		ldd r24,Y+1
+ 2043 0c7a 9A81      		ldd r25,Y+2
+ 2044 0c7c 880F      		lsl r24
+ 2045 0c7e 991F      		rol r25
+ 2046 0c80 2D85      		ldd r18,Y+13
+ 2047 0c82 3E85      		ldd r19,Y+14
+ 2048 0c84 A901      		movw r20,r18
+ 2049 0c86 480F      		add r20,r24
+ 2050 0c88 591F      		adc r21,r25
+ 2051 0c8a 8981      		ldd r24,Y+1
+ 2052 0c8c 9A81      		ldd r25,Y+2
+ 2053 0c8e 880F      		lsl r24
+ 2054 0c90 991F      		rol r25
+ 2055 0c92 2B85      		ldd r18,Y+11
+ 2056 0c94 3C85      		ldd r19,Y+12
+ 2057 0c96 820F      		add r24,r18
+ 2058 0c98 931F      		adc r25,r19
+ 2059 0c9a 2F2F      		mov r18,r31
+ 2060 0c9c 2F93      		push r18
+ 2061 0c9e 2E2F      		mov r18,r30
+ 2062 0ca0 2F93      		push r18
+ 2063 0ca2 272F      		mov r18,r23
+ 2064 0ca4 2F93      		push r18
+ 2065 0ca6 262F      		mov r18,r22
+ 2066 0ca8 2F93      		push r18
+ 2067 0caa 252F      		mov r18,r21
+ 2068 0cac 2F93      		push r18
+ 2069 0cae 242F      		mov r18,r20
+ 2070 0cb0 2F93      		push r18
+ 2071 0cb2 292F      		mov r18,r25
+ 2072 0cb4 2F93      		push r18
+ 2073 0cb6 8F93      		push r24
+ 2074 0cb8 80E0      		ldi r24,lo8(.LC24)
+ 2075 0cba 90E0      		ldi r25,hi8(.LC24)
+ 2076 0cbc 892F      		mov r24,r25
+ 2077 0cbe 8F93      		push r24
+ 2078 0cc0 80E0      		ldi r24,lo8(.LC24)
+ 2079 0cc2 90E0      		ldi r25,hi8(.LC24)
+ 2080 0cc4 8F93      		push r24
+ 2081 0cc6 8C81      		ldd r24,Y+4
+ 2082 0cc8 8F93      		push r24
+ 2083 0cca 8B81      		ldd r24,Y+3
+ 2084 0ccc 8F93      		push r24
+ 2085 0cce 0E94 0000 		call fscanf
+ 2086 0cd2 2DB7      		in r18,__SP_L__
+ 2087 0cd4 3EB7      		in r19,__SP_H__
+ 2088 0cd6 245F      		subi r18,-12
+ 2089 0cd8 3F4F      		sbci r19,-1
+ 2090 0cda 0FB6      		in __tmp_reg__,__SREG__
+ 2091 0cdc F894      		cli
+ 2092 0cde DEBF      		out __SP_H__,r29
+ 2093 0ce0 0FBE      		out __SREG__,__tmp_reg__
+ 2094 0ce2 CDBF      		out __SP_L__,r28
+ 2095 0ce4 0497      		sbiw r24,4
+ 2096 0ce6 01F0      		breq .L69
+ 272:lp_solve_5.5/shared/mmio.c ****                 != 4) return MM_PREMATURE_EOF;
+ 2097               		.loc 1 272 0
+ 2098 0ce8 8CE0      		ldi r24,lo8(12)
+ 2099 0cea 90E0      		ldi r25,0
+ 2100 0cec 00C0      		rjmp .L70
+ 2101               	.L69:
+ 270:lp_solve_5.5/shared/mmio.c ****             if (fscanf(f, "%d %d %lg %lg", &I[i], &J[i], &val[2*i], &val[2*i+1])
+ 2102               		.loc 1 270 0 discriminator 2
+ 2103 0cee 8981      		ldd r24,Y+1
+ 2104 0cf0 9A81      		ldd r25,Y+2
+ 2105 0cf2 0196      		adiw r24,1
+ 2106 0cf4 9A83      		std Y+2,r25
+ 2107 0cf6 8983      		std Y+1,r24
+ 2108               	.L68:
+ 270:lp_solve_5.5/shared/mmio.c ****             if (fscanf(f, "%d %d %lg %lg", &I[i], &J[i], &val[2*i], &val[2*i+1])
+ 2109               		.loc 1 270 0 is_stmt 0 discriminator 1
+ 2110 0cf8 2981      		ldd r18,Y+1
+ 2111 0cfa 3A81      		ldd r19,Y+2
+ 2112 0cfc 8985      		ldd r24,Y+9
+ 2113 0cfe 9A85      		ldd r25,Y+10
+ 2114 0d00 2817      		cp r18,r24
+ 2115 0d02 3907      		cpc r19,r25
+ 2116 0d04 04F4      		brge .+2
+ 2117 0d06 00C0      		rjmp .L71
+ 2118 0d08 00C0      		rjmp .L72
+ 2119               	.L67:
+ 273:lp_solve_5.5/shared/mmio.c ****     }
+ 274:lp_solve_5.5/shared/mmio.c ****     else if (mm_is_real(matcode))
+ 2120               		.loc 1 274 0 is_stmt 1
+ 2121 0d0a 8989      		ldd r24,Y+17
+ 2122 0d0c 9A89      		ldd r25,Y+18
+ 2123 0d0e 0296      		adiw r24,2
+ 2124 0d10 FC01      		movw r30,r24
+ 2125 0d12 8081      		ld r24,Z
+ 2126 0d14 8235      		cpi r24,lo8(82)
+ 2127 0d16 01F0      		breq .+2
+ 2128 0d18 00C0      		rjmp .L73
+ 275:lp_solve_5.5/shared/mmio.c ****     {
+ 276:lp_solve_5.5/shared/mmio.c ****         for (i=0; i<nz; i++)
+ 2129               		.loc 1 276 0
+ 2130 0d1a 1A82      		std Y+2,__zero_reg__
+ 2131 0d1c 1982      		std Y+1,__zero_reg__
+ 2132 0d1e 00C0      		rjmp .L74
+ 2133               	.L76:
+ 277:lp_solve_5.5/shared/mmio.c ****         {
+ 278:lp_solve_5.5/shared/mmio.c ****             if (fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i])
+ 2134               		.loc 1 278 0
+ 2135 0d20 8981      		ldd r24,Y+1
+ 2136 0d22 9A81      		ldd r25,Y+2
+ 2137 0d24 880F      		lsl r24
+ 2138 0d26 991F      		rol r25
+ 2139 0d28 880F      		lsl r24
+ 2140 0d2a 991F      		rol r25
+ 2141 0d2c 2F85      		ldd r18,Y+15
+ 2142 0d2e 3889      		ldd r19,Y+16
+ 2143 0d30 B901      		movw r22,r18
+ 2144 0d32 680F      		add r22,r24
+ 2145 0d34 791F      		adc r23,r25
+ 2146 0d36 8981      		ldd r24,Y+1
+ 2147 0d38 9A81      		ldd r25,Y+2
+ 2148 0d3a 880F      		lsl r24
+ 2149 0d3c 991F      		rol r25
+ 2150 0d3e 2D85      		ldd r18,Y+13
+ 2151 0d40 3E85      		ldd r19,Y+14
+ 2152 0d42 A901      		movw r20,r18
+ 2153 0d44 480F      		add r20,r24
+ 2154 0d46 591F      		adc r21,r25
+ 2155 0d48 8981      		ldd r24,Y+1
+ 2156 0d4a 9A81      		ldd r25,Y+2
+ 2157 0d4c 880F      		lsl r24
+ 2158 0d4e 991F      		rol r25
+ 2159 0d50 2B85      		ldd r18,Y+11
+ 2160 0d52 3C85      		ldd r19,Y+12
+ 2161 0d54 820F      		add r24,r18
+ 2162 0d56 931F      		adc r25,r19
+ 2163 0d58 272F      		mov r18,r23
+ 2164 0d5a 2F93      		push r18
+ 2165 0d5c 262F      		mov r18,r22
+ 2166 0d5e 2F93      		push r18
+ 2167 0d60 252F      		mov r18,r21
+ 2168 0d62 2F93      		push r18
+ 2169 0d64 242F      		mov r18,r20
+ 2170 0d66 2F93      		push r18
+ 2171 0d68 292F      		mov r18,r25
+ 2172 0d6a 2F93      		push r18
+ 2173 0d6c 8F93      		push r24
+ 2174 0d6e 80E0      		ldi r24,lo8(.LC6)
+ 2175 0d70 90E0      		ldi r25,hi8(.LC6)
+ 2176 0d72 892F      		mov r24,r25
+ 2177 0d74 8F93      		push r24
+ 2178 0d76 80E0      		ldi r24,lo8(.LC6)
+ 2179 0d78 90E0      		ldi r25,hi8(.LC6)
+ 2180 0d7a 8F93      		push r24
+ 2181 0d7c 8C81      		ldd r24,Y+4
+ 2182 0d7e 8F93      		push r24
+ 2183 0d80 8B81      		ldd r24,Y+3
+ 2184 0d82 8F93      		push r24
+ 2185 0d84 0E94 0000 		call fscanf
+ 2186 0d88 2DB7      		in r18,__SP_L__
+ 2187 0d8a 3EB7      		in r19,__SP_H__
+ 2188 0d8c 265F      		subi r18,-10
+ 2189 0d8e 3F4F      		sbci r19,-1
+ 2190 0d90 0FB6      		in __tmp_reg__,__SREG__
+ 2191 0d92 F894      		cli
+ 2192 0d94 DEBF      		out __SP_H__,r29
+ 2193 0d96 0FBE      		out __SREG__,__tmp_reg__
+ 2194 0d98 CDBF      		out __SP_L__,r28
+ 2195 0d9a 0397      		sbiw r24,3
+ 2196 0d9c 01F0      		breq .L75
+ 279:lp_solve_5.5/shared/mmio.c ****                 != 3) return MM_PREMATURE_EOF;
+ 2197               		.loc 1 279 0
+ 2198 0d9e 8CE0      		ldi r24,lo8(12)
+ 2199 0da0 90E0      		ldi r25,0
+ 2200 0da2 00C0      		rjmp .L70
+ 2201               	.L75:
+ 276:lp_solve_5.5/shared/mmio.c ****         {
+ 2202               		.loc 1 276 0 discriminator 2
+ 2203 0da4 8981      		ldd r24,Y+1
+ 2204 0da6 9A81      		ldd r25,Y+2
+ 2205 0da8 0196      		adiw r24,1
+ 2206 0daa 9A83      		std Y+2,r25
+ 2207 0dac 8983      		std Y+1,r24
+ 2208               	.L74:
+ 276:lp_solve_5.5/shared/mmio.c ****         {
+ 2209               		.loc 1 276 0 is_stmt 0 discriminator 1
+ 2210 0dae 2981      		ldd r18,Y+1
+ 2211 0db0 3A81      		ldd r19,Y+2
+ 2212 0db2 8985      		ldd r24,Y+9
+ 2213 0db4 9A85      		ldd r25,Y+10
+ 2214 0db6 2817      		cp r18,r24
+ 2215 0db8 3907      		cpc r19,r25
+ 2216 0dba 04F4      		brge .+2
+ 2217 0dbc 00C0      		rjmp .L76
+ 2218 0dbe 00C0      		rjmp .L72
+ 2219               	.L73:
+ 280:lp_solve_5.5/shared/mmio.c **** 
+ 281:lp_solve_5.5/shared/mmio.c ****         }
+ 282:lp_solve_5.5/shared/mmio.c ****     }
+ 283:lp_solve_5.5/shared/mmio.c **** 
+ 284:lp_solve_5.5/shared/mmio.c ****     else if (mm_is_pattern(matcode))
+ 2220               		.loc 1 284 0 is_stmt 1
+ 2221 0dc0 8989      		ldd r24,Y+17
+ 2222 0dc2 9A89      		ldd r25,Y+18
+ 2223 0dc4 0296      		adiw r24,2
+ 2224 0dc6 FC01      		movw r30,r24
+ 2225 0dc8 8081      		ld r24,Z
+ 2226 0dca 8035      		cpi r24,lo8(80)
+ 2227 0dcc 01F0      		breq .+2
+ 2228 0dce 00C0      		rjmp .L77
+ 285:lp_solve_5.5/shared/mmio.c ****     {
+ 286:lp_solve_5.5/shared/mmio.c ****         for (i=0; i<nz; i++)
+ 2229               		.loc 1 286 0
+ 2230 0dd0 1A82      		std Y+2,__zero_reg__
+ 2231 0dd2 1982      		std Y+1,__zero_reg__
+ 2232 0dd4 00C0      		rjmp .L78
+ 2233               	.L80:
+ 287:lp_solve_5.5/shared/mmio.c ****             if (fscanf(f, "%d %d", &I[i], &J[i])
+ 2234               		.loc 1 287 0
+ 2235 0dd6 8981      		ldd r24,Y+1
+ 2236 0dd8 9A81      		ldd r25,Y+2
+ 2237 0dda 880F      		lsl r24
+ 2238 0ddc 991F      		rol r25
+ 2239 0dde 2D85      		ldd r18,Y+13
+ 2240 0de0 3E85      		ldd r19,Y+14
+ 2241 0de2 A901      		movw r20,r18
+ 2242 0de4 480F      		add r20,r24
+ 2243 0de6 591F      		adc r21,r25
+ 2244 0de8 8981      		ldd r24,Y+1
+ 2245 0dea 9A81      		ldd r25,Y+2
+ 2246 0dec 880F      		lsl r24
+ 2247 0dee 991F      		rol r25
+ 2248 0df0 2B85      		ldd r18,Y+11
+ 2249 0df2 3C85      		ldd r19,Y+12
+ 2250 0df4 820F      		add r24,r18
+ 2251 0df6 931F      		adc r25,r19
+ 2252 0df8 252F      		mov r18,r21
+ 2253 0dfa 2F93      		push r18
+ 2254 0dfc 242F      		mov r18,r20
+ 2255 0dfe 2F93      		push r18
+ 2256 0e00 292F      		mov r18,r25
+ 2257 0e02 2F93      		push r18
+ 2258 0e04 8F93      		push r24
+ 2259 0e06 80E0      		ldi r24,lo8(.LC22)
+ 2260 0e08 90E0      		ldi r25,hi8(.LC22)
+ 2261 0e0a 892F      		mov r24,r25
+ 2262 0e0c 8F93      		push r24
+ 2263 0e0e 80E0      		ldi r24,lo8(.LC22)
+ 2264 0e10 90E0      		ldi r25,hi8(.LC22)
+ 2265 0e12 8F93      		push r24
+ 2266 0e14 8C81      		ldd r24,Y+4
+ 2267 0e16 8F93      		push r24
+ 2268 0e18 8B81      		ldd r24,Y+3
+ 2269 0e1a 8F93      		push r24
+ 2270 0e1c 0E94 0000 		call fscanf
+ 2271 0e20 2DB7      		in r18,__SP_L__
+ 2272 0e22 3EB7      		in r19,__SP_H__
+ 2273 0e24 285F      		subi r18,-8
+ 2274 0e26 3F4F      		sbci r19,-1
+ 2275 0e28 0FB6      		in __tmp_reg__,__SREG__
+ 2276 0e2a F894      		cli
+ 2277 0e2c DEBF      		out __SP_H__,r29
+ 2278 0e2e 0FBE      		out __SREG__,__tmp_reg__
+ 2279 0e30 CDBF      		out __SP_L__,r28
+ 2280 0e32 0297      		sbiw r24,2
+ 2281 0e34 01F0      		breq .L79
+ 288:lp_solve_5.5/shared/mmio.c ****                 != 2) return MM_PREMATURE_EOF;
+ 2282               		.loc 1 288 0
+ 2283 0e36 8CE0      		ldi r24,lo8(12)
+ 2284 0e38 90E0      		ldi r25,0
+ 2285 0e3a 00C0      		rjmp .L70
+ 2286               	.L79:
+ 286:lp_solve_5.5/shared/mmio.c ****             if (fscanf(f, "%d %d", &I[i], &J[i])
+ 2287               		.loc 1 286 0 discriminator 2
+ 2288 0e3c 8981      		ldd r24,Y+1
+ 2289 0e3e 9A81      		ldd r25,Y+2
+ 2290 0e40 0196      		adiw r24,1
+ 2291 0e42 9A83      		std Y+2,r25
+ 2292 0e44 8983      		std Y+1,r24
+ 2293               	.L78:
+ 286:lp_solve_5.5/shared/mmio.c ****             if (fscanf(f, "%d %d", &I[i], &J[i])
+ 2294               		.loc 1 286 0 is_stmt 0 discriminator 1
+ 2295 0e46 2981      		ldd r18,Y+1
+ 2296 0e48 3A81      		ldd r19,Y+2
+ 2297 0e4a 8985      		ldd r24,Y+9
+ 2298 0e4c 9A85      		ldd r25,Y+10
+ 2299 0e4e 2817      		cp r18,r24
+ 2300 0e50 3907      		cpc r19,r25
+ 2301 0e52 04F0      		brlt .L80
+ 2302 0e54 00C0      		rjmp .L72
+ 2303               	.L77:
+ 289:lp_solve_5.5/shared/mmio.c ****     }
+ 290:lp_solve_5.5/shared/mmio.c ****     else
+ 291:lp_solve_5.5/shared/mmio.c ****         return MM_UNSUPPORTED_TYPE;
+ 2304               		.loc 1 291 0 is_stmt 1
+ 2305 0e56 8FE0      		ldi r24,lo8(15)
+ 2306 0e58 90E0      		ldi r25,0
+ 2307 0e5a 00C0      		rjmp .L70
+ 2308               	.L72:
+ 292:lp_solve_5.5/shared/mmio.c **** 
+ 293:lp_solve_5.5/shared/mmio.c ****     return 0;
+ 2309               		.loc 1 293 0
+ 2310 0e5c 80E0      		ldi r24,0
+ 2311 0e5e 90E0      		ldi r25,0
+ 2312               	.L70:
+ 2313               	/* epilogue start */
+ 294:lp_solve_5.5/shared/mmio.c **** 
+ 295:lp_solve_5.5/shared/mmio.c **** }
+ 2314               		.loc 1 295 0
+ 2315 0e60 6296      		adiw r28,18
+ 2316 0e62 0FB6      		in __tmp_reg__,__SREG__
+ 2317 0e64 F894      		cli
+ 2318 0e66 DEBF      		out __SP_H__,r29
+ 2319 0e68 0FBE      		out __SREG__,__tmp_reg__
+ 2320 0e6a CDBF      		out __SP_L__,r28
+ 2321 0e6c DF91      		pop r29
+ 2322 0e6e CF91      		pop r28
+ 2323 0e70 1F91      		pop r17
+ 2324 0e72 0F91      		pop r16
+ 2325 0e74 FF90      		pop r15
+ 2326 0e76 EF90      		pop r14
+ 2327 0e78 DF90      		pop r13
+ 2328 0e7a CF90      		pop r12
+ 2329 0e7c BF90      		pop r11
+ 2330 0e7e AF90      		pop r10
+ 2331 0e80 0895      		ret
+ 2332               		.cfi_endproc
+ 2333               	.LFE12:
+ 2335               	.global	mm_read_mtx_crd_entry
+ 2337               	mm_read_mtx_crd_entry:
+ 2338               	.LFB13:
+ 296:lp_solve_5.5/shared/mmio.c **** 
+ 297:lp_solve_5.5/shared/mmio.c **** int mm_read_mtx_crd_entry(FILE *f, int *I, int *J,
+ 298:lp_solve_5.5/shared/mmio.c ****         double *real, double *imag, MM_typecode matcode)
+ 299:lp_solve_5.5/shared/mmio.c **** {
+ 2339               		.loc 1 299 0
+ 2340               		.cfi_startproc
+ 2341 0e82 EF92      		push r14
+ 2342               	.LCFI46:
+ 2343               		.cfi_def_cfa_offset 3
+ 2344               		.cfi_offset 14, -2
+ 2345 0e84 FF92      		push r15
+ 2346               	.LCFI47:
+ 2347               		.cfi_def_cfa_offset 4
+ 2348               		.cfi_offset 15, -3
+ 2349 0e86 0F93      		push r16
+ 2350               	.LCFI48:
+ 2351               		.cfi_def_cfa_offset 5
+ 2352               		.cfi_offset 16, -4
+ 2353 0e88 1F93      		push r17
+ 2354               	.LCFI49:
+ 2355               		.cfi_def_cfa_offset 6
+ 2356               		.cfi_offset 17, -5
+ 2357 0e8a CF93      		push r28
+ 2358               	.LCFI50:
+ 2359               		.cfi_def_cfa_offset 7
+ 2360               		.cfi_offset 28, -6
+ 2361 0e8c DF93      		push r29
+ 2362               	.LCFI51:
+ 2363               		.cfi_def_cfa_offset 8
+ 2364               		.cfi_offset 29, -7
+ 2365 0e8e CDB7      		in r28,__SP_L__
+ 2366 0e90 DEB7      		in r29,__SP_H__
+ 2367               	.LCFI52:
+ 2368               		.cfi_def_cfa_register 28
+ 2369 0e92 2C97      		sbiw r28,12
+ 2370               	.LCFI53:
+ 2371               		.cfi_def_cfa_offset 20
+ 2372 0e94 0FB6      		in __tmp_reg__,__SREG__
+ 2373 0e96 F894      		cli
+ 2374 0e98 DEBF      		out __SP_H__,r29
+ 2375 0e9a 0FBE      		out __SREG__,__tmp_reg__
+ 2376 0e9c CDBF      		out __SP_L__,r28
+ 2377               	/* prologue: function */
+ 2378               	/* frame size = 12 */
+ 2379               	/* stack size = 18 */
+ 2380               	.L__stack_usage = 18
+ 2381 0e9e 9A83      		std Y+2,r25
+ 2382 0ea0 8983      		std Y+1,r24
+ 2383 0ea2 7C83      		std Y+4,r23
+ 2384 0ea4 6B83      		std Y+3,r22
+ 2385 0ea6 5E83      		std Y+6,r21
+ 2386 0ea8 4D83      		std Y+5,r20
+ 2387 0eaa 3887      		std Y+8,r19
+ 2388 0eac 2F83      		std Y+7,r18
+ 2389 0eae 1A87      		std Y+10,r17
+ 2390 0eb0 0987      		std Y+9,r16
+ 2391 0eb2 FC86      		std Y+12,r15
+ 2392 0eb4 EB86      		std Y+11,r14
+ 300:lp_solve_5.5/shared/mmio.c ****     if (mm_is_complex(matcode))
+ 2393               		.loc 1 300 0
+ 2394 0eb6 8B85      		ldd r24,Y+11
+ 2395 0eb8 9C85      		ldd r25,Y+12
+ 2396 0eba 0296      		adiw r24,2
+ 2397 0ebc FC01      		movw r30,r24
+ 2398 0ebe 8081      		ld r24,Z
+ 2399 0ec0 8334      		cpi r24,lo8(67)
+ 2400 0ec2 01F4      		brne .L82
+ 301:lp_solve_5.5/shared/mmio.c ****     {
+ 302:lp_solve_5.5/shared/mmio.c ****             if (fscanf(f, "%d %d %lg %lg", I, J, real, imag)
+ 2401               		.loc 1 302 0
+ 2402 0ec4 8A85      		ldd r24,Y+10
+ 2403 0ec6 8F93      		push r24
+ 2404 0ec8 8985      		ldd r24,Y+9
+ 2405 0eca 8F93      		push r24
+ 2406 0ecc 8885      		ldd r24,Y+8
+ 2407 0ece 8F93      		push r24
+ 2408 0ed0 8F81      		ldd r24,Y+7
+ 2409 0ed2 8F93      		push r24
+ 2410 0ed4 8E81      		ldd r24,Y+6
+ 2411 0ed6 8F93      		push r24
+ 2412 0ed8 8D81      		ldd r24,Y+5
+ 2413 0eda 8F93      		push r24
+ 2414 0edc 8C81      		ldd r24,Y+4
+ 2415 0ede 8F93      		push r24
+ 2416 0ee0 8B81      		ldd r24,Y+3
+ 2417 0ee2 8F93      		push r24
+ 2418 0ee4 80E0      		ldi r24,lo8(.LC24)
+ 2419 0ee6 90E0      		ldi r25,hi8(.LC24)
+ 2420 0ee8 892F      		mov r24,r25
+ 2421 0eea 8F93      		push r24
+ 2422 0eec 80E0      		ldi r24,lo8(.LC24)
+ 2423 0eee 90E0      		ldi r25,hi8(.LC24)
+ 2424 0ef0 8F93      		push r24
+ 2425 0ef2 8A81      		ldd r24,Y+2
+ 2426 0ef4 8F93      		push r24
+ 2427 0ef6 8981      		ldd r24,Y+1
+ 2428 0ef8 8F93      		push r24
+ 2429 0efa 0E94 0000 		call fscanf
+ 2430 0efe 2DB7      		in r18,__SP_L__
+ 2431 0f00 3EB7      		in r19,__SP_H__
+ 2432 0f02 245F      		subi r18,-12
+ 2433 0f04 3F4F      		sbci r19,-1
+ 2434 0f06 0FB6      		in __tmp_reg__,__SREG__
+ 2435 0f08 F894      		cli
+ 2436 0f0a DEBF      		out __SP_H__,r29
+ 2437 0f0c 0FBE      		out __SREG__,__tmp_reg__
+ 2438 0f0e CDBF      		out __SP_L__,r28
+ 2439 0f10 0497      		sbiw r24,4
+ 2440 0f12 01F4      		brne .+2
+ 2441 0f14 00C0      		rjmp .L83
+ 303:lp_solve_5.5/shared/mmio.c ****                 != 4) return MM_PREMATURE_EOF;
+ 2442               		.loc 1 303 0
+ 2443 0f16 8CE0      		ldi r24,lo8(12)
+ 2444 0f18 90E0      		ldi r25,0
+ 2445 0f1a 00C0      		rjmp .L84
+ 2446               	.L82:
+ 304:lp_solve_5.5/shared/mmio.c ****     }
+ 305:lp_solve_5.5/shared/mmio.c ****     else if (mm_is_real(matcode))
+ 2447               		.loc 1 305 0
+ 2448 0f1c 8B85      		ldd r24,Y+11
+ 2449 0f1e 9C85      		ldd r25,Y+12
+ 2450 0f20 0296      		adiw r24,2
+ 2451 0f22 FC01      		movw r30,r24
+ 2452 0f24 8081      		ld r24,Z
+ 2453 0f26 8235      		cpi r24,lo8(82)
+ 2454 0f28 01F4      		brne .L85
+ 306:lp_solve_5.5/shared/mmio.c ****     {
+ 307:lp_solve_5.5/shared/mmio.c ****             if (fscanf(f, "%d %d %lg\n", I, J, real)
+ 2455               		.loc 1 307 0
+ 2456 0f2a 8885      		ldd r24,Y+8
+ 2457 0f2c 8F93      		push r24
+ 2458 0f2e 8F81      		ldd r24,Y+7
+ 2459 0f30 8F93      		push r24
+ 2460 0f32 8E81      		ldd r24,Y+6
+ 2461 0f34 8F93      		push r24
+ 2462 0f36 8D81      		ldd r24,Y+5
+ 2463 0f38 8F93      		push r24
+ 2464 0f3a 8C81      		ldd r24,Y+4
+ 2465 0f3c 8F93      		push r24
+ 2466 0f3e 8B81      		ldd r24,Y+3
+ 2467 0f40 8F93      		push r24
+ 2468 0f42 80E0      		ldi r24,lo8(.LC6)
+ 2469 0f44 90E0      		ldi r25,hi8(.LC6)
+ 2470 0f46 892F      		mov r24,r25
+ 2471 0f48 8F93      		push r24
+ 2472 0f4a 80E0      		ldi r24,lo8(.LC6)
+ 2473 0f4c 90E0      		ldi r25,hi8(.LC6)
+ 2474 0f4e 8F93      		push r24
+ 2475 0f50 8A81      		ldd r24,Y+2
+ 2476 0f52 8F93      		push r24
+ 2477 0f54 8981      		ldd r24,Y+1
+ 2478 0f56 8F93      		push r24
+ 2479 0f58 0E94 0000 		call fscanf
+ 2480 0f5c 2DB7      		in r18,__SP_L__
+ 2481 0f5e 3EB7      		in r19,__SP_H__
+ 2482 0f60 265F      		subi r18,-10
+ 2483 0f62 3F4F      		sbci r19,-1
+ 2484 0f64 0FB6      		in __tmp_reg__,__SREG__
+ 2485 0f66 F894      		cli
+ 2486 0f68 DEBF      		out __SP_H__,r29
+ 2487 0f6a 0FBE      		out __SREG__,__tmp_reg__
+ 2488 0f6c CDBF      		out __SP_L__,r28
+ 2489 0f6e 0397      		sbiw r24,3
+ 2490 0f70 01F0      		breq .L83
+ 308:lp_solve_5.5/shared/mmio.c ****                 != 3) return MM_PREMATURE_EOF;
+ 2491               		.loc 1 308 0
+ 2492 0f72 8CE0      		ldi r24,lo8(12)
+ 2493 0f74 90E0      		ldi r25,0
+ 2494 0f76 00C0      		rjmp .L84
+ 2495               	.L85:
+ 309:lp_solve_5.5/shared/mmio.c **** 
+ 310:lp_solve_5.5/shared/mmio.c ****     }
+ 311:lp_solve_5.5/shared/mmio.c **** 
+ 312:lp_solve_5.5/shared/mmio.c ****     else if (mm_is_pattern(matcode))
+ 2496               		.loc 1 312 0
+ 2497 0f78 8B85      		ldd r24,Y+11
+ 2498 0f7a 9C85      		ldd r25,Y+12
+ 2499 0f7c 0296      		adiw r24,2
+ 2500 0f7e FC01      		movw r30,r24
+ 2501 0f80 8081      		ld r24,Z
+ 2502 0f82 8035      		cpi r24,lo8(80)
+ 2503 0f84 01F4      		brne .L86
+ 313:lp_solve_5.5/shared/mmio.c ****     {
+ 314:lp_solve_5.5/shared/mmio.c ****             if (fscanf(f, "%d %d", I, J) != 2) return MM_PREMATURE_EOF;
+ 2504               		.loc 1 314 0
+ 2505 0f86 8E81      		ldd r24,Y+6
+ 2506 0f88 8F93      		push r24
+ 2507 0f8a 8D81      		ldd r24,Y+5
+ 2508 0f8c 8F93      		push r24
+ 2509 0f8e 8C81      		ldd r24,Y+4
+ 2510 0f90 8F93      		push r24
+ 2511 0f92 8B81      		ldd r24,Y+3
+ 2512 0f94 8F93      		push r24
+ 2513 0f96 80E0      		ldi r24,lo8(.LC22)
+ 2514 0f98 90E0      		ldi r25,hi8(.LC22)
+ 2515 0f9a 892F      		mov r24,r25
+ 2516 0f9c 8F93      		push r24
+ 2517 0f9e 80E0      		ldi r24,lo8(.LC22)
+ 2518 0fa0 90E0      		ldi r25,hi8(.LC22)
+ 2519 0fa2 8F93      		push r24
+ 2520 0fa4 8A81      		ldd r24,Y+2
+ 2521 0fa6 8F93      		push r24
+ 2522 0fa8 8981      		ldd r24,Y+1
+ 2523 0faa 8F93      		push r24
+ 2524 0fac 0E94 0000 		call fscanf
+ 2525 0fb0 2DB7      		in r18,__SP_L__
+ 2526 0fb2 3EB7      		in r19,__SP_H__
+ 2527 0fb4 285F      		subi r18,-8
+ 2528 0fb6 3F4F      		sbci r19,-1
+ 2529 0fb8 0FB6      		in __tmp_reg__,__SREG__
+ 2530 0fba F894      		cli
+ 2531 0fbc DEBF      		out __SP_H__,r29
+ 2532 0fbe 0FBE      		out __SREG__,__tmp_reg__
+ 2533 0fc0 CDBF      		out __SP_L__,r28
+ 2534 0fc2 0297      		sbiw r24,2
+ 2535 0fc4 01F0      		breq .L83
+ 2536               		.loc 1 314 0 is_stmt 0 discriminator 1
+ 2537 0fc6 8CE0      		ldi r24,lo8(12)
+ 2538 0fc8 90E0      		ldi r25,0
+ 2539 0fca 00C0      		rjmp .L84
+ 2540               	.L86:
+ 315:lp_solve_5.5/shared/mmio.c ****     }
+ 316:lp_solve_5.5/shared/mmio.c ****     else
+ 317:lp_solve_5.5/shared/mmio.c ****         return MM_UNSUPPORTED_TYPE;
+ 2541               		.loc 1 317 0 is_stmt 1
+ 2542 0fcc 8FE0      		ldi r24,lo8(15)
+ 2543 0fce 90E0      		ldi r25,0
+ 2544 0fd0 00C0      		rjmp .L84
+ 2545               	.L83:
+ 318:lp_solve_5.5/shared/mmio.c **** 
+ 319:lp_solve_5.5/shared/mmio.c ****     return 0;
+ 2546               		.loc 1 319 0
+ 2547 0fd2 80E0      		ldi r24,0
+ 2548 0fd4 90E0      		ldi r25,0
+ 2549               	.L84:
+ 2550               	/* epilogue start */
+ 320:lp_solve_5.5/shared/mmio.c **** 
+ 321:lp_solve_5.5/shared/mmio.c **** }
+ 2551               		.loc 1 321 0
+ 2552 0fd6 2C96      		adiw r28,12
+ 2553 0fd8 0FB6      		in __tmp_reg__,__SREG__
+ 2554 0fda F894      		cli
+ 2555 0fdc DEBF      		out __SP_H__,r29
+ 2556 0fde 0FBE      		out __SREG__,__tmp_reg__
+ 2557 0fe0 CDBF      		out __SP_L__,r28
+ 2558 0fe2 DF91      		pop r29
+ 2559 0fe4 CF91      		pop r28
+ 2560 0fe6 1F91      		pop r17
+ 2561 0fe8 0F91      		pop r16
+ 2562 0fea FF90      		pop r15
+ 2563 0fec EF90      		pop r14
+ 2564 0fee 0895      		ret
+ 2565               		.cfi_endproc
+ 2566               	.LFE13:
+ 2568               		.section	.rodata
+ 2569               	.LC25:
+ 2570 0181 7374 6469 		.string	"stdin"
+ 2570      6E00 
+ 2571               		.text
+ 2572               	.global	mm_read_mtx_crd
+ 2574               	mm_read_mtx_crd:
+ 2575               	.LFB14:
+ 322:lp_solve_5.5/shared/mmio.c **** 
+ 323:lp_solve_5.5/shared/mmio.c **** 
+ 324:lp_solve_5.5/shared/mmio.c **** /************************************************************************
+ 325:lp_solve_5.5/shared/mmio.c ****     mm_read_mtx_crd()  fills M, N, nz, array of values, and return
+ 326:lp_solve_5.5/shared/mmio.c ****                         type code, e.g. 'MCRS'
+ 327:lp_solve_5.5/shared/mmio.c **** 
+ 328:lp_solve_5.5/shared/mmio.c ****                         if matrix is complex, values[] is of size 2*nz,
+ 329:lp_solve_5.5/shared/mmio.c ****                             (nz pairs of real/imaginary values)
+ 330:lp_solve_5.5/shared/mmio.c **** ************************************************************************/
+ 331:lp_solve_5.5/shared/mmio.c **** 
+ 332:lp_solve_5.5/shared/mmio.c **** int mm_read_mtx_crd(char *fname, int *M, int *N, int *nz, int **I, int **J,
+ 333:lp_solve_5.5/shared/mmio.c ****         double **val, MM_typecode *matcode)
+ 334:lp_solve_5.5/shared/mmio.c **** {
+ 2576               		.loc 1 334 0
+ 2577               		.cfi_startproc
+ 2578 0ff0 AF92      		push r10
+ 2579               	.LCFI54:
+ 2580               		.cfi_def_cfa_offset 3
+ 2581               		.cfi_offset 10, -2
+ 2582 0ff2 BF92      		push r11
+ 2583               	.LCFI55:
+ 2584               		.cfi_def_cfa_offset 4
+ 2585               		.cfi_offset 11, -3
+ 2586 0ff4 CF92      		push r12
+ 2587               	.LCFI56:
+ 2588               		.cfi_def_cfa_offset 5
+ 2589               		.cfi_offset 12, -4
+ 2590 0ff6 DF92      		push r13
+ 2591               	.LCFI57:
+ 2592               		.cfi_def_cfa_offset 6
+ 2593               		.cfi_offset 13, -5
+ 2594 0ff8 EF92      		push r14
+ 2595               	.LCFI58:
+ 2596               		.cfi_def_cfa_offset 7
+ 2597               		.cfi_offset 14, -6
+ 2598 0ffa FF92      		push r15
+ 2599               	.LCFI59:
+ 2600               		.cfi_def_cfa_offset 8
+ 2601               		.cfi_offset 15, -7
+ 2602 0ffc 0F93      		push r16
+ 2603               	.LCFI60:
+ 2604               		.cfi_def_cfa_offset 9
+ 2605               		.cfi_offset 16, -8
+ 2606 0ffe 1F93      		push r17
+ 2607               	.LCFI61:
+ 2608               		.cfi_def_cfa_offset 10
+ 2609               		.cfi_offset 17, -9
+ 2610 1000 CF93      		push r28
+ 2611               	.LCFI62:
+ 2612               		.cfi_def_cfa_offset 11
+ 2613               		.cfi_offset 28, -10
+ 2614 1002 DF93      		push r29
+ 2615               	.LCFI63:
+ 2616               		.cfi_def_cfa_offset 12
+ 2617               		.cfi_offset 29, -11
+ 2618 1004 CDB7      		in r28,__SP_L__
+ 2619 1006 DEB7      		in r29,__SP_H__
+ 2620               	.LCFI64:
+ 2621               		.cfi_def_cfa_register 28
+ 2622 1008 6697      		sbiw r28,22
+ 2623               	.LCFI65:
+ 2624               		.cfi_def_cfa_offset 34
+ 2625 100a 0FB6      		in __tmp_reg__,__SREG__
+ 2626 100c F894      		cli
+ 2627 100e DEBF      		out __SP_H__,r29
+ 2628 1010 0FBE      		out __SREG__,__tmp_reg__
+ 2629 1012 CDBF      		out __SP_L__,r28
+ 2630               	/* prologue: function */
+ 2631               	/* frame size = 22 */
+ 2632               	/* stack size = 32 */
+ 2633               	.L__stack_usage = 32
+ 2634 1014 9E83      		std Y+6,r25
+ 2635 1016 8D83      		std Y+5,r24
+ 2636 1018 7887      		std Y+8,r23
+ 2637 101a 6F83      		std Y+7,r22
+ 2638 101c 5A87      		std Y+10,r21
+ 2639 101e 4987      		std Y+9,r20
+ 2640 1020 3C87      		std Y+12,r19
+ 2641 1022 2B87      		std Y+11,r18
+ 2642 1024 1E87      		std Y+14,r17
+ 2643 1026 0D87      		std Y+13,r16
+ 2644 1028 F88A      		std Y+16,r15
+ 2645 102a EF86      		std Y+15,r14
+ 2646 102c DA8A      		std Y+18,r13
+ 2647 102e C98A      		std Y+17,r12
+ 2648 1030 BC8A      		std Y+20,r11
+ 2649 1032 AB8A      		std Y+19,r10
+ 335:lp_solve_5.5/shared/mmio.c ****     int ret_code;
+ 336:lp_solve_5.5/shared/mmio.c ****     FILE *f;
+ 337:lp_solve_5.5/shared/mmio.c **** 
+ 338:lp_solve_5.5/shared/mmio.c ****     if (strcmp(fname, "stdin") == 0) f=stdin;
+ 2650               		.loc 1 338 0
+ 2651 1034 8D81      		ldd r24,Y+5
+ 2652 1036 9E81      		ldd r25,Y+6
+ 2653 1038 60E0      		ldi r22,lo8(.LC25)
+ 2654 103a 70E0      		ldi r23,hi8(.LC25)
+ 2655 103c 0E94 0000 		call strcmp
+ 2656 1040 892B      		or r24,r25
+ 2657 1042 01F4      		brne .L88
+ 2658               		.loc 1 338 0 is_stmt 0 discriminator 1
+ 2659 1044 8091 0000 		lds r24,__iob
+ 2660 1048 9091 0000 		lds r25,__iob+1
+ 2661 104c 9A83      		std Y+2,r25
+ 2662 104e 8983      		std Y+1,r24
+ 2663 1050 00C0      		rjmp .L89
+ 2664               	.L88:
+ 339:lp_solve_5.5/shared/mmio.c ****     else
+ 340:lp_solve_5.5/shared/mmio.c ****     if ((f = fopen(fname, "r")) == NULL)
+ 2665               		.loc 1 340 0 is_stmt 1
+ 2666 1052 8D81      		ldd r24,Y+5
+ 2667 1054 9E81      		ldd r25,Y+6
+ 2668 1056 60E0      		ldi r22,lo8(.LC0)
+ 2669 1058 70E0      		ldi r23,hi8(.LC0)
+ 2670 105a 0E94 0000 		call fopen
+ 2671 105e 9A83      		std Y+2,r25
+ 2672 1060 8983      		std Y+1,r24
+ 2673 1062 8981      		ldd r24,Y+1
+ 2674 1064 9A81      		ldd r25,Y+2
+ 2675 1066 892B      		or r24,r25
+ 2676 1068 01F4      		brne .L89
+ 341:lp_solve_5.5/shared/mmio.c ****         return MM_COULD_NOT_READ_FILE;
+ 2677               		.loc 1 341 0
+ 2678 106a 8BE0      		ldi r24,lo8(11)
+ 2679 106c 90E0      		ldi r25,0
+ 2680 106e 00C0      		rjmp .L90
+ 2681               	.L89:
+ 342:lp_solve_5.5/shared/mmio.c **** 
+ 343:lp_solve_5.5/shared/mmio.c **** 
+ 344:lp_solve_5.5/shared/mmio.c ****     if ((ret_code = mm_read_banner(f, matcode)) != 0)
+ 2682               		.loc 1 344 0
+ 2683 1070 2B89      		ldd r18,Y+19
+ 2684 1072 3C89      		ldd r19,Y+20
+ 2685 1074 8981      		ldd r24,Y+1
+ 2686 1076 9A81      		ldd r25,Y+2
+ 2687 1078 B901      		movw r22,r18
+ 2688 107a 0E94 0000 		call mm_read_banner
+ 2689 107e 9C83      		std Y+4,r25
+ 2690 1080 8B83      		std Y+3,r24
+ 2691 1082 8B81      		ldd r24,Y+3
+ 2692 1084 9C81      		ldd r25,Y+4
+ 2693 1086 892B      		or r24,r25
+ 2694 1088 01F0      		breq .L91
+ 345:lp_solve_5.5/shared/mmio.c ****         return ret_code;
+ 2695               		.loc 1 345 0
+ 2696 108a 8B81      		ldd r24,Y+3
+ 2697 108c 9C81      		ldd r25,Y+4
+ 2698 108e 00C0      		rjmp .L90
+ 2699               	.L91:
+ 346:lp_solve_5.5/shared/mmio.c **** 
+ 347:lp_solve_5.5/shared/mmio.c ****     if (!(mm_is_valid(*matcode) && mm_is_sparse(*matcode) &&
+ 2700               		.loc 1 347 0
+ 2701 1090 8B89      		ldd r24,Y+19
+ 2702 1092 9C89      		ldd r25,Y+20
+ 2703 1094 0E94 0000 		call mm_is_valid
+ 2704 1098 892B      		or r24,r25
+ 2705 109a 01F0      		breq .L92
+ 2706               		.loc 1 347 0 is_stmt 0 discriminator 1
+ 2707 109c 8B89      		ldd r24,Y+19
+ 2708 109e 9C89      		ldd r25,Y+20
+ 2709 10a0 FC01      		movw r30,r24
+ 2710 10a2 8181      		ldd r24,Z+1
+ 2711 10a4 8334      		cpi r24,lo8(67)
+ 2712 10a6 01F4      		brne .L92
+ 348:lp_solve_5.5/shared/mmio.c ****             mm_is_matrix(*matcode)))
+ 2713               		.loc 1 348 0 is_stmt 1 discriminator 2
+ 2714 10a8 8B89      		ldd r24,Y+19
+ 2715 10aa 9C89      		ldd r25,Y+20
+ 2716 10ac FC01      		movw r30,r24
+ 2717 10ae 8081      		ld r24,Z
+ 347:lp_solve_5.5/shared/mmio.c ****             mm_is_matrix(*matcode)))
+ 2718               		.loc 1 347 0 discriminator 2
+ 2719 10b0 8D34      		cpi r24,lo8(77)
+ 2720 10b2 01F0      		breq .L93
+ 2721               	.L92:
+ 349:lp_solve_5.5/shared/mmio.c ****         return MM_UNSUPPORTED_TYPE;
+ 2722               		.loc 1 349 0
+ 2723 10b4 8FE0      		ldi r24,lo8(15)
+ 2724 10b6 90E0      		ldi r25,0
+ 2725 10b8 00C0      		rjmp .L90
+ 2726               	.L93:
+ 350:lp_solve_5.5/shared/mmio.c **** 
+ 351:lp_solve_5.5/shared/mmio.c ****     if ((ret_code = mm_read_mtx_crd_size(f, M, N, nz)) != 0)
+ 2727               		.loc 1 351 0
+ 2728 10ba 2B85      		ldd r18,Y+11
+ 2729 10bc 3C85      		ldd r19,Y+12
+ 2730 10be 4985      		ldd r20,Y+9
+ 2731 10c0 5A85      		ldd r21,Y+10
+ 2732 10c2 6F81      		ldd r22,Y+7
+ 2733 10c4 7885      		ldd r23,Y+8
+ 2734 10c6 8981      		ldd r24,Y+1
+ 2735 10c8 9A81      		ldd r25,Y+2
+ 2736 10ca 0E94 0000 		call mm_read_mtx_crd_size
+ 2737 10ce 9C83      		std Y+4,r25
+ 2738 10d0 8B83      		std Y+3,r24
+ 2739 10d2 8B81      		ldd r24,Y+3
+ 2740 10d4 9C81      		ldd r25,Y+4
+ 2741 10d6 892B      		or r24,r25
+ 2742 10d8 01F0      		breq .L94
+ 352:lp_solve_5.5/shared/mmio.c ****         return ret_code;
+ 2743               		.loc 1 352 0
+ 2744 10da 8B81      		ldd r24,Y+3
+ 2745 10dc 9C81      		ldd r25,Y+4
+ 2746 10de 00C0      		rjmp .L90
+ 2747               	.L94:
+ 353:lp_solve_5.5/shared/mmio.c **** 
+ 354:lp_solve_5.5/shared/mmio.c **** 
+ 355:lp_solve_5.5/shared/mmio.c ****     *I = (int *)  malloc(*nz * sizeof(int));
+ 2748               		.loc 1 355 0
+ 2749 10e0 8B85      		ldd r24,Y+11
+ 2750 10e2 9C85      		ldd r25,Y+12
+ 2751 10e4 FC01      		movw r30,r24
+ 2752 10e6 8081      		ld r24,Z
+ 2753 10e8 9181      		ldd r25,Z+1
+ 2754 10ea 880F      		lsl r24
+ 2755 10ec 991F      		rol r25
+ 2756 10ee 0E94 0000 		call malloc
+ 2757 10f2 9C01      		movw r18,r24
+ 2758 10f4 8D85      		ldd r24,Y+13
+ 2759 10f6 9E85      		ldd r25,Y+14
+ 2760 10f8 FC01      		movw r30,r24
+ 2761 10fa 3183      		std Z+1,r19
+ 2762 10fc 2083      		st Z,r18
+ 356:lp_solve_5.5/shared/mmio.c ****     *J = (int *)  malloc(*nz * sizeof(int));
+ 2763               		.loc 1 356 0
+ 2764 10fe 8B85      		ldd r24,Y+11
+ 2765 1100 9C85      		ldd r25,Y+12
+ 2766 1102 FC01      		movw r30,r24
+ 2767 1104 8081      		ld r24,Z
+ 2768 1106 9181      		ldd r25,Z+1
+ 2769 1108 880F      		lsl r24
+ 2770 110a 991F      		rol r25
+ 2771 110c 0E94 0000 		call malloc
+ 2772 1110 9C01      		movw r18,r24
+ 2773 1112 8F85      		ldd r24,Y+15
+ 2774 1114 9889      		ldd r25,Y+16
+ 2775 1116 FC01      		movw r30,r24
+ 2776 1118 3183      		std Z+1,r19
+ 2777 111a 2083      		st Z,r18
+ 357:lp_solve_5.5/shared/mmio.c ****     *val = NULL;
+ 2778               		.loc 1 357 0
+ 2779 111c 8989      		ldd r24,Y+17
+ 2780 111e 9A89      		ldd r25,Y+18
+ 2781 1120 FC01      		movw r30,r24
+ 2782 1122 1182      		std Z+1,__zero_reg__
+ 2783 1124 1082      		st Z,__zero_reg__
+ 358:lp_solve_5.5/shared/mmio.c **** 
+ 359:lp_solve_5.5/shared/mmio.c ****     if (mm_is_complex(*matcode))
+ 2784               		.loc 1 359 0
+ 2785 1126 8B89      		ldd r24,Y+19
+ 2786 1128 9C89      		ldd r25,Y+20
+ 2787 112a FC01      		movw r30,r24
+ 2788 112c 8281      		ldd r24,Z+2
+ 2789 112e 8334      		cpi r24,lo8(67)
+ 2790 1130 01F0      		breq .+2
+ 2791 1132 00C0      		rjmp .L95
+ 360:lp_solve_5.5/shared/mmio.c ****     {
+ 361:lp_solve_5.5/shared/mmio.c ****         *val = (double *) malloc(*nz * 2 * sizeof(double));
+ 2792               		.loc 1 361 0
+ 2793 1134 8B85      		ldd r24,Y+11
+ 2794 1136 9C85      		ldd r25,Y+12
+ 2795 1138 FC01      		movw r30,r24
+ 2796 113a 8081      		ld r24,Z
+ 2797 113c 9181      		ldd r25,Z+1
+ 2798 113e 880F      		lsl r24
+ 2799 1140 991F      		rol r25
+ 2800 1142 880F      		lsl r24
+ 2801 1144 991F      		rol r25
+ 2802 1146 880F      		lsl r24
+ 2803 1148 991F      		rol r25
+ 2804 114a 0E94 0000 		call malloc
+ 2805 114e 9C01      		movw r18,r24
+ 2806 1150 8989      		ldd r24,Y+17
+ 2807 1152 9A89      		ldd r25,Y+18
+ 2808 1154 FC01      		movw r30,r24
+ 2809 1156 3183      		std Z+1,r19
+ 2810 1158 2083      		st Z,r18
+ 362:lp_solve_5.5/shared/mmio.c ****         ret_code = mm_read_mtx_crd_data(f, *M, *N, *nz, *I, *J, *val,
+ 2811               		.loc 1 362 0
+ 2812 115a 8989      		ldd r24,Y+17
+ 2813 115c 9A89      		ldd r25,Y+18
+ 2814 115e FC01      		movw r30,r24
+ 2815 1160 0081      		ld r16,Z
+ 2816 1162 1181      		ldd r17,Z+1
+ 2817 1164 8F85      		ldd r24,Y+15
+ 2818 1166 9889      		ldd r25,Y+16
+ 2819 1168 FC01      		movw r30,r24
+ 2820 116a A081      		ld r26,Z
+ 2821 116c B181      		ldd r27,Z+1
+ 2822 116e 8D85      		ldd r24,Y+13
+ 2823 1170 9E85      		ldd r25,Y+14
+ 2824 1172 FC01      		movw r30,r24
+ 2825 1174 0190      		ld __tmp_reg__,Z+
+ 2826 1176 F081      		ld r31,Z
+ 2827 1178 E02D      		mov r30,__tmp_reg__
+ 2828 117a FE8B      		std Y+22,r31
+ 2829 117c ED8B      		std Y+21,r30
+ 2830 117e 8B85      		ldd r24,Y+11
+ 2831 1180 9C85      		ldd r25,Y+12
+ 2832 1182 FC01      		movw r30,r24
+ 2833 1184 2081      		ld r18,Z
+ 2834 1186 3181      		ldd r19,Z+1
+ 2835 1188 8985      		ldd r24,Y+9
+ 2836 118a 9A85      		ldd r25,Y+10
+ 2837 118c FC01      		movw r30,r24
+ 2838 118e 4081      		ld r20,Z
+ 2839 1190 5181      		ldd r21,Z+1
+ 2840 1192 8F81      		ldd r24,Y+7
+ 2841 1194 9885      		ldd r25,Y+8
+ 2842 1196 FC01      		movw r30,r24
+ 2843 1198 6081      		ld r22,Z
+ 2844 119a 7181      		ldd r23,Z+1
+ 2845 119c EB88      		ldd r14,Y+19
+ 2846 119e FC88      		ldd r15,Y+20
+ 2847 11a0 8981      		ldd r24,Y+1
+ 2848 11a2 9A81      		ldd r25,Y+2
+ 2849 11a4 5701      		movw r10,r14
+ 2850 11a6 6801      		movw r12,r16
+ 2851 11a8 7D01      		movw r14,r26
+ 2852 11aa 0D89      		ldd r16,Y+21
+ 2853 11ac 1E89      		ldd r17,Y+22
+ 2854 11ae 0E94 0000 		call mm_read_mtx_crd_data
+ 2855 11b2 9C83      		std Y+4,r25
+ 2856 11b4 8B83      		std Y+3,r24
+ 363:lp_solve_5.5/shared/mmio.c ****                 *matcode);
+ 364:lp_solve_5.5/shared/mmio.c ****         if (ret_code != 0) return ret_code;
+ 2857               		.loc 1 364 0
+ 2858 11b6 8B81      		ldd r24,Y+3
+ 2859 11b8 9C81      		ldd r25,Y+4
+ 2860 11ba 892B      		or r24,r25
+ 2861 11bc 01F4      		brne .+2
+ 2862 11be 00C0      		rjmp .L96
+ 2863               		.loc 1 364 0 is_stmt 0 discriminator 1
+ 2864 11c0 8B81      		ldd r24,Y+3
+ 2865 11c2 9C81      		ldd r25,Y+4
+ 2866 11c4 00C0      		rjmp .L90
+ 2867               	.L95:
+ 365:lp_solve_5.5/shared/mmio.c ****     }
+ 366:lp_solve_5.5/shared/mmio.c ****     else if (mm_is_real(*matcode))
+ 2868               		.loc 1 366 0 is_stmt 1
+ 2869 11c6 8B89      		ldd r24,Y+19
+ 2870 11c8 9C89      		ldd r25,Y+20
+ 2871 11ca FC01      		movw r30,r24
+ 2872 11cc 8281      		ldd r24,Z+2
+ 2873 11ce 8235      		cpi r24,lo8(82)
+ 2874 11d0 01F0      		breq .+2
+ 2875 11d2 00C0      		rjmp .L97
+ 367:lp_solve_5.5/shared/mmio.c ****     {
+ 368:lp_solve_5.5/shared/mmio.c ****         *val = (double *) malloc(*nz * sizeof(double));
+ 2876               		.loc 1 368 0
+ 2877 11d4 8B85      		ldd r24,Y+11
+ 2878 11d6 9C85      		ldd r25,Y+12
+ 2879 11d8 FC01      		movw r30,r24
+ 2880 11da 8081      		ld r24,Z
+ 2881 11dc 9181      		ldd r25,Z+1
+ 2882 11de 880F      		lsl r24
+ 2883 11e0 991F      		rol r25
+ 2884 11e2 880F      		lsl r24
+ 2885 11e4 991F      		rol r25
+ 2886 11e6 0E94 0000 		call malloc
+ 2887 11ea 9C01      		movw r18,r24
+ 2888 11ec 8989      		ldd r24,Y+17
+ 2889 11ee 9A89      		ldd r25,Y+18
+ 2890 11f0 FC01      		movw r30,r24
+ 2891 11f2 3183      		std Z+1,r19
+ 2892 11f4 2083      		st Z,r18
+ 369:lp_solve_5.5/shared/mmio.c ****         ret_code = mm_read_mtx_crd_data(f, *M, *N, *nz, *I, *J, *val,
+ 2893               		.loc 1 369 0
+ 2894 11f6 8989      		ldd r24,Y+17
+ 2895 11f8 9A89      		ldd r25,Y+18
+ 2896 11fa FC01      		movw r30,r24
+ 2897 11fc 0081      		ld r16,Z
+ 2898 11fe 1181      		ldd r17,Z+1
+ 2899 1200 8F85      		ldd r24,Y+15
+ 2900 1202 9889      		ldd r25,Y+16
+ 2901 1204 FC01      		movw r30,r24
+ 2902 1206 A081      		ld r26,Z
+ 2903 1208 B181      		ldd r27,Z+1
+ 2904 120a 8D85      		ldd r24,Y+13
+ 2905 120c 9E85      		ldd r25,Y+14
+ 2906 120e FC01      		movw r30,r24
+ 2907 1210 0190      		ld __tmp_reg__,Z+
+ 2908 1212 F081      		ld r31,Z
+ 2909 1214 E02D      		mov r30,__tmp_reg__
+ 2910 1216 FE8B      		std Y+22,r31
+ 2911 1218 ED8B      		std Y+21,r30
+ 2912 121a 8B85      		ldd r24,Y+11
+ 2913 121c 9C85      		ldd r25,Y+12
+ 2914 121e FC01      		movw r30,r24
+ 2915 1220 2081      		ld r18,Z
+ 2916 1222 3181      		ldd r19,Z+1
+ 2917 1224 8985      		ldd r24,Y+9
+ 2918 1226 9A85      		ldd r25,Y+10
+ 2919 1228 FC01      		movw r30,r24
+ 2920 122a 4081      		ld r20,Z
+ 2921 122c 5181      		ldd r21,Z+1
+ 2922 122e 8F81      		ldd r24,Y+7
+ 2923 1230 9885      		ldd r25,Y+8
+ 2924 1232 FC01      		movw r30,r24
+ 2925 1234 6081      		ld r22,Z
+ 2926 1236 7181      		ldd r23,Z+1
+ 2927 1238 EB88      		ldd r14,Y+19
+ 2928 123a FC88      		ldd r15,Y+20
+ 2929 123c 8981      		ldd r24,Y+1
+ 2930 123e 9A81      		ldd r25,Y+2
+ 2931 1240 5701      		movw r10,r14
+ 2932 1242 6801      		movw r12,r16
+ 2933 1244 7D01      		movw r14,r26
+ 2934 1246 0D89      		ldd r16,Y+21
+ 2935 1248 1E89      		ldd r17,Y+22
+ 2936 124a 0E94 0000 		call mm_read_mtx_crd_data
+ 2937 124e 9C83      		std Y+4,r25
+ 2938 1250 8B83      		std Y+3,r24
+ 370:lp_solve_5.5/shared/mmio.c ****                 *matcode);
+ 371:lp_solve_5.5/shared/mmio.c ****         if (ret_code != 0) return ret_code;
+ 2939               		.loc 1 371 0
+ 2940 1252 8B81      		ldd r24,Y+3
+ 2941 1254 9C81      		ldd r25,Y+4
+ 2942 1256 892B      		or r24,r25
+ 2943 1258 01F4      		brne .+2
+ 2944 125a 00C0      		rjmp .L96
+ 2945               		.loc 1 371 0 is_stmt 0 discriminator 1
+ 2946 125c 8B81      		ldd r24,Y+3
+ 2947 125e 9C81      		ldd r25,Y+4
+ 2948 1260 00C0      		rjmp .L90
+ 2949               	.L97:
+ 372:lp_solve_5.5/shared/mmio.c ****     }
+ 373:lp_solve_5.5/shared/mmio.c **** 
+ 374:lp_solve_5.5/shared/mmio.c ****     else if (mm_is_pattern(*matcode))
+ 2950               		.loc 1 374 0 is_stmt 1
+ 2951 1262 8B89      		ldd r24,Y+19
+ 2952 1264 9C89      		ldd r25,Y+20
+ 2953 1266 FC01      		movw r30,r24
+ 2954 1268 8281      		ldd r24,Z+2
+ 2955 126a 8035      		cpi r24,lo8(80)
+ 2956 126c 01F4      		brne .L96
+ 375:lp_solve_5.5/shared/mmio.c ****     {
+ 376:lp_solve_5.5/shared/mmio.c ****         ret_code = mm_read_mtx_crd_data(f, *M, *N, *nz, *I, *J, *val,
+ 2957               		.loc 1 376 0
+ 2958 126e 8989      		ldd r24,Y+17
+ 2959 1270 9A89      		ldd r25,Y+18
+ 2960 1272 FC01      		movw r30,r24
+ 2961 1274 0081      		ld r16,Z
+ 2962 1276 1181      		ldd r17,Z+1
+ 2963 1278 8F85      		ldd r24,Y+15
+ 2964 127a 9889      		ldd r25,Y+16
+ 2965 127c FC01      		movw r30,r24
+ 2966 127e A081      		ld r26,Z
+ 2967 1280 B181      		ldd r27,Z+1
+ 2968 1282 8D85      		ldd r24,Y+13
+ 2969 1284 9E85      		ldd r25,Y+14
+ 2970 1286 FC01      		movw r30,r24
+ 2971 1288 0190      		ld __tmp_reg__,Z+
+ 2972 128a F081      		ld r31,Z
+ 2973 128c E02D      		mov r30,__tmp_reg__
+ 2974 128e FE8B      		std Y+22,r31
+ 2975 1290 ED8B      		std Y+21,r30
+ 2976 1292 8B85      		ldd r24,Y+11
+ 2977 1294 9C85      		ldd r25,Y+12
+ 2978 1296 FC01      		movw r30,r24
+ 2979 1298 2081      		ld r18,Z
+ 2980 129a 3181      		ldd r19,Z+1
+ 2981 129c 8985      		ldd r24,Y+9
+ 2982 129e 9A85      		ldd r25,Y+10
+ 2983 12a0 FC01      		movw r30,r24
+ 2984 12a2 4081      		ld r20,Z
+ 2985 12a4 5181      		ldd r21,Z+1
+ 2986 12a6 8F81      		ldd r24,Y+7
+ 2987 12a8 9885      		ldd r25,Y+8
+ 2988 12aa FC01      		movw r30,r24
+ 2989 12ac 6081      		ld r22,Z
+ 2990 12ae 7181      		ldd r23,Z+1
+ 2991 12b0 EB88      		ldd r14,Y+19
+ 2992 12b2 FC88      		ldd r15,Y+20
+ 2993 12b4 8981      		ldd r24,Y+1
+ 2994 12b6 9A81      		ldd r25,Y+2
+ 2995 12b8 5701      		movw r10,r14
+ 2996 12ba 6801      		movw r12,r16
+ 2997 12bc 7D01      		movw r14,r26
+ 2998 12be 0D89      		ldd r16,Y+21
+ 2999 12c0 1E89      		ldd r17,Y+22
+ 3000 12c2 0E94 0000 		call mm_read_mtx_crd_data
+ 3001 12c6 9C83      		std Y+4,r25
+ 3002 12c8 8B83      		std Y+3,r24
+ 377:lp_solve_5.5/shared/mmio.c ****                 *matcode);
+ 378:lp_solve_5.5/shared/mmio.c ****         if (ret_code != 0) return ret_code;
+ 3003               		.loc 1 378 0
+ 3004 12ca 8B81      		ldd r24,Y+3
+ 3005 12cc 9C81      		ldd r25,Y+4
+ 3006 12ce 892B      		or r24,r25
+ 3007 12d0 01F0      		breq .L96
+ 3008               		.loc 1 378 0 is_stmt 0 discriminator 1
+ 3009 12d2 8B81      		ldd r24,Y+3
+ 3010 12d4 9C81      		ldd r25,Y+4
+ 3011 12d6 00C0      		rjmp .L90
+ 3012               	.L96:
+ 379:lp_solve_5.5/shared/mmio.c ****     }
+ 380:lp_solve_5.5/shared/mmio.c **** 
+ 381:lp_solve_5.5/shared/mmio.c ****     if (f != stdin) fclose(f);
+ 3013               		.loc 1 381 0 is_stmt 1
+ 3014 12d8 2091 0000 		lds r18,__iob
+ 3015 12dc 3091 0000 		lds r19,__iob+1
+ 3016 12e0 8981      		ldd r24,Y+1
+ 3017 12e2 9A81      		ldd r25,Y+2
+ 3018 12e4 2817      		cp r18,r24
+ 3019 12e6 3907      		cpc r19,r25
+ 3020 12e8 01F0      		breq .L98
+ 3021               		.loc 1 381 0 is_stmt 0 discriminator 1
+ 3022 12ea 8981      		ldd r24,Y+1
+ 3023 12ec 9A81      		ldd r25,Y+2
+ 3024 12ee 0E94 0000 		call fclose
+ 3025               	.L98:
+ 382:lp_solve_5.5/shared/mmio.c ****     return 0;
+ 3026               		.loc 1 382 0 is_stmt 1
+ 3027 12f2 80E0      		ldi r24,0
+ 3028 12f4 90E0      		ldi r25,0
+ 3029               	.L90:
+ 3030               	/* epilogue start */
+ 383:lp_solve_5.5/shared/mmio.c **** }
+ 3031               		.loc 1 383 0
+ 3032 12f6 6696      		adiw r28,22
+ 3033 12f8 0FB6      		in __tmp_reg__,__SREG__
+ 3034 12fa F894      		cli
+ 3035 12fc DEBF      		out __SP_H__,r29
+ 3036 12fe 0FBE      		out __SREG__,__tmp_reg__
+ 3037 1300 CDBF      		out __SP_L__,r28
+ 3038 1302 DF91      		pop r29
+ 3039 1304 CF91      		pop r28
+ 3040 1306 1F91      		pop r17
+ 3041 1308 0F91      		pop r16
+ 3042 130a FF90      		pop r15
+ 3043 130c EF90      		pop r14
+ 3044 130e DF90      		pop r13
+ 3045 1310 CF90      		pop r12
+ 3046 1312 BF90      		pop r11
+ 3047 1314 AF90      		pop r10
+ 3048 1316 0895      		ret
+ 3049               		.cfi_endproc
+ 3050               	.LFE14:
+ 3052               		.section	.rodata
+ 3053               	.LC26:
+ 3054 0187 2573 2025 		.string	"%s %s\n"
+ 3054      730A 00
+ 3055               		.text
+ 3056               	.global	mm_write_banner
+ 3058               	mm_write_banner:
+ 3059               	.LFB15:
+ 384:lp_solve_5.5/shared/mmio.c **** 
+ 385:lp_solve_5.5/shared/mmio.c **** int mm_write_banner(FILE *f, MM_typecode matcode)
+ 386:lp_solve_5.5/shared/mmio.c **** {
+ 3060               		.loc 1 386 0
+ 3061               		.cfi_startproc
+ 3062 1318 CF93      		push r28
+ 3063               	.LCFI66:
+ 3064               		.cfi_def_cfa_offset 3
+ 3065               		.cfi_offset 28, -2
+ 3066 131a DF93      		push r29
+ 3067               	.LCFI67:
+ 3068               		.cfi_def_cfa_offset 4
+ 3069               		.cfi_offset 29, -3
+ 3070 131c CDB7      		in r28,__SP_L__
+ 3071 131e DEB7      		in r29,__SP_H__
+ 3072               	.LCFI68:
+ 3073               		.cfi_def_cfa_register 28
+ 3074 1320 2897      		sbiw r28,8
+ 3075               	.LCFI69:
+ 3076               		.cfi_def_cfa_offset 12
+ 3077 1322 0FB6      		in __tmp_reg__,__SREG__
+ 3078 1324 F894      		cli
+ 3079 1326 DEBF      		out __SP_H__,r29
+ 3080 1328 0FBE      		out __SREG__,__tmp_reg__
+ 3081 132a CDBF      		out __SP_L__,r28
+ 3082               	/* prologue: function */
+ 3083               	/* frame size = 8 */
+ 3084               	/* stack size = 10 */
+ 3085               	.L__stack_usage = 10
+ 3086 132c 9E83      		std Y+6,r25
+ 3087 132e 8D83      		std Y+5,r24
+ 3088 1330 7887      		std Y+8,r23
+ 3089 1332 6F83      		std Y+7,r22
+ 387:lp_solve_5.5/shared/mmio.c ****     char *str = mm_typecode_to_str(matcode);
+ 3090               		.loc 1 387 0
+ 3091 1334 8F81      		ldd r24,Y+7
+ 3092 1336 9885      		ldd r25,Y+8
+ 3093 1338 0E94 0000 		call mm_typecode_to_str
+ 3094 133c 9A83      		std Y+2,r25
+ 3095 133e 8983      		std Y+1,r24
+ 388:lp_solve_5.5/shared/mmio.c ****     int ret_code;
+ 389:lp_solve_5.5/shared/mmio.c **** 
+ 390:lp_solve_5.5/shared/mmio.c ****     ret_code = fprintf(f, "%s %s\n", MatrixMarketBanner, str);
+ 3096               		.loc 1 390 0
+ 3097 1340 8A81      		ldd r24,Y+2
+ 3098 1342 8F93      		push r24
+ 3099 1344 8981      		ldd r24,Y+1
+ 3100 1346 8F93      		push r24
+ 3101 1348 80E0      		ldi r24,lo8(.LC8)
+ 3102 134a 90E0      		ldi r25,hi8(.LC8)
+ 3103 134c 892F      		mov r24,r25
+ 3104 134e 8F93      		push r24
+ 3105 1350 80E0      		ldi r24,lo8(.LC8)
+ 3106 1352 90E0      		ldi r25,hi8(.LC8)
+ 3107 1354 8F93      		push r24
+ 3108 1356 80E0      		ldi r24,lo8(.LC26)
+ 3109 1358 90E0      		ldi r25,hi8(.LC26)
+ 3110 135a 892F      		mov r24,r25
+ 3111 135c 8F93      		push r24
+ 3112 135e 80E0      		ldi r24,lo8(.LC26)
+ 3113 1360 90E0      		ldi r25,hi8(.LC26)
+ 3114 1362 8F93      		push r24
+ 3115 1364 8E81      		ldd r24,Y+6
+ 3116 1366 8F93      		push r24
+ 3117 1368 8D81      		ldd r24,Y+5
+ 3118 136a 8F93      		push r24
+ 3119 136c 0E94 0000 		call fprintf
+ 3120 1370 2DB7      		in r18,__SP_L__
+ 3121 1372 3EB7      		in r19,__SP_H__
+ 3122 1374 285F      		subi r18,-8
+ 3123 1376 3F4F      		sbci r19,-1
+ 3124 1378 0FB6      		in __tmp_reg__,__SREG__
+ 3125 137a F894      		cli
+ 3126 137c DEBF      		out __SP_H__,r29
+ 3127 137e 0FBE      		out __SREG__,__tmp_reg__
+ 3128 1380 CDBF      		out __SP_L__,r28
+ 3129 1382 9C83      		std Y+4,r25
+ 3130 1384 8B83      		std Y+3,r24
+ 391:lp_solve_5.5/shared/mmio.c **** /*    free(str);  This is a bug from the official distribution - KE fixed */
+ 392:lp_solve_5.5/shared/mmio.c ****     if (ret_code < 0 )
+ 3131               		.loc 1 392 0
+ 3132 1386 8B81      		ldd r24,Y+3
+ 3133 1388 9C81      		ldd r25,Y+4
+ 3134 138a 9923      		tst r25
+ 3135 138c 04F4      		brge .L100
+ 393:lp_solve_5.5/shared/mmio.c ****         return MM_COULD_NOT_WRITE_FILE;
+ 3136               		.loc 1 393 0
+ 3137 138e 81E1      		ldi r24,lo8(17)
+ 3138 1390 90E0      		ldi r25,0
+ 3139 1392 00C0      		rjmp .L101
+ 3140               	.L100:
+ 394:lp_solve_5.5/shared/mmio.c ****     else
+ 395:lp_solve_5.5/shared/mmio.c ****         return 0;
+ 3141               		.loc 1 395 0
+ 3142 1394 80E0      		ldi r24,0
+ 3143 1396 90E0      		ldi r25,0
+ 3144               	.L101:
+ 3145               	/* epilogue start */
+ 396:lp_solve_5.5/shared/mmio.c **** }
+ 3146               		.loc 1 396 0
+ 3147 1398 2896      		adiw r28,8
+ 3148 139a 0FB6      		in __tmp_reg__,__SREG__
+ 3149 139c F894      		cli
+ 3150 139e DEBF      		out __SP_H__,r29
+ 3151 13a0 0FBE      		out __SREG__,__tmp_reg__
+ 3152 13a2 CDBF      		out __SP_L__,r28
+ 3153 13a4 DF91      		pop r29
+ 3154 13a6 CF91      		pop r28
+ 3155 13a8 0895      		ret
+ 3156               		.cfi_endproc
+ 3157               	.LFE15:
+ 3159               		.section	.rodata
+ 3160               	.LC27:
+ 3161 018e 7374 646F 		.string	"stdout"
+ 3161      7574 00
+ 3162               	.LC28:
+ 3163 0195 7700      		.string	"w"
+ 3164               	.LC29:
+ 3165 0197 2573 2000 		.string	"%s "
+ 3166               	.LC30:
+ 3167 019b 2573 0A00 		.string	"%s\n"
+ 3168               	.LC31:
+ 3169 019f 2564 2025 		.string	"%d %d %20.16g\n"
+ 3169      6420 2532 
+ 3169      302E 3136 
+ 3169      670A 00
+ 3170               	.LC32:
+ 3171 01ae 2564 2025 		.string	"%d %d %20.16g %20.16g\n"
+ 3171      6420 2532 
+ 3171      302E 3136 
+ 3171      6720 2532 
+ 3171      302E 3136 
+ 3172               		.text
+ 3173               	.global	mm_write_mtx_crd
+ 3175               	mm_write_mtx_crd:
+ 3176               	.LFB16:
+ 397:lp_solve_5.5/shared/mmio.c **** 
+ 398:lp_solve_5.5/shared/mmio.c **** int mm_write_mtx_crd(char fname[], int M, int N, int nz, int I[], int J[],
+ 399:lp_solve_5.5/shared/mmio.c ****         double val[], MM_typecode matcode)
+ 400:lp_solve_5.5/shared/mmio.c **** {
+ 3177               		.loc 1 400 0
+ 3178               		.cfi_startproc
+ 3179 13aa AF92      		push r10
+ 3180               	.LCFI70:
+ 3181               		.cfi_def_cfa_offset 3
+ 3182               		.cfi_offset 10, -2
+ 3183 13ac BF92      		push r11
+ 3184               	.LCFI71:
+ 3185               		.cfi_def_cfa_offset 4
+ 3186               		.cfi_offset 11, -3
+ 3187 13ae CF92      		push r12
+ 3188               	.LCFI72:
+ 3189               		.cfi_def_cfa_offset 5
+ 3190               		.cfi_offset 12, -4
+ 3191 13b0 DF92      		push r13
+ 3192               	.LCFI73:
+ 3193               		.cfi_def_cfa_offset 6
+ 3194               		.cfi_offset 13, -5
+ 3195 13b2 EF92      		push r14
+ 3196               	.LCFI74:
+ 3197               		.cfi_def_cfa_offset 7
+ 3198               		.cfi_offset 14, -6
+ 3199 13b4 FF92      		push r15
+ 3200               	.LCFI75:
+ 3201               		.cfi_def_cfa_offset 8
+ 3202               		.cfi_offset 15, -7
+ 3203 13b6 0F93      		push r16
+ 3204               	.LCFI76:
+ 3205               		.cfi_def_cfa_offset 9
+ 3206               		.cfi_offset 16, -8
+ 3207 13b8 1F93      		push r17
+ 3208               	.LCFI77:
+ 3209               		.cfi_def_cfa_offset 10
+ 3210               		.cfi_offset 17, -9
+ 3211 13ba CF93      		push r28
+ 3212               	.LCFI78:
+ 3213               		.cfi_def_cfa_offset 11
+ 3214               		.cfi_offset 28, -10
+ 3215 13bc DF93      		push r29
+ 3216               	.LCFI79:
+ 3217               		.cfi_def_cfa_offset 12
+ 3218               		.cfi_offset 29, -11
+ 3219 13be CDB7      		in r28,__SP_L__
+ 3220 13c0 DEB7      		in r29,__SP_H__
+ 3221               	.LCFI80:
+ 3222               		.cfi_def_cfa_register 28
+ 3223 13c2 6497      		sbiw r28,20
+ 3224               	.LCFI81:
+ 3225               		.cfi_def_cfa_offset 32
+ 3226 13c4 0FB6      		in __tmp_reg__,__SREG__
+ 3227 13c6 F894      		cli
+ 3228 13c8 DEBF      		out __SP_H__,r29
+ 3229 13ca 0FBE      		out __SREG__,__tmp_reg__
+ 3230 13cc CDBF      		out __SP_L__,r28
+ 3231               	/* prologue: function */
+ 3232               	/* frame size = 20 */
+ 3233               	/* stack size = 30 */
+ 3234               	.L__stack_usage = 30
+ 3235 13ce 9E83      		std Y+6,r25
+ 3236 13d0 8D83      		std Y+5,r24
+ 3237 13d2 7887      		std Y+8,r23
+ 3238 13d4 6F83      		std Y+7,r22
+ 3239 13d6 5A87      		std Y+10,r21
+ 3240 13d8 4987      		std Y+9,r20
+ 3241 13da 3C87      		std Y+12,r19
+ 3242 13dc 2B87      		std Y+11,r18
+ 3243 13de 1E87      		std Y+14,r17
+ 3244 13e0 0D87      		std Y+13,r16
+ 3245 13e2 F88A      		std Y+16,r15
+ 3246 13e4 EF86      		std Y+15,r14
+ 3247 13e6 DA8A      		std Y+18,r13
+ 3248 13e8 C98A      		std Y+17,r12
+ 3249 13ea BC8A      		std Y+20,r11
+ 3250 13ec AB8A      		std Y+19,r10
+ 401:lp_solve_5.5/shared/mmio.c ****     FILE *f;
+ 402:lp_solve_5.5/shared/mmio.c ****     int i;
+ 403:lp_solve_5.5/shared/mmio.c **** 
+ 404:lp_solve_5.5/shared/mmio.c ****     if (strcmp(fname, "stdout") == 0)
+ 3251               		.loc 1 404 0
+ 3252 13ee 8D81      		ldd r24,Y+5
+ 3253 13f0 9E81      		ldd r25,Y+6
+ 3254 13f2 60E0      		ldi r22,lo8(.LC27)
+ 3255 13f4 70E0      		ldi r23,hi8(.LC27)
+ 3256 13f6 0E94 0000 		call strcmp
+ 3257 13fa 892B      		or r24,r25
+ 3258 13fc 01F4      		brne .L103
+ 405:lp_solve_5.5/shared/mmio.c ****         f = stdout;
+ 3259               		.loc 1 405 0
+ 3260 13fe 8091 0000 		lds r24,__iob+2
+ 3261 1402 9091 0000 		lds r25,__iob+2+1
+ 3262 1406 9A83      		std Y+2,r25
+ 3263 1408 8983      		std Y+1,r24
+ 3264 140a 00C0      		rjmp .L104
+ 3265               	.L103:
+ 406:lp_solve_5.5/shared/mmio.c ****     else
+ 407:lp_solve_5.5/shared/mmio.c ****     if ((f = fopen(fname, "w")) == NULL)
+ 3266               		.loc 1 407 0
+ 3267 140c 8D81      		ldd r24,Y+5
+ 3268 140e 9E81      		ldd r25,Y+6
+ 3269 1410 60E0      		ldi r22,lo8(.LC28)
+ 3270 1412 70E0      		ldi r23,hi8(.LC28)
+ 3271 1414 0E94 0000 		call fopen
+ 3272 1418 9A83      		std Y+2,r25
+ 3273 141a 8983      		std Y+1,r24
+ 3274 141c 8981      		ldd r24,Y+1
+ 3275 141e 9A81      		ldd r25,Y+2
+ 3276 1420 892B      		or r24,r25
+ 3277 1422 01F4      		brne .L104
+ 408:lp_solve_5.5/shared/mmio.c ****         return MM_COULD_NOT_WRITE_FILE;
+ 3278               		.loc 1 408 0
+ 3279 1424 81E1      		ldi r24,lo8(17)
+ 3280 1426 90E0      		ldi r25,0
+ 3281 1428 00C0      		rjmp .L105
+ 3282               	.L104:
+ 409:lp_solve_5.5/shared/mmio.c **** 
+ 410:lp_solve_5.5/shared/mmio.c ****     /* print banner followed by typecode */
+ 411:lp_solve_5.5/shared/mmio.c ****     fprintf(f, "%s ", MatrixMarketBanner);
+ 3283               		.loc 1 411 0
+ 3284 142a 80E0      		ldi r24,lo8(.LC8)
+ 3285 142c 90E0      		ldi r25,hi8(.LC8)
+ 3286 142e 892F      		mov r24,r25
+ 3287 1430 8F93      		push r24
+ 3288 1432 80E0      		ldi r24,lo8(.LC8)
+ 3289 1434 90E0      		ldi r25,hi8(.LC8)
+ 3290 1436 8F93      		push r24
+ 3291 1438 80E0      		ldi r24,lo8(.LC29)
+ 3292 143a 90E0      		ldi r25,hi8(.LC29)
+ 3293 143c 892F      		mov r24,r25
+ 3294 143e 8F93      		push r24
+ 3295 1440 80E0      		ldi r24,lo8(.LC29)
+ 3296 1442 90E0      		ldi r25,hi8(.LC29)
+ 3297 1444 8F93      		push r24
+ 3298 1446 8A81      		ldd r24,Y+2
+ 3299 1448 8F93      		push r24
+ 3300 144a 8981      		ldd r24,Y+1
+ 3301 144c 8F93      		push r24
+ 3302 144e 0E94 0000 		call fprintf
+ 3303 1452 0F90      		pop __tmp_reg__
+ 3304 1454 0F90      		pop __tmp_reg__
+ 3305 1456 0F90      		pop __tmp_reg__
+ 3306 1458 0F90      		pop __tmp_reg__
+ 3307 145a 0F90      		pop __tmp_reg__
+ 3308 145c 0F90      		pop __tmp_reg__
+ 412:lp_solve_5.5/shared/mmio.c ****     fprintf(f, "%s\n", mm_typecode_to_str(matcode));
+ 3309               		.loc 1 412 0
+ 3310 145e 8B89      		ldd r24,Y+19
+ 3311 1460 9C89      		ldd r25,Y+20
+ 3312 1462 0E94 0000 		call mm_typecode_to_str
+ 3313 1466 292F      		mov r18,r25
+ 3314 1468 2F93      		push r18
+ 3315 146a 8F93      		push r24
+ 3316 146c 80E0      		ldi r24,lo8(.LC30)
+ 3317 146e 90E0      		ldi r25,hi8(.LC30)
+ 3318 1470 892F      		mov r24,r25
+ 3319 1472 8F93      		push r24
+ 3320 1474 80E0      		ldi r24,lo8(.LC30)
+ 3321 1476 90E0      		ldi r25,hi8(.LC30)
+ 3322 1478 8F93      		push r24
+ 3323 147a 8A81      		ldd r24,Y+2
+ 3324 147c 8F93      		push r24
+ 3325 147e 8981      		ldd r24,Y+1
+ 3326 1480 8F93      		push r24
+ 3327 1482 0E94 0000 		call fprintf
+ 3328 1486 0F90      		pop __tmp_reg__
+ 3329 1488 0F90      		pop __tmp_reg__
+ 3330 148a 0F90      		pop __tmp_reg__
+ 3331 148c 0F90      		pop __tmp_reg__
+ 3332 148e 0F90      		pop __tmp_reg__
+ 3333 1490 0F90      		pop __tmp_reg__
+ 413:lp_solve_5.5/shared/mmio.c **** 
+ 414:lp_solve_5.5/shared/mmio.c ****     /* print matrix sizes and nonzeros */
+ 415:lp_solve_5.5/shared/mmio.c ****     fprintf(f, "%d %d %d\n", M, N, nz);
+ 3334               		.loc 1 415 0
+ 3335 1492 8C85      		ldd r24,Y+12
+ 3336 1494 8F93      		push r24
+ 3337 1496 8B85      		ldd r24,Y+11
+ 3338 1498 8F93      		push r24
+ 3339 149a 8A85      		ldd r24,Y+10
+ 3340 149c 8F93      		push r24
+ 3341 149e 8985      		ldd r24,Y+9
+ 3342 14a0 8F93      		push r24
+ 3343 14a2 8885      		ldd r24,Y+8
+ 3344 14a4 8F93      		push r24
+ 3345 14a6 8F81      		ldd r24,Y+7
+ 3346 14a8 8F93      		push r24
+ 3347 14aa 80E0      		ldi r24,lo8(.LC20)
+ 3348 14ac 90E0      		ldi r25,hi8(.LC20)
+ 3349 14ae 892F      		mov r24,r25
+ 3350 14b0 8F93      		push r24
+ 3351 14b2 80E0      		ldi r24,lo8(.LC20)
+ 3352 14b4 90E0      		ldi r25,hi8(.LC20)
+ 3353 14b6 8F93      		push r24
+ 3354 14b8 8A81      		ldd r24,Y+2
+ 3355 14ba 8F93      		push r24
+ 3356 14bc 8981      		ldd r24,Y+1
+ 3357 14be 8F93      		push r24
+ 3358 14c0 0E94 0000 		call fprintf
+ 3359 14c4 8DB7      		in r24,__SP_L__
+ 3360 14c6 9EB7      		in r25,__SP_H__
+ 3361 14c8 0A96      		adiw r24,10
+ 3362 14ca 0FB6      		in __tmp_reg__,__SREG__
+ 3363 14cc F894      		cli
+ 3364 14ce DEBF      		out __SP_H__,r29
+ 3365 14d0 0FBE      		out __SREG__,__tmp_reg__
+ 3366 14d2 CDBF      		out __SP_L__,r28
+ 416:lp_solve_5.5/shared/mmio.c **** 
+ 417:lp_solve_5.5/shared/mmio.c ****     /* print values */
+ 418:lp_solve_5.5/shared/mmio.c ****     if (mm_is_pattern(matcode))
+ 3367               		.loc 1 418 0
+ 3368 14d4 8B89      		ldd r24,Y+19
+ 3369 14d6 9C89      		ldd r25,Y+20
+ 3370 14d8 0296      		adiw r24,2
+ 3371 14da FC01      		movw r30,r24
+ 3372 14dc 8081      		ld r24,Z
+ 3373 14de 8035      		cpi r24,lo8(80)
+ 3374 14e0 01F0      		breq .+2
+ 3375 14e2 00C0      		rjmp .L106
+ 419:lp_solve_5.5/shared/mmio.c ****         for (i=0; i<nz; i++)
+ 3376               		.loc 1 419 0
+ 3377 14e4 1C82      		std Y+4,__zero_reg__
+ 3378 14e6 1B82      		std Y+3,__zero_reg__
+ 3379 14e8 00C0      		rjmp .L107
+ 3380               	.L108:
+ 420:lp_solve_5.5/shared/mmio.c ****             fprintf(f, "%d %d\n", I[i], J[i]);
+ 3381               		.loc 1 420 0 discriminator 3
+ 3382 14ea 8B81      		ldd r24,Y+3
+ 3383 14ec 9C81      		ldd r25,Y+4
+ 3384 14ee 880F      		lsl r24
+ 3385 14f0 991F      		rol r25
+ 3386 14f2 2F85      		ldd r18,Y+15
+ 3387 14f4 3889      		ldd r19,Y+16
+ 3388 14f6 820F      		add r24,r18
+ 3389 14f8 931F      		adc r25,r19
+ 3390 14fa FC01      		movw r30,r24
+ 3391 14fc 4081      		ld r20,Z
+ 3392 14fe 5181      		ldd r21,Z+1
+ 3393 1500 8B81      		ldd r24,Y+3
+ 3394 1502 9C81      		ldd r25,Y+4
+ 3395 1504 880F      		lsl r24
+ 3396 1506 991F      		rol r25
+ 3397 1508 2D85      		ldd r18,Y+13
+ 3398 150a 3E85      		ldd r19,Y+14
+ 3399 150c 820F      		add r24,r18
+ 3400 150e 931F      		adc r25,r19
+ 3401 1510 FC01      		movw r30,r24
+ 3402 1512 8081      		ld r24,Z
+ 3403 1514 9181      		ldd r25,Z+1
+ 3404 1516 252F      		mov r18,r21
+ 3405 1518 2F93      		push r18
+ 3406 151a 242F      		mov r18,r20
+ 3407 151c 2F93      		push r18
+ 3408 151e 292F      		mov r18,r25
+ 3409 1520 2F93      		push r18
+ 3410 1522 8F93      		push r24
+ 3411 1524 80E0      		ldi r24,lo8(.LC23)
+ 3412 1526 90E0      		ldi r25,hi8(.LC23)
+ 3413 1528 892F      		mov r24,r25
+ 3414 152a 8F93      		push r24
+ 3415 152c 80E0      		ldi r24,lo8(.LC23)
+ 3416 152e 90E0      		ldi r25,hi8(.LC23)
+ 3417 1530 8F93      		push r24
+ 3418 1532 8A81      		ldd r24,Y+2
+ 3419 1534 8F93      		push r24
+ 3420 1536 8981      		ldd r24,Y+1
+ 3421 1538 8F93      		push r24
+ 3422 153a 0E94 0000 		call fprintf
+ 3423 153e 8DB7      		in r24,__SP_L__
+ 3424 1540 9EB7      		in r25,__SP_H__
+ 3425 1542 0896      		adiw r24,8
+ 3426 1544 0FB6      		in __tmp_reg__,__SREG__
+ 3427 1546 F894      		cli
+ 3428 1548 DEBF      		out __SP_H__,r29
+ 3429 154a 0FBE      		out __SREG__,__tmp_reg__
+ 3430 154c CDBF      		out __SP_L__,r28
+ 419:lp_solve_5.5/shared/mmio.c ****         for (i=0; i<nz; i++)
+ 3431               		.loc 1 419 0 discriminator 3
+ 3432 154e 8B81      		ldd r24,Y+3
+ 3433 1550 9C81      		ldd r25,Y+4
+ 3434 1552 0196      		adiw r24,1
+ 3435 1554 9C83      		std Y+4,r25
+ 3436 1556 8B83      		std Y+3,r24
+ 3437               	.L107:
+ 419:lp_solve_5.5/shared/mmio.c ****         for (i=0; i<nz; i++)
+ 3438               		.loc 1 419 0 is_stmt 0 discriminator 1
+ 3439 1558 2B81      		ldd r18,Y+3
+ 3440 155a 3C81      		ldd r19,Y+4
+ 3441 155c 8B85      		ldd r24,Y+11
+ 3442 155e 9C85      		ldd r25,Y+12
+ 3443 1560 2817      		cp r18,r24
+ 3444 1562 3907      		cpc r19,r25
+ 3445 1564 04F0      		brlt .L108
+ 3446 1566 00C0      		rjmp .L109
+ 3447               	.L106:
+ 421:lp_solve_5.5/shared/mmio.c ****     else
+ 422:lp_solve_5.5/shared/mmio.c ****     if (mm_is_real(matcode))
+ 3448               		.loc 1 422 0 is_stmt 1
+ 3449 1568 8B89      		ldd r24,Y+19
+ 3450 156a 9C89      		ldd r25,Y+20
+ 3451 156c 0296      		adiw r24,2
+ 3452 156e FC01      		movw r30,r24
+ 3453 1570 8081      		ld r24,Z
+ 3454 1572 8235      		cpi r24,lo8(82)
+ 3455 1574 01F0      		breq .+2
+ 3456 1576 00C0      		rjmp .L110
+ 423:lp_solve_5.5/shared/mmio.c ****         for (i=0; i<nz; i++)
+ 3457               		.loc 1 423 0
+ 3458 1578 1C82      		std Y+4,__zero_reg__
+ 3459 157a 1B82      		std Y+3,__zero_reg__
+ 3460 157c 00C0      		rjmp .L111
+ 3461               	.L112:
+ 424:lp_solve_5.5/shared/mmio.c ****             fprintf(f, "%d %d %20.16g\n", I[i], J[i], val[i]);
+ 3462               		.loc 1 424 0 discriminator 3
+ 3463 157e 8B81      		ldd r24,Y+3
+ 3464 1580 9C81      		ldd r25,Y+4
+ 3465 1582 880F      		lsl r24
+ 3466 1584 991F      		rol r25
+ 3467 1586 880F      		lsl r24
+ 3468 1588 991F      		rol r25
+ 3469 158a 2989      		ldd r18,Y+17
+ 3470 158c 3A89      		ldd r19,Y+18
+ 3471 158e 820F      		add r24,r18
+ 3472 1590 931F      		adc r25,r19
+ 3473 1592 FC01      		movw r30,r24
+ 3474 1594 8081      		ld r24,Z
+ 3475 1596 9181      		ldd r25,Z+1
+ 3476 1598 A281      		ldd r26,Z+2
+ 3477 159a B381      		ldd r27,Z+3
+ 3478 159c 2B81      		ldd r18,Y+3
+ 3479 159e 3C81      		ldd r19,Y+4
+ 3480 15a0 220F      		lsl r18
+ 3481 15a2 331F      		rol r19
+ 3482 15a4 4F85      		ldd r20,Y+15
+ 3483 15a6 5889      		ldd r21,Y+16
+ 3484 15a8 240F      		add r18,r20
+ 3485 15aa 351F      		adc r19,r21
+ 3486 15ac F901      		movw r30,r18
+ 3487 15ae 6081      		ld r22,Z
+ 3488 15b0 7181      		ldd r23,Z+1
+ 3489 15b2 2B81      		ldd r18,Y+3
+ 3490 15b4 3C81      		ldd r19,Y+4
+ 3491 15b6 220F      		lsl r18
+ 3492 15b8 331F      		rol r19
+ 3493 15ba 4D85      		ldd r20,Y+13
+ 3494 15bc 5E85      		ldd r21,Y+14
+ 3495 15be 240F      		add r18,r20
+ 3496 15c0 351F      		adc r19,r21
+ 3497 15c2 F901      		movw r30,r18
+ 3498 15c4 2081      		ld r18,Z
+ 3499 15c6 3181      		ldd r19,Z+1
+ 3500 15c8 4B2F      		mov r20,r27
+ 3501 15ca 4F93      		push r20
+ 3502 15cc 4A2F      		mov r20,r26
+ 3503 15ce 4F93      		push r20
+ 3504 15d0 492F      		mov r20,r25
+ 3505 15d2 4F93      		push r20
+ 3506 15d4 8F93      		push r24
+ 3507 15d6 872F      		mov r24,r23
+ 3508 15d8 8F93      		push r24
+ 3509 15da 862F      		mov r24,r22
+ 3510 15dc 8F93      		push r24
+ 3511 15de 832F      		mov r24,r19
+ 3512 15e0 8F93      		push r24
+ 3513 15e2 822F      		mov r24,r18
+ 3514 15e4 8F93      		push r24
+ 3515 15e6 80E0      		ldi r24,lo8(.LC31)
+ 3516 15e8 90E0      		ldi r25,hi8(.LC31)
+ 3517 15ea 892F      		mov r24,r25
+ 3518 15ec 8F93      		push r24
+ 3519 15ee 80E0      		ldi r24,lo8(.LC31)
+ 3520 15f0 90E0      		ldi r25,hi8(.LC31)
+ 3521 15f2 8F93      		push r24
+ 3522 15f4 8A81      		ldd r24,Y+2
+ 3523 15f6 8F93      		push r24
+ 3524 15f8 8981      		ldd r24,Y+1
+ 3525 15fa 8F93      		push r24
+ 3526 15fc 0E94 0000 		call fprintf
+ 3527 1600 8DB7      		in r24,__SP_L__
+ 3528 1602 9EB7      		in r25,__SP_H__
+ 3529 1604 0C96      		adiw r24,12
+ 3530 1606 0FB6      		in __tmp_reg__,__SREG__
+ 3531 1608 F894      		cli
+ 3532 160a DEBF      		out __SP_H__,r29
+ 3533 160c 0FBE      		out __SREG__,__tmp_reg__
+ 3534 160e CDBF      		out __SP_L__,r28
+ 423:lp_solve_5.5/shared/mmio.c ****         for (i=0; i<nz; i++)
+ 3535               		.loc 1 423 0 discriminator 3
+ 3536 1610 8B81      		ldd r24,Y+3
+ 3537 1612 9C81      		ldd r25,Y+4
+ 3538 1614 0196      		adiw r24,1
+ 3539 1616 9C83      		std Y+4,r25
+ 3540 1618 8B83      		std Y+3,r24
+ 3541               	.L111:
+ 423:lp_solve_5.5/shared/mmio.c ****         for (i=0; i<nz; i++)
+ 3542               		.loc 1 423 0 is_stmt 0 discriminator 1
+ 3543 161a 2B81      		ldd r18,Y+3
+ 3544 161c 3C81      		ldd r19,Y+4
+ 3545 161e 8B85      		ldd r24,Y+11
+ 3546 1620 9C85      		ldd r25,Y+12
+ 3547 1622 2817      		cp r18,r24
+ 3548 1624 3907      		cpc r19,r25
+ 3549 1626 04F4      		brge .+2
+ 3550 1628 00C0      		rjmp .L112
+ 3551 162a 00C0      		rjmp .L109
+ 3552               	.L110:
+ 425:lp_solve_5.5/shared/mmio.c ****     else
+ 426:lp_solve_5.5/shared/mmio.c ****     if (mm_is_complex(matcode))
+ 3553               		.loc 1 426 0 is_stmt 1
+ 3554 162c 8B89      		ldd r24,Y+19
+ 3555 162e 9C89      		ldd r25,Y+20
+ 3556 1630 0296      		adiw r24,2
+ 3557 1632 FC01      		movw r30,r24
+ 3558 1634 8081      		ld r24,Z
+ 3559 1636 8334      		cpi r24,lo8(67)
+ 3560 1638 01F0      		breq .+2
+ 3561 163a 00C0      		rjmp .L113
+ 427:lp_solve_5.5/shared/mmio.c ****         for (i=0; i<nz; i++)
+ 3562               		.loc 1 427 0
+ 3563 163c 1C82      		std Y+4,__zero_reg__
+ 3564 163e 1B82      		std Y+3,__zero_reg__
+ 3565 1640 00C0      		rjmp .L114
+ 3566               	.L115:
+ 428:lp_solve_5.5/shared/mmio.c ****             fprintf(f, "%d %d %20.16g %20.16g\n", I[i], J[i], val[2*i],
+ 429:lp_solve_5.5/shared/mmio.c ****                         val[2*i+1]);
+ 3567               		.loc 1 429 0 discriminator 3
+ 3568 1642 8B81      		ldd r24,Y+3
+ 3569 1644 9C81      		ldd r25,Y+4
+ 3570 1646 880F      		lsl r24
+ 3571 1648 991F      		rol r25
+ 3572 164a 880F      		lsl r24
+ 3573 164c 991F      		rol r25
+ 3574 164e 880F      		lsl r24
+ 3575 1650 991F      		rol r25
+ 3576 1652 0496      		adiw r24,4
+ 3577 1654 2989      		ldd r18,Y+17
+ 3578 1656 3A89      		ldd r19,Y+18
+ 3579 1658 820F      		add r24,r18
+ 3580 165a 931F      		adc r25,r19
+ 428:lp_solve_5.5/shared/mmio.c ****             fprintf(f, "%d %d %20.16g %20.16g\n", I[i], J[i], val[2*i],
+ 3581               		.loc 1 428 0 discriminator 3
+ 3582 165c FC01      		movw r30,r24
+ 3583 165e 2081      		ld r18,Z
+ 3584 1660 3181      		ldd r19,Z+1
+ 3585 1662 4281      		ldd r20,Z+2
+ 3586 1664 5381      		ldd r21,Z+3
+ 3587 1666 8B81      		ldd r24,Y+3
+ 3588 1668 9C81      		ldd r25,Y+4
+ 3589 166a 880F      		lsl r24
+ 3590 166c 991F      		rol r25
+ 3591 166e 880F      		lsl r24
+ 3592 1670 991F      		rol r25
+ 3593 1672 880F      		lsl r24
+ 3594 1674 991F      		rol r25
+ 3595 1676 BC01      		movw r22,r24
+ 3596 1678 8989      		ldd r24,Y+17
+ 3597 167a 9A89      		ldd r25,Y+18
+ 3598 167c 860F      		add r24,r22
+ 3599 167e 971F      		adc r25,r23
+ 3600 1680 FC01      		movw r30,r24
+ 3601 1682 8081      		ld r24,Z
+ 3602 1684 9181      		ldd r25,Z+1
+ 3603 1686 A281      		ldd r26,Z+2
+ 3604 1688 B381      		ldd r27,Z+3
+ 3605 168a 6B81      		ldd r22,Y+3
+ 3606 168c 7C81      		ldd r23,Y+4
+ 3607 168e 660F      		lsl r22
+ 3608 1690 771F      		rol r23
+ 3609 1692 EF85      		ldd r30,Y+15
+ 3610 1694 F889      		ldd r31,Y+16
+ 3611 1696 6E0F      		add r22,r30
+ 3612 1698 7F1F      		adc r23,r31
+ 3613 169a FB01      		movw r30,r22
+ 3614 169c 0081      		ld r16,Z
+ 3615 169e 1181      		ldd r17,Z+1
+ 3616 16a0 6B81      		ldd r22,Y+3
+ 3617 16a2 7C81      		ldd r23,Y+4
+ 3618 16a4 660F      		lsl r22
+ 3619 16a6 771F      		rol r23
+ 3620 16a8 ED85      		ldd r30,Y+13
+ 3621 16aa FE85      		ldd r31,Y+14
+ 3622 16ac 6E0F      		add r22,r30
+ 3623 16ae 7F1F      		adc r23,r31
+ 3624 16b0 FB01      		movw r30,r22
+ 3625 16b2 6081      		ld r22,Z
+ 3626 16b4 7181      		ldd r23,Z+1
+ 3627 16b6 E52F      		mov r30,r21
+ 3628 16b8 EF93      		push r30
+ 3629 16ba E42F      		mov r30,r20
+ 3630 16bc EF93      		push r30
+ 3631 16be E32F      		mov r30,r19
+ 3632 16c0 EF93      		push r30
+ 3633 16c2 2F93      		push r18
+ 3634 16c4 2B2F      		mov r18,r27
+ 3635 16c6 2F93      		push r18
+ 3636 16c8 2A2F      		mov r18,r26
+ 3637 16ca 2F93      		push r18
+ 3638 16cc 292F      		mov r18,r25
+ 3639 16ce 2F93      		push r18
+ 3640 16d0 8F93      		push r24
+ 3641 16d2 812F      		mov r24,r17
+ 3642 16d4 8F93      		push r24
+ 3643 16d6 802F      		mov r24,r16
+ 3644 16d8 8F93      		push r24
+ 3645 16da 872F      		mov r24,r23
+ 3646 16dc 8F93      		push r24
+ 3647 16de 862F      		mov r24,r22
+ 3648 16e0 8F93      		push r24
+ 3649 16e2 80E0      		ldi r24,lo8(.LC32)
+ 3650 16e4 90E0      		ldi r25,hi8(.LC32)
+ 3651 16e6 892F      		mov r24,r25
+ 3652 16e8 8F93      		push r24
+ 3653 16ea 80E0      		ldi r24,lo8(.LC32)
+ 3654 16ec 90E0      		ldi r25,hi8(.LC32)
+ 3655 16ee 8F93      		push r24
+ 3656 16f0 8A81      		ldd r24,Y+2
+ 3657 16f2 8F93      		push r24
+ 3658 16f4 8981      		ldd r24,Y+1
+ 3659 16f6 8F93      		push r24
+ 3660 16f8 0E94 0000 		call fprintf
+ 3661 16fc 8DB7      		in r24,__SP_L__
+ 3662 16fe 9EB7      		in r25,__SP_H__
+ 3663 1700 4096      		adiw r24,16
+ 3664 1702 0FB6      		in __tmp_reg__,__SREG__
+ 3665 1704 F894      		cli
+ 3666 1706 DEBF      		out __SP_H__,r29
+ 3667 1708 0FBE      		out __SREG__,__tmp_reg__
+ 3668 170a CDBF      		out __SP_L__,r28
+ 427:lp_solve_5.5/shared/mmio.c ****         for (i=0; i<nz; i++)
+ 3669               		.loc 1 427 0 discriminator 3
+ 3670 170c 8B81      		ldd r24,Y+3
+ 3671 170e 9C81      		ldd r25,Y+4
+ 3672 1710 0196      		adiw r24,1
+ 3673 1712 9C83      		std Y+4,r25
+ 3674 1714 8B83      		std Y+3,r24
+ 3675               	.L114:
+ 427:lp_solve_5.5/shared/mmio.c ****         for (i=0; i<nz; i++)
+ 3676               		.loc 1 427 0 is_stmt 0 discriminator 1
+ 3677 1716 2B81      		ldd r18,Y+3
+ 3678 1718 3C81      		ldd r19,Y+4
+ 3679 171a 8B85      		ldd r24,Y+11
+ 3680 171c 9C85      		ldd r25,Y+12
+ 3681 171e 2817      		cp r18,r24
+ 3682 1720 3907      		cpc r19,r25
+ 3683 1722 04F4      		brge .+2
+ 3684 1724 00C0      		rjmp .L115
+ 3685 1726 00C0      		rjmp .L109
+ 3686               	.L113:
+ 430:lp_solve_5.5/shared/mmio.c ****     else
+ 431:lp_solve_5.5/shared/mmio.c ****     {
+ 432:lp_solve_5.5/shared/mmio.c ****         if (f != stdout) fclose(f);
+ 3687               		.loc 1 432 0 is_stmt 1
+ 3688 1728 2091 0000 		lds r18,__iob+2
+ 3689 172c 3091 0000 		lds r19,__iob+2+1
+ 3690 1730 8981      		ldd r24,Y+1
+ 3691 1732 9A81      		ldd r25,Y+2
+ 3692 1734 2817      		cp r18,r24
+ 3693 1736 3907      		cpc r19,r25
+ 3694 1738 01F0      		breq .L116
+ 3695               		.loc 1 432 0 is_stmt 0 discriminator 1
+ 3696 173a 8981      		ldd r24,Y+1
+ 3697 173c 9A81      		ldd r25,Y+2
+ 3698 173e 0E94 0000 		call fclose
+ 3699               	.L116:
+ 433:lp_solve_5.5/shared/mmio.c ****         return MM_UNSUPPORTED_TYPE;
+ 3700               		.loc 1 433 0 is_stmt 1
+ 3701 1742 8FE0      		ldi r24,lo8(15)
+ 3702 1744 90E0      		ldi r25,0
+ 3703 1746 00C0      		rjmp .L105
+ 3704               	.L109:
+ 434:lp_solve_5.5/shared/mmio.c ****     }
+ 435:lp_solve_5.5/shared/mmio.c **** 
+ 436:lp_solve_5.5/shared/mmio.c ****     if (f !=stdout) fclose(f);
+ 3705               		.loc 1 436 0
+ 3706 1748 2091 0000 		lds r18,__iob+2
+ 3707 174c 3091 0000 		lds r19,__iob+2+1
+ 3708 1750 8981      		ldd r24,Y+1
+ 3709 1752 9A81      		ldd r25,Y+2
+ 3710 1754 2817      		cp r18,r24
+ 3711 1756 3907      		cpc r19,r25
+ 3712 1758 01F0      		breq .L117
+ 3713               		.loc 1 436 0 is_stmt 0 discriminator 1
+ 3714 175a 8981      		ldd r24,Y+1
+ 3715 175c 9A81      		ldd r25,Y+2
+ 3716 175e 0E94 0000 		call fclose
+ 3717               	.L117:
+ 437:lp_solve_5.5/shared/mmio.c **** 
+ 438:lp_solve_5.5/shared/mmio.c ****     return 0;
+ 3718               		.loc 1 438 0 is_stmt 1
+ 3719 1762 80E0      		ldi r24,0
+ 3720 1764 90E0      		ldi r25,0
+ 3721               	.L105:
+ 3722               	/* epilogue start */
+ 439:lp_solve_5.5/shared/mmio.c **** }
+ 3723               		.loc 1 439 0
+ 3724 1766 6496      		adiw r28,20
+ 3725 1768 0FB6      		in __tmp_reg__,__SREG__
+ 3726 176a F894      		cli
+ 3727 176c DEBF      		out __SP_H__,r29
+ 3728 176e 0FBE      		out __SREG__,__tmp_reg__
+ 3729 1770 CDBF      		out __SP_L__,r28
+ 3730 1772 DF91      		pop r29
+ 3731 1774 CF91      		pop r28
+ 3732 1776 1F91      		pop r17
+ 3733 1778 0F91      		pop r16
+ 3734 177a FF90      		pop r15
+ 3735 177c EF90      		pop r14
+ 3736 177e DF90      		pop r13
+ 3737 1780 CF90      		pop r12
+ 3738 1782 BF90      		pop r11
+ 3739 1784 AF90      		pop r10
+ 3740 1786 0895      		ret
+ 3741               		.cfi_endproc
+ 3742               	.LFE16:
+ 3744               		.section	.rodata
+ 3745               	.LC33:
+ 3746 01c5 2573 2025 		.string	"%s %s %s %s"
+ 3746      7320 2573 
+ 3746      2025 7300 
+ 3747               		.text
+ 3748               	.global	mm_typecode_to_str
+ 3750               	mm_typecode_to_str:
+ 3751               	.LFB17:
+ 440:lp_solve_5.5/shared/mmio.c **** 
+ 441:lp_solve_5.5/shared/mmio.c **** 
+ 442:lp_solve_5.5/shared/mmio.c **** char  *mm_typecode_to_str(MM_typecode matcode)
+ 443:lp_solve_5.5/shared/mmio.c **** {
+ 3752               		.loc 1 443 0
+ 3753               		.cfi_startproc
+ 3754 1788 CF93      		push r28
+ 3755               	.LCFI82:
+ 3756               		.cfi_def_cfa_offset 3
+ 3757               		.cfi_offset 28, -2
+ 3758 178a DF93      		push r29
+ 3759               	.LCFI83:
+ 3760               		.cfi_def_cfa_offset 4
+ 3761               		.cfi_offset 29, -3
+ 3762 178c CDB7      		in r28,__SP_L__
+ 3763 178e DEB7      		in r29,__SP_H__
+ 3764               	.LCFI84:
+ 3765               		.cfi_def_cfa_register 28
+ 3766 1790 2A97      		sbiw r28,10
+ 3767               	.LCFI85:
+ 3768               		.cfi_def_cfa_offset 14
+ 3769 1792 0FB6      		in __tmp_reg__,__SREG__
+ 3770 1794 F894      		cli
+ 3771 1796 DEBF      		out __SP_H__,r29
+ 3772 1798 0FBE      		out __SREG__,__tmp_reg__
+ 3773 179a CDBF      		out __SP_L__,r28
+ 3774               	/* prologue: function */
+ 3775               	/* frame size = 10 */
+ 3776               	/* stack size = 12 */
+ 3777               	.L__stack_usage = 12
+ 3778 179c 9A87      		std Y+10,r25
+ 3779 179e 8987      		std Y+9,r24
+ 444:lp_solve_5.5/shared/mmio.c ****     static char buffer[MM_MAX_LINE_LENGTH];
+ 445:lp_solve_5.5/shared/mmio.c ****     char *types[4];
+ 446:lp_solve_5.5/shared/mmio.c **** 
+ 447:lp_solve_5.5/shared/mmio.c ****     /* check for MTX type */
+ 448:lp_solve_5.5/shared/mmio.c ****     if (mm_is_matrix(matcode))
+ 3780               		.loc 1 448 0
+ 3781 17a0 8985      		ldd r24,Y+9
+ 3782 17a2 9A85      		ldd r25,Y+10
+ 3783 17a4 FC01      		movw r30,r24
+ 3784 17a6 8081      		ld r24,Z
+ 3785 17a8 8D34      		cpi r24,lo8(77)
+ 3786 17aa 01F4      		brne .L119
+ 449:lp_solve_5.5/shared/mmio.c ****         types[0] = MM_MTX_STR;
+ 3787               		.loc 1 449 0
+ 3788 17ac 80E0      		ldi r24,lo8(.LC9)
+ 3789 17ae 90E0      		ldi r25,hi8(.LC9)
+ 3790 17b0 9A83      		std Y+2,r25
+ 3791 17b2 8983      		std Y+1,r24
+ 450:lp_solve_5.5/shared/mmio.c ****     else
+ 451:lp_solve_5.5/shared/mmio.c ****         return NULL;
+ 452:lp_solve_5.5/shared/mmio.c **** 
+ 453:lp_solve_5.5/shared/mmio.c ****     /* check for CRD or ARR matrix */
+ 454:lp_solve_5.5/shared/mmio.c ****     if (mm_is_sparse(matcode))
+ 3792               		.loc 1 454 0
+ 3793 17b4 8985      		ldd r24,Y+9
+ 3794 17b6 9A85      		ldd r25,Y+10
+ 3795 17b8 0196      		adiw r24,1
+ 3796 17ba FC01      		movw r30,r24
+ 3797 17bc 8081      		ld r24,Z
+ 3798 17be 8334      		cpi r24,lo8(67)
+ 3799 17c0 01F4      		brne .L122
+ 3800 17c2 00C0      		rjmp .L136
+ 3801               	.L119:
+ 451:lp_solve_5.5/shared/mmio.c **** 
+ 3802               		.loc 1 451 0
+ 3803 17c4 80E0      		ldi r24,0
+ 3804 17c6 90E0      		ldi r25,0
+ 3805 17c8 00C0      		rjmp .L135
+ 3806               	.L136:
+ 455:lp_solve_5.5/shared/mmio.c ****         types[1] = MM_SPARSE_STR;
+ 3807               		.loc 1 455 0
+ 3808 17ca 80E0      		ldi r24,lo8(.LC10)
+ 3809 17cc 90E0      		ldi r25,hi8(.LC10)
+ 3810 17ce 9C83      		std Y+4,r25
+ 3811 17d0 8B83      		std Y+3,r24
+ 3812 17d2 00C0      		rjmp .L123
+ 3813               	.L122:
+ 456:lp_solve_5.5/shared/mmio.c ****     else
+ 457:lp_solve_5.5/shared/mmio.c ****     if (mm_is_dense(matcode))
+ 3814               		.loc 1 457 0
+ 3815 17d4 8985      		ldd r24,Y+9
+ 3816 17d6 9A85      		ldd r25,Y+10
+ 3817 17d8 0196      		adiw r24,1
+ 3818 17da FC01      		movw r30,r24
+ 3819 17dc 8081      		ld r24,Z
+ 3820 17de 8134      		cpi r24,lo8(65)
+ 3821 17e0 01F4      		brne .L124
+ 458:lp_solve_5.5/shared/mmio.c ****         types[1] = MM_DENSE_STR;
+ 3822               		.loc 1 458 0
+ 3823 17e2 80E0      		ldi r24,lo8(.LC11)
+ 3824 17e4 90E0      		ldi r25,hi8(.LC11)
+ 3825 17e6 9C83      		std Y+4,r25
+ 3826 17e8 8B83      		std Y+3,r24
+ 3827 17ea 00C0      		rjmp .L123
+ 3828               	.L124:
+ 459:lp_solve_5.5/shared/mmio.c ****     else
+ 460:lp_solve_5.5/shared/mmio.c ****         return NULL;
+ 3829               		.loc 1 460 0
+ 3830 17ec 80E0      		ldi r24,0
+ 3831 17ee 90E0      		ldi r25,0
+ 3832 17f0 00C0      		rjmp .L135
+ 3833               	.L123:
+ 461:lp_solve_5.5/shared/mmio.c **** 
+ 462:lp_solve_5.5/shared/mmio.c ****     /* check for element data type */
+ 463:lp_solve_5.5/shared/mmio.c ****     if (mm_is_real(matcode))
+ 3834               		.loc 1 463 0
+ 3835 17f2 8985      		ldd r24,Y+9
+ 3836 17f4 9A85      		ldd r25,Y+10
+ 3837 17f6 0296      		adiw r24,2
+ 3838 17f8 FC01      		movw r30,r24
+ 3839 17fa 8081      		ld r24,Z
+ 3840 17fc 8235      		cpi r24,lo8(82)
+ 3841 17fe 01F4      		brne .L125
+ 464:lp_solve_5.5/shared/mmio.c ****         types[2] = MM_REAL_STR;
+ 3842               		.loc 1 464 0
+ 3843 1800 80E0      		ldi r24,lo8(.LC12)
+ 3844 1802 90E0      		ldi r25,hi8(.LC12)
+ 3845 1804 9E83      		std Y+6,r25
+ 3846 1806 8D83      		std Y+5,r24
+ 3847 1808 00C0      		rjmp .L126
+ 3848               	.L125:
+ 465:lp_solve_5.5/shared/mmio.c ****     else
+ 466:lp_solve_5.5/shared/mmio.c ****     if (mm_is_complex(matcode))
+ 3849               		.loc 1 466 0
+ 3850 180a 8985      		ldd r24,Y+9
+ 3851 180c 9A85      		ldd r25,Y+10
+ 3852 180e 0296      		adiw r24,2
+ 3853 1810 FC01      		movw r30,r24
+ 3854 1812 8081      		ld r24,Z
+ 3855 1814 8334      		cpi r24,lo8(67)
+ 3856 1816 01F4      		brne .L127
+ 467:lp_solve_5.5/shared/mmio.c ****         types[2] = MM_COMPLEX_STR;
+ 3857               		.loc 1 467 0
+ 3858 1818 80E0      		ldi r24,lo8(.LC13)
+ 3859 181a 90E0      		ldi r25,hi8(.LC13)
+ 3860 181c 9E83      		std Y+6,r25
+ 3861 181e 8D83      		std Y+5,r24
+ 3862 1820 00C0      		rjmp .L126
+ 3863               	.L127:
+ 468:lp_solve_5.5/shared/mmio.c ****     else
+ 469:lp_solve_5.5/shared/mmio.c ****     if (mm_is_pattern(matcode))
+ 3864               		.loc 1 469 0
+ 3865 1822 8985      		ldd r24,Y+9
+ 3866 1824 9A85      		ldd r25,Y+10
+ 3867 1826 0296      		adiw r24,2
+ 3868 1828 FC01      		movw r30,r24
+ 3869 182a 8081      		ld r24,Z
+ 3870 182c 8035      		cpi r24,lo8(80)
+ 3871 182e 01F4      		brne .L128
+ 470:lp_solve_5.5/shared/mmio.c ****         types[2] = MM_PATTERN_STR;
+ 3872               		.loc 1 470 0
+ 3873 1830 80E0      		ldi r24,lo8(.LC14)
+ 3874 1832 90E0      		ldi r25,hi8(.LC14)
+ 3875 1834 9E83      		std Y+6,r25
+ 3876 1836 8D83      		std Y+5,r24
+ 3877 1838 00C0      		rjmp .L126
+ 3878               	.L128:
+ 471:lp_solve_5.5/shared/mmio.c ****     else
+ 472:lp_solve_5.5/shared/mmio.c ****     if (mm_is_integer(matcode))
+ 3879               		.loc 1 472 0
+ 3880 183a 8985      		ldd r24,Y+9
+ 3881 183c 9A85      		ldd r25,Y+10
+ 3882 183e 0296      		adiw r24,2
+ 3883 1840 FC01      		movw r30,r24
+ 3884 1842 8081      		ld r24,Z
+ 3885 1844 8934      		cpi r24,lo8(73)
+ 3886 1846 01F4      		brne .L129
+ 473:lp_solve_5.5/shared/mmio.c ****         types[2] = MM_INT_STR;
+ 3887               		.loc 1 473 0
+ 3888 1848 80E0      		ldi r24,lo8(.LC15)
+ 3889 184a 90E0      		ldi r25,hi8(.LC15)
+ 3890 184c 9E83      		std Y+6,r25
+ 3891 184e 8D83      		std Y+5,r24
+ 3892 1850 00C0      		rjmp .L126
+ 3893               	.L129:
+ 474:lp_solve_5.5/shared/mmio.c ****     else
+ 475:lp_solve_5.5/shared/mmio.c ****         return NULL;
+ 3894               		.loc 1 475 0
+ 3895 1852 80E0      		ldi r24,0
+ 3896 1854 90E0      		ldi r25,0
+ 3897 1856 00C0      		rjmp .L135
+ 3898               	.L126:
+ 476:lp_solve_5.5/shared/mmio.c **** 
+ 477:lp_solve_5.5/shared/mmio.c **** 
+ 478:lp_solve_5.5/shared/mmio.c ****     /* check for symmetry type */
+ 479:lp_solve_5.5/shared/mmio.c ****     if (mm_is_general(matcode))
+ 3899               		.loc 1 479 0
+ 3900 1858 8985      		ldd r24,Y+9
+ 3901 185a 9A85      		ldd r25,Y+10
+ 3902 185c 0396      		adiw r24,3
+ 3903 185e FC01      		movw r30,r24
+ 3904 1860 8081      		ld r24,Z
+ 3905 1862 8734      		cpi r24,lo8(71)
+ 3906 1864 01F4      		brne .L130
+ 480:lp_solve_5.5/shared/mmio.c ****         types[3] = MM_GENERAL_STR;
+ 3907               		.loc 1 480 0
+ 3908 1866 80E0      		ldi r24,lo8(.LC16)
+ 3909 1868 90E0      		ldi r25,hi8(.LC16)
+ 3910 186a 9887      		std Y+8,r25
+ 3911 186c 8F83      		std Y+7,r24
+ 3912 186e 00C0      		rjmp .L131
+ 3913               	.L130:
+ 481:lp_solve_5.5/shared/mmio.c ****     else
+ 482:lp_solve_5.5/shared/mmio.c ****     if (mm_is_symmetric(matcode))
+ 3914               		.loc 1 482 0
+ 3915 1870 8985      		ldd r24,Y+9
+ 3916 1872 9A85      		ldd r25,Y+10
+ 3917 1874 0396      		adiw r24,3
+ 3918 1876 FC01      		movw r30,r24
+ 3919 1878 8081      		ld r24,Z
+ 3920 187a 8335      		cpi r24,lo8(83)
+ 3921 187c 01F4      		brne .L132
+ 483:lp_solve_5.5/shared/mmio.c ****         types[3] = MM_SYMM_STR;
+ 3922               		.loc 1 483 0
+ 3923 187e 80E0      		ldi r24,lo8(.LC17)
+ 3924 1880 90E0      		ldi r25,hi8(.LC17)
+ 3925 1882 9887      		std Y+8,r25
+ 3926 1884 8F83      		std Y+7,r24
+ 3927 1886 00C0      		rjmp .L131
+ 3928               	.L132:
+ 484:lp_solve_5.5/shared/mmio.c ****     else
+ 485:lp_solve_5.5/shared/mmio.c ****     if (mm_is_hermitian(matcode))
+ 3929               		.loc 1 485 0
+ 3930 1888 8985      		ldd r24,Y+9
+ 3931 188a 9A85      		ldd r25,Y+10
+ 3932 188c 0396      		adiw r24,3
+ 3933 188e FC01      		movw r30,r24
+ 3934 1890 8081      		ld r24,Z
+ 3935 1892 8834      		cpi r24,lo8(72)
+ 3936 1894 01F4      		brne .L133
+ 486:lp_solve_5.5/shared/mmio.c ****         types[3] = MM_HERM_STR;
+ 3937               		.loc 1 486 0
+ 3938 1896 80E0      		ldi r24,lo8(.LC18)
+ 3939 1898 90E0      		ldi r25,hi8(.LC18)
+ 3940 189a 9887      		std Y+8,r25
+ 3941 189c 8F83      		std Y+7,r24
+ 3942 189e 00C0      		rjmp .L131
+ 3943               	.L133:
+ 487:lp_solve_5.5/shared/mmio.c ****     else
+ 488:lp_solve_5.5/shared/mmio.c ****     if (mm_is_skew(matcode))
+ 3944               		.loc 1 488 0
+ 3945 18a0 8985      		ldd r24,Y+9
+ 3946 18a2 9A85      		ldd r25,Y+10
+ 3947 18a4 0396      		adiw r24,3
+ 3948 18a6 FC01      		movw r30,r24
+ 3949 18a8 8081      		ld r24,Z
+ 3950 18aa 8B34      		cpi r24,lo8(75)
+ 3951 18ac 01F4      		brne .L134
+ 489:lp_solve_5.5/shared/mmio.c ****         types[3] = MM_SKEW_STR;
+ 3952               		.loc 1 489 0
+ 3953 18ae 80E0      		ldi r24,lo8(.LC19)
+ 3954 18b0 90E0      		ldi r25,hi8(.LC19)
+ 3955 18b2 9887      		std Y+8,r25
+ 3956 18b4 8F83      		std Y+7,r24
+ 3957 18b6 00C0      		rjmp .L131
+ 3958               	.L134:
+ 490:lp_solve_5.5/shared/mmio.c ****     else
+ 491:lp_solve_5.5/shared/mmio.c ****         return NULL;
+ 3959               		.loc 1 491 0
+ 3960 18b8 80E0      		ldi r24,0
+ 3961 18ba 90E0      		ldi r25,0
+ 3962 18bc 00C0      		rjmp .L135
+ 3963               	.L131:
+ 492:lp_solve_5.5/shared/mmio.c **** 
+ 493:lp_solve_5.5/shared/mmio.c ****     sprintf(buffer,"%s %s %s %s", types[0], types[1], types[2], types[3]);
+ 3964               		.loc 1 493 0
+ 3965 18be 6F81      		ldd r22,Y+7
+ 3966 18c0 7885      		ldd r23,Y+8
+ 3967 18c2 4D81      		ldd r20,Y+5
+ 3968 18c4 5E81      		ldd r21,Y+6
+ 3969 18c6 2B81      		ldd r18,Y+3
+ 3970 18c8 3C81      		ldd r19,Y+4
+ 3971 18ca 8981      		ldd r24,Y+1
+ 3972 18cc 9A81      		ldd r25,Y+2
+ 3973 18ce E72F      		mov r30,r23
+ 3974 18d0 EF93      		push r30
+ 3975 18d2 6F93      		push r22
+ 3976 18d4 652F      		mov r22,r21
+ 3977 18d6 6F93      		push r22
+ 3978 18d8 4F93      		push r20
+ 3979 18da 432F      		mov r20,r19
+ 3980 18dc 4F93      		push r20
+ 3981 18de 2F93      		push r18
+ 3982 18e0 292F      		mov r18,r25
+ 3983 18e2 2F93      		push r18
+ 3984 18e4 8F93      		push r24
+ 3985 18e6 80E0      		ldi r24,lo8(.LC33)
+ 3986 18e8 90E0      		ldi r25,hi8(.LC33)
+ 3987 18ea 892F      		mov r24,r25
+ 3988 18ec 8F93      		push r24
+ 3989 18ee 80E0      		ldi r24,lo8(.LC33)
+ 3990 18f0 90E0      		ldi r25,hi8(.LC33)
+ 3991 18f2 8F93      		push r24
+ 3992 18f4 80E0      		ldi r24,lo8(buffer.2335)
+ 3993 18f6 90E0      		ldi r25,hi8(buffer.2335)
+ 3994 18f8 892F      		mov r24,r25
+ 3995 18fa 8F93      		push r24
+ 3996 18fc 80E0      		ldi r24,lo8(buffer.2335)
+ 3997 18fe 90E0      		ldi r25,hi8(buffer.2335)
+ 3998 1900 8F93      		push r24
+ 3999 1902 0E94 0000 		call sprintf
+ 4000 1906 8DB7      		in r24,__SP_L__
+ 4001 1908 9EB7      		in r25,__SP_H__
+ 4002 190a 0C96      		adiw r24,12
+ 4003 190c 0FB6      		in __tmp_reg__,__SREG__
+ 4004 190e F894      		cli
+ 4005 1910 DEBF      		out __SP_H__,r29
+ 4006 1912 0FBE      		out __SREG__,__tmp_reg__
+ 4007 1914 CDBF      		out __SP_L__,r28
+ 494:lp_solve_5.5/shared/mmio.c ****     return & buffer[0];
+ 4008               		.loc 1 494 0
+ 4009 1916 80E0      		ldi r24,lo8(buffer.2335)
+ 4010 1918 90E0      		ldi r25,hi8(buffer.2335)
+ 4011               	.L135:
+ 4012               	/* epilogue start */
+ 495:lp_solve_5.5/shared/mmio.c **** 
+ 496:lp_solve_5.5/shared/mmio.c **** }
+ 4013               		.loc 1 496 0 discriminator 1
+ 4014 191a 2A96      		adiw r28,10
+ 4015 191c 0FB6      		in __tmp_reg__,__SREG__
+ 4016 191e F894      		cli
+ 4017 1920 DEBF      		out __SP_H__,r29
+ 4018 1922 0FBE      		out __SREG__,__tmp_reg__
+ 4019 1924 CDBF      		out __SP_L__,r28
+ 4020 1926 DF91      		pop r29
+ 4021 1928 CF91      		pop r28
+ 4022 192a 0895      		ret
+ 4023               		.cfi_endproc
+ 4024               	.LFE17:
+ 4026               		.section	.bss.buffer.2335,"aw",@nobits
+ 4029               	buffer.2335:
+ 4030 0000 0000 0000 		.zero	1025
+ 4030      0000 0000 
+ 4030      0000 0000 
+ 4030      0000 0000 
+ 4030      0000 0000 
+ 4031               		.text
+ 4032               	.Letext0:
+ 4033               		.file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 4034               		.file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 4035               		.file 4 "lp_solve_5.5/shared/mmio.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 mmio.c
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:2      *ABS*:0000003e __SP_H__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:3      *ABS*:0000003d __SP_L__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:4      *ABS*:0000003f __SREG__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:29     .text:00000000 mm_read_unsymmetric_sparse
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:620    .text:0000038a mm_read_banner
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:3750   .text:00001788 mm_typecode_to_str
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:1319   .text:00000818 mm_read_mtx_crd_size
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:466    .text:000002e8 mm_is_valid
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:1218   .text:00000790 mm_write_mtx_crd_size
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:1596   .text:000009ee mm_read_mtx_array_size
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:1831   .text:00000b70 mm_write_mtx_array_size
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:1923   .text:00000be6 mm_read_mtx_crd_data
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:2337   .text:00000e82 mm_read_mtx_crd_entry
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:2574   .text:00000ff0 mm_read_mtx_crd
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:3058   .text:00001318 mm_write_banner
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:3175   .text:000013aa mm_write_mtx_crd
+C:\Users\GUILHE~1\AppData\Local\Temp\ccTvItS5.s:4029   .bss.buffer.2335:00000000 buffer.2335
+
+UNDEFINED SYMBOLS
+fopen
+printf
+__iob
+fwrite
+fprintf
+malloc
+fscanf
+fclose
+fgets
+sscanf
+tolower
+strncmp
+strcmp
+sprintf
+__do_copy_data
+__do_clear_bss

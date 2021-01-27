@@ -23,6 +23,15 @@
 #include "conf_sleepmgr.h"
 #include "board.h"
 #include "platform.h"
+<<<<<<< Updated upstream
+=======
+
+#include "sleep_mgr.h"
+#include "sleepmgr.h"
+#include "conf_sleepmgr.h"
+
+
+>>>>>>> Stashed changes
 #include "lldn.h"
 
 #if APP_COORDINATOR
@@ -159,8 +168,29 @@ static void appSendData(void)
 		if(config_request_frame.conf.tsDuration < node->ts_dir.tsDuration)
 			config_request_frame.conf.tsDuration = node->ts_dir.tsDuration;
 		
+<<<<<<< Updated upstream
 		nodes_info_arr[index_nodes_array].mac_addr = node->macAddr;
 		nodes_info_arr[index_nodes_array].req_timeslot_duration = node->ts_dir.tsDuration;
+=======
+		nodes_info_arr[i].req_timeslot_duration = node->ts_dir.tsDuration;
+		nodes_info_arr[i].mac_addr = node->macAddr;
+		nodes_info_arr[i].assigned_time_slot = (uint8_t)i;
+		
+		if(conf_req_list != NULL)
+		{
+			nodes_info_list_t *tmp = (nodes_info_list_t*)malloc(sizeof(nodes_info_list_t));
+			tmp->node = &nodes_info_arr[i];
+			tmp->next = conf_req_list;
+			conf_req_list = tmp;
+		}
+		else
+		{
+			conf_req_list = (nodes_info_list_t*)malloc(sizeof(nodes_info_list_t));
+			conf_req_list->node = &nodes_info_arr[i];
+			conf_req_list->next = NULL;
+		}
+		return;
+>>>>>>> Stashed changes
 	}
 
 	static bool appCommandInd(NWK_DataInd_t *ind)
@@ -310,6 +340,43 @@ static void appSendData(void)
 		appState = APP_STATE_SEND;	
 	}
 
+<<<<<<< Updated upstream
+=======
+	static void node_time_handler(void)
+	{
+		beacon_tmr = true;
+		tmr_read = macsc_read_count();
+		return;
+	}
+	
+	
+	static void disc_time_hndlr(void)
+	{
+		printf("\nDisc");
+		NWK_DataReq(&msgReqDiscResponse);
+		macsc_set_cmp1_int_cb(0);
+		
+	}
+	
+	static void config_time_hndlr(void)
+	{
+		if(ack_received)
+		{
+			NWK_DataReq(&msgReqConfigStatus);
+			ack_received = false;
+		}
+		macsc_set_cmp1_int_cb(0);
+		
+	}
+	
+		
+	static void online_time_hndlr(void)
+	{
+		printf("\ndata_msg");
+		NWK_DataReq(&msgReqData);
+		macsc_set_cmp1_int_cb(0);		
+	}
+>>>>>>> Stashed changes
 	
 	static bool appBeaconInd(NWK_DataInd_t *ind)
 	{
@@ -324,6 +391,16 @@ static void appSendData(void)
 			int msg_wait_time = rec_beacon->Flags.numBaseMgmtTimeslots * rec_beacon->TimeSlotSize* 2 - 250; // symbols 190 is a delay adjustment
 			macsc_set_cmp1_int_cb(send_message_timeHandler);
 			
+<<<<<<< Updated upstream
+=======
+			if(STATE == ONLINE_MODE)
+			{
+				msg_wait_time = (2*rec_beacon.Flags.numBaseMgmtTimeslots + assTimeSlot) * tTS;
+				printf("msg_wait %d", msg_wait_time);
+			}
+			else	
+				msg_wait_time = tTS * rec_beacon.Flags.numBaseMgmtTimeslots; 
+>>>>>>> Stashed changes
 			macsc_enable_cmp_int(MACSC_CC1);
 				  
 			macsc_use_cmp(MACSC_RELATIVE_CMP, msg_wait_time , MACSC_CC1);

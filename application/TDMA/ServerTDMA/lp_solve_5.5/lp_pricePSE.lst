@@ -1,0 +1,4282 @@
+   1               		.file	"lp_pricePSE.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  12               	applyPricer:
+  13               	.LFB7:
+  14               		.file 1 "lp_solve_5.5/lp_pricePSE.c"
+   1:lp_solve_5.5/lp_pricePSE.c **** 
+   2:lp_solve_5.5/lp_pricePSE.c **** #include <string.h>
+   3:lp_solve_5.5/lp_pricePSE.c **** #include "commonlib.h"
+   4:lp_solve_5.5/lp_pricePSE.c **** #include "lp_lib.h"
+   5:lp_solve_5.5/lp_pricePSE.c **** #include "lp_report.h"
+   6:lp_solve_5.5/lp_pricePSE.c **** #include "lp_pricePSE.h"
+   7:lp_solve_5.5/lp_pricePSE.c **** 
+   8:lp_solve_5.5/lp_pricePSE.c **** #ifdef FORTIFY
+   9:lp_solve_5.5/lp_pricePSE.c **** # include "lp_fortify.h"
+  10:lp_solve_5.5/lp_pricePSE.c **** #endif
+  11:lp_solve_5.5/lp_pricePSE.c **** 
+  12:lp_solve_5.5/lp_pricePSE.c **** 
+  13:lp_solve_5.5/lp_pricePSE.c **** /*
+  14:lp_solve_5.5/lp_pricePSE.c ****     Advanced simplex price scaling modules - w/interface for lp_solve v5.0+
+  15:lp_solve_5.5/lp_pricePSE.c ****    ----------------------------------------------------------------------------------
+  16:lp_solve_5.5/lp_pricePSE.c ****     Author:        Kjell Eikland
+  17:lp_solve_5.5/lp_pricePSE.c ****     Contact:       kjell.eikland@broadpark.no
+  18:lp_solve_5.5/lp_pricePSE.c ****     License terms: LGPL.
+  19:lp_solve_5.5/lp_pricePSE.c **** 
+  20:lp_solve_5.5/lp_pricePSE.c ****     Requires:      lp_lib.h
+  21:lp_solve_5.5/lp_pricePSE.c **** 
+  22:lp_solve_5.5/lp_pricePSE.c ****     Release notes:
+  23:lp_solve_5.5/lp_pricePSE.c ****     v1.0.0  1 September 2003    Implementation of DEVEX and STEEPEST EDGE
+  24:lp_solve_5.5/lp_pricePSE.c ****                                 routines for the primal and dual simplex.
+  25:lp_solve_5.5/lp_pricePSE.c ****     v1.0.1  1 January 2004      Made initial value of weight of ingoing
+  26:lp_solve_5.5/lp_pricePSE.c ****                                 variable for the standard mode of DEVEX
+  27:lp_solve_5.5/lp_pricePSE.c ****                                 consistent with the initialization at restart;
+  28:lp_solve_5.5/lp_pricePSE.c ****                                 original version could at worst contribute
+  29:lp_solve_5.5/lp_pricePSE.c ****                                 to cycling.
+  30:lp_solve_5.5/lp_pricePSE.c ****     v1.0.2  23 March 2004       Added floors to Steepest Edge updates and
+  31:lp_solve_5.5/lp_pricePSE.c ****                                 moved tests for tiny update higher. Previous
+  32:lp_solve_5.5/lp_pricePSE.c ****                                 logic can be simulated by disabling the compiler
+  33:lp_solve_5.5/lp_pricePSE.c ****                                 define ApplySteepestEdgeMinimum.
+  34:lp_solve_5.5/lp_pricePSE.c ****     v1.1.0  1 July 2004         Renamed from lp_pricerPSE to lp_pricePSE in
+  35:lp_solve_5.5/lp_pricePSE.c ****                                 conjuction with the creation of a separate
+  36:lp_solve_5.5/lp_pricePSE.c ****                                 price library.
+  37:lp_solve_5.5/lp_pricePSE.c ****     v1.2.0  1 March 2005        Changed memory allocation routines to use
+  38:lp_solve_5.5/lp_pricePSE.c ****                                 standard lp_solve functions, improve error handling
+  39:lp_solve_5.5/lp_pricePSE.c ****                                 and return boolean status values.
+  40:lp_solve_5.5/lp_pricePSE.c **** 
+  41:lp_solve_5.5/lp_pricePSE.c ****    ----------------------------------------------------------------------------------
+  42:lp_solve_5.5/lp_pricePSE.c **** */
+  43:lp_solve_5.5/lp_pricePSE.c **** 
+  44:lp_solve_5.5/lp_pricePSE.c **** INLINE MYBOOL applyPricer(lprec *lp)
+  45:lp_solve_5.5/lp_pricePSE.c **** {
+  15               		.loc 1 45 0
+  16               		.cfi_startproc
+  17 0000 CF93      		push r28
+  18               	.LCFI0:
+  19               		.cfi_def_cfa_offset 3
+  20               		.cfi_offset 28, -2
+  21 0002 DF93      		push r29
+  22               	.LCFI1:
+  23               		.cfi_def_cfa_offset 4
+  24               		.cfi_offset 29, -3
+  25 0004 00D0      		rcall .
+  26 0006 00D0      		rcall .
+  27               	.LCFI2:
+  28               		.cfi_def_cfa_offset 8
+  29 0008 CDB7      		in r28,__SP_L__
+  30 000a DEB7      		in r29,__SP_H__
+  31               	.LCFI3:
+  32               		.cfi_def_cfa_register 28
+  33               	/* prologue: function */
+  34               	/* frame size = 4 */
+  35               	/* stack size = 6 */
+  36               	.L__stack_usage = 6
+  37 000c 9C83      		std Y+4,r25
+  38 000e 8B83      		std Y+3,r24
+  46:lp_solve_5.5/lp_pricePSE.c ****   int rule = get_piv_rule(lp);
+  39               		.loc 1 46 0
+  40 0010 8B81      		ldd r24,Y+3
+  41 0012 9C81      		ldd r25,Y+4
+  42 0014 0E94 0000 		call get_piv_rule
+  43 0018 9A83      		std Y+2,r25
+  44 001a 8983      		std Y+1,r24
+  47:lp_solve_5.5/lp_pricePSE.c ****   return( (MYBOOL) ((rule == PRICER_DEVEX) || (rule == PRICER_STEEPESTEDGE)) );
+  45               		.loc 1 47 0
+  46 001c 8981      		ldd r24,Y+1
+  47 001e 9A81      		ldd r25,Y+2
+  48 0020 0297      		sbiw r24,2
+  49 0022 01F0      		breq .L2
+  50               		.loc 1 47 0 is_stmt 0 discriminator 2
+  51 0024 8981      		ldd r24,Y+1
+  52 0026 9A81      		ldd r25,Y+2
+  53 0028 0397      		sbiw r24,3
+  54 002a 01F4      		brne .L3
+  55               	.L2:
+  56               		.loc 1 47 0 discriminator 3
+  57 002c 81E0      		ldi r24,lo8(1)
+  58 002e 90E0      		ldi r25,0
+  59 0030 00C0      		rjmp .L4
+  60               	.L3:
+  61               		.loc 1 47 0 discriminator 4
+  62 0032 80E0      		ldi r24,0
+  63 0034 90E0      		ldi r25,0
+  64               	.L4:
+  65               	/* epilogue start */
+  48:lp_solve_5.5/lp_pricePSE.c **** }
+  66               		.loc 1 48 0 is_stmt 1 discriminator 6
+  67 0036 0F90      		pop __tmp_reg__
+  68 0038 0F90      		pop __tmp_reg__
+  69 003a 0F90      		pop __tmp_reg__
+  70 003c 0F90      		pop __tmp_reg__
+  71 003e DF91      		pop r29
+  72 0040 CF91      		pop r28
+  73 0042 0895      		ret
+  74               		.cfi_endproc
+  75               	.LFE7:
+  77               	.global	__floatunsisf
+  78               	.global	simplexPricer
+  80               	simplexPricer:
+  81               	.LFB8:
+  49:lp_solve_5.5/lp_pricePSE.c **** 
+  50:lp_solve_5.5/lp_pricePSE.c **** 
+  51:lp_solve_5.5/lp_pricePSE.c **** STATIC void simplexPricer(lprec *lp, MYBOOL isdual)
+  52:lp_solve_5.5/lp_pricePSE.c **** {
+  82               		.loc 1 52 0
+  83               		.cfi_startproc
+  84 0044 0F93      		push r16
+  85               	.LCFI4:
+  86               		.cfi_def_cfa_offset 3
+  87               		.cfi_offset 16, -2
+  88 0046 1F93      		push r17
+  89               	.LCFI5:
+  90               		.cfi_def_cfa_offset 4
+  91               		.cfi_offset 17, -3
+  92 0048 CF93      		push r28
+  93               	.LCFI6:
+  94               		.cfi_def_cfa_offset 5
+  95               		.cfi_offset 28, -4
+  96 004a DF93      		push r29
+  97               	.LCFI7:
+  98               		.cfi_def_cfa_offset 6
+  99               		.cfi_offset 29, -5
+ 100 004c 00D0      		rcall .
+ 101 004e 1F92      		push __zero_reg__
+ 102               	.LCFI8:
+ 103               		.cfi_def_cfa_offset 9
+ 104 0050 CDB7      		in r28,__SP_L__
+ 105 0052 DEB7      		in r29,__SP_H__
+ 106               	.LCFI9:
+ 107               		.cfi_def_cfa_register 28
+ 108               	/* prologue: function */
+ 109               	/* frame size = 3 */
+ 110               	/* stack size = 7 */
+ 111               	.L__stack_usage = 7
+ 112 0054 9A83      		std Y+2,r25
+ 113 0056 8983      		std Y+1,r24
+ 114 0058 6B83      		std Y+3,r22
+  53:lp_solve_5.5/lp_pricePSE.c ****   if(lp->edgeVector != NULL)
+ 115               		.loc 1 53 0
+ 116 005a 8981      		ldd r24,Y+1
+ 117 005c 9A81      		ldd r25,Y+2
+ 118 005e 885E      		subi r24,-24
+ 119 0060 9D4F      		sbci r25,-3
+ 120 0062 FC01      		movw r30,r24
+ 121 0064 8081      		ld r24,Z
+ 122 0066 9181      		ldd r25,Z+1
+ 123 0068 892B      		or r24,r25
+ 124 006a 01F0      		breq .L8
+  54:lp_solve_5.5/lp_pricePSE.c ****     lp->edgeVector[0] = (REAL) isdual;
+ 125               		.loc 1 54 0
+ 126 006c 8981      		ldd r24,Y+1
+ 127 006e 9A81      		ldd r25,Y+2
+ 128 0070 885E      		subi r24,-24
+ 129 0072 9D4F      		sbci r25,-3
+ 130 0074 FC01      		movw r30,r24
+ 131 0076 0081      		ld r16,Z
+ 132 0078 1181      		ldd r17,Z+1
+ 133 007a 8B81      		ldd r24,Y+3
+ 134 007c 882F      		mov r24,r24
+ 135 007e 90E0      		ldi r25,0
+ 136 0080 A0E0      		ldi r26,0
+ 137 0082 B0E0      		ldi r27,0
+ 138 0084 BC01      		movw r22,r24
+ 139 0086 CD01      		movw r24,r26
+ 140 0088 0E94 0000 		call __floatunsisf
+ 141 008c DC01      		movw r26,r24
+ 142 008e CB01      		movw r24,r22
+ 143 0090 F801      		movw r30,r16
+ 144 0092 8083      		st Z,r24
+ 145 0094 9183      		std Z+1,r25
+ 146 0096 A283      		std Z+2,r26
+ 147 0098 B383      		std Z+3,r27
+ 148               	.L8:
+  55:lp_solve_5.5/lp_pricePSE.c **** }
+ 149               		.loc 1 55 0
+ 150 009a 0000      		nop
+ 151               	/* epilogue start */
+ 152 009c 0F90      		pop __tmp_reg__
+ 153 009e 0F90      		pop __tmp_reg__
+ 154 00a0 0F90      		pop __tmp_reg__
+ 155 00a2 DF91      		pop r29
+ 156 00a4 CF91      		pop r28
+ 157 00a6 1F91      		pop r17
+ 158 00a8 0F91      		pop r16
+ 159 00aa 0895      		ret
+ 160               		.cfi_endproc
+ 161               	.LFE8:
+ 163               	.global	freePricer
+ 165               	freePricer:
+ 166               	.LFB9:
+  56:lp_solve_5.5/lp_pricePSE.c **** 
+  57:lp_solve_5.5/lp_pricePSE.c **** 
+  58:lp_solve_5.5/lp_pricePSE.c **** STATIC void freePricer(lprec *lp)
+  59:lp_solve_5.5/lp_pricePSE.c **** {
+ 167               		.loc 1 59 0
+ 168               		.cfi_startproc
+ 169 00ac CF93      		push r28
+ 170               	.LCFI10:
+ 171               		.cfi_def_cfa_offset 3
+ 172               		.cfi_offset 28, -2
+ 173 00ae DF93      		push r29
+ 174               	.LCFI11:
+ 175               		.cfi_def_cfa_offset 4
+ 176               		.cfi_offset 29, -3
+ 177 00b0 00D0      		rcall .
+ 178               	.LCFI12:
+ 179               		.cfi_def_cfa_offset 6
+ 180 00b2 CDB7      		in r28,__SP_L__
+ 181 00b4 DEB7      		in r29,__SP_H__
+ 182               	.LCFI13:
+ 183               		.cfi_def_cfa_register 28
+ 184               	/* prologue: function */
+ 185               	/* frame size = 2 */
+ 186               	/* stack size = 4 */
+ 187               	.L__stack_usage = 4
+ 188 00b6 9A83      		std Y+2,r25
+ 189 00b8 8983      		std Y+1,r24
+  60:lp_solve_5.5/lp_pricePSE.c ****   FREE(lp->edgeVector);
+ 190               		.loc 1 60 0
+ 191 00ba 8981      		ldd r24,Y+1
+ 192 00bc 9A81      		ldd r25,Y+2
+ 193 00be 885E      		subi r24,-24
+ 194 00c0 9D4F      		sbci r25,-3
+ 195 00c2 FC01      		movw r30,r24
+ 196 00c4 8081      		ld r24,Z
+ 197 00c6 9181      		ldd r25,Z+1
+ 198 00c8 892B      		or r24,r25
+ 199 00ca 01F0      		breq .L11
+ 200               		.loc 1 60 0 is_stmt 0 discriminator 1
+ 201 00cc 8981      		ldd r24,Y+1
+ 202 00ce 9A81      		ldd r25,Y+2
+ 203 00d0 885E      		subi r24,-24
+ 204 00d2 9D4F      		sbci r25,-3
+ 205 00d4 FC01      		movw r30,r24
+ 206 00d6 8081      		ld r24,Z
+ 207 00d8 9181      		ldd r25,Z+1
+ 208 00da 0E94 0000 		call free
+ 209 00de 8981      		ldd r24,Y+1
+ 210 00e0 9A81      		ldd r25,Y+2
+ 211 00e2 885E      		subi r24,-24
+ 212 00e4 9D4F      		sbci r25,-3
+ 213 00e6 FC01      		movw r30,r24
+ 214 00e8 1182      		std Z+1,__zero_reg__
+ 215 00ea 1082      		st Z,__zero_reg__
+ 216               	.L11:
+  61:lp_solve_5.5/lp_pricePSE.c **** }
+ 217               		.loc 1 61 0 is_stmt 1
+ 218 00ec 0000      		nop
+ 219               	/* epilogue start */
+ 220 00ee 0F90      		pop __tmp_reg__
+ 221 00f0 0F90      		pop __tmp_reg__
+ 222 00f2 DF91      		pop r29
+ 223 00f4 CF91      		pop r28
+ 224 00f6 0895      		ret
+ 225               		.cfi_endproc
+ 226               	.LFE9:
+ 228               	.global	resizePricer
+ 230               	resizePricer:
+ 231               	.LFB10:
+  62:lp_solve_5.5/lp_pricePSE.c **** 
+  63:lp_solve_5.5/lp_pricePSE.c **** 
+  64:lp_solve_5.5/lp_pricePSE.c **** STATIC MYBOOL resizePricer(lprec *lp)
+  65:lp_solve_5.5/lp_pricePSE.c **** {
+ 232               		.loc 1 65 0
+ 233               		.cfi_startproc
+ 234 00f8 CF93      		push r28
+ 235               	.LCFI14:
+ 236               		.cfi_def_cfa_offset 3
+ 237               		.cfi_offset 28, -2
+ 238 00fa DF93      		push r29
+ 239               	.LCFI15:
+ 240               		.cfi_def_cfa_offset 4
+ 241               		.cfi_offset 29, -3
+ 242 00fc 00D0      		rcall .
+ 243               	.LCFI16:
+ 244               		.cfi_def_cfa_offset 6
+ 245 00fe CDB7      		in r28,__SP_L__
+ 246 0100 DEB7      		in r29,__SP_H__
+ 247               	.LCFI17:
+ 248               		.cfi_def_cfa_register 28
+ 249               	/* prologue: function */
+ 250               	/* frame size = 2 */
+ 251               	/* stack size = 4 */
+ 252               	.L__stack_usage = 4
+ 253 0102 9A83      		std Y+2,r25
+ 254 0104 8983      		std Y+1,r24
+  66:lp_solve_5.5/lp_pricePSE.c ****   if(!applyPricer(lp))
+ 255               		.loc 1 66 0
+ 256 0106 8981      		ldd r24,Y+1
+ 257 0108 9A81      		ldd r25,Y+2
+ 258 010a 0E94 0000 		call applyPricer
+ 259 010e 8823      		tst r24
+ 260 0110 01F4      		brne .L13
+  67:lp_solve_5.5/lp_pricePSE.c ****     return( TRUE );
+ 261               		.loc 1 67 0
+ 262 0112 81E0      		ldi r24,lo8(1)
+ 263 0114 00C0      		rjmp .L14
+ 264               	.L13:
+  68:lp_solve_5.5/lp_pricePSE.c **** 
+  69:lp_solve_5.5/lp_pricePSE.c ****   /* Reallocate vector for new size */
+  70:lp_solve_5.5/lp_pricePSE.c ****   if(!allocREAL(lp, &(lp->edgeVector), lp->sum_alloc+1, AUTOMATIC))
+ 265               		.loc 1 70 0
+ 266 0116 8981      		ldd r24,Y+1
+ 267 0118 9A81      		ldd r25,Y+2
+ 268 011a 8C50      		subi r24,12
+ 269 011c 9E4F      		sbci r25,-2
+ 270 011e FC01      		movw r30,r24
+ 271 0120 8081      		ld r24,Z
+ 272 0122 9181      		ldd r25,Z+1
+ 273 0124 AC01      		movw r20,r24
+ 274 0126 4F5F      		subi r20,-1
+ 275 0128 5F4F      		sbci r21,-1
+ 276 012a 8981      		ldd r24,Y+1
+ 277 012c 9A81      		ldd r25,Y+2
+ 278 012e BC01      		movw r22,r24
+ 279 0130 685E      		subi r22,-24
+ 280 0132 7D4F      		sbci r23,-3
+ 281 0134 8981      		ldd r24,Y+1
+ 282 0136 9A81      		ldd r25,Y+2
+ 283 0138 22E0      		ldi r18,lo8(2)
+ 284 013a 0E94 0000 		call allocREAL
+ 285 013e 8823      		tst r24
+ 286 0140 01F4      		brne .L15
+  71:lp_solve_5.5/lp_pricePSE.c ****     return( FALSE );
+ 287               		.loc 1 71 0
+ 288 0142 80E0      		ldi r24,0
+ 289 0144 00C0      		rjmp .L14
+ 290               	.L15:
+  72:lp_solve_5.5/lp_pricePSE.c **** 
+  73:lp_solve_5.5/lp_pricePSE.c ****   /* Signal that we have not yet initialized the price vector */
+  74:lp_solve_5.5/lp_pricePSE.c ****   MEMCLEAR(lp->edgeVector, lp->sum_alloc+1);
+ 291               		.loc 1 74 0
+ 292 0146 8981      		ldd r24,Y+1
+ 293 0148 9A81      		ldd r25,Y+2
+ 294 014a 8C50      		subi r24,12
+ 295 014c 9E4F      		sbci r25,-2
+ 296 014e FC01      		movw r30,r24
+ 297 0150 8081      		ld r24,Z
+ 298 0152 9181      		ldd r25,Z+1
+ 299 0154 0196      		adiw r24,1
+ 300 0156 9C01      		movw r18,r24
+ 301 0158 220F      		lsl r18
+ 302 015a 331F      		rol r19
+ 303 015c 220F      		lsl r18
+ 304 015e 331F      		rol r19
+ 305 0160 8981      		ldd r24,Y+1
+ 306 0162 9A81      		ldd r25,Y+2
+ 307 0164 885E      		subi r24,-24
+ 308 0166 9D4F      		sbci r25,-3
+ 309 0168 FC01      		movw r30,r24
+ 310 016a 8081      		ld r24,Z
+ 311 016c 9181      		ldd r25,Z+1
+ 312 016e A901      		movw r20,r18
+ 313 0170 60E0      		ldi r22,0
+ 314 0172 70E0      		ldi r23,0
+ 315 0174 0E94 0000 		call memset
+  75:lp_solve_5.5/lp_pricePSE.c ****   lp->edgeVector[0] = -1;
+ 316               		.loc 1 75 0
+ 317 0178 8981      		ldd r24,Y+1
+ 318 017a 9A81      		ldd r25,Y+2
+ 319 017c 885E      		subi r24,-24
+ 320 017e 9D4F      		sbci r25,-3
+ 321 0180 FC01      		movw r30,r24
+ 322 0182 2081      		ld r18,Z
+ 323 0184 3181      		ldd r19,Z+1
+ 324 0186 80E0      		ldi r24,0
+ 325 0188 90E0      		ldi r25,0
+ 326 018a A0E8      		ldi r26,lo8(-128)
+ 327 018c BFEB      		ldi r27,lo8(-65)
+ 328 018e F901      		movw r30,r18
+ 329 0190 8083      		st Z,r24
+ 330 0192 9183      		std Z+1,r25
+ 331 0194 A283      		std Z+2,r26
+ 332 0196 B383      		std Z+3,r27
+  76:lp_solve_5.5/lp_pricePSE.c ****   return( TRUE );
+ 333               		.loc 1 76 0
+ 334 0198 81E0      		ldi r24,lo8(1)
+ 335               	.L14:
+ 336               	/* epilogue start */
+  77:lp_solve_5.5/lp_pricePSE.c **** }
+ 337               		.loc 1 77 0
+ 338 019a 0F90      		pop __tmp_reg__
+ 339 019c 0F90      		pop __tmp_reg__
+ 340 019e DF91      		pop r29
+ 341 01a0 CF91      		pop r28
+ 342 01a2 0895      		ret
+ 343               		.cfi_endproc
+ 344               	.LFE10:
+ 346               	.global	initPricer
+ 348               	initPricer:
+ 349               	.LFB11:
+  78:lp_solve_5.5/lp_pricePSE.c **** 
+  79:lp_solve_5.5/lp_pricePSE.c **** 
+  80:lp_solve_5.5/lp_pricePSE.c **** STATIC MYBOOL initPricer(lprec *lp)
+  81:lp_solve_5.5/lp_pricePSE.c **** {
+ 350               		.loc 1 81 0
+ 351               		.cfi_startproc
+ 352 01a4 CF93      		push r28
+ 353               	.LCFI18:
+ 354               		.cfi_def_cfa_offset 3
+ 355               		.cfi_offset 28, -2
+ 356 01a6 DF93      		push r29
+ 357               	.LCFI19:
+ 358               		.cfi_def_cfa_offset 4
+ 359               		.cfi_offset 29, -3
+ 360 01a8 00D0      		rcall .
+ 361               	.LCFI20:
+ 362               		.cfi_def_cfa_offset 6
+ 363 01aa CDB7      		in r28,__SP_L__
+ 364 01ac DEB7      		in r29,__SP_H__
+ 365               	.LCFI21:
+ 366               		.cfi_def_cfa_register 28
+ 367               	/* prologue: function */
+ 368               	/* frame size = 2 */
+ 369               	/* stack size = 4 */
+ 370               	.L__stack_usage = 4
+ 371 01ae 9A83      		std Y+2,r25
+ 372 01b0 8983      		std Y+1,r24
+  82:lp_solve_5.5/lp_pricePSE.c ****   if(!applyPricer(lp))
+ 373               		.loc 1 82 0
+ 374 01b2 8981      		ldd r24,Y+1
+ 375 01b4 9A81      		ldd r25,Y+2
+ 376 01b6 0E94 0000 		call applyPricer
+ 377 01ba 8823      		tst r24
+ 378 01bc 01F4      		brne .L17
+  83:lp_solve_5.5/lp_pricePSE.c ****     return( FALSE );
+ 379               		.loc 1 83 0
+ 380 01be 80E0      		ldi r24,0
+ 381 01c0 00C0      		rjmp .L18
+ 382               	.L17:
+  84:lp_solve_5.5/lp_pricePSE.c **** 
+  85:lp_solve_5.5/lp_pricePSE.c ****   /* Free any pre-existing pricer */
+  86:lp_solve_5.5/lp_pricePSE.c ****   freePricer(lp);
+ 383               		.loc 1 86 0
+ 384 01c2 8981      		ldd r24,Y+1
+ 385 01c4 9A81      		ldd r25,Y+2
+ 386 01c6 0E94 0000 		call freePricer
+  87:lp_solve_5.5/lp_pricePSE.c **** 
+  88:lp_solve_5.5/lp_pricePSE.c ****   /* Allocate vector to fit current problem size */
+  89:lp_solve_5.5/lp_pricePSE.c ****   return( resizePricer(lp) );
+ 387               		.loc 1 89 0
+ 388 01ca 8981      		ldd r24,Y+1
+ 389 01cc 9A81      		ldd r25,Y+2
+ 390 01ce 0E94 0000 		call resizePricer
+ 391               	.L18:
+ 392               	/* epilogue start */
+  90:lp_solve_5.5/lp_pricePSE.c **** }
+ 393               		.loc 1 90 0
+ 394 01d2 0F90      		pop __tmp_reg__
+ 395 01d4 0F90      		pop __tmp_reg__
+ 396 01d6 DF91      		pop r29
+ 397 01d8 CF91      		pop r28
+ 398 01da 0895      		ret
+ 399               		.cfi_endproc
+ 400               	.LFE11:
+ 402               	.global	__ltsf2
+ 403               	.global	__floatsisf
+ 404               	.global	__nesf2
+ 405               	.global	__eqsf2
+ 406               		.section	.rodata
+ 407               	.LC0:
+ 408 0000 6765 7450 		.string	"getPricer: Detected a zero-valued price at index %d\n"
+ 408      7269 6365 
+ 408      723A 2044 
+ 408      6574 6563 
+ 408      7465 6420 
+ 409               		.text
+ 410               	.global	getPricer
+ 412               	getPricer:
+ 413               	.LFB12:
+  91:lp_solve_5.5/lp_pricePSE.c **** 
+  92:lp_solve_5.5/lp_pricePSE.c **** 
+  93:lp_solve_5.5/lp_pricePSE.c **** STATIC REAL getPricer(lprec *lp, int item, MYBOOL isdual)
+  94:lp_solve_5.5/lp_pricePSE.c **** {
+ 414               		.loc 1 94 0
+ 415               		.cfi_startproc
+ 416 01dc CF93      		push r28
+ 417               	.LCFI22:
+ 418               		.cfi_def_cfa_offset 3
+ 419               		.cfi_offset 28, -2
+ 420 01de DF93      		push r29
+ 421               	.LCFI23:
+ 422               		.cfi_def_cfa_offset 4
+ 423               		.cfi_offset 29, -3
+ 424 01e0 CDB7      		in r28,__SP_L__
+ 425 01e2 DEB7      		in r29,__SP_H__
+ 426               	.LCFI24:
+ 427               		.cfi_def_cfa_register 28
+ 428 01e4 2997      		sbiw r28,9
+ 429               	.LCFI25:
+ 430               		.cfi_def_cfa_offset 13
+ 431 01e6 0FB6      		in __tmp_reg__,__SREG__
+ 432 01e8 F894      		cli
+ 433 01ea DEBF      		out __SP_H__,r29
+ 434 01ec 0FBE      		out __SREG__,__tmp_reg__
+ 435 01ee CDBF      		out __SP_L__,r28
+ 436               	/* prologue: function */
+ 437               	/* frame size = 9 */
+ 438               	/* stack size = 11 */
+ 439               	.L__stack_usage = 11
+ 440 01f0 9E83      		std Y+6,r25
+ 441 01f2 8D83      		std Y+5,r24
+ 442 01f4 7887      		std Y+8,r23
+ 443 01f6 6F83      		std Y+7,r22
+ 444 01f8 4987      		std Y+9,r20
+  95:lp_solve_5.5/lp_pricePSE.c ****   REAL value = 1.0;
+ 445               		.loc 1 95 0
+ 446 01fa 80E0      		ldi r24,0
+ 447 01fc 90E0      		ldi r25,0
+ 448 01fe A0E8      		ldi r26,lo8(-128)
+ 449 0200 BFE3      		ldi r27,lo8(63)
+ 450 0202 8983      		std Y+1,r24
+ 451 0204 9A83      		std Y+2,r25
+ 452 0206 AB83      		std Y+3,r26
+ 453 0208 BC83      		std Y+4,r27
+  96:lp_solve_5.5/lp_pricePSE.c **** 
+  97:lp_solve_5.5/lp_pricePSE.c ****   if(!applyPricer(lp))
+ 454               		.loc 1 97 0
+ 455 020a 8D81      		ldd r24,Y+5
+ 456 020c 9E81      		ldd r25,Y+6
+ 457 020e 0E94 0000 		call applyPricer
+ 458 0212 8823      		tst r24
+ 459 0214 01F4      		brne .L20
+  98:lp_solve_5.5/lp_pricePSE.c ****     return( value );
+ 460               		.loc 1 98 0
+ 461 0216 8981      		ldd r24,Y+1
+ 462 0218 9A81      		ldd r25,Y+2
+ 463 021a AB81      		ldd r26,Y+3
+ 464 021c BC81      		ldd r27,Y+4
+ 465 021e 00C0      		rjmp .L21
+ 466               	.L20:
+  99:lp_solve_5.5/lp_pricePSE.c **** 
+ 100:lp_solve_5.5/lp_pricePSE.c ****   value = *lp->edgeVector;
+ 467               		.loc 1 100 0
+ 468 0220 8D81      		ldd r24,Y+5
+ 469 0222 9E81      		ldd r25,Y+6
+ 470 0224 885E      		subi r24,-24
+ 471 0226 9D4F      		sbci r25,-3
+ 472 0228 FC01      		movw r30,r24
+ 473 022a 8081      		ld r24,Z
+ 474 022c 9181      		ldd r25,Z+1
+ 475 022e FC01      		movw r30,r24
+ 476 0230 8081      		ld r24,Z
+ 477 0232 9181      		ldd r25,Z+1
+ 478 0234 A281      		ldd r26,Z+2
+ 479 0236 B381      		ldd r27,Z+3
+ 480 0238 8983      		std Y+1,r24
+ 481 023a 9A83      		std Y+2,r25
+ 482 023c AB83      		std Y+3,r26
+ 483 023e BC83      		std Y+4,r27
+ 101:lp_solve_5.5/lp_pricePSE.c **** 
+ 102:lp_solve_5.5/lp_pricePSE.c ****   /* Make sure we have a price vector to use */
+ 103:lp_solve_5.5/lp_pricePSE.c ****   if(value < 0) {
+ 484               		.loc 1 103 0
+ 485 0240 20E0      		ldi r18,0
+ 486 0242 30E0      		ldi r19,0
+ 487 0244 A901      		movw r20,r18
+ 488 0246 6981      		ldd r22,Y+1
+ 489 0248 7A81      		ldd r23,Y+2
+ 490 024a 8B81      		ldd r24,Y+3
+ 491 024c 9C81      		ldd r25,Y+4
+ 492 024e 0E94 0000 		call __ltsf2
+ 493 0252 8823      		tst r24
+ 494 0254 04F4      		brge .L32
+ 104:lp_solve_5.5/lp_pricePSE.c **** #ifdef Paranoia
+ 105:lp_solve_5.5/lp_pricePSE.c ****     report(lp, SEVERE, "getPricer: Called without having being initialized!\n");
+ 106:lp_solve_5.5/lp_pricePSE.c **** #endif
+ 107:lp_solve_5.5/lp_pricePSE.c ****     return( 1.0 );
+ 495               		.loc 1 107 0
+ 496 0256 80E0      		ldi r24,0
+ 497 0258 90E0      		ldi r25,0
+ 498 025a A0E8      		ldi r26,lo8(-128)
+ 499 025c BFE3      		ldi r27,lo8(63)
+ 500 025e 00C0      		rjmp .L21
+ 501               	.L32:
+ 108:lp_solve_5.5/lp_pricePSE.c ****   }
+ 109:lp_solve_5.5/lp_pricePSE.c ****   /* We may be calling the primal from the dual (and vice-versa) for validation
+ 110:lp_solve_5.5/lp_pricePSE.c ****      of feasibility; ignore calling origin and simply return 1 */
+ 111:lp_solve_5.5/lp_pricePSE.c ****   else if(isdual != value) {
+ 502               		.loc 1 111 0
+ 503 0260 8985      		ldd r24,Y+9
+ 504 0262 882F      		mov r24,r24
+ 505 0264 90E0      		ldi r25,0
+ 506 0266 092E      		mov __tmp_reg__,r25
+ 507 0268 000C      		lsl r0
+ 508 026a AA0B      		sbc r26,r26
+ 509 026c BB0B      		sbc r27,r27
+ 510 026e BC01      		movw r22,r24
+ 511 0270 CD01      		movw r24,r26
+ 512 0272 0E94 0000 		call __floatsisf
+ 513 0276 DC01      		movw r26,r24
+ 514 0278 CB01      		movw r24,r22
+ 515 027a 2981      		ldd r18,Y+1
+ 516 027c 3A81      		ldd r19,Y+2
+ 517 027e 4B81      		ldd r20,Y+3
+ 518 0280 5C81      		ldd r21,Y+4
+ 519 0282 BC01      		movw r22,r24
+ 520 0284 CD01      		movw r24,r26
+ 521 0286 0E94 0000 		call __nesf2
+ 522 028a 8823      		tst r24
+ 523 028c 01F0      		breq .L33
+ 112:lp_solve_5.5/lp_pricePSE.c ****     return( 1.0 );
+ 524               		.loc 1 112 0
+ 525 028e 80E0      		ldi r24,0
+ 526 0290 90E0      		ldi r25,0
+ 527 0292 A0E8      		ldi r26,lo8(-128)
+ 528 0294 BFE3      		ldi r27,lo8(63)
+ 529 0296 00C0      		rjmp .L21
+ 530               	.L33:
+ 113:lp_solve_5.5/lp_pricePSE.c ****   }
+ 114:lp_solve_5.5/lp_pricePSE.c ****   /* Do the normal norm retrieval */
+ 115:lp_solve_5.5/lp_pricePSE.c ****   else {
+ 116:lp_solve_5.5/lp_pricePSE.c **** 
+ 117:lp_solve_5.5/lp_pricePSE.c ****     if(isdual)
+ 531               		.loc 1 117 0
+ 532 0298 8985      		ldd r24,Y+9
+ 533 029a 8823      		tst r24
+ 534 029c 01F0      		breq .L26
+ 118:lp_solve_5.5/lp_pricePSE.c ****       item = lp->var_basic[item];
+ 535               		.loc 1 118 0
+ 536 029e 8D81      		ldd r24,Y+5
+ 537 02a0 9E81      		ldd r25,Y+6
+ 538 02a2 8453      		subi r24,52
+ 539 02a4 9D4F      		sbci r25,-3
+ 540 02a6 FC01      		movw r30,r24
+ 541 02a8 2081      		ld r18,Z
+ 542 02aa 3181      		ldd r19,Z+1
+ 543 02ac 8F81      		ldd r24,Y+7
+ 544 02ae 9885      		ldd r25,Y+8
+ 545 02b0 880F      		lsl r24
+ 546 02b2 991F      		rol r25
+ 547 02b4 820F      		add r24,r18
+ 548 02b6 931F      		adc r25,r19
+ 549 02b8 FC01      		movw r30,r24
+ 550 02ba 8081      		ld r24,Z
+ 551 02bc 9181      		ldd r25,Z+1
+ 552 02be 9887      		std Y+8,r25
+ 553 02c0 8F83      		std Y+7,r24
+ 554               	.L26:
+ 119:lp_solve_5.5/lp_pricePSE.c **** 
+ 120:lp_solve_5.5/lp_pricePSE.c ****     value = lp->edgeVector[item];
+ 555               		.loc 1 120 0
+ 556 02c2 8D81      		ldd r24,Y+5
+ 557 02c4 9E81      		ldd r25,Y+6
+ 558 02c6 885E      		subi r24,-24
+ 559 02c8 9D4F      		sbci r25,-3
+ 560 02ca FC01      		movw r30,r24
+ 561 02cc 2081      		ld r18,Z
+ 562 02ce 3181      		ldd r19,Z+1
+ 563 02d0 8F81      		ldd r24,Y+7
+ 564 02d2 9885      		ldd r25,Y+8
+ 565 02d4 880F      		lsl r24
+ 566 02d6 991F      		rol r25
+ 567 02d8 880F      		lsl r24
+ 568 02da 991F      		rol r25
+ 569 02dc 820F      		add r24,r18
+ 570 02de 931F      		adc r25,r19
+ 571 02e0 FC01      		movw r30,r24
+ 572 02e2 8081      		ld r24,Z
+ 573 02e4 9181      		ldd r25,Z+1
+ 574 02e6 A281      		ldd r26,Z+2
+ 575 02e8 B381      		ldd r27,Z+3
+ 576 02ea 8983      		std Y+1,r24
+ 577 02ec 9A83      		std Y+2,r25
+ 578 02ee AB83      		std Y+3,r26
+ 579 02f0 BC83      		std Y+4,r27
+ 121:lp_solve_5.5/lp_pricePSE.c **** 
+ 122:lp_solve_5.5/lp_pricePSE.c ****     if(value == 0) {
+ 580               		.loc 1 122 0
+ 581 02f2 20E0      		ldi r18,0
+ 582 02f4 30E0      		ldi r19,0
+ 583 02f6 A901      		movw r20,r18
+ 584 02f8 6981      		ldd r22,Y+1
+ 585 02fa 7A81      		ldd r23,Y+2
+ 586 02fc 8B81      		ldd r24,Y+3
+ 587 02fe 9C81      		ldd r25,Y+4
+ 588 0300 0E94 0000 		call __eqsf2
+ 589 0304 8823      		tst r24
+ 590 0306 01F4      		brne .L27
+ 123:lp_solve_5.5/lp_pricePSE.c ****       value = 1.0;
+ 591               		.loc 1 123 0
+ 592 0308 80E0      		ldi r24,0
+ 593 030a 90E0      		ldi r25,0
+ 594 030c A0E8      		ldi r26,lo8(-128)
+ 595 030e BFE3      		ldi r27,lo8(63)
+ 596 0310 8983      		std Y+1,r24
+ 597 0312 9A83      		std Y+2,r25
+ 598 0314 AB83      		std Y+3,r26
+ 599 0316 BC83      		std Y+4,r27
+ 124:lp_solve_5.5/lp_pricePSE.c ****       report(lp, SEVERE, "getPricer: Detected a zero-valued price at index %d\n", item);
+ 600               		.loc 1 124 0
+ 601 0318 8885      		ldd r24,Y+8
+ 602 031a 8F93      		push r24
+ 603 031c 8F81      		ldd r24,Y+7
+ 604 031e 8F93      		push r24
+ 605 0320 80E0      		ldi r24,lo8(.LC0)
+ 606 0322 90E0      		ldi r25,hi8(.LC0)
+ 607 0324 892F      		mov r24,r25
+ 608 0326 8F93      		push r24
+ 609 0328 80E0      		ldi r24,lo8(.LC0)
+ 610 032a 90E0      		ldi r25,hi8(.LC0)
+ 611 032c 8F93      		push r24
+ 612 032e 1F92      		push __zero_reg__
+ 613 0330 82E0      		ldi r24,lo8(2)
+ 614 0332 8F93      		push r24
+ 615 0334 8E81      		ldd r24,Y+6
+ 616 0336 8F93      		push r24
+ 617 0338 8D81      		ldd r24,Y+5
+ 618 033a 8F93      		push r24
+ 619 033c 0E94 0000 		call report
+ 620 0340 8DB7      		in r24,__SP_L__
+ 621 0342 9EB7      		in r25,__SP_H__
+ 622 0344 0896      		adiw r24,8
+ 623 0346 0FB6      		in __tmp_reg__,__SREG__
+ 624 0348 F894      		cli
+ 625 034a DEBF      		out __SP_H__,r29
+ 626 034c 0FBE      		out __SREG__,__tmp_reg__
+ 627 034e CDBF      		out __SP_L__,r28
+ 628               	.L27:
+ 125:lp_solve_5.5/lp_pricePSE.c ****     }
+ 126:lp_solve_5.5/lp_pricePSE.c **** #ifdef Paranoia
+ 127:lp_solve_5.5/lp_pricePSE.c ****     else if(value < 0)
+ 128:lp_solve_5.5/lp_pricePSE.c ****       report(lp, SEVERE, "getPricer: Invalid %s reduced cost norm %g at index %d\n",
+ 129:lp_solve_5.5/lp_pricePSE.c ****                           my_if(isdual, "dual", "primal"), value, item);
+ 130:lp_solve_5.5/lp_pricePSE.c **** #endif
+ 131:lp_solve_5.5/lp_pricePSE.c **** 
+ 132:lp_solve_5.5/lp_pricePSE.c ****   /* Return the norm */
+ 133:lp_solve_5.5/lp_pricePSE.c ****     return( sqrt(value) );
+ 629               		.loc 1 133 0
+ 630 0350 8981      		ldd r24,Y+1
+ 631 0352 9A81      		ldd r25,Y+2
+ 632 0354 AB81      		ldd r26,Y+3
+ 633 0356 BC81      		ldd r27,Y+4
+ 634 0358 BC01      		movw r22,r24
+ 635 035a CD01      		movw r24,r26
+ 636 035c 0E94 0000 		call sqrt
+ 637 0360 DC01      		movw r26,r24
+ 638 0362 CB01      		movw r24,r22
+ 639               	.L21:
+ 134:lp_solve_5.5/lp_pricePSE.c ****   }
+ 135:lp_solve_5.5/lp_pricePSE.c **** }
+ 640               		.loc 1 135 0
+ 641 0364 BC01      		movw r22,r24
+ 642 0366 CD01      		movw r24,r26
+ 643               	/* epilogue start */
+ 644 0368 2996      		adiw r28,9
+ 645 036a 0FB6      		in __tmp_reg__,__SREG__
+ 646 036c F894      		cli
+ 647 036e DEBF      		out __SP_H__,r29
+ 648 0370 0FBE      		out __SREG__,__tmp_reg__
+ 649 0372 CDBF      		out __SP_L__,r28
+ 650 0374 DF91      		pop r29
+ 651 0376 CF91      		pop r28
+ 652 0378 0895      		ret
+ 653               		.cfi_endproc
+ 654               	.LFE12:
+ 656               	.global	__fixunssfsi
+ 657               	.global	__mulsf3
+ 658               	.global	__addsf3
+ 659               	.global	restartPricer
+ 661               	restartPricer:
+ 662               	.LFB13:
+ 136:lp_solve_5.5/lp_pricePSE.c **** 
+ 137:lp_solve_5.5/lp_pricePSE.c **** STATIC MYBOOL restartPricer(lprec *lp, MYBOOL isdual)
+ 138:lp_solve_5.5/lp_pricePSE.c **** {
+ 663               		.loc 1 138 0
+ 664               		.cfi_startproc
+ 665 037a 8F92      		push r8
+ 666               	.LCFI26:
+ 667               		.cfi_def_cfa_offset 3
+ 668               		.cfi_offset 8, -2
+ 669 037c AF92      		push r10
+ 670               	.LCFI27:
+ 671               		.cfi_def_cfa_offset 4
+ 672               		.cfi_offset 10, -3
+ 673 037e BF92      		push r11
+ 674               	.LCFI28:
+ 675               		.cfi_def_cfa_offset 5
+ 676               		.cfi_offset 11, -4
+ 677 0380 CF92      		push r12
+ 678               	.LCFI29:
+ 679               		.cfi_def_cfa_offset 6
+ 680               		.cfi_offset 12, -5
+ 681 0382 DF92      		push r13
+ 682               	.LCFI30:
+ 683               		.cfi_def_cfa_offset 7
+ 684               		.cfi_offset 13, -6
+ 685 0384 EF92      		push r14
+ 686               	.LCFI31:
+ 687               		.cfi_def_cfa_offset 8
+ 688               		.cfi_offset 14, -7
+ 689 0386 FF92      		push r15
+ 690               	.LCFI32:
+ 691               		.cfi_def_cfa_offset 9
+ 692               		.cfi_offset 15, -8
+ 693 0388 0F93      		push r16
+ 694               	.LCFI33:
+ 695               		.cfi_def_cfa_offset 10
+ 696               		.cfi_offset 16, -9
+ 697 038a 1F93      		push r17
+ 698               	.LCFI34:
+ 699               		.cfi_def_cfa_offset 11
+ 700               		.cfi_offset 17, -10
+ 701 038c CF93      		push r28
+ 702               	.LCFI35:
+ 703               		.cfi_def_cfa_offset 12
+ 704               		.cfi_offset 28, -11
+ 705 038e DF93      		push r29
+ 706               	.LCFI36:
+ 707               		.cfi_def_cfa_offset 13
+ 708               		.cfi_offset 29, -12
+ 709 0390 CDB7      		in r28,__SP_L__
+ 710 0392 DEB7      		in r29,__SP_H__
+ 711               	.LCFI37:
+ 712               		.cfi_def_cfa_register 28
+ 713 0394 6597      		sbiw r28,21
+ 714               	.LCFI38:
+ 715               		.cfi_def_cfa_offset 34
+ 716 0396 0FB6      		in __tmp_reg__,__SREG__
+ 717 0398 F894      		cli
+ 718 039a DEBF      		out __SP_H__,r29
+ 719 039c 0FBE      		out __SREG__,__tmp_reg__
+ 720 039e CDBF      		out __SP_L__,r28
+ 721               	/* prologue: function */
+ 722               	/* frame size = 21 */
+ 723               	/* stack size = 32 */
+ 724               	.L__stack_usage = 32
+ 725 03a0 9C8B      		std Y+20,r25
+ 726 03a2 8B8B      		std Y+19,r24
+ 727 03a4 6D8B      		std Y+21,r22
+ 139:lp_solve_5.5/lp_pricePSE.c ****   REAL   *sEdge = NULL, seNorm, hold;
+ 728               		.loc 1 139 0
+ 729 03a6 1A8A      		std Y+18,__zero_reg__
+ 730 03a8 198A      		std Y+17,__zero_reg__
+ 140:lp_solve_5.5/lp_pricePSE.c ****   int    i, j, m;
+ 141:lp_solve_5.5/lp_pricePSE.c ****   MYBOOL isDEVEX, ok = applyPricer(lp);
+ 731               		.loc 1 141 0
+ 732 03aa 8B89      		ldd r24,Y+19
+ 733 03ac 9C89      		ldd r25,Y+20
+ 734 03ae 0E94 0000 		call applyPricer
+ 735 03b2 8987      		std Y+9,r24
+ 142:lp_solve_5.5/lp_pricePSE.c **** 
+ 143:lp_solve_5.5/lp_pricePSE.c ****   if(!ok)
+ 736               		.loc 1 143 0
+ 737 03b4 8985      		ldd r24,Y+9
+ 738 03b6 8823      		tst r24
+ 739 03b8 01F4      		brne .L35
+ 144:lp_solve_5.5/lp_pricePSE.c ****     return( ok );
+ 740               		.loc 1 144 0
+ 741 03ba 8985      		ldd r24,Y+9
+ 742 03bc 00C0      		rjmp .L62
+ 743               	.L35:
+ 145:lp_solve_5.5/lp_pricePSE.c **** 
+ 146:lp_solve_5.5/lp_pricePSE.c ****   /* Store the active/current pricing type */
+ 147:lp_solve_5.5/lp_pricePSE.c ****   if(isdual == AUTOMATIC)
+ 744               		.loc 1 147 0
+ 745 03be 8D89      		ldd r24,Y+21
+ 746 03c0 8230      		cpi r24,lo8(2)
+ 747 03c2 01F4      		brne .L37
+ 148:lp_solve_5.5/lp_pricePSE.c ****     isdual = (MYBOOL) lp->edgeVector[0];
+ 748               		.loc 1 148 0
+ 749 03c4 8B89      		ldd r24,Y+19
+ 750 03c6 9C89      		ldd r25,Y+20
+ 751 03c8 885E      		subi r24,-24
+ 752 03ca 9D4F      		sbci r25,-3
+ 753 03cc FC01      		movw r30,r24
+ 754 03ce 8081      		ld r24,Z
+ 755 03d0 9181      		ldd r25,Z+1
+ 756 03d2 FC01      		movw r30,r24
+ 757 03d4 8081      		ld r24,Z
+ 758 03d6 9181      		ldd r25,Z+1
+ 759 03d8 A281      		ldd r26,Z+2
+ 760 03da B381      		ldd r27,Z+3
+ 761 03dc BC01      		movw r22,r24
+ 762 03de CD01      		movw r24,r26
+ 763 03e0 0E94 0000 		call __fixunssfsi
+ 764 03e4 DC01      		movw r26,r24
+ 765 03e6 CB01      		movw r24,r22
+ 766 03e8 8D8B      		std Y+21,r24
+ 767 03ea 00C0      		rjmp .L38
+ 768               	.L37:
+ 149:lp_solve_5.5/lp_pricePSE.c ****   else
+ 150:lp_solve_5.5/lp_pricePSE.c ****     lp->edgeVector[0] = isdual;
+ 769               		.loc 1 150 0
+ 770 03ec 8B89      		ldd r24,Y+19
+ 771 03ee 9C89      		ldd r25,Y+20
+ 772 03f0 885E      		subi r24,-24
+ 773 03f2 9D4F      		sbci r25,-3
+ 774 03f4 FC01      		movw r30,r24
+ 775 03f6 0081      		ld r16,Z
+ 776 03f8 1181      		ldd r17,Z+1
+ 777 03fa 8D89      		ldd r24,Y+21
+ 778 03fc 882F      		mov r24,r24
+ 779 03fe 90E0      		ldi r25,0
+ 780 0400 A0E0      		ldi r26,0
+ 781 0402 B0E0      		ldi r27,0
+ 782 0404 BC01      		movw r22,r24
+ 783 0406 CD01      		movw r24,r26
+ 784 0408 0E94 0000 		call __floatunsisf
+ 785 040c DC01      		movw r26,r24
+ 786 040e CB01      		movw r24,r22
+ 787 0410 F801      		movw r30,r16
+ 788 0412 8083      		st Z,r24
+ 789 0414 9183      		std Z+1,r25
+ 790 0416 A283      		std Z+2,r26
+ 791 0418 B383      		std Z+3,r27
+ 792               	.L38:
+ 151:lp_solve_5.5/lp_pricePSE.c **** 
+ 152:lp_solve_5.5/lp_pricePSE.c ****   m = lp->rows;
+ 793               		.loc 1 152 0
+ 794 041a 8B89      		ldd r24,Y+19
+ 795 041c 9C89      		ldd r25,Y+20
+ 796 041e 8651      		subi r24,22
+ 797 0420 9E4F      		sbci r25,-2
+ 798 0422 FC01      		movw r30,r24
+ 799 0424 8081      		ld r24,Z
+ 800 0426 9181      		ldd r25,Z+1
+ 801 0428 9B87      		std Y+11,r25
+ 802 042a 8A87      		std Y+10,r24
+ 153:lp_solve_5.5/lp_pricePSE.c **** 
+ 154:lp_solve_5.5/lp_pricePSE.c ****   /* Determine strategy and check if we have strategy fallback for the primal */
+ 155:lp_solve_5.5/lp_pricePSE.c ****   isDEVEX = is_piv_rule(lp, PRICER_DEVEX);
+ 803               		.loc 1 155 0
+ 804 042c 8B89      		ldd r24,Y+19
+ 805 042e 9C89      		ldd r25,Y+20
+ 806 0430 62E0      		ldi r22,lo8(2)
+ 807 0432 70E0      		ldi r23,0
+ 808 0434 0E94 0000 		call is_piv_rule
+ 809 0438 8C87      		std Y+12,r24
+ 156:lp_solve_5.5/lp_pricePSE.c ****   if(!isDEVEX && !isdual)
+ 810               		.loc 1 156 0
+ 811 043a 8C85      		ldd r24,Y+12
+ 812 043c 8823      		tst r24
+ 813 043e 01F4      		brne .L39
+ 814               		.loc 1 156 0 is_stmt 0 discriminator 1
+ 815 0440 8D89      		ldd r24,Y+21
+ 816 0442 8823      		tst r24
+ 817 0444 01F4      		brne .L39
+ 157:lp_solve_5.5/lp_pricePSE.c ****     isDEVEX = is_piv_mode(lp, PRICE_PRIMALFALLBACK);
+ 818               		.loc 1 157 0 is_stmt 1
+ 819 0446 8B89      		ldd r24,Y+19
+ 820 0448 9C89      		ldd r25,Y+20
+ 821 044a 64E0      		ldi r22,lo8(4)
+ 822 044c 70E0      		ldi r23,0
+ 823 044e 0E94 0000 		call is_piv_mode
+ 824 0452 8C87      		std Y+12,r24
+ 825               	.L39:
+ 158:lp_solve_5.5/lp_pricePSE.c **** 
+ 159:lp_solve_5.5/lp_pricePSE.c ****   /* Check if we only need to do the simple DEVEX initialization */
+ 160:lp_solve_5.5/lp_pricePSE.c ****   if(!is_piv_mode(lp, PRICE_TRUENORMINIT)) {
+ 826               		.loc 1 160 0
+ 827 0454 8B89      		ldd r24,Y+19
+ 828 0456 9C89      		ldd r25,Y+20
+ 829 0458 60E0      		ldi r22,0
+ 830 045a 70E4      		ldi r23,lo8(64)
+ 831 045c 0E94 0000 		call is_piv_mode
+ 832 0460 8823      		tst r24
+ 833 0462 01F0      		breq .+2
+ 834 0464 00C0      		rjmp .L40
+ 161:lp_solve_5.5/lp_pricePSE.c ****     if(isdual) {
+ 835               		.loc 1 161 0
+ 836 0466 8D89      		ldd r24,Y+21
+ 837 0468 8823      		tst r24
+ 838 046a 01F0      		breq .L41
+ 162:lp_solve_5.5/lp_pricePSE.c ****       for(i = 1; i <= m; i++)
+ 839               		.loc 1 162 0
+ 840 046c 81E0      		ldi r24,lo8(1)
+ 841 046e 90E0      		ldi r25,0
+ 842 0470 9E83      		std Y+6,r25
+ 843 0472 8D83      		std Y+5,r24
+ 844 0474 00C0      		rjmp .L42
+ 845               	.L43:
+ 163:lp_solve_5.5/lp_pricePSE.c ****         lp->edgeVector[lp->var_basic[i]] = 1.0;
+ 846               		.loc 1 163 0 discriminator 3
+ 847 0476 8B89      		ldd r24,Y+19
+ 848 0478 9C89      		ldd r25,Y+20
+ 849 047a 885E      		subi r24,-24
+ 850 047c 9D4F      		sbci r25,-3
+ 851 047e FC01      		movw r30,r24
+ 852 0480 2081      		ld r18,Z
+ 853 0482 3181      		ldd r19,Z+1
+ 854 0484 8B89      		ldd r24,Y+19
+ 855 0486 9C89      		ldd r25,Y+20
+ 856 0488 8453      		subi r24,52
+ 857 048a 9D4F      		sbci r25,-3
+ 858 048c FC01      		movw r30,r24
+ 859 048e 4081      		ld r20,Z
+ 860 0490 5181      		ldd r21,Z+1
+ 861 0492 8D81      		ldd r24,Y+5
+ 862 0494 9E81      		ldd r25,Y+6
+ 863 0496 880F      		lsl r24
+ 864 0498 991F      		rol r25
+ 865 049a 840F      		add r24,r20
+ 866 049c 951F      		adc r25,r21
+ 867 049e FC01      		movw r30,r24
+ 868 04a0 8081      		ld r24,Z
+ 869 04a2 9181      		ldd r25,Z+1
+ 870 04a4 880F      		lsl r24
+ 871 04a6 991F      		rol r25
+ 872 04a8 880F      		lsl r24
+ 873 04aa 991F      		rol r25
+ 874 04ac 280F      		add r18,r24
+ 875 04ae 391F      		adc r19,r25
+ 876 04b0 80E0      		ldi r24,0
+ 877 04b2 90E0      		ldi r25,0
+ 878 04b4 A0E8      		ldi r26,lo8(-128)
+ 879 04b6 BFE3      		ldi r27,lo8(63)
+ 880 04b8 F901      		movw r30,r18
+ 881 04ba 8083      		st Z,r24
+ 882 04bc 9183      		std Z+1,r25
+ 883 04be A283      		std Z+2,r26
+ 884 04c0 B383      		std Z+3,r27
+ 162:lp_solve_5.5/lp_pricePSE.c ****       for(i = 1; i <= m; i++)
+ 885               		.loc 1 162 0 discriminator 3
+ 886 04c2 8D81      		ldd r24,Y+5
+ 887 04c4 9E81      		ldd r25,Y+6
+ 888 04c6 0196      		adiw r24,1
+ 889 04c8 9E83      		std Y+6,r25
+ 890 04ca 8D83      		std Y+5,r24
+ 891               	.L42:
+ 162:lp_solve_5.5/lp_pricePSE.c ****       for(i = 1; i <= m; i++)
+ 892               		.loc 1 162 0 is_stmt 0 discriminator 1
+ 893 04cc 2D81      		ldd r18,Y+5
+ 894 04ce 3E81      		ldd r19,Y+6
+ 895 04d0 8A85      		ldd r24,Y+10
+ 896 04d2 9B85      		ldd r25,Y+11
+ 897 04d4 8217      		cp r24,r18
+ 898 04d6 9307      		cpc r25,r19
+ 899 04d8 04F4      		brge .L43
+ 900 04da 00C0      		rjmp .L44
+ 901               	.L41:
+ 164:lp_solve_5.5/lp_pricePSE.c ****     }
+ 165:lp_solve_5.5/lp_pricePSE.c ****     else {
+ 166:lp_solve_5.5/lp_pricePSE.c ****       for(i = 1; i <= lp->sum; i++)
+ 902               		.loc 1 166 0 is_stmt 1
+ 903 04dc 81E0      		ldi r24,lo8(1)
+ 904 04de 90E0      		ldi r25,0
+ 905 04e0 9E83      		std Y+6,r25
+ 906 04e2 8D83      		std Y+5,r24
+ 907 04e4 00C0      		rjmp .L45
+ 908               	.L47:
+ 167:lp_solve_5.5/lp_pricePSE.c ****         if(!lp->is_basic[i])
+ 909               		.loc 1 167 0
+ 910 04e6 8B89      		ldd r24,Y+19
+ 911 04e8 9C89      		ldd r25,Y+20
+ 912 04ea 8053      		subi r24,48
+ 913 04ec 9D4F      		sbci r25,-3
+ 914 04ee FC01      		movw r30,r24
+ 915 04f0 2081      		ld r18,Z
+ 916 04f2 3181      		ldd r19,Z+1
+ 917 04f4 8D81      		ldd r24,Y+5
+ 918 04f6 9E81      		ldd r25,Y+6
+ 919 04f8 820F      		add r24,r18
+ 920 04fa 931F      		adc r25,r19
+ 921 04fc FC01      		movw r30,r24
+ 922 04fe 8081      		ld r24,Z
+ 923 0500 8823      		tst r24
+ 924 0502 01F4      		brne .L46
+ 168:lp_solve_5.5/lp_pricePSE.c ****           lp->edgeVector[i] = 1.0;
+ 925               		.loc 1 168 0
+ 926 0504 8B89      		ldd r24,Y+19
+ 927 0506 9C89      		ldd r25,Y+20
+ 928 0508 885E      		subi r24,-24
+ 929 050a 9D4F      		sbci r25,-3
+ 930 050c FC01      		movw r30,r24
+ 931 050e 2081      		ld r18,Z
+ 932 0510 3181      		ldd r19,Z+1
+ 933 0512 8D81      		ldd r24,Y+5
+ 934 0514 9E81      		ldd r25,Y+6
+ 935 0516 880F      		lsl r24
+ 936 0518 991F      		rol r25
+ 937 051a 880F      		lsl r24
+ 938 051c 991F      		rol r25
+ 939 051e 280F      		add r18,r24
+ 940 0520 391F      		adc r19,r25
+ 941 0522 80E0      		ldi r24,0
+ 942 0524 90E0      		ldi r25,0
+ 943 0526 A0E8      		ldi r26,lo8(-128)
+ 944 0528 BFE3      		ldi r27,lo8(63)
+ 945 052a F901      		movw r30,r18
+ 946 052c 8083      		st Z,r24
+ 947 052e 9183      		std Z+1,r25
+ 948 0530 A283      		std Z+2,r26
+ 949 0532 B383      		std Z+3,r27
+ 950               	.L46:
+ 166:lp_solve_5.5/lp_pricePSE.c ****         if(!lp->is_basic[i])
+ 951               		.loc 1 166 0 discriminator 2
+ 952 0534 8D81      		ldd r24,Y+5
+ 953 0536 9E81      		ldd r25,Y+6
+ 954 0538 0196      		adiw r24,1
+ 955 053a 9E83      		std Y+6,r25
+ 956 053c 8D83      		std Y+5,r24
+ 957               	.L45:
+ 166:lp_solve_5.5/lp_pricePSE.c ****         if(!lp->is_basic[i])
+ 958               		.loc 1 166 0 is_stmt 0 discriminator 1
+ 959 053e 8B89      		ldd r24,Y+19
+ 960 0540 9C89      		ldd r25,Y+20
+ 961 0542 8851      		subi r24,24
+ 962 0544 9E4F      		sbci r25,-2
+ 963 0546 FC01      		movw r30,r24
+ 964 0548 2081      		ld r18,Z
+ 965 054a 3181      		ldd r19,Z+1
+ 966 054c 8D81      		ldd r24,Y+5
+ 967 054e 9E81      		ldd r25,Y+6
+ 968 0550 2817      		cp r18,r24
+ 969 0552 3907      		cpc r19,r25
+ 970 0554 04F4      		brge .L47
+ 971               	.L44:
+ 169:lp_solve_5.5/lp_pricePSE.c ****     }
+ 170:lp_solve_5.5/lp_pricePSE.c ****     return( ok );
+ 972               		.loc 1 170 0 is_stmt 1
+ 973 0556 8985      		ldd r24,Y+9
+ 974 0558 00C0      		rjmp .L62
+ 975               	.L40:
+ 171:lp_solve_5.5/lp_pricePSE.c ****   }
+ 172:lp_solve_5.5/lp_pricePSE.c **** 
+ 173:lp_solve_5.5/lp_pricePSE.c ****   /* Otherwise do the full Steepest Edge norm initialization */
+ 174:lp_solve_5.5/lp_pricePSE.c ****   ok = allocREAL(lp, &sEdge, m+1, FALSE);
+ 976               		.loc 1 174 0
+ 977 055a 8A85      		ldd r24,Y+10
+ 978 055c 9B85      		ldd r25,Y+11
+ 979 055e AC01      		movw r20,r24
+ 980 0560 4F5F      		subi r20,-1
+ 981 0562 5F4F      		sbci r21,-1
+ 982 0564 BE01      		movw r22,r28
+ 983 0566 6F5E      		subi r22,-17
+ 984 0568 7F4F      		sbci r23,-1
+ 985 056a 8B89      		ldd r24,Y+19
+ 986 056c 9C89      		ldd r25,Y+20
+ 987 056e 20E0      		ldi r18,0
+ 988 0570 0E94 0000 		call allocREAL
+ 989 0574 8987      		std Y+9,r24
+ 175:lp_solve_5.5/lp_pricePSE.c ****   if(!ok)
+ 990               		.loc 1 175 0
+ 991 0576 8985      		ldd r24,Y+9
+ 992 0578 8823      		tst r24
+ 993 057a 01F4      		brne .L48
+ 176:lp_solve_5.5/lp_pricePSE.c ****     return( ok );
+ 994               		.loc 1 176 0
+ 995 057c 8985      		ldd r24,Y+9
+ 996 057e 00C0      		rjmp .L62
+ 997               	.L48:
+ 177:lp_solve_5.5/lp_pricePSE.c **** 
+ 178:lp_solve_5.5/lp_pricePSE.c ****   if(isdual) {
+ 998               		.loc 1 178 0
+ 999 0580 8D89      		ldd r24,Y+21
+ 1000 0582 8823      		tst r24
+ 1001 0584 01F4      		brne .+2
+ 1002 0586 00C0      		rjmp .L49
+ 179:lp_solve_5.5/lp_pricePSE.c **** 
+ 180:lp_solve_5.5/lp_pricePSE.c ****    /* Extract the rows of the basis inverse and compute their squared norms */
+ 181:lp_solve_5.5/lp_pricePSE.c **** 
+ 182:lp_solve_5.5/lp_pricePSE.c ****     for(i = 1; i <= m; i++) {
+ 1003               		.loc 1 182 0
+ 1004 0588 81E0      		ldi r24,lo8(1)
+ 1005 058a 90E0      		ldi r25,0
+ 1006 058c 9E83      		std Y+6,r25
+ 1007 058e 8D83      		std Y+5,r24
+ 1008 0590 00C0      		rjmp .L50
+ 1009               	.L53:
+ 183:lp_solve_5.5/lp_pricePSE.c **** 
+ 184:lp_solve_5.5/lp_pricePSE.c ****       bsolve(lp, i, sEdge, NULL, 0, 0.0);
+ 1010               		.loc 1 184 0
+ 1011 0592 4989      		ldd r20,Y+17
+ 1012 0594 5A89      		ldd r21,Y+18
+ 1013 0596 6D81      		ldd r22,Y+5
+ 1014 0598 7E81      		ldd r23,Y+6
+ 1015 059a 8B89      		ldd r24,Y+19
+ 1016 059c 9C89      		ldd r25,Y+20
+ 1017 059e A12C      		mov r10,__zero_reg__
+ 1018 05a0 B12C      		mov r11,__zero_reg__
+ 1019 05a2 6501      		movw r12,r10
+ 1020 05a4 E12C      		mov r14,__zero_reg__
+ 1021 05a6 F12C      		mov r15,__zero_reg__
+ 1022 05a8 8701      		movw r16,r14
+ 1023 05aa 20E0      		ldi r18,0
+ 1024 05ac 30E0      		ldi r19,0
+ 1025 05ae 0E94 0000 		call bsolve
+ 185:lp_solve_5.5/lp_pricePSE.c **** 
+ 186:lp_solve_5.5/lp_pricePSE.c ****       /* Compute the edge norm */
+ 187:lp_solve_5.5/lp_pricePSE.c ****       seNorm = 0;
+ 1026               		.loc 1 187 0
+ 1027 05b2 1982      		std Y+1,__zero_reg__
+ 1028 05b4 1A82      		std Y+2,__zero_reg__
+ 1029 05b6 1B82      		std Y+3,__zero_reg__
+ 1030 05b8 1C82      		std Y+4,__zero_reg__
+ 188:lp_solve_5.5/lp_pricePSE.c ****       for(j = 1; j <= m; j++) {
+ 1031               		.loc 1 188 0
+ 1032 05ba 81E0      		ldi r24,lo8(1)
+ 1033 05bc 90E0      		ldi r25,0
+ 1034 05be 9887      		std Y+8,r25
+ 1035 05c0 8F83      		std Y+7,r24
+ 1036 05c2 00C0      		rjmp .L51
+ 1037               	.L52:
+ 189:lp_solve_5.5/lp_pricePSE.c ****         hold = sEdge[j];
+ 1038               		.loc 1 189 0 discriminator 3
+ 1039 05c4 2989      		ldd r18,Y+17
+ 1040 05c6 3A89      		ldd r19,Y+18
+ 1041 05c8 8F81      		ldd r24,Y+7
+ 1042 05ca 9885      		ldd r25,Y+8
+ 1043 05cc 880F      		lsl r24
+ 1044 05ce 991F      		rol r25
+ 1045 05d0 880F      		lsl r24
+ 1046 05d2 991F      		rol r25
+ 1047 05d4 820F      		add r24,r18
+ 1048 05d6 931F      		adc r25,r19
+ 1049 05d8 FC01      		movw r30,r24
+ 1050 05da 8081      		ld r24,Z
+ 1051 05dc 9181      		ldd r25,Z+1
+ 1052 05de A281      		ldd r26,Z+2
+ 1053 05e0 B381      		ldd r27,Z+3
+ 1054 05e2 8D87      		std Y+13,r24
+ 1055 05e4 9E87      		std Y+14,r25
+ 1056 05e6 AF87      		std Y+15,r26
+ 1057 05e8 B88B      		std Y+16,r27
+ 190:lp_solve_5.5/lp_pricePSE.c ****         seNorm += hold*hold;
+ 1058               		.loc 1 190 0 discriminator 3
+ 1059 05ea 2D85      		ldd r18,Y+13
+ 1060 05ec 3E85      		ldd r19,Y+14
+ 1061 05ee 4F85      		ldd r20,Y+15
+ 1062 05f0 5889      		ldd r21,Y+16
+ 1063 05f2 6D85      		ldd r22,Y+13
+ 1064 05f4 7E85      		ldd r23,Y+14
+ 1065 05f6 8F85      		ldd r24,Y+15
+ 1066 05f8 9889      		ldd r25,Y+16
+ 1067 05fa 0E94 0000 		call __mulsf3
+ 1068 05fe DC01      		movw r26,r24
+ 1069 0600 CB01      		movw r24,r22
+ 1070 0602 9C01      		movw r18,r24
+ 1071 0604 AD01      		movw r20,r26
+ 1072 0606 6981      		ldd r22,Y+1
+ 1073 0608 7A81      		ldd r23,Y+2
+ 1074 060a 8B81      		ldd r24,Y+3
+ 1075 060c 9C81      		ldd r25,Y+4
+ 1076 060e 0E94 0000 		call __addsf3
+ 1077 0612 DC01      		movw r26,r24
+ 1078 0614 CB01      		movw r24,r22
+ 1079 0616 8983      		std Y+1,r24
+ 1080 0618 9A83      		std Y+2,r25
+ 1081 061a AB83      		std Y+3,r26
+ 1082 061c BC83      		std Y+4,r27
+ 188:lp_solve_5.5/lp_pricePSE.c ****       for(j = 1; j <= m; j++) {
+ 1083               		.loc 1 188 0 discriminator 3
+ 1084 061e 8F81      		ldd r24,Y+7
+ 1085 0620 9885      		ldd r25,Y+8
+ 1086 0622 0196      		adiw r24,1
+ 1087 0624 9887      		std Y+8,r25
+ 1088 0626 8F83      		std Y+7,r24
+ 1089               	.L51:
+ 188:lp_solve_5.5/lp_pricePSE.c ****       for(j = 1; j <= m; j++) {
+ 1090               		.loc 1 188 0 is_stmt 0 discriminator 1
+ 1091 0628 2F81      		ldd r18,Y+7
+ 1092 062a 3885      		ldd r19,Y+8
+ 1093 062c 8A85      		ldd r24,Y+10
+ 1094 062e 9B85      		ldd r25,Y+11
+ 1095 0630 8217      		cp r24,r18
+ 1096 0632 9307      		cpc r25,r19
+ 1097 0634 04F4      		brge .L52
+ 191:lp_solve_5.5/lp_pricePSE.c ****       }
+ 192:lp_solve_5.5/lp_pricePSE.c **** 
+ 193:lp_solve_5.5/lp_pricePSE.c ****       j = lp->var_basic[i];
+ 1098               		.loc 1 193 0 is_stmt 1 discriminator 2
+ 1099 0636 8B89      		ldd r24,Y+19
+ 1100 0638 9C89      		ldd r25,Y+20
+ 1101 063a 8453      		subi r24,52
+ 1102 063c 9D4F      		sbci r25,-3
+ 1103 063e FC01      		movw r30,r24
+ 1104 0640 2081      		ld r18,Z
+ 1105 0642 3181      		ldd r19,Z+1
+ 1106 0644 8D81      		ldd r24,Y+5
+ 1107 0646 9E81      		ldd r25,Y+6
+ 1108 0648 880F      		lsl r24
+ 1109 064a 991F      		rol r25
+ 1110 064c 820F      		add r24,r18
+ 1111 064e 931F      		adc r25,r19
+ 1112 0650 FC01      		movw r30,r24
+ 1113 0652 8081      		ld r24,Z
+ 1114 0654 9181      		ldd r25,Z+1
+ 1115 0656 9887      		std Y+8,r25
+ 1116 0658 8F83      		std Y+7,r24
+ 194:lp_solve_5.5/lp_pricePSE.c ****       lp->edgeVector[j] = seNorm;
+ 1117               		.loc 1 194 0 discriminator 2
+ 1118 065a 8B89      		ldd r24,Y+19
+ 1119 065c 9C89      		ldd r25,Y+20
+ 1120 065e 885E      		subi r24,-24
+ 1121 0660 9D4F      		sbci r25,-3
+ 1122 0662 FC01      		movw r30,r24
+ 1123 0664 2081      		ld r18,Z
+ 1124 0666 3181      		ldd r19,Z+1
+ 1125 0668 8F81      		ldd r24,Y+7
+ 1126 066a 9885      		ldd r25,Y+8
+ 1127 066c 880F      		lsl r24
+ 1128 066e 991F      		rol r25
+ 1129 0670 880F      		lsl r24
+ 1130 0672 991F      		rol r25
+ 1131 0674 280F      		add r18,r24
+ 1132 0676 391F      		adc r19,r25
+ 1133 0678 8981      		ldd r24,Y+1
+ 1134 067a 9A81      		ldd r25,Y+2
+ 1135 067c AB81      		ldd r26,Y+3
+ 1136 067e BC81      		ldd r27,Y+4
+ 1137 0680 F901      		movw r30,r18
+ 1138 0682 8083      		st Z,r24
+ 1139 0684 9183      		std Z+1,r25
+ 1140 0686 A283      		std Z+2,r26
+ 1141 0688 B383      		std Z+3,r27
+ 182:lp_solve_5.5/lp_pricePSE.c **** 
+ 1142               		.loc 1 182 0 discriminator 2
+ 1143 068a 8D81      		ldd r24,Y+5
+ 1144 068c 9E81      		ldd r25,Y+6
+ 1145 068e 0196      		adiw r24,1
+ 1146 0690 9E83      		std Y+6,r25
+ 1147 0692 8D83      		std Y+5,r24
+ 1148               	.L50:
+ 182:lp_solve_5.5/lp_pricePSE.c **** 
+ 1149               		.loc 1 182 0 is_stmt 0 discriminator 1
+ 1150 0694 2D81      		ldd r18,Y+5
+ 1151 0696 3E81      		ldd r19,Y+6
+ 1152 0698 8A85      		ldd r24,Y+10
+ 1153 069a 9B85      		ldd r25,Y+11
+ 1154 069c 8217      		cp r24,r18
+ 1155 069e 9307      		cpc r25,r19
+ 1156 06a0 04F0      		brlt .+2
+ 1157 06a2 00C0      		rjmp .L53
+ 1158 06a4 00C0      		rjmp .L54
+ 1159               	.L49:
+ 195:lp_solve_5.5/lp_pricePSE.c ****     }
+ 196:lp_solve_5.5/lp_pricePSE.c **** 
+ 197:lp_solve_5.5/lp_pricePSE.c ****   }
+ 198:lp_solve_5.5/lp_pricePSE.c ****   else {
+ 199:lp_solve_5.5/lp_pricePSE.c **** 
+ 200:lp_solve_5.5/lp_pricePSE.c ****    /* Solve a=Bb for b over all non-basic variables and compute their squared norms */
+ 201:lp_solve_5.5/lp_pricePSE.c **** 
+ 202:lp_solve_5.5/lp_pricePSE.c ****     for(i = 1; i <= lp->sum; i++) {
+ 1160               		.loc 1 202 0 is_stmt 1
+ 1161 06a6 81E0      		ldi r24,lo8(1)
+ 1162 06a8 90E0      		ldi r25,0
+ 1163 06aa 9E83      		std Y+6,r25
+ 1164 06ac 8D83      		std Y+5,r24
+ 1165 06ae 00C0      		rjmp .L55
+ 1166               	.L60:
+ 203:lp_solve_5.5/lp_pricePSE.c ****       if(lp->is_basic[i])
+ 1167               		.loc 1 203 0
+ 1168 06b0 8B89      		ldd r24,Y+19
+ 1169 06b2 9C89      		ldd r25,Y+20
+ 1170 06b4 8053      		subi r24,48
+ 1171 06b6 9D4F      		sbci r25,-3
+ 1172 06b8 FC01      		movw r30,r24
+ 1173 06ba 2081      		ld r18,Z
+ 1174 06bc 3181      		ldd r19,Z+1
+ 1175 06be 8D81      		ldd r24,Y+5
+ 1176 06c0 9E81      		ldd r25,Y+6
+ 1177 06c2 820F      		add r24,r18
+ 1178 06c4 931F      		adc r25,r19
+ 1179 06c6 FC01      		movw r30,r24
+ 1180 06c8 8081      		ld r24,Z
+ 1181 06ca 8823      		tst r24
+ 1182 06cc 01F0      		breq .+2
+ 1183 06ce 00C0      		rjmp .L63
+ 204:lp_solve_5.5/lp_pricePSE.c ****         continue;
+ 205:lp_solve_5.5/lp_pricePSE.c **** 
+ 206:lp_solve_5.5/lp_pricePSE.c ****       fsolve(lp, i, sEdge, NULL, 0, 0.0, FALSE);
+ 1184               		.loc 1 206 0
+ 1185 06d0 4989      		ldd r20,Y+17
+ 1186 06d2 5A89      		ldd r21,Y+18
+ 1187 06d4 6D81      		ldd r22,Y+5
+ 1188 06d6 7E81      		ldd r23,Y+6
+ 1189 06d8 8B89      		ldd r24,Y+19
+ 1190 06da 9C89      		ldd r25,Y+20
+ 1191 06dc 812C      		mov r8,__zero_reg__
+ 1192 06de A12C      		mov r10,__zero_reg__
+ 1193 06e0 B12C      		mov r11,__zero_reg__
+ 1194 06e2 6501      		movw r12,r10
+ 1195 06e4 E12C      		mov r14,__zero_reg__
+ 1196 06e6 F12C      		mov r15,__zero_reg__
+ 1197 06e8 8701      		movw r16,r14
+ 1198 06ea 20E0      		ldi r18,0
+ 1199 06ec 30E0      		ldi r19,0
+ 1200 06ee 0E94 0000 		call fsolve
+ 207:lp_solve_5.5/lp_pricePSE.c **** 
+ 208:lp_solve_5.5/lp_pricePSE.c ****       /* Compute the edge norm */
+ 209:lp_solve_5.5/lp_pricePSE.c ****       seNorm = 1;
+ 1201               		.loc 1 209 0
+ 1202 06f2 80E0      		ldi r24,0
+ 1203 06f4 90E0      		ldi r25,0
+ 1204 06f6 A0E8      		ldi r26,lo8(-128)
+ 1205 06f8 BFE3      		ldi r27,lo8(63)
+ 1206 06fa 8983      		std Y+1,r24
+ 1207 06fc 9A83      		std Y+2,r25
+ 1208 06fe AB83      		std Y+3,r26
+ 1209 0700 BC83      		std Y+4,r27
+ 210:lp_solve_5.5/lp_pricePSE.c ****       for(j = 1; j <= m; j++) {
+ 1210               		.loc 1 210 0
+ 1211 0702 81E0      		ldi r24,lo8(1)
+ 1212 0704 90E0      		ldi r25,0
+ 1213 0706 9887      		std Y+8,r25
+ 1214 0708 8F83      		std Y+7,r24
+ 1215 070a 00C0      		rjmp .L58
+ 1216               	.L59:
+ 211:lp_solve_5.5/lp_pricePSE.c ****         hold = sEdge[j];
+ 1217               		.loc 1 211 0 discriminator 3
+ 1218 070c 2989      		ldd r18,Y+17
+ 1219 070e 3A89      		ldd r19,Y+18
+ 1220 0710 8F81      		ldd r24,Y+7
+ 1221 0712 9885      		ldd r25,Y+8
+ 1222 0714 880F      		lsl r24
+ 1223 0716 991F      		rol r25
+ 1224 0718 880F      		lsl r24
+ 1225 071a 991F      		rol r25
+ 1226 071c 820F      		add r24,r18
+ 1227 071e 931F      		adc r25,r19
+ 1228 0720 FC01      		movw r30,r24
+ 1229 0722 8081      		ld r24,Z
+ 1230 0724 9181      		ldd r25,Z+1
+ 1231 0726 A281      		ldd r26,Z+2
+ 1232 0728 B381      		ldd r27,Z+3
+ 1233 072a 8D87      		std Y+13,r24
+ 1234 072c 9E87      		std Y+14,r25
+ 1235 072e AF87      		std Y+15,r26
+ 1236 0730 B88B      		std Y+16,r27
+ 212:lp_solve_5.5/lp_pricePSE.c ****         seNorm += hold*hold;
+ 1237               		.loc 1 212 0 discriminator 3
+ 1238 0732 2D85      		ldd r18,Y+13
+ 1239 0734 3E85      		ldd r19,Y+14
+ 1240 0736 4F85      		ldd r20,Y+15
+ 1241 0738 5889      		ldd r21,Y+16
+ 1242 073a 6D85      		ldd r22,Y+13
+ 1243 073c 7E85      		ldd r23,Y+14
+ 1244 073e 8F85      		ldd r24,Y+15
+ 1245 0740 9889      		ldd r25,Y+16
+ 1246 0742 0E94 0000 		call __mulsf3
+ 1247 0746 DC01      		movw r26,r24
+ 1248 0748 CB01      		movw r24,r22
+ 1249 074a 9C01      		movw r18,r24
+ 1250 074c AD01      		movw r20,r26
+ 1251 074e 6981      		ldd r22,Y+1
+ 1252 0750 7A81      		ldd r23,Y+2
+ 1253 0752 8B81      		ldd r24,Y+3
+ 1254 0754 9C81      		ldd r25,Y+4
+ 1255 0756 0E94 0000 		call __addsf3
+ 1256 075a DC01      		movw r26,r24
+ 1257 075c CB01      		movw r24,r22
+ 1258 075e 8983      		std Y+1,r24
+ 1259 0760 9A83      		std Y+2,r25
+ 1260 0762 AB83      		std Y+3,r26
+ 1261 0764 BC83      		std Y+4,r27
+ 210:lp_solve_5.5/lp_pricePSE.c ****       for(j = 1; j <= m; j++) {
+ 1262               		.loc 1 210 0 discriminator 3
+ 1263 0766 8F81      		ldd r24,Y+7
+ 1264 0768 9885      		ldd r25,Y+8
+ 1265 076a 0196      		adiw r24,1
+ 1266 076c 9887      		std Y+8,r25
+ 1267 076e 8F83      		std Y+7,r24
+ 1268               	.L58:
+ 210:lp_solve_5.5/lp_pricePSE.c ****       for(j = 1; j <= m; j++) {
+ 1269               		.loc 1 210 0 is_stmt 0 discriminator 1
+ 1270 0770 2F81      		ldd r18,Y+7
+ 1271 0772 3885      		ldd r19,Y+8
+ 1272 0774 8A85      		ldd r24,Y+10
+ 1273 0776 9B85      		ldd r25,Y+11
+ 1274 0778 8217      		cp r24,r18
+ 1275 077a 9307      		cpc r25,r19
+ 1276 077c 04F4      		brge .L59
+ 213:lp_solve_5.5/lp_pricePSE.c ****       }
+ 214:lp_solve_5.5/lp_pricePSE.c **** 
+ 215:lp_solve_5.5/lp_pricePSE.c ****       lp->edgeVector[i] = seNorm;
+ 1277               		.loc 1 215 0 is_stmt 1
+ 1278 077e 8B89      		ldd r24,Y+19
+ 1279 0780 9C89      		ldd r25,Y+20
+ 1280 0782 885E      		subi r24,-24
+ 1281 0784 9D4F      		sbci r25,-3
+ 1282 0786 FC01      		movw r30,r24
+ 1283 0788 2081      		ld r18,Z
+ 1284 078a 3181      		ldd r19,Z+1
+ 1285 078c 8D81      		ldd r24,Y+5
+ 1286 078e 9E81      		ldd r25,Y+6
+ 1287 0790 880F      		lsl r24
+ 1288 0792 991F      		rol r25
+ 1289 0794 880F      		lsl r24
+ 1290 0796 991F      		rol r25
+ 1291 0798 280F      		add r18,r24
+ 1292 079a 391F      		adc r19,r25
+ 1293 079c 8981      		ldd r24,Y+1
+ 1294 079e 9A81      		ldd r25,Y+2
+ 1295 07a0 AB81      		ldd r26,Y+3
+ 1296 07a2 BC81      		ldd r27,Y+4
+ 1297 07a4 F901      		movw r30,r18
+ 1298 07a6 8083      		st Z,r24
+ 1299 07a8 9183      		std Z+1,r25
+ 1300 07aa A283      		std Z+2,r26
+ 1301 07ac B383      		std Z+3,r27
+ 1302 07ae 00C0      		rjmp .L57
+ 1303               	.L63:
+ 204:lp_solve_5.5/lp_pricePSE.c **** 
+ 1304               		.loc 1 204 0
+ 1305 07b0 0000      		nop
+ 1306               	.L57:
+ 202:lp_solve_5.5/lp_pricePSE.c ****       if(lp->is_basic[i])
+ 1307               		.loc 1 202 0 discriminator 2
+ 1308 07b2 8D81      		ldd r24,Y+5
+ 1309 07b4 9E81      		ldd r25,Y+6
+ 1310 07b6 0196      		adiw r24,1
+ 1311 07b8 9E83      		std Y+6,r25
+ 1312 07ba 8D83      		std Y+5,r24
+ 1313               	.L55:
+ 202:lp_solve_5.5/lp_pricePSE.c ****       if(lp->is_basic[i])
+ 1314               		.loc 1 202 0 is_stmt 0 discriminator 1
+ 1315 07bc 8B89      		ldd r24,Y+19
+ 1316 07be 9C89      		ldd r25,Y+20
+ 1317 07c0 8851      		subi r24,24
+ 1318 07c2 9E4F      		sbci r25,-2
+ 1319 07c4 FC01      		movw r30,r24
+ 1320 07c6 2081      		ld r18,Z
+ 1321 07c8 3181      		ldd r19,Z+1
+ 1322 07ca 8D81      		ldd r24,Y+5
+ 1323 07cc 9E81      		ldd r25,Y+6
+ 1324 07ce 2817      		cp r18,r24
+ 1325 07d0 3907      		cpc r19,r25
+ 1326 07d2 04F0      		brlt .+2
+ 1327 07d4 00C0      		rjmp .L60
+ 1328               	.L54:
+ 216:lp_solve_5.5/lp_pricePSE.c ****     }
+ 217:lp_solve_5.5/lp_pricePSE.c **** 
+ 218:lp_solve_5.5/lp_pricePSE.c ****   }
+ 219:lp_solve_5.5/lp_pricePSE.c **** 
+ 220:lp_solve_5.5/lp_pricePSE.c ****   FREE(sEdge);
+ 1329               		.loc 1 220 0 is_stmt 1
+ 1330 07d6 8989      		ldd r24,Y+17
+ 1331 07d8 9A89      		ldd r25,Y+18
+ 1332 07da 892B      		or r24,r25
+ 1333 07dc 01F0      		breq .L61
+ 1334               		.loc 1 220 0 is_stmt 0 discriminator 1
+ 1335 07de 8989      		ldd r24,Y+17
+ 1336 07e0 9A89      		ldd r25,Y+18
+ 1337 07e2 0E94 0000 		call free
+ 1338 07e6 1A8A      		std Y+18,__zero_reg__
+ 1339 07e8 198A      		std Y+17,__zero_reg__
+ 1340               	.L61:
+ 221:lp_solve_5.5/lp_pricePSE.c **** 
+ 222:lp_solve_5.5/lp_pricePSE.c ****   return( ok );
+ 1341               		.loc 1 222 0 is_stmt 1
+ 1342 07ea 8985      		ldd r24,Y+9
+ 1343               	.L62:
+ 1344               	/* epilogue start */
+ 223:lp_solve_5.5/lp_pricePSE.c **** 
+ 224:lp_solve_5.5/lp_pricePSE.c **** }
+ 1345               		.loc 1 224 0 discriminator 1
+ 1346 07ec 6596      		adiw r28,21
+ 1347 07ee 0FB6      		in __tmp_reg__,__SREG__
+ 1348 07f0 F894      		cli
+ 1349 07f2 DEBF      		out __SP_H__,r29
+ 1350 07f4 0FBE      		out __SREG__,__tmp_reg__
+ 1351 07f6 CDBF      		out __SP_L__,r28
+ 1352 07f8 DF91      		pop r29
+ 1353 07fa CF91      		pop r28
+ 1354 07fc 1F91      		pop r17
+ 1355 07fe 0F91      		pop r16
+ 1356 0800 FF90      		pop r15
+ 1357 0802 EF90      		pop r14
+ 1358 0804 DF90      		pop r13
+ 1359 0806 CF90      		pop r12
+ 1360 0808 BF90      		pop r11
+ 1361 080a AF90      		pop r10
+ 1362 080c 8F90      		pop r8
+ 1363 080e 0895      		ret
+ 1364               		.cfi_endproc
+ 1365               	.LFE13:
+ 1367               	.global	formWeights
+ 1369               	formWeights:
+ 1370               	.LFB14:
+ 225:lp_solve_5.5/lp_pricePSE.c **** 
+ 226:lp_solve_5.5/lp_pricePSE.c **** 
+ 227:lp_solve_5.5/lp_pricePSE.c **** STATIC MYBOOL formWeights(lprec *lp, int colnr, REAL *pcol, REAL **w)
+ 228:lp_solve_5.5/lp_pricePSE.c **** /* This computes Bw = a, where B is the basis and a is a column of A */
+ 229:lp_solve_5.5/lp_pricePSE.c **** {
+ 1371               		.loc 1 229 0
+ 1372               		.cfi_startproc
+ 1373 0810 8F92      		push r8
+ 1374               	.LCFI39:
+ 1375               		.cfi_def_cfa_offset 3
+ 1376               		.cfi_offset 8, -2
+ 1377 0812 AF92      		push r10
+ 1378               	.LCFI40:
+ 1379               		.cfi_def_cfa_offset 4
+ 1380               		.cfi_offset 10, -3
+ 1381 0814 BF92      		push r11
+ 1382               	.LCFI41:
+ 1383               		.cfi_def_cfa_offset 5
+ 1384               		.cfi_offset 11, -4
+ 1385 0816 CF92      		push r12
+ 1386               	.LCFI42:
+ 1387               		.cfi_def_cfa_offset 6
+ 1388               		.cfi_offset 12, -5
+ 1389 0818 DF92      		push r13
+ 1390               	.LCFI43:
+ 1391               		.cfi_def_cfa_offset 7
+ 1392               		.cfi_offset 13, -6
+ 1393 081a EF92      		push r14
+ 1394               	.LCFI44:
+ 1395               		.cfi_def_cfa_offset 8
+ 1396               		.cfi_offset 14, -7
+ 1397 081c FF92      		push r15
+ 1398               	.LCFI45:
+ 1399               		.cfi_def_cfa_offset 9
+ 1400               		.cfi_offset 15, -8
+ 1401 081e 0F93      		push r16
+ 1402               	.LCFI46:
+ 1403               		.cfi_def_cfa_offset 10
+ 1404               		.cfi_offset 16, -9
+ 1405 0820 1F93      		push r17
+ 1406               	.LCFI47:
+ 1407               		.cfi_def_cfa_offset 11
+ 1408               		.cfi_offset 17, -10
+ 1409 0822 CF93      		push r28
+ 1410               	.LCFI48:
+ 1411               		.cfi_def_cfa_offset 12
+ 1412               		.cfi_offset 28, -11
+ 1413 0824 DF93      		push r29
+ 1414               	.LCFI49:
+ 1415               		.cfi_def_cfa_offset 13
+ 1416               		.cfi_offset 29, -12
+ 1417 0826 CDB7      		in r28,__SP_L__
+ 1418 0828 DEB7      		in r29,__SP_H__
+ 1419               	.LCFI50:
+ 1420               		.cfi_def_cfa_register 28
+ 1421 082a 2997      		sbiw r28,9
+ 1422               	.LCFI51:
+ 1423               		.cfi_def_cfa_offset 22
+ 1424 082c 0FB6      		in __tmp_reg__,__SREG__
+ 1425 082e F894      		cli
+ 1426 0830 DEBF      		out __SP_H__,r29
+ 1427 0832 0FBE      		out __SREG__,__tmp_reg__
+ 1428 0834 CDBF      		out __SP_L__,r28
+ 1429               	/* prologue: function */
+ 1430               	/* frame size = 9 */
+ 1431               	/* stack size = 20 */
+ 1432               	.L__stack_usage = 20
+ 1433 0836 9B83      		std Y+3,r25
+ 1434 0838 8A83      		std Y+2,r24
+ 1435 083a 7D83      		std Y+5,r23
+ 1436 083c 6C83      		std Y+4,r22
+ 1437 083e 5F83      		std Y+7,r21
+ 1438 0840 4E83      		std Y+6,r20
+ 1439 0842 3987      		std Y+9,r19
+ 1440 0844 2887      		std Y+8,r18
+ 230:lp_solve_5.5/lp_pricePSE.c ****   MYBOOL ok = allocREAL(lp, w, lp->rows+1, FALSE);
+ 1441               		.loc 1 230 0
+ 1442 0846 8A81      		ldd r24,Y+2
+ 1443 0848 9B81      		ldd r25,Y+3
+ 1444 084a 8651      		subi r24,22
+ 1445 084c 9E4F      		sbci r25,-2
+ 1446 084e FC01      		movw r30,r24
+ 1447 0850 8081      		ld r24,Z
+ 1448 0852 9181      		ldd r25,Z+1
+ 1449 0854 AC01      		movw r20,r24
+ 1450 0856 4F5F      		subi r20,-1
+ 1451 0858 5F4F      		sbci r21,-1
+ 1452 085a 6885      		ldd r22,Y+8
+ 1453 085c 7985      		ldd r23,Y+9
+ 1454 085e 8A81      		ldd r24,Y+2
+ 1455 0860 9B81      		ldd r25,Y+3
+ 1456 0862 20E0      		ldi r18,0
+ 1457 0864 0E94 0000 		call allocREAL
+ 1458 0868 8983      		std Y+1,r24
+ 231:lp_solve_5.5/lp_pricePSE.c **** 
+ 232:lp_solve_5.5/lp_pricePSE.c ****   if(ok) {
+ 1459               		.loc 1 232 0
+ 1460 086a 8981      		ldd r24,Y+1
+ 1461 086c 8823      		tst r24
+ 1462 086e 01F0      		breq .L65
+ 233:lp_solve_5.5/lp_pricePSE.c ****     if(pcol == NULL)
+ 1463               		.loc 1 233 0
+ 1464 0870 8E81      		ldd r24,Y+6
+ 1465 0872 9F81      		ldd r25,Y+7
+ 1466 0874 892B      		or r24,r25
+ 1467 0876 01F4      		brne .L66
+ 234:lp_solve_5.5/lp_pricePSE.c ****       fsolve(lp, colnr, *w, NULL, 0.0, 0.0, FALSE);
+ 1468               		.loc 1 234 0
+ 1469 0878 8885      		ldd r24,Y+8
+ 1470 087a 9985      		ldd r25,Y+9
+ 1471 087c FC01      		movw r30,r24
+ 1472 087e 4081      		ld r20,Z
+ 1473 0880 5181      		ldd r21,Z+1
+ 1474 0882 6C81      		ldd r22,Y+4
+ 1475 0884 7D81      		ldd r23,Y+5
+ 1476 0886 8A81      		ldd r24,Y+2
+ 1477 0888 9B81      		ldd r25,Y+3
+ 1478 088a 812C      		mov r8,__zero_reg__
+ 1479 088c A12C      		mov r10,__zero_reg__
+ 1480 088e B12C      		mov r11,__zero_reg__
+ 1481 0890 6501      		movw r12,r10
+ 1482 0892 E12C      		mov r14,__zero_reg__
+ 1483 0894 F12C      		mov r15,__zero_reg__
+ 1484 0896 8701      		movw r16,r14
+ 1485 0898 20E0      		ldi r18,0
+ 1486 089a 30E0      		ldi r19,0
+ 1487 089c 0E94 0000 		call fsolve
+ 1488 08a0 00C0      		rjmp .L65
+ 1489               	.L66:
+ 235:lp_solve_5.5/lp_pricePSE.c ****     else {
+ 236:lp_solve_5.5/lp_pricePSE.c ****       MEMCOPY(*w, pcol, lp->rows+1);
+ 1490               		.loc 1 236 0
+ 1491 08a2 8A81      		ldd r24,Y+2
+ 1492 08a4 9B81      		ldd r25,Y+3
+ 1493 08a6 8651      		subi r24,22
+ 1494 08a8 9E4F      		sbci r25,-2
+ 1495 08aa FC01      		movw r30,r24
+ 1496 08ac 8081      		ld r24,Z
+ 1497 08ae 9181      		ldd r25,Z+1
+ 1498 08b0 0196      		adiw r24,1
+ 1499 08b2 AC01      		movw r20,r24
+ 1500 08b4 440F      		lsl r20
+ 1501 08b6 551F      		rol r21
+ 1502 08b8 440F      		lsl r20
+ 1503 08ba 551F      		rol r21
+ 1504 08bc 8885      		ldd r24,Y+8
+ 1505 08be 9985      		ldd r25,Y+9
+ 1506 08c0 FC01      		movw r30,r24
+ 1507 08c2 8081      		ld r24,Z
+ 1508 08c4 9181      		ldd r25,Z+1
+ 1509 08c6 2E81      		ldd r18,Y+6
+ 1510 08c8 3F81      		ldd r19,Y+7
+ 1511 08ca B901      		movw r22,r18
+ 1512 08cc 0E94 0000 		call memcpy
+ 1513               	.L65:
+ 237:lp_solve_5.5/lp_pricePSE.c **** /*    *w[0] = 0; */ /* Test */
+ 238:lp_solve_5.5/lp_pricePSE.c ****     }
+ 239:lp_solve_5.5/lp_pricePSE.c ****   }
+ 240:lp_solve_5.5/lp_pricePSE.c **** /*
+ 241:lp_solve_5.5/lp_pricePSE.c ****   if(pcol != NULL) {
+ 242:lp_solve_5.5/lp_pricePSE.c ****     REAL cEdge, hold;
+ 243:lp_solve_5.5/lp_pricePSE.c ****     int  i;
+ 244:lp_solve_5.5/lp_pricePSE.c **** 
+ 245:lp_solve_5.5/lp_pricePSE.c ****     cEdge = 0;
+ 246:lp_solve_5.5/lp_pricePSE.c ****     for(i = 1; i <= m; i++) {
+ 247:lp_solve_5.5/lp_pricePSE.c ****       hold = *w[i]-pcol[i];
+ 248:lp_solve_5.5/lp_pricePSE.c ****       cEdge += hold*hold;
+ 249:lp_solve_5.5/lp_pricePSE.c ****     }
+ 250:lp_solve_5.5/lp_pricePSE.c ****     cEdge /= m;
+ 251:lp_solve_5.5/lp_pricePSE.c ****     cEdge = sqrt(cEdge);
+ 252:lp_solve_5.5/lp_pricePSE.c ****     if(cEdge > lp->epspivot)
+ 253:lp_solve_5.5/lp_pricePSE.c ****       report(lp, SEVERE, "updatePricer: MRS error is %g\n", cEdge);
+ 254:lp_solve_5.5/lp_pricePSE.c ****   }
+ 255:lp_solve_5.5/lp_pricePSE.c **** */
+ 256:lp_solve_5.5/lp_pricePSE.c ****   return(ok);
+ 1514               		.loc 1 256 0
+ 1515 08d0 8981      		ldd r24,Y+1
+ 1516               	/* epilogue start */
+ 257:lp_solve_5.5/lp_pricePSE.c **** }
+ 1517               		.loc 1 257 0
+ 1518 08d2 2996      		adiw r28,9
+ 1519 08d4 0FB6      		in __tmp_reg__,__SREG__
+ 1520 08d6 F894      		cli
+ 1521 08d8 DEBF      		out __SP_H__,r29
+ 1522 08da 0FBE      		out __SREG__,__tmp_reg__
+ 1523 08dc CDBF      		out __SP_L__,r28
+ 1524 08de DF91      		pop r29
+ 1525 08e0 CF91      		pop r28
+ 1526 08e2 1F91      		pop r17
+ 1527 08e4 0F91      		pop r16
+ 1528 08e6 FF90      		pop r15
+ 1529 08e8 EF90      		pop r14
+ 1530 08ea DF90      		pop r13
+ 1531 08ec CF90      		pop r12
+ 1532 08ee BF90      		pop r11
+ 1533 08f0 AF90      		pop r10
+ 1534 08f2 8F90      		pop r8
+ 1535 08f4 0895      		ret
+ 1536               		.cfi_endproc
+ 1537               	.LFE14:
+ 1539               	.global	freeWeights
+ 1541               	freeWeights:
+ 1542               	.LFB15:
+ 258:lp_solve_5.5/lp_pricePSE.c **** STATIC void freeWeights(REAL *w)
+ 259:lp_solve_5.5/lp_pricePSE.c **** {
+ 1543               		.loc 1 259 0
+ 1544               		.cfi_startproc
+ 1545 08f6 CF93      		push r28
+ 1546               	.LCFI52:
+ 1547               		.cfi_def_cfa_offset 3
+ 1548               		.cfi_offset 28, -2
+ 1549 08f8 DF93      		push r29
+ 1550               	.LCFI53:
+ 1551               		.cfi_def_cfa_offset 4
+ 1552               		.cfi_offset 29, -3
+ 1553 08fa 00D0      		rcall .
+ 1554               	.LCFI54:
+ 1555               		.cfi_def_cfa_offset 6
+ 1556 08fc CDB7      		in r28,__SP_L__
+ 1557 08fe DEB7      		in r29,__SP_H__
+ 1558               	.LCFI55:
+ 1559               		.cfi_def_cfa_register 28
+ 1560               	/* prologue: function */
+ 1561               	/* frame size = 2 */
+ 1562               	/* stack size = 4 */
+ 1563               	.L__stack_usage = 4
+ 1564 0900 9A83      		std Y+2,r25
+ 1565 0902 8983      		std Y+1,r24
+ 260:lp_solve_5.5/lp_pricePSE.c ****   FREE(w);
+ 1566               		.loc 1 260 0
+ 1567 0904 8981      		ldd r24,Y+1
+ 1568 0906 9A81      		ldd r25,Y+2
+ 1569 0908 892B      		or r24,r25
+ 1570 090a 01F0      		breq .L70
+ 1571               		.loc 1 260 0 is_stmt 0 discriminator 1
+ 1572 090c 8981      		ldd r24,Y+1
+ 1573 090e 9A81      		ldd r25,Y+2
+ 1574 0910 0E94 0000 		call free
+ 1575 0914 1A82      		std Y+2,__zero_reg__
+ 1576 0916 1982      		std Y+1,__zero_reg__
+ 1577               	.L70:
+ 261:lp_solve_5.5/lp_pricePSE.c **** }
+ 1578               		.loc 1 261 0 is_stmt 1
+ 1579 0918 0000      		nop
+ 1580               	/* epilogue start */
+ 1581 091a 0F90      		pop __tmp_reg__
+ 1582 091c 0F90      		pop __tmp_reg__
+ 1583 091e DF91      		pop r29
+ 1584 0920 CF91      		pop r28
+ 1585 0922 0895      		ret
+ 1586               		.cfi_endproc
+ 1587               	.LFE15:
+ 1589               	.global	__gtsf2
+ 1590               	.global	__divsf3
+ 1591               	.global	__subsf3
+ 1592               	.global	__lesf2
+ 1593               	.global	__floatdisf
+ 1594               		.section	.rodata
+ 1595               	.LC1:
+ 1596 0035 7570 6461 		.string	"updatePricer: Invalid dual norm %g at index %d - iteration %.0f\n"
+ 1596      7465 5072 
+ 1596      6963 6572 
+ 1596      3A20 496E 
+ 1596      7661 6C69 
+ 1597               		.text
+ 1598               	.global	updatePricer
+ 1600               	updatePricer:
+ 1601               	.LFB16:
+ 262:lp_solve_5.5/lp_pricePSE.c **** 
+ 263:lp_solve_5.5/lp_pricePSE.c **** 
+ 264:lp_solve_5.5/lp_pricePSE.c **** STATIC MYBOOL updatePricer(lprec *lp, int rownr, int colnr, REAL *pcol, REAL *prow, int *nzprow)
+ 265:lp_solve_5.5/lp_pricePSE.c **** {
+ 1602               		.loc 1 265 0
+ 1603               		.cfi_startproc
+ 1604 0924 2F92      		push r2
+ 1605               	.LCFI56:
+ 1606               		.cfi_def_cfa_offset 3
+ 1607               		.cfi_offset 2, -2
+ 1608 0926 3F92      		push r3
+ 1609               	.LCFI57:
+ 1610               		.cfi_def_cfa_offset 4
+ 1611               		.cfi_offset 3, -3
+ 1612 0928 4F92      		push r4
+ 1613               	.LCFI58:
+ 1614               		.cfi_def_cfa_offset 5
+ 1615               		.cfi_offset 4, -4
+ 1616 092a 5F92      		push r5
+ 1617               	.LCFI59:
+ 1618               		.cfi_def_cfa_offset 6
+ 1619               		.cfi_offset 5, -5
+ 1620 092c 6F92      		push r6
+ 1621               	.LCFI60:
+ 1622               		.cfi_def_cfa_offset 7
+ 1623               		.cfi_offset 6, -6
+ 1624 092e 7F92      		push r7
+ 1625               	.LCFI61:
+ 1626               		.cfi_def_cfa_offset 8
+ 1627               		.cfi_offset 7, -7
+ 1628 0930 8F92      		push r8
+ 1629               	.LCFI62:
+ 1630               		.cfi_def_cfa_offset 9
+ 1631               		.cfi_offset 8, -8
+ 1632 0932 9F92      		push r9
+ 1633               	.LCFI63:
+ 1634               		.cfi_def_cfa_offset 10
+ 1635               		.cfi_offset 9, -9
+ 1636 0934 AF92      		push r10
+ 1637               	.LCFI64:
+ 1638               		.cfi_def_cfa_offset 11
+ 1639               		.cfi_offset 10, -10
+ 1640 0936 BF92      		push r11
+ 1641               	.LCFI65:
+ 1642               		.cfi_def_cfa_offset 12
+ 1643               		.cfi_offset 11, -11
+ 1644 0938 CF92      		push r12
+ 1645               	.LCFI66:
+ 1646               		.cfi_def_cfa_offset 13
+ 1647               		.cfi_offset 12, -12
+ 1648 093a DF92      		push r13
+ 1649               	.LCFI67:
+ 1650               		.cfi_def_cfa_offset 14
+ 1651               		.cfi_offset 13, -13
+ 1652 093c EF92      		push r14
+ 1653               	.LCFI68:
+ 1654               		.cfi_def_cfa_offset 15
+ 1655               		.cfi_offset 14, -14
+ 1656 093e FF92      		push r15
+ 1657               	.LCFI69:
+ 1658               		.cfi_def_cfa_offset 16
+ 1659               		.cfi_offset 15, -15
+ 1660 0940 0F93      		push r16
+ 1661               	.LCFI70:
+ 1662               		.cfi_def_cfa_offset 17
+ 1663               		.cfi_offset 16, -16
+ 1664 0942 1F93      		push r17
+ 1665               	.LCFI71:
+ 1666               		.cfi_def_cfa_offset 18
+ 1667               		.cfi_offset 17, -17
+ 1668 0944 CF93      		push r28
+ 1669               	.LCFI72:
+ 1670               		.cfi_def_cfa_offset 19
+ 1671               		.cfi_offset 28, -18
+ 1672 0946 DF93      		push r29
+ 1673               	.LCFI73:
+ 1674               		.cfi_def_cfa_offset 20
+ 1675               		.cfi_offset 29, -19
+ 1676 0948 CDB7      		in r28,__SP_L__
+ 1677 094a DEB7      		in r29,__SP_H__
+ 1678               	.LCFI74:
+ 1679               		.cfi_def_cfa_register 28
+ 1680 094c E897      		sbiw r28,56
+ 1681               	.LCFI75:
+ 1682               		.cfi_def_cfa_offset 76
+ 1683 094e 0FB6      		in __tmp_reg__,__SREG__
+ 1684 0950 F894      		cli
+ 1685 0952 DEBF      		out __SP_H__,r29
+ 1686 0954 0FBE      		out __SREG__,__tmp_reg__
+ 1687 0956 CDBF      		out __SP_L__,r28
+ 1688               	/* prologue: function */
+ 1689               	/* frame size = 56 */
+ 1690               	/* stack size = 74 */
+ 1691               	.L__stack_usage = 74
+ 1692 0958 9EA7      		std Y+46,r25
+ 1693 095a 8DA7      		std Y+45,r24
+ 1694 095c 78AB      		std Y+48,r23
+ 1695 095e 6FA7      		std Y+47,r22
+ 1696 0960 5AAB      		std Y+50,r21
+ 1697 0962 49AB      		std Y+49,r20
+ 1698 0964 3CAB      		std Y+52,r19
+ 1699 0966 2BAB      		std Y+51,r18
+ 1700 0968 1EAB      		std Y+54,r17
+ 1701 096a 0DAB      		std Y+53,r16
+ 1702 096c F8AE      		std Y+56,r15
+ 1703 096e EFAA      		std Y+55,r14
+ 266:lp_solve_5.5/lp_pricePSE.c ****   REAL   *vEdge = NULL, cEdge, hold, *newEdge, *w = NULL;
+ 1704               		.loc 1 266 0
+ 1705 0970 1EA2      		std Y+38,__zero_reg__
+ 1706 0972 1DA2      		std Y+37,__zero_reg__
+ 1707 0974 18A6      		std Y+40,__zero_reg__
+ 1708 0976 1FA2      		std Y+39,__zero_reg__
+ 267:lp_solve_5.5/lp_pricePSE.c ****   int    i, m, n, exitcol, errlevel = DETAILED;
+ 1709               		.loc 1 267 0
+ 1710 0978 85E0      		ldi r24,lo8(5)
+ 1711 097a 90E0      		ldi r25,0
+ 1712 097c 9F83      		std Y+7,r25
+ 1713 097e 8E83      		std Y+6,r24
+ 268:lp_solve_5.5/lp_pricePSE.c ****   MYBOOL forceRefresh = FALSE, isDual, isDEVEX, ok = FALSE;
+ 1714               		.loc 1 268 0
+ 1715 0980 1B82      		std Y+3,__zero_reg__
+ 1716 0982 1D82      		std Y+5,__zero_reg__
+ 269:lp_solve_5.5/lp_pricePSE.c **** 
+ 270:lp_solve_5.5/lp_pricePSE.c ****   if(!applyPricer(lp))
+ 1717               		.loc 1 270 0
+ 1718 0984 8DA5      		ldd r24,Y+45
+ 1719 0986 9EA5      		ldd r25,Y+46
+ 1720 0988 0E94 0000 		call applyPricer
+ 1721 098c 8823      		tst r24
+ 1722 098e 01F4      		brne .L72
+ 271:lp_solve_5.5/lp_pricePSE.c ****     return(ok);
+ 1723               		.loc 1 271 0
+ 1724 0990 8D81      		ldd r24,Y+5
+ 1725 0992 00C0      		rjmp .L124
+ 1726               	.L72:
+ 272:lp_solve_5.5/lp_pricePSE.c **** 
+ 273:lp_solve_5.5/lp_pricePSE.c ****   /* Make sure we have something to update */
+ 274:lp_solve_5.5/lp_pricePSE.c ****   hold = lp->edgeVector[0];
+ 1727               		.loc 1 274 0
+ 1728 0994 8DA5      		ldd r24,Y+45
+ 1729 0996 9EA5      		ldd r25,Y+46
+ 1730 0998 885E      		subi r24,-24
+ 1731 099a 9D4F      		sbci r25,-3
+ 1732 099c FC01      		movw r30,r24
+ 1733 099e 8081      		ld r24,Z
+ 1734 09a0 9181      		ldd r25,Z+1
+ 1735 09a2 FC01      		movw r30,r24
+ 1736 09a4 8081      		ld r24,Z
+ 1737 09a6 9181      		ldd r25,Z+1
+ 1738 09a8 A281      		ldd r26,Z+2
+ 1739 09aa B381      		ldd r27,Z+3
+ 1740 09ac 8887      		std Y+8,r24
+ 1741 09ae 9987      		std Y+9,r25
+ 1742 09b0 AA87      		std Y+10,r26
+ 1743 09b2 BB87      		std Y+11,r27
+ 275:lp_solve_5.5/lp_pricePSE.c ****   if(hold < 0)
+ 1744               		.loc 1 275 0
+ 1745 09b4 20E0      		ldi r18,0
+ 1746 09b6 30E0      		ldi r19,0
+ 1747 09b8 A901      		movw r20,r18
+ 1748 09ba 6885      		ldd r22,Y+8
+ 1749 09bc 7985      		ldd r23,Y+9
+ 1750 09be 8A85      		ldd r24,Y+10
+ 1751 09c0 9B85      		ldd r25,Y+11
+ 1752 09c2 0E94 0000 		call __ltsf2
+ 1753 09c6 8823      		tst r24
+ 1754 09c8 04F4      		brge .L132
+ 276:lp_solve_5.5/lp_pricePSE.c ****     return(ok);
+ 1755               		.loc 1 276 0
+ 1756 09ca 8D81      		ldd r24,Y+5
+ 1757 09cc 00C0      		rjmp .L124
+ 1758               	.L132:
+ 277:lp_solve_5.5/lp_pricePSE.c ****   isDual = (MYBOOL) (hold > 0);
+ 1759               		.loc 1 277 0
+ 1760 09ce 11E0      		ldi r17,lo8(1)
+ 1761 09d0 20E0      		ldi r18,0
+ 1762 09d2 30E0      		ldi r19,0
+ 1763 09d4 A901      		movw r20,r18
+ 1764 09d6 6885      		ldd r22,Y+8
+ 1765 09d8 7985      		ldd r23,Y+9
+ 1766 09da 8A85      		ldd r24,Y+10
+ 1767 09dc 9B85      		ldd r25,Y+11
+ 1768 09de 0E94 0000 		call __gtsf2
+ 1769 09e2 1816      		cp __zero_reg__,r24
+ 1770 09e4 04F0      		brlt .L76
+ 1771 09e6 10E0      		ldi r17,0
+ 1772               	.L76:
+ 1773 09e8 1C87      		std Y+12,r17
+ 278:lp_solve_5.5/lp_pricePSE.c **** 
+ 279:lp_solve_5.5/lp_pricePSE.c ****   /* Do common initializations and computations */
+ 280:lp_solve_5.5/lp_pricePSE.c ****   m = lp->rows;
+ 1774               		.loc 1 280 0
+ 1775 09ea 8DA5      		ldd r24,Y+45
+ 1776 09ec 9EA5      		ldd r25,Y+46
+ 1777 09ee 8651      		subi r24,22
+ 1778 09f0 9E4F      		sbci r25,-2
+ 1779 09f2 FC01      		movw r30,r24
+ 1780 09f4 8081      		ld r24,Z
+ 1781 09f6 9181      		ldd r25,Z+1
+ 1782 09f8 9E87      		std Y+14,r25
+ 1783 09fa 8D87      		std Y+13,r24
+ 281:lp_solve_5.5/lp_pricePSE.c ****   n = lp->sum;
+ 1784               		.loc 1 281 0
+ 1785 09fc 8DA5      		ldd r24,Y+45
+ 1786 09fe 9EA5      		ldd r25,Y+46
+ 1787 0a00 8851      		subi r24,24
+ 1788 0a02 9E4F      		sbci r25,-2
+ 1789 0a04 FC01      		movw r30,r24
+ 1790 0a06 8081      		ld r24,Z
+ 1791 0a08 9181      		ldd r25,Z+1
+ 1792 0a0a 988B      		std Y+16,r25
+ 1793 0a0c 8F87      		std Y+15,r24
+ 282:lp_solve_5.5/lp_pricePSE.c ****   isDEVEX = is_piv_rule(lp, PRICER_DEVEX);
+ 1794               		.loc 1 282 0
+ 1795 0a0e 8DA5      		ldd r24,Y+45
+ 1796 0a10 9EA5      		ldd r25,Y+46
+ 1797 0a12 62E0      		ldi r22,lo8(2)
+ 1798 0a14 70E0      		ldi r23,0
+ 1799 0a16 0E94 0000 		call is_piv_rule
+ 1800 0a1a 8C83      		std Y+4,r24
+ 283:lp_solve_5.5/lp_pricePSE.c ****   exitcol = lp->var_basic[rownr];
+ 1801               		.loc 1 283 0
+ 1802 0a1c 8DA5      		ldd r24,Y+45
+ 1803 0a1e 9EA5      		ldd r25,Y+46
+ 1804 0a20 8453      		subi r24,52
+ 1805 0a22 9D4F      		sbci r25,-3
+ 1806 0a24 FC01      		movw r30,r24
+ 1807 0a26 2081      		ld r18,Z
+ 1808 0a28 3181      		ldd r19,Z+1
+ 1809 0a2a 8FA5      		ldd r24,Y+47
+ 1810 0a2c 98A9      		ldd r25,Y+48
+ 1811 0a2e 880F      		lsl r24
+ 1812 0a30 991F      		rol r25
+ 1813 0a32 820F      		add r24,r18
+ 1814 0a34 931F      		adc r25,r19
+ 1815 0a36 FC01      		movw r30,r24
+ 1816 0a38 8081      		ld r24,Z
+ 1817 0a3a 9181      		ldd r25,Z+1
+ 1818 0a3c 9A8B      		std Y+18,r25
+ 1819 0a3e 898B      		std Y+17,r24
+ 284:lp_solve_5.5/lp_pricePSE.c **** 
+ 285:lp_solve_5.5/lp_pricePSE.c ****   /* Solve/copy Bw = a */
+ 286:lp_solve_5.5/lp_pricePSE.c **** #if 0
+ 287:lp_solve_5.5/lp_pricePSE.c ****   ok = formWeights(lp, colnr, NULL, &w);  /* Compute from scratch - Experimental */
+ 288:lp_solve_5.5/lp_pricePSE.c **** #else
+ 289:lp_solve_5.5/lp_pricePSE.c ****   ok = formWeights(lp, colnr, pcol, &w);  /* Use previously computed values */
+ 1820               		.loc 1 289 0
+ 1821 0a40 9E01      		movw r18,r28
+ 1822 0a42 295D      		subi r18,-39
+ 1823 0a44 3F4F      		sbci r19,-1
+ 1824 0a46 4BA9      		ldd r20,Y+51
+ 1825 0a48 5CA9      		ldd r21,Y+52
+ 1826 0a4a 69A9      		ldd r22,Y+49
+ 1827 0a4c 7AA9      		ldd r23,Y+50
+ 1828 0a4e 8DA5      		ldd r24,Y+45
+ 1829 0a50 9EA5      		ldd r25,Y+46
+ 1830 0a52 0E94 0000 		call formWeights
+ 1831 0a56 8D83      		std Y+5,r24
+ 290:lp_solve_5.5/lp_pricePSE.c **** #endif
+ 291:lp_solve_5.5/lp_pricePSE.c ****   if(!ok)
+ 1832               		.loc 1 291 0
+ 1833 0a58 8D81      		ldd r24,Y+5
+ 1834 0a5a 8823      		tst r24
+ 1835 0a5c 01F4      		brne .L77
+ 292:lp_solve_5.5/lp_pricePSE.c ****     return( ok );
+ 1836               		.loc 1 292 0
+ 1837 0a5e 8D81      		ldd r24,Y+5
+ 1838 0a60 00C0      		rjmp .L124
+ 1839               	.L77:
+ 293:lp_solve_5.5/lp_pricePSE.c **** 
+ 294:lp_solve_5.5/lp_pricePSE.c ****   /* Price norms for the dual simplex - the basic columns */
+ 295:lp_solve_5.5/lp_pricePSE.c ****   if(isDual) {
+ 1840               		.loc 1 295 0
+ 1841 0a62 8C85      		ldd r24,Y+12
+ 1842 0a64 8823      		tst r24
+ 1843 0a66 01F4      		brne .+2
+ 1844 0a68 00C0      		rjmp .L78
+ 1845               	.LBB2:
+ 296:lp_solve_5.5/lp_pricePSE.c ****     REAL rw;
+ 297:lp_solve_5.5/lp_pricePSE.c ****     int  targetcol;
+ 298:lp_solve_5.5/lp_pricePSE.c **** 
+ 299:lp_solve_5.5/lp_pricePSE.c ****     /* Don't need to compute cross-products with DEVEX */
+ 300:lp_solve_5.5/lp_pricePSE.c ****     if(!isDEVEX) {
+ 1846               		.loc 1 300 0
+ 1847 0a6a 8C81      		ldd r24,Y+4
+ 1848 0a6c 8823      		tst r24
+ 1849 0a6e 01F4      		brne .L79
+ 301:lp_solve_5.5/lp_pricePSE.c ****       ok = allocREAL(lp, &vEdge, m+1, FALSE);
+ 1850               		.loc 1 301 0
+ 1851 0a70 8D85      		ldd r24,Y+13
+ 1852 0a72 9E85      		ldd r25,Y+14
+ 1853 0a74 AC01      		movw r20,r24
+ 1854 0a76 4F5F      		subi r20,-1
+ 1855 0a78 5F4F      		sbci r21,-1
+ 1856 0a7a BE01      		movw r22,r28
+ 1857 0a7c 6B5D      		subi r22,-37
+ 1858 0a7e 7F4F      		sbci r23,-1
+ 1859 0a80 8DA5      		ldd r24,Y+45
+ 1860 0a82 9EA5      		ldd r25,Y+46
+ 1861 0a84 20E0      		ldi r18,0
+ 1862 0a86 0E94 0000 		call allocREAL
+ 1863 0a8a 8D83      		std Y+5,r24
+ 302:lp_solve_5.5/lp_pricePSE.c ****       if(!ok)
+ 1864               		.loc 1 302 0
+ 1865 0a8c 8D81      		ldd r24,Y+5
+ 1866 0a8e 8823      		tst r24
+ 1867 0a90 01F4      		brne .L80
+ 303:lp_solve_5.5/lp_pricePSE.c ****         return( ok );
+ 1868               		.loc 1 303 0
+ 1869 0a92 8D81      		ldd r24,Y+5
+ 1870 0a94 00C0      		rjmp .L124
+ 1871               	.L80:
+ 304:lp_solve_5.5/lp_pricePSE.c **** 
+ 305:lp_solve_5.5/lp_pricePSE.c ****     /* Extract the row of the inverse containing the leaving variable
+ 306:lp_solve_5.5/lp_pricePSE.c ****        and then form the dot products against the other variables, i.e. "Tau" */
+ 307:lp_solve_5.5/lp_pricePSE.c **** #if 0 /* Extract row explicitly */
+ 308:lp_solve_5.5/lp_pricePSE.c ****       bsolve(lp, rownr, vEdge, 0, 0.0);
+ 309:lp_solve_5.5/lp_pricePSE.c **** #else /* Reuse previously extracted row data */
+ 310:lp_solve_5.5/lp_pricePSE.c ****       MEMCOPY(vEdge, prow, m+1);
+ 1872               		.loc 1 310 0
+ 1873 0a96 8D85      		ldd r24,Y+13
+ 1874 0a98 9E85      		ldd r25,Y+14
+ 1875 0a9a 0196      		adiw r24,1
+ 1876 0a9c AC01      		movw r20,r24
+ 1877 0a9e 440F      		lsl r20
+ 1878 0aa0 551F      		rol r21
+ 1879 0aa2 440F      		lsl r20
+ 1880 0aa4 551F      		rol r21
+ 1881 0aa6 8DA1      		ldd r24,Y+37
+ 1882 0aa8 9EA1      		ldd r25,Y+38
+ 1883 0aaa 2DA9      		ldd r18,Y+53
+ 1884 0aac 3EA9      		ldd r19,Y+54
+ 1885 0aae B901      		movw r22,r18
+ 1886 0ab0 0E94 0000 		call memcpy
+ 311:lp_solve_5.5/lp_pricePSE.c ****       vEdge[0] = 0;
+ 1887               		.loc 1 311 0
+ 1888 0ab4 8DA1      		ldd r24,Y+37
+ 1889 0ab6 9EA1      		ldd r25,Y+38
+ 1890 0ab8 FC01      		movw r30,r24
+ 1891 0aba 1082      		st Z,__zero_reg__
+ 1892 0abc 1182      		std Z+1,__zero_reg__
+ 1893 0abe 1282      		std Z+2,__zero_reg__
+ 1894 0ac0 1382      		std Z+3,__zero_reg__
+ 312:lp_solve_5.5/lp_pricePSE.c **** #endif
+ 313:lp_solve_5.5/lp_pricePSE.c ****       lp->bfp_ftran_normal(lp, vEdge, NULL);
+ 1895               		.loc 1 313 0
+ 1896 0ac2 8DA5      		ldd r24,Y+45
+ 1897 0ac4 9EA5      		ldd r25,Y+46
+ 1898 0ac6 8E54      		subi r24,78
+ 1899 0ac8 9C4F      		sbci r25,-4
+ 1900 0aca FC01      		movw r30,r24
+ 1901 0acc 2081      		ld r18,Z
+ 1902 0ace 3181      		ldd r19,Z+1
+ 1903 0ad0 6DA1      		ldd r22,Y+37
+ 1904 0ad2 7EA1      		ldd r23,Y+38
+ 1905 0ad4 8DA5      		ldd r24,Y+45
+ 1906 0ad6 9EA5      		ldd r25,Y+46
+ 1907 0ad8 40E0      		ldi r20,0
+ 1908 0ada 50E0      		ldi r21,0
+ 1909 0adc F901      		movw r30,r18
+ 1910 0ade 0995      		icall
+ 1911               	.L79:
+ 314:lp_solve_5.5/lp_pricePSE.c ****     }
+ 315:lp_solve_5.5/lp_pricePSE.c **** 
+ 316:lp_solve_5.5/lp_pricePSE.c ****     /* Update the squared steepest edge norms; first store some constants */
+ 317:lp_solve_5.5/lp_pricePSE.c ****     cEdge = lp->edgeVector[exitcol];
+ 1912               		.loc 1 317 0
+ 1913 0ae0 8DA5      		ldd r24,Y+45
+ 1914 0ae2 9EA5      		ldd r25,Y+46
+ 1915 0ae4 885E      		subi r24,-24
+ 1916 0ae6 9D4F      		sbci r25,-3
+ 1917 0ae8 FC01      		movw r30,r24
+ 1918 0aea 2081      		ld r18,Z
+ 1919 0aec 3181      		ldd r19,Z+1
+ 1920 0aee 8989      		ldd r24,Y+17
+ 1921 0af0 9A89      		ldd r25,Y+18
+ 1922 0af2 880F      		lsl r24
+ 1923 0af4 991F      		rol r25
+ 1924 0af6 880F      		lsl r24
+ 1925 0af8 991F      		rol r25
+ 1926 0afa 820F      		add r24,r18
+ 1927 0afc 931F      		adc r25,r19
+ 1928 0afe FC01      		movw r30,r24
+ 1929 0b00 8081      		ld r24,Z
+ 1930 0b02 9181      		ldd r25,Z+1
+ 1931 0b04 A281      		ldd r26,Z+2
+ 1932 0b06 B381      		ldd r27,Z+3
+ 1933 0b08 8B8B      		std Y+19,r24
+ 1934 0b0a 9C8B      		std Y+20,r25
+ 1935 0b0c AD8B      		std Y+21,r26
+ 1936 0b0e BE8B      		std Y+22,r27
+ 318:lp_solve_5.5/lp_pricePSE.c ****     rw = w[rownr];
+ 1937               		.loc 1 318 0
+ 1938 0b10 2FA1      		ldd r18,Y+39
+ 1939 0b12 38A5      		ldd r19,Y+40
+ 1940 0b14 8FA5      		ldd r24,Y+47
+ 1941 0b16 98A9      		ldd r25,Y+48
+ 1942 0b18 880F      		lsl r24
+ 1943 0b1a 991F      		rol r25
+ 1944 0b1c 880F      		lsl r24
+ 1945 0b1e 991F      		rol r25
+ 1946 0b20 820F      		add r24,r18
+ 1947 0b22 931F      		adc r25,r19
+ 1948 0b24 FC01      		movw r30,r24
+ 1949 0b26 8081      		ld r24,Z
+ 1950 0b28 9181      		ldd r25,Z+1
+ 1951 0b2a A281      		ldd r26,Z+2
+ 1952 0b2c B381      		ldd r27,Z+3
+ 1953 0b2e 8F8B      		std Y+23,r24
+ 1954 0b30 988F      		std Y+24,r25
+ 1955 0b32 A98F      		std Y+25,r26
+ 1956 0b34 BA8F      		std Y+26,r27
+ 319:lp_solve_5.5/lp_pricePSE.c ****     if(fabs(rw) < lp->epspivot) {
+ 1957               		.loc 1 319 0
+ 1958 0b36 8F89      		ldd r24,Y+23
+ 1959 0b38 988D      		ldd r25,Y+24
+ 1960 0b3a A98D      		ldd r26,Y+25
+ 1961 0b3c BA8D      		ldd r27,Y+26
+ 1962 0b3e BF77      		andi r27,0x7f
+ 1963 0b40 2DA5      		ldd r18,Y+45
+ 1964 0b42 3EA5      		ldd r19,Y+46
+ 1965 0b44 2E5D      		subi r18,-34
+ 1966 0b46 3C4F      		sbci r19,-4
+ 1967 0b48 F901      		movw r30,r18
+ 1968 0b4a 2081      		ld r18,Z
+ 1969 0b4c 3181      		ldd r19,Z+1
+ 1970 0b4e 4281      		ldd r20,Z+2
+ 1971 0b50 5381      		ldd r21,Z+3
+ 1972 0b52 BC01      		movw r22,r24
+ 1973 0b54 CD01      		movw r24,r26
+ 1974 0b56 0E94 0000 		call __ltsf2
+ 1975 0b5a 8823      		tst r24
+ 1976 0b5c 04F4      		brge .L133
+ 320:lp_solve_5.5/lp_pricePSE.c ****       forceRefresh = TRUE;
+ 1977               		.loc 1 320 0
+ 1978 0b5e 81E0      		ldi r24,lo8(1)
+ 1979 0b60 8B83      		std Y+3,r24
+ 321:lp_solve_5.5/lp_pricePSE.c ****       goto Finish2;
+ 1980               		.loc 1 321 0
+ 1981 0b62 00C0      		rjmp .L83
+ 1982               	.L133:
+ 322:lp_solve_5.5/lp_pricePSE.c ****     }
+ 323:lp_solve_5.5/lp_pricePSE.c **** 
+ 324:lp_solve_5.5/lp_pricePSE.c ****    /* Deal with the variable entering the basis to become a new leaving candidate */
+ 325:lp_solve_5.5/lp_pricePSE.c ****     hold = 1 / rw;
+ 1983               		.loc 1 325 0
+ 1984 0b64 2F89      		ldd r18,Y+23
+ 1985 0b66 388D      		ldd r19,Y+24
+ 1986 0b68 498D      		ldd r20,Y+25
+ 1987 0b6a 5A8D      		ldd r21,Y+26
+ 1988 0b6c 60E0      		ldi r22,0
+ 1989 0b6e 70E0      		ldi r23,0
+ 1990 0b70 80E8      		ldi r24,lo8(-128)
+ 1991 0b72 9FE3      		ldi r25,lo8(63)
+ 1992 0b74 0E94 0000 		call __divsf3
+ 1993 0b78 DC01      		movw r26,r24
+ 1994 0b7a CB01      		movw r24,r22
+ 1995 0b7c 8887      		std Y+8,r24
+ 1996 0b7e 9987      		std Y+9,r25
+ 1997 0b80 AA87      		std Y+10,r26
+ 1998 0b82 BB87      		std Y+11,r27
+ 326:lp_solve_5.5/lp_pricePSE.c ****     lp->edgeVector[colnr] = (hold*hold) * cEdge;
+ 1999               		.loc 1 326 0
+ 2000 0b84 8DA5      		ldd r24,Y+45
+ 2001 0b86 9EA5      		ldd r25,Y+46
+ 2002 0b88 885E      		subi r24,-24
+ 2003 0b8a 9D4F      		sbci r25,-3
+ 2004 0b8c FC01      		movw r30,r24
+ 2005 0b8e 2081      		ld r18,Z
+ 2006 0b90 3181      		ldd r19,Z+1
+ 2007 0b92 89A9      		ldd r24,Y+49
+ 2008 0b94 9AA9      		ldd r25,Y+50
+ 2009 0b96 880F      		lsl r24
+ 2010 0b98 991F      		rol r25
+ 2011 0b9a 880F      		lsl r24
+ 2012 0b9c 991F      		rol r25
+ 2013 0b9e 8901      		movw r16,r18
+ 2014 0ba0 080F      		add r16,r24
+ 2015 0ba2 191F      		adc r17,r25
+ 2016 0ba4 2885      		ldd r18,Y+8
+ 2017 0ba6 3985      		ldd r19,Y+9
+ 2018 0ba8 4A85      		ldd r20,Y+10
+ 2019 0baa 5B85      		ldd r21,Y+11
+ 2020 0bac 6885      		ldd r22,Y+8
+ 2021 0bae 7985      		ldd r23,Y+9
+ 2022 0bb0 8A85      		ldd r24,Y+10
+ 2023 0bb2 9B85      		ldd r25,Y+11
+ 2024 0bb4 0E94 0000 		call __mulsf3
+ 2025 0bb8 DC01      		movw r26,r24
+ 2026 0bba CB01      		movw r24,r22
+ 2027 0bbc 2B89      		ldd r18,Y+19
+ 2028 0bbe 3C89      		ldd r19,Y+20
+ 2029 0bc0 4D89      		ldd r20,Y+21
+ 2030 0bc2 5E89      		ldd r21,Y+22
+ 2031 0bc4 BC01      		movw r22,r24
+ 2032 0bc6 CD01      		movw r24,r26
+ 2033 0bc8 0E94 0000 		call __mulsf3
+ 2034 0bcc DC01      		movw r26,r24
+ 2035 0bce CB01      		movw r24,r22
+ 2036 0bd0 F801      		movw r30,r16
+ 2037 0bd2 8083      		st Z,r24
+ 2038 0bd4 9183      		std Z+1,r25
+ 2039 0bd6 A283      		std Z+2,r26
+ 2040 0bd8 B383      		std Z+3,r27
+ 327:lp_solve_5.5/lp_pricePSE.c **** 
+ 328:lp_solve_5.5/lp_pricePSE.c **** #ifdef Paranoia
+ 329:lp_solve_5.5/lp_pricePSE.c ****     if(lp->edgeVector[colnr] <= lp->epsmachine)
+ 330:lp_solve_5.5/lp_pricePSE.c ****       report(lp, errlevel, "updatePricer: Invalid dual norm %g at entering index %d - iteration %.0
+ 331:lp_solve_5.5/lp_pricePSE.c ****                            lp->edgeVector[colnr], rownr, (double) (lp->total_iter+lp->current_iter)
+ 332:lp_solve_5.5/lp_pricePSE.c **** #endif
+ 333:lp_solve_5.5/lp_pricePSE.c **** 
+ 334:lp_solve_5.5/lp_pricePSE.c ****    /* Then loop over all basic variables, but skip the leaving row */
+ 335:lp_solve_5.5/lp_pricePSE.c ****     for(i = 1; i <= m; i++) {
+ 2041               		.loc 1 335 0
+ 2042 0bda 81E0      		ldi r24,lo8(1)
+ 2043 0bdc 90E0      		ldi r25,0
+ 2044 0bde 9A83      		std Y+2,r25
+ 2045 0be0 8983      		std Y+1,r24
+ 2046 0be2 00C0      		rjmp .L84
+ 2047               	.L95:
+ 336:lp_solve_5.5/lp_pricePSE.c ****       if(i == rownr)
+ 2048               		.loc 1 336 0
+ 2049 0be4 2981      		ldd r18,Y+1
+ 2050 0be6 3A81      		ldd r19,Y+2
+ 2051 0be8 8FA5      		ldd r24,Y+47
+ 2052 0bea 98A9      		ldd r25,Y+48
+ 2053 0bec 2817      		cp r18,r24
+ 2054 0bee 3907      		cpc r19,r25
+ 2055 0bf0 01F4      		brne .+2
+ 2056 0bf2 00C0      		rjmp .L135
+ 337:lp_solve_5.5/lp_pricePSE.c ****         continue;
+ 338:lp_solve_5.5/lp_pricePSE.c ****       targetcol = lp->var_basic[i];
+ 2057               		.loc 1 338 0
+ 2058 0bf4 8DA5      		ldd r24,Y+45
+ 2059 0bf6 9EA5      		ldd r25,Y+46
+ 2060 0bf8 8453      		subi r24,52
+ 2061 0bfa 9D4F      		sbci r25,-3
+ 2062 0bfc FC01      		movw r30,r24
+ 2063 0bfe 2081      		ld r18,Z
+ 2064 0c00 3181      		ldd r19,Z+1
+ 2065 0c02 8981      		ldd r24,Y+1
+ 2066 0c04 9A81      		ldd r25,Y+2
+ 2067 0c06 880F      		lsl r24
+ 2068 0c08 991F      		rol r25
+ 2069 0c0a 820F      		add r24,r18
+ 2070 0c0c 931F      		adc r25,r19
+ 2071 0c0e FC01      		movw r30,r24
+ 2072 0c10 8081      		ld r24,Z
+ 2073 0c12 9181      		ldd r25,Z+1
+ 2074 0c14 9C8F      		std Y+28,r25
+ 2075 0c16 8B8F      		std Y+27,r24
+ 339:lp_solve_5.5/lp_pricePSE.c ****       hold = w[i];
+ 2076               		.loc 1 339 0
+ 2077 0c18 2FA1      		ldd r18,Y+39
+ 2078 0c1a 38A5      		ldd r19,Y+40
+ 2079 0c1c 8981      		ldd r24,Y+1
+ 2080 0c1e 9A81      		ldd r25,Y+2
+ 2081 0c20 880F      		lsl r24
+ 2082 0c22 991F      		rol r25
+ 2083 0c24 880F      		lsl r24
+ 2084 0c26 991F      		rol r25
+ 2085 0c28 820F      		add r24,r18
+ 2086 0c2a 931F      		adc r25,r19
+ 2087 0c2c FC01      		movw r30,r24
+ 2088 0c2e 8081      		ld r24,Z
+ 2089 0c30 9181      		ldd r25,Z+1
+ 2090 0c32 A281      		ldd r26,Z+2
+ 2091 0c34 B381      		ldd r27,Z+3
+ 2092 0c36 8887      		std Y+8,r24
+ 2093 0c38 9987      		std Y+9,r25
+ 2094 0c3a AA87      		std Y+10,r26
+ 2095 0c3c BB87      		std Y+11,r27
+ 340:lp_solve_5.5/lp_pricePSE.c ****       if(hold == 0)
+ 2096               		.loc 1 340 0
+ 2097 0c3e 20E0      		ldi r18,0
+ 2098 0c40 30E0      		ldi r19,0
+ 2099 0c42 A901      		movw r20,r18
+ 2100 0c44 6885      		ldd r22,Y+8
+ 2101 0c46 7985      		ldd r23,Y+9
+ 2102 0c48 8A85      		ldd r24,Y+10
+ 2103 0c4a 9B85      		ldd r25,Y+11
+ 2104 0c4c 0E94 0000 		call __eqsf2
+ 2105 0c50 8823      		tst r24
+ 2106 0c52 01F4      		brne .+2
+ 2107 0c54 00C0      		rjmp .L136
+ 341:lp_solve_5.5/lp_pricePSE.c ****         continue;
+ 342:lp_solve_5.5/lp_pricePSE.c ****       hold /= rw;
+ 2108               		.loc 1 342 0
+ 2109 0c56 2F89      		ldd r18,Y+23
+ 2110 0c58 388D      		ldd r19,Y+24
+ 2111 0c5a 498D      		ldd r20,Y+25
+ 2112 0c5c 5A8D      		ldd r21,Y+26
+ 2113 0c5e 6885      		ldd r22,Y+8
+ 2114 0c60 7985      		ldd r23,Y+9
+ 2115 0c62 8A85      		ldd r24,Y+10
+ 2116 0c64 9B85      		ldd r25,Y+11
+ 2117 0c66 0E94 0000 		call __divsf3
+ 2118 0c6a DC01      		movw r26,r24
+ 2119 0c6c CB01      		movw r24,r22
+ 2120 0c6e 8887      		std Y+8,r24
+ 2121 0c70 9987      		std Y+9,r25
+ 2122 0c72 AA87      		std Y+10,r26
+ 2123 0c74 BB87      		std Y+11,r27
+ 343:lp_solve_5.5/lp_pricePSE.c ****       if(fabs(hold) < lp->epsmachine)
+ 2124               		.loc 1 343 0
+ 2125 0c76 8885      		ldd r24,Y+8
+ 2126 0c78 9985      		ldd r25,Y+9
+ 2127 0c7a AA85      		ldd r26,Y+10
+ 2128 0c7c BB85      		ldd r27,Y+11
+ 2129 0c7e BF77      		andi r27,0x7f
+ 2130 0c80 2DA5      		ldd r18,Y+45
+ 2131 0c82 3EA5      		ldd r19,Y+46
+ 2132 0c84 2E5E      		subi r18,-18
+ 2133 0c86 3C4F      		sbci r19,-4
+ 2134 0c88 F901      		movw r30,r18
+ 2135 0c8a 2081      		ld r18,Z
+ 2136 0c8c 3181      		ldd r19,Z+1
+ 2137 0c8e 4281      		ldd r20,Z+2
+ 2138 0c90 5381      		ldd r21,Z+3
+ 2139 0c92 BC01      		movw r22,r24
+ 2140 0c94 CD01      		movw r24,r26
+ 2141 0c96 0E94 0000 		call __ltsf2
+ 2142 0c9a 8823      		tst r24
+ 2143 0c9c 04F4      		brge .+2
+ 2144 0c9e 00C0      		rjmp .L137
+ 344:lp_solve_5.5/lp_pricePSE.c ****         continue;
+ 345:lp_solve_5.5/lp_pricePSE.c **** 
+ 346:lp_solve_5.5/lp_pricePSE.c ****       newEdge = &(lp->edgeVector[targetcol]);
+ 2145               		.loc 1 346 0
+ 2146 0ca0 8DA5      		ldd r24,Y+45
+ 2147 0ca2 9EA5      		ldd r25,Y+46
+ 2148 0ca4 885E      		subi r24,-24
+ 2149 0ca6 9D4F      		sbci r25,-3
+ 2150 0ca8 FC01      		movw r30,r24
+ 2151 0caa 2081      		ld r18,Z
+ 2152 0cac 3181      		ldd r19,Z+1
+ 2153 0cae 8B8D      		ldd r24,Y+27
+ 2154 0cb0 9C8D      		ldd r25,Y+28
+ 2155 0cb2 880F      		lsl r24
+ 2156 0cb4 991F      		rol r25
+ 2157 0cb6 880F      		lsl r24
+ 2158 0cb8 991F      		rol r25
+ 2159 0cba 820F      		add r24,r18
+ 2160 0cbc 931F      		adc r25,r19
+ 2161 0cbe 9E8F      		std Y+30,r25
+ 2162 0cc0 8D8F      		std Y+29,r24
+ 347:lp_solve_5.5/lp_pricePSE.c ****       *newEdge += (hold*hold) * cEdge;
+ 2163               		.loc 1 347 0
+ 2164 0cc2 8D8D      		ldd r24,Y+29
+ 2165 0cc4 9E8D      		ldd r25,Y+30
+ 2166 0cc6 FC01      		movw r30,r24
+ 2167 0cc8 C080      		ld r12,Z
+ 2168 0cca D180      		ldd r13,Z+1
+ 2169 0ccc E280      		ldd r14,Z+2
+ 2170 0cce F380      		ldd r15,Z+3
+ 2171 0cd0 2885      		ldd r18,Y+8
+ 2172 0cd2 3985      		ldd r19,Y+9
+ 2173 0cd4 4A85      		ldd r20,Y+10
+ 2174 0cd6 5B85      		ldd r21,Y+11
+ 2175 0cd8 6885      		ldd r22,Y+8
+ 2176 0cda 7985      		ldd r23,Y+9
+ 2177 0cdc 8A85      		ldd r24,Y+10
+ 2178 0cde 9B85      		ldd r25,Y+11
+ 2179 0ce0 0E94 0000 		call __mulsf3
+ 2180 0ce4 DC01      		movw r26,r24
+ 2181 0ce6 CB01      		movw r24,r22
+ 2182 0ce8 2B89      		ldd r18,Y+19
+ 2183 0cea 3C89      		ldd r19,Y+20
+ 2184 0cec 4D89      		ldd r20,Y+21
+ 2185 0cee 5E89      		ldd r21,Y+22
+ 2186 0cf0 BC01      		movw r22,r24
+ 2187 0cf2 CD01      		movw r24,r26
+ 2188 0cf4 0E94 0000 		call __mulsf3
+ 2189 0cf8 DC01      		movw r26,r24
+ 2190 0cfa CB01      		movw r24,r22
+ 2191 0cfc 9C01      		movw r18,r24
+ 2192 0cfe AD01      		movw r20,r26
+ 2193 0d00 C701      		movw r24,r14
+ 2194 0d02 B601      		movw r22,r12
+ 2195 0d04 0E94 0000 		call __addsf3
+ 2196 0d08 DC01      		movw r26,r24
+ 2197 0d0a CB01      		movw r24,r22
+ 2198 0d0c 2D8D      		ldd r18,Y+29
+ 2199 0d0e 3E8D      		ldd r19,Y+30
+ 2200 0d10 F901      		movw r30,r18
+ 2201 0d12 8083      		st Z,r24
+ 2202 0d14 9183      		std Z+1,r25
+ 2203 0d16 A283      		std Z+2,r26
+ 2204 0d18 B383      		std Z+3,r27
+ 348:lp_solve_5.5/lp_pricePSE.c ****       if(isDEVEX) {
+ 2205               		.loc 1 348 0
+ 2206 0d1a 8C81      		ldd r24,Y+4
+ 2207 0d1c 8823      		tst r24
+ 2208 0d1e 01F0      		breq .L91
+ 349:lp_solve_5.5/lp_pricePSE.c ****         if((*newEdge) > DEVEX_RESTARTLIMIT) {
+ 2209               		.loc 1 349 0
+ 2210 0d20 8D8D      		ldd r24,Y+29
+ 2211 0d22 9E8D      		ldd r25,Y+30
+ 2212 0d24 FC01      		movw r30,r24
+ 2213 0d26 8081      		ld r24,Z
+ 2214 0d28 9181      		ldd r25,Z+1
+ 2215 0d2a A281      		ldd r26,Z+2
+ 2216 0d2c B381      		ldd r27,Z+3
+ 2217 0d2e 28E2      		ldi r18,lo8(40)
+ 2218 0d30 3BE6      		ldi r19,lo8(107)
+ 2219 0d32 4EE6      		ldi r20,lo8(110)
+ 2220 0d34 5EE4      		ldi r21,lo8(78)
+ 2221 0d36 BC01      		movw r22,r24
+ 2222 0d38 CD01      		movw r24,r26
+ 2223 0d3a 0E94 0000 		call __gtsf2
+ 2224 0d3e 1816      		cp __zero_reg__,r24
+ 2225 0d40 04F0      		brlt .+2
+ 2226 0d42 00C0      		rjmp .L86
+ 350:lp_solve_5.5/lp_pricePSE.c ****           forceRefresh = TRUE;
+ 2227               		.loc 1 350 0
+ 2228 0d44 81E0      		ldi r24,lo8(1)
+ 2229 0d46 8B83      		std Y+3,r24
+ 351:lp_solve_5.5/lp_pricePSE.c ****           break;
+ 2230               		.loc 1 351 0
+ 2231 0d48 00C0      		rjmp .L83
+ 2232               	.L91:
+ 352:lp_solve_5.5/lp_pricePSE.c ****         }
+ 353:lp_solve_5.5/lp_pricePSE.c ****       }
+ 354:lp_solve_5.5/lp_pricePSE.c ****       else {
+ 355:lp_solve_5.5/lp_pricePSE.c ****         *newEdge -= 2*hold*vEdge[i];
+ 2233               		.loc 1 355 0
+ 2234 0d4a 8D8D      		ldd r24,Y+29
+ 2235 0d4c 9E8D      		ldd r25,Y+30
+ 2236 0d4e FC01      		movw r30,r24
+ 2237 0d50 C080      		ld r12,Z
+ 2238 0d52 D180      		ldd r13,Z+1
+ 2239 0d54 E280      		ldd r14,Z+2
+ 2240 0d56 F380      		ldd r15,Z+3
+ 2241 0d58 8885      		ldd r24,Y+8
+ 2242 0d5a 9985      		ldd r25,Y+9
+ 2243 0d5c AA85      		ldd r26,Y+10
+ 2244 0d5e BB85      		ldd r27,Y+11
+ 2245 0d60 9C01      		movw r18,r24
+ 2246 0d62 AD01      		movw r20,r26
+ 2247 0d64 BC01      		movw r22,r24
+ 2248 0d66 CD01      		movw r24,r26
+ 2249 0d68 0E94 0000 		call __addsf3
+ 2250 0d6c DC01      		movw r26,r24
+ 2251 0d6e CB01      		movw r24,r22
+ 2252 0d70 4C01      		movw r8,r24
+ 2253 0d72 5D01      		movw r10,r26
+ 2254 0d74 2DA1      		ldd r18,Y+37
+ 2255 0d76 3EA1      		ldd r19,Y+38
+ 2256 0d78 8981      		ldd r24,Y+1
+ 2257 0d7a 9A81      		ldd r25,Y+2
+ 2258 0d7c 880F      		lsl r24
+ 2259 0d7e 991F      		rol r25
+ 2260 0d80 880F      		lsl r24
+ 2261 0d82 991F      		rol r25
+ 2262 0d84 820F      		add r24,r18
+ 2263 0d86 931F      		adc r25,r19
+ 2264 0d88 FC01      		movw r30,r24
+ 2265 0d8a 8081      		ld r24,Z
+ 2266 0d8c 9181      		ldd r25,Z+1
+ 2267 0d8e A281      		ldd r26,Z+2
+ 2268 0d90 B381      		ldd r27,Z+3
+ 2269 0d92 9C01      		movw r18,r24
+ 2270 0d94 AD01      		movw r20,r26
+ 2271 0d96 C501      		movw r24,r10
+ 2272 0d98 B401      		movw r22,r8
+ 2273 0d9a 0E94 0000 		call __mulsf3
+ 2274 0d9e DC01      		movw r26,r24
+ 2275 0da0 CB01      		movw r24,r22
+ 2276 0da2 9C01      		movw r18,r24
+ 2277 0da4 AD01      		movw r20,r26
+ 2278 0da6 C701      		movw r24,r14
+ 2279 0da8 B601      		movw r22,r12
+ 2280 0daa 0E94 0000 		call __subsf3
+ 2281 0dae DC01      		movw r26,r24
+ 2282 0db0 CB01      		movw r24,r22
+ 2283 0db2 2D8D      		ldd r18,Y+29
+ 2284 0db4 3E8D      		ldd r19,Y+30
+ 2285 0db6 F901      		movw r30,r18
+ 2286 0db8 8083      		st Z,r24
+ 2287 0dba 9183      		std Z+1,r25
+ 2288 0dbc A283      		std Z+2,r26
+ 2289 0dbe B383      		std Z+3,r27
+ 356:lp_solve_5.5/lp_pricePSE.c **** #ifdef xxApplySteepestEdgeMinimum
+ 357:lp_solve_5.5/lp_pricePSE.c ****         SETMAX(*newEdge, hold*hold+1); /* Kludge; use the primal lower bound */
+ 358:lp_solve_5.5/lp_pricePSE.c **** #else
+ 359:lp_solve_5.5/lp_pricePSE.c ****         if(*newEdge <= 0) {
+ 2290               		.loc 1 359 0
+ 2291 0dc0 8D8D      		ldd r24,Y+29
+ 2292 0dc2 9E8D      		ldd r25,Y+30
+ 2293 0dc4 FC01      		movw r30,r24
+ 2294 0dc6 8081      		ld r24,Z
+ 2295 0dc8 9181      		ldd r25,Z+1
+ 2296 0dca A281      		ldd r26,Z+2
+ 2297 0dcc B381      		ldd r27,Z+3
+ 2298 0dce 20E0      		ldi r18,0
+ 2299 0dd0 30E0      		ldi r19,0
+ 2300 0dd2 A901      		movw r20,r18
+ 2301 0dd4 BC01      		movw r22,r24
+ 2302 0dd6 CD01      		movw r24,r26
+ 2303 0dd8 0E94 0000 		call __lesf2
+ 2304 0ddc 1816      		cp __zero_reg__,r24
+ 2305 0dde 04F4      		brge .+2
+ 2306 0de0 00C0      		rjmp .L86
+ 360:lp_solve_5.5/lp_pricePSE.c ****           report(lp, errlevel, "updatePricer: Invalid dual norm %g at index %d - iteration %.0f\n",
+ 361:lp_solve_5.5/lp_pricePSE.c ****                                 *newEdge, i, (double) (lp->total_iter+lp->current_iter));
+ 2307               		.loc 1 361 0
+ 2308 0de2 8DA5      		ldd r24,Y+45
+ 2309 0de4 9EA5      		ldd r25,Y+46
+ 2310 0de6 885C      		subi r24,-56
+ 2311 0de8 9D4F      		sbci r25,-3
+ 2312 0dea FC01      		movw r30,r24
+ 2313 0dec A080      		ld r10,Z
+ 2314 0dee FC01      		movw r30,r24
+ 2315 0df0 B180      		ldd r11,Z+1
+ 2316 0df2 FC01      		movw r30,r24
+ 2317 0df4 C280      		ldd r12,Z+2
+ 2318 0df6 FC01      		movw r30,r24
+ 2319 0df8 D380      		ldd r13,Z+3
+ 2320 0dfa FC01      		movw r30,r24
+ 2321 0dfc E480      		ldd r14,Z+4
+ 2322 0dfe FC01      		movw r30,r24
+ 2323 0e00 F580      		ldd r15,Z+5
+ 2324 0e02 FC01      		movw r30,r24
+ 2325 0e04 0681      		ldd r16,Z+6
+ 2326 0e06 FC01      		movw r30,r24
+ 2327 0e08 1781      		ldd r17,Z+7
+ 2328 0e0a 8DA5      		ldd r24,Y+45
+ 2329 0e0c 9EA5      		ldd r25,Y+46
+ 2330 0e0e 805D      		subi r24,-48
+ 2331 0e10 9D4F      		sbci r25,-3
+ 2332 0e12 FC01      		movw r30,r24
+ 2333 0e14 2080      		ld r2,Z
+ 2334 0e16 FC01      		movw r30,r24
+ 2335 0e18 3180      		ldd r3,Z+1
+ 2336 0e1a FC01      		movw r30,r24
+ 2337 0e1c 4280      		ldd r4,Z+2
+ 2338 0e1e FC01      		movw r30,r24
+ 2339 0e20 5380      		ldd r5,Z+3
+ 2340 0e22 FC01      		movw r30,r24
+ 2341 0e24 6480      		ldd r6,Z+4
+ 2342 0e26 FC01      		movw r30,r24
+ 2343 0e28 7580      		ldd r7,Z+5
+ 2344 0e2a FC01      		movw r30,r24
+ 2345 0e2c 8680      		ldd r8,Z+6
+ 2346 0e2e FC01      		movw r30,r24
+ 2347 0e30 9780      		ldd r9,Z+7
+ 2348 0e32 2A2D      		mov r18,r10
+ 2349 0e34 3B2D      		mov r19,r11
+ 2350 0e36 4C2D      		mov r20,r12
+ 2351 0e38 5D2D      		mov r21,r13
+ 2352 0e3a 6E2D      		mov r22,r14
+ 2353 0e3c 7F2D      		mov r23,r15
+ 2354 0e3e 802F      		mov r24,r16
+ 2355 0e40 912F      		mov r25,r17
+ 2356 0e42 A22C      		mov r10,r2
+ 2357 0e44 B32C      		mov r11,r3
+ 2358 0e46 C42C      		mov r12,r4
+ 2359 0e48 D52C      		mov r13,r5
+ 2360 0e4a E62C      		mov r14,r6
+ 2361 0e4c F72C      		mov r15,r7
+ 2362 0e4e 082D      		mov r16,r8
+ 2363 0e50 192D      		mov r17,r9
+ 2364 0e52 0E94 0000 		call __adddi3
+ 2365 0e56 A22E      		mov r10,r18
+ 2366 0e58 B32E      		mov r11,r19
+ 2367 0e5a C42E      		mov r12,r20
+ 2368 0e5c D52E      		mov r13,r21
+ 2369 0e5e E62E      		mov r14,r22
+ 2370 0e60 F72E      		mov r15,r23
+ 2371 0e62 082F      		mov r16,r24
+ 2372 0e64 192F      		mov r17,r25
+ 360:lp_solve_5.5/lp_pricePSE.c ****           report(lp, errlevel, "updatePricer: Invalid dual norm %g at index %d - iteration %.0f\n",
+ 2373               		.loc 1 360 0
+ 2374 0e66 2A2D      		mov r18,r10
+ 2375 0e68 3B2D      		mov r19,r11
+ 2376 0e6a 4C2D      		mov r20,r12
+ 2377 0e6c 5D2D      		mov r21,r13
+ 2378 0e6e 6E2D      		mov r22,r14
+ 2379 0e70 7F2D      		mov r23,r15
+ 2380 0e72 802F      		mov r24,r16
+ 2381 0e74 912F      		mov r25,r17
+ 2382 0e76 0E94 0000 		call __floatdisf
+ 2383 0e7a 9B01      		movw r18,r22
+ 2384 0e7c AC01      		movw r20,r24
+ 2385 0e7e 8D8D      		ldd r24,Y+29
+ 2386 0e80 9E8D      		ldd r25,Y+30
+ 2387 0e82 FC01      		movw r30,r24
+ 2388 0e84 8081      		ld r24,Z
+ 2389 0e86 9181      		ldd r25,Z+1
+ 2390 0e88 A281      		ldd r26,Z+2
+ 2391 0e8a B381      		ldd r27,Z+3
+ 2392 0e8c 652F      		mov r22,r21
+ 2393 0e8e 6F93      		push r22
+ 2394 0e90 642F      		mov r22,r20
+ 2395 0e92 6F93      		push r22
+ 2396 0e94 632F      		mov r22,r19
+ 2397 0e96 6F93      		push r22
+ 2398 0e98 2F93      		push r18
+ 2399 0e9a 2A81      		ldd r18,Y+2
+ 2400 0e9c 2F93      		push r18
+ 2401 0e9e 2981      		ldd r18,Y+1
+ 2402 0ea0 2F93      		push r18
+ 2403 0ea2 2B2F      		mov r18,r27
+ 2404 0ea4 2F93      		push r18
+ 2405 0ea6 2A2F      		mov r18,r26
+ 2406 0ea8 2F93      		push r18
+ 2407 0eaa 292F      		mov r18,r25
+ 2408 0eac 2F93      		push r18
+ 2409 0eae 8F93      		push r24
+ 2410 0eb0 80E0      		ldi r24,lo8(.LC1)
+ 2411 0eb2 90E0      		ldi r25,hi8(.LC1)
+ 2412 0eb4 892F      		mov r24,r25
+ 2413 0eb6 8F93      		push r24
+ 2414 0eb8 80E0      		ldi r24,lo8(.LC1)
+ 2415 0eba 90E0      		ldi r25,hi8(.LC1)
+ 2416 0ebc 8F93      		push r24
+ 2417 0ebe 8F81      		ldd r24,Y+7
+ 2418 0ec0 8F93      		push r24
+ 2419 0ec2 8E81      		ldd r24,Y+6
+ 2420 0ec4 8F93      		push r24
+ 2421 0ec6 8EA5      		ldd r24,Y+46
+ 2422 0ec8 8F93      		push r24
+ 2423 0eca 8DA5      		ldd r24,Y+45
+ 2424 0ecc 8F93      		push r24
+ 2425 0ece 0E94 0000 		call report
+ 2426 0ed2 8DB7      		in r24,__SP_L__
+ 2427 0ed4 9EB7      		in r25,__SP_H__
+ 2428 0ed6 4096      		adiw r24,16
+ 2429 0ed8 0FB6      		in __tmp_reg__,__SREG__
+ 2430 0eda F894      		cli
+ 2431 0edc DEBF      		out __SP_H__,r29
+ 2432 0ede 0FBE      		out __SREG__,__tmp_reg__
+ 2433 0ee0 CDBF      		out __SP_L__,r28
+ 362:lp_solve_5.5/lp_pricePSE.c ****           forceRefresh = TRUE;
+ 2434               		.loc 1 362 0
+ 2435 0ee2 81E0      		ldi r24,lo8(1)
+ 2436 0ee4 8B83      		std Y+3,r24
+ 363:lp_solve_5.5/lp_pricePSE.c ****           break;
+ 2437               		.loc 1 363 0
+ 2438 0ee6 00C0      		rjmp .L83
+ 2439               	.L135:
+ 337:lp_solve_5.5/lp_pricePSE.c ****       targetcol = lp->var_basic[i];
+ 2440               		.loc 1 337 0
+ 2441 0ee8 0000      		nop
+ 2442 0eea 00C0      		rjmp .L86
+ 2443               	.L136:
+ 341:lp_solve_5.5/lp_pricePSE.c ****       hold /= rw;
+ 2444               		.loc 1 341 0
+ 2445 0eec 0000      		nop
+ 2446 0eee 00C0      		rjmp .L86
+ 2447               	.L137:
+ 344:lp_solve_5.5/lp_pricePSE.c **** 
+ 2448               		.loc 1 344 0
+ 2449 0ef0 0000      		nop
+ 2450               	.L86:
+ 335:lp_solve_5.5/lp_pricePSE.c ****       if(i == rownr)
+ 2451               		.loc 1 335 0 discriminator 2
+ 2452 0ef2 8981      		ldd r24,Y+1
+ 2453 0ef4 9A81      		ldd r25,Y+2
+ 2454 0ef6 0196      		adiw r24,1
+ 2455 0ef8 9A83      		std Y+2,r25
+ 2456 0efa 8983      		std Y+1,r24
+ 2457               	.L84:
+ 335:lp_solve_5.5/lp_pricePSE.c ****       if(i == rownr)
+ 2458               		.loc 1 335 0 is_stmt 0 discriminator 1
+ 2459 0efc 2981      		ldd r18,Y+1
+ 2460 0efe 3A81      		ldd r19,Y+2
+ 2461 0f00 8D85      		ldd r24,Y+13
+ 2462 0f02 9E85      		ldd r25,Y+14
+ 2463 0f04 8217      		cp r24,r18
+ 2464 0f06 9307      		cpc r25,r19
+ 2465 0f08 04F0      		brlt .+2
+ 2466 0f0a 00C0      		rjmp .L95
+ 2467 0f0c 00C0      		rjmp .L83
+ 2468               	.L78:
+ 2469               	.LBE2:
+ 2470               	.LBB3:
+ 364:lp_solve_5.5/lp_pricePSE.c ****         }
+ 365:lp_solve_5.5/lp_pricePSE.c **** #endif
+ 366:lp_solve_5.5/lp_pricePSE.c ****       }
+ 367:lp_solve_5.5/lp_pricePSE.c ****     }
+ 368:lp_solve_5.5/lp_pricePSE.c **** 
+ 369:lp_solve_5.5/lp_pricePSE.c **** 
+ 370:lp_solve_5.5/lp_pricePSE.c ****   }
+ 371:lp_solve_5.5/lp_pricePSE.c ****   /* Price norms for the primal simplex - the non-basic columns */
+ 372:lp_solve_5.5/lp_pricePSE.c ****   else {
+ 373:lp_solve_5.5/lp_pricePSE.c **** 
+ 374:lp_solve_5.5/lp_pricePSE.c ****     REAL *vTemp = NULL, *vAlpha = NULL, cAlpha;
+ 2471               		.loc 1 374 0 is_stmt 1
+ 2472 0f0e 1AA6      		std Y+42,__zero_reg__
+ 2473 0f10 19A6      		std Y+41,__zero_reg__
+ 2474 0f12 1CA6      		std Y+44,__zero_reg__
+ 2475 0f14 1BA6      		std Y+43,__zero_reg__
+ 375:lp_solve_5.5/lp_pricePSE.c ****     int  *coltarget;
+ 376:lp_solve_5.5/lp_pricePSE.c **** 
+ 377:lp_solve_5.5/lp_pricePSE.c ****     ok = allocREAL(lp, &vTemp, m+1, TRUE) &&
+ 2476               		.loc 1 377 0
+ 2477 0f16 8D85      		ldd r24,Y+13
+ 2478 0f18 9E85      		ldd r25,Y+14
+ 2479 0f1a AC01      		movw r20,r24
+ 2480 0f1c 4F5F      		subi r20,-1
+ 2481 0f1e 5F4F      		sbci r21,-1
+ 2482 0f20 BE01      		movw r22,r28
+ 2483 0f22 675D      		subi r22,-41
+ 2484 0f24 7F4F      		sbci r23,-1
+ 2485 0f26 8DA5      		ldd r24,Y+45
+ 2486 0f28 9EA5      		ldd r25,Y+46
+ 2487 0f2a 21E0      		ldi r18,lo8(1)
+ 2488 0f2c 0E94 0000 		call allocREAL
+ 2489 0f30 8823      		tst r24
+ 2490 0f32 01F0      		breq .L96
+ 378:lp_solve_5.5/lp_pricePSE.c ****          allocREAL(lp, &vAlpha, n+1, TRUE);
+ 2491               		.loc 1 378 0 discriminator 1
+ 2492 0f34 8F85      		ldd r24,Y+15
+ 2493 0f36 9889      		ldd r25,Y+16
+ 2494 0f38 AC01      		movw r20,r24
+ 2495 0f3a 4F5F      		subi r20,-1
+ 2496 0f3c 5F4F      		sbci r21,-1
+ 2497 0f3e BE01      		movw r22,r28
+ 2498 0f40 655D      		subi r22,-43
+ 2499 0f42 7F4F      		sbci r23,-1
+ 2500 0f44 8DA5      		ldd r24,Y+45
+ 2501 0f46 9EA5      		ldd r25,Y+46
+ 2502 0f48 21E0      		ldi r18,lo8(1)
+ 2503 0f4a 0E94 0000 		call allocREAL
+ 377:lp_solve_5.5/lp_pricePSE.c ****          allocREAL(lp, &vAlpha, n+1, TRUE);
+ 2504               		.loc 1 377 0 discriminator 1
+ 2505 0f4e 8823      		tst r24
+ 2506 0f50 01F0      		breq .L96
+ 377:lp_solve_5.5/lp_pricePSE.c ****          allocREAL(lp, &vAlpha, n+1, TRUE);
+ 2507               		.loc 1 377 0 is_stmt 0 discriminator 3
+ 2508 0f52 81E0      		ldi r24,lo8(1)
+ 2509 0f54 90E0      		ldi r25,0
+ 2510 0f56 00C0      		rjmp .L97
+ 2511               	.L96:
+ 377:lp_solve_5.5/lp_pricePSE.c ****          allocREAL(lp, &vAlpha, n+1, TRUE);
+ 2512               		.loc 1 377 0 discriminator 4
+ 2513 0f58 80E0      		ldi r24,0
+ 2514 0f5a 90E0      		ldi r25,0
+ 2515               	.L97:
+ 377:lp_solve_5.5/lp_pricePSE.c ****          allocREAL(lp, &vAlpha, n+1, TRUE);
+ 2516               		.loc 1 377 0 discriminator 6
+ 2517 0f5c 8D83      		std Y+5,r24
+ 379:lp_solve_5.5/lp_pricePSE.c ****     if(!ok)
+ 2518               		.loc 1 379 0 is_stmt 1 discriminator 6
+ 2519 0f5e 8D81      		ldd r24,Y+5
+ 2520 0f60 8823      		tst r24
+ 2521 0f62 01F4      		brne .L98
+ 380:lp_solve_5.5/lp_pricePSE.c ****       return( ok );
+ 2522               		.loc 1 380 0
+ 2523 0f64 8D81      		ldd r24,Y+5
+ 2524 0f66 00C0      		rjmp .L124
+ 2525               	.L98:
+ 381:lp_solve_5.5/lp_pricePSE.c **** 
+ 382:lp_solve_5.5/lp_pricePSE.c ****     /* Check if we have strategy fallback for the primal */
+ 383:lp_solve_5.5/lp_pricePSE.c ****     if(!isDEVEX)
+ 2526               		.loc 1 383 0
+ 2527 0f68 8C81      		ldd r24,Y+4
+ 2528 0f6a 8823      		tst r24
+ 2529 0f6c 01F4      		brne .L100
+ 384:lp_solve_5.5/lp_pricePSE.c ****       isDEVEX = is_piv_mode(lp, PRICE_PRIMALFALLBACK);
+ 2530               		.loc 1 384 0
+ 2531 0f6e 8DA5      		ldd r24,Y+45
+ 2532 0f70 9EA5      		ldd r25,Y+46
+ 2533 0f72 64E0      		ldi r22,lo8(4)
+ 2534 0f74 70E0      		ldi r23,0
+ 2535 0f76 0E94 0000 		call is_piv_mode
+ 2536 0f7a 8C83      		std Y+4,r24
+ 2537               	.L100:
+ 385:lp_solve_5.5/lp_pricePSE.c **** 
+ 386:lp_solve_5.5/lp_pricePSE.c ****     /* Initialize column target array */
+ 387:lp_solve_5.5/lp_pricePSE.c ****     coltarget = (int *) mempool_obtainVector(lp->workarrays, lp->sum+1, sizeof(*coltarget));
+ 2538               		.loc 1 387 0
+ 2539 0f7c 8DA5      		ldd r24,Y+45
+ 2540 0f7e 9EA5      		ldd r25,Y+46
+ 2541 0f80 8851      		subi r24,24
+ 2542 0f82 9E4F      		sbci r25,-2
+ 2543 0f84 FC01      		movw r30,r24
+ 2544 0f86 8081      		ld r24,Z
+ 2545 0f88 9181      		ldd r25,Z+1
+ 2546 0f8a 9C01      		movw r18,r24
+ 2547 0f8c 2F5F      		subi r18,-1
+ 2548 0f8e 3F4F      		sbci r19,-1
+ 2549 0f90 8DA5      		ldd r24,Y+45
+ 2550 0f92 9EA5      		ldd r25,Y+46
+ 2551 0f94 8859      		subi r24,-104
+ 2552 0f96 9C4F      		sbci r25,-4
+ 2553 0f98 FC01      		movw r30,r24
+ 2554 0f9a 8081      		ld r24,Z
+ 2555 0f9c 9181      		ldd r25,Z+1
+ 2556 0f9e 42E0      		ldi r20,lo8(2)
+ 2557 0fa0 50E0      		ldi r21,0
+ 2558 0fa2 B901      		movw r22,r18
+ 2559 0fa4 0E94 0000 		call mempool_obtainVector
+ 2560 0fa8 98A3      		std Y+32,r25
+ 2561 0faa 8F8F      		std Y+31,r24
+ 388:lp_solve_5.5/lp_pricePSE.c ****     ok = get_colIndexA(lp, SCAN_SLACKVARS+SCAN_USERVARS+USE_NONBASICVARS, coltarget, FALSE);
+ 2562               		.loc 1 388 0
+ 2563 0fac 4F8D      		ldd r20,Y+31
+ 2564 0fae 58A1      		ldd r21,Y+32
+ 2565 0fb0 8DA5      		ldd r24,Y+45
+ 2566 0fb2 9EA5      		ldd r25,Y+46
+ 2567 0fb4 20E0      		ldi r18,0
+ 2568 0fb6 63E2      		ldi r22,lo8(35)
+ 2569 0fb8 70E0      		ldi r23,0
+ 2570 0fba 0E94 0000 		call get_colIndexA
+ 2571 0fbe 8D83      		std Y+5,r24
+ 389:lp_solve_5.5/lp_pricePSE.c ****     if(!ok) {
+ 2572               		.loc 1 389 0
+ 2573 0fc0 8D81      		ldd r24,Y+5
+ 2574 0fc2 8823      		tst r24
+ 2575 0fc4 01F4      		brne .L101
+ 390:lp_solve_5.5/lp_pricePSE.c ****       mempool_releaseVector(lp->workarrays, (char *) coltarget, FALSE);
+ 2576               		.loc 1 390 0
+ 2577 0fc6 8DA5      		ldd r24,Y+45
+ 2578 0fc8 9EA5      		ldd r25,Y+46
+ 2579 0fca 8859      		subi r24,-104
+ 2580 0fcc 9C4F      		sbci r25,-4
+ 2581 0fce FC01      		movw r30,r24
+ 2582 0fd0 8081      		ld r24,Z
+ 2583 0fd2 9181      		ldd r25,Z+1
+ 2584 0fd4 2F8D      		ldd r18,Y+31
+ 2585 0fd6 38A1      		ldd r19,Y+32
+ 2586 0fd8 40E0      		ldi r20,0
+ 2587 0fda B901      		movw r22,r18
+ 2588 0fdc 0E94 0000 		call mempool_releaseVector
+ 391:lp_solve_5.5/lp_pricePSE.c ****       return( ok );
+ 2589               		.loc 1 391 0
+ 2590 0fe0 8D81      		ldd r24,Y+5
+ 2591 0fe2 00C0      		rjmp .L124
+ 2592               	.L101:
+ 392:lp_solve_5.5/lp_pricePSE.c ****     }
+ 393:lp_solve_5.5/lp_pricePSE.c **** 
+ 394:lp_solve_5.5/lp_pricePSE.c ****     /* Don't need to compute cross-products with DEVEX */
+ 395:lp_solve_5.5/lp_pricePSE.c ****     if(!isDEVEX) {
+ 2593               		.loc 1 395 0
+ 2594 0fe4 8C81      		ldd r24,Y+4
+ 2595 0fe6 8823      		tst r24
+ 2596 0fe8 01F0      		breq .+2
+ 2597 0fea 00C0      		rjmp .L102
+ 396:lp_solve_5.5/lp_pricePSE.c ****       ok = allocREAL(lp, &vEdge, n+1, TRUE);
+ 2598               		.loc 1 396 0
+ 2599 0fec 8F85      		ldd r24,Y+15
+ 2600 0fee 9889      		ldd r25,Y+16
+ 2601 0ff0 AC01      		movw r20,r24
+ 2602 0ff2 4F5F      		subi r20,-1
+ 2603 0ff4 5F4F      		sbci r21,-1
+ 2604 0ff6 BE01      		movw r22,r28
+ 2605 0ff8 6B5D      		subi r22,-37
+ 2606 0ffa 7F4F      		sbci r23,-1
+ 2607 0ffc 8DA5      		ldd r24,Y+45
+ 2608 0ffe 9EA5      		ldd r25,Y+46
+ 2609 1000 21E0      		ldi r18,lo8(1)
+ 2610 1002 0E94 0000 		call allocREAL
+ 2611 1006 8D83      		std Y+5,r24
+ 397:lp_solve_5.5/lp_pricePSE.c ****       if(!ok)
+ 2612               		.loc 1 397 0
+ 2613 1008 8D81      		ldd r24,Y+5
+ 2614 100a 8823      		tst r24
+ 2615 100c 01F4      		brne .L103
+ 398:lp_solve_5.5/lp_pricePSE.c ****         return( ok );
+ 2616               		.loc 1 398 0
+ 2617 100e 8D81      		ldd r24,Y+5
+ 2618 1010 00C0      		rjmp .L124
+ 2619               	.L103:
+ 399:lp_solve_5.5/lp_pricePSE.c **** 
+ 400:lp_solve_5.5/lp_pricePSE.c ****       /* Compute v and then N'v */
+ 401:lp_solve_5.5/lp_pricePSE.c ****       MEMCOPY(vTemp, w, m+1);
+ 2620               		.loc 1 401 0
+ 2621 1012 8D85      		ldd r24,Y+13
+ 2622 1014 9E85      		ldd r25,Y+14
+ 2623 1016 0196      		adiw r24,1
+ 2624 1018 AC01      		movw r20,r24
+ 2625 101a 440F      		lsl r20
+ 2626 101c 551F      		rol r21
+ 2627 101e 440F      		lsl r20
+ 2628 1020 551F      		rol r21
+ 2629 1022 2FA1      		ldd r18,Y+39
+ 2630 1024 38A5      		ldd r19,Y+40
+ 2631 1026 89A5      		ldd r24,Y+41
+ 2632 1028 9AA5      		ldd r25,Y+42
+ 2633 102a B901      		movw r22,r18
+ 2634 102c 0E94 0000 		call memcpy
+ 402:lp_solve_5.5/lp_pricePSE.c ****       bsolve(lp, -1, vTemp, NULL, lp->epsmachine*DOUBLEROUND, 0.0);
+ 2635               		.loc 1 402 0
+ 2636 1030 8DA5      		ldd r24,Y+45
+ 2637 1032 9EA5      		ldd r25,Y+46
+ 2638 1034 8E5E      		subi r24,-18
+ 2639 1036 9C4F      		sbci r25,-4
+ 2640 1038 FC01      		movw r30,r24
+ 2641 103a 8081      		ld r24,Z
+ 2642 103c 9181      		ldd r25,Z+1
+ 2643 103e A281      		ldd r26,Z+2
+ 2644 1040 B381      		ldd r27,Z+3
+ 2645 1042 20E0      		ldi r18,0
+ 2646 1044 30E0      		ldi r19,0
+ 2647 1046 A901      		movw r20,r18
+ 2648 1048 BC01      		movw r22,r24
+ 2649 104a CD01      		movw r24,r26
+ 2650 104c 0E94 0000 		call __mulsf3
+ 2651 1050 DC01      		movw r26,r24
+ 2652 1052 CB01      		movw r24,r22
+ 2653 1054 8C01      		movw r16,r24
+ 2654 1056 9D01      		movw r18,r26
+ 2655 1058 49A5      		ldd r20,Y+41
+ 2656 105a 5AA5      		ldd r21,Y+42
+ 2657 105c 8DA5      		ldd r24,Y+45
+ 2658 105e 9EA5      		ldd r25,Y+46
+ 2659 1060 A12C      		mov r10,__zero_reg__
+ 2660 1062 B12C      		mov r11,__zero_reg__
+ 2661 1064 6501      		movw r12,r10
+ 2662 1066 7801      		movw r14,r16
+ 2663 1068 8901      		movw r16,r18
+ 2664 106a 20E0      		ldi r18,0
+ 2665 106c 30E0      		ldi r19,0
+ 2666 106e 6FEF      		ldi r22,lo8(-1)
+ 2667 1070 7FEF      		ldi r23,lo8(-1)
+ 2668 1072 0E94 0000 		call bsolve
+ 403:lp_solve_5.5/lp_pricePSE.c ****       vTemp[0] = 0;
+ 2669               		.loc 1 403 0
+ 2670 1076 89A5      		ldd r24,Y+41
+ 2671 1078 9AA5      		ldd r25,Y+42
+ 2672 107a FC01      		movw r30,r24
+ 2673 107c 1082      		st Z,__zero_reg__
+ 2674 107e 1182      		std Z+1,__zero_reg__
+ 2675 1080 1282      		std Z+2,__zero_reg__
+ 2676 1082 1382      		std Z+3,__zero_reg__
+ 404:lp_solve_5.5/lp_pricePSE.c ****       prod_xA(lp, coltarget, vTemp, NULL, lp->epsmachine, 0.0,
+ 2677               		.loc 1 404 0
+ 2678 1084 2DA1      		ldd r18,Y+37
+ 2679 1086 3EA1      		ldd r19,Y+38
+ 2680 1088 8DA5      		ldd r24,Y+45
+ 2681 108a 9EA5      		ldd r25,Y+46
+ 2682 108c 8E5E      		subi r24,-18
+ 2683 108e 9C4F      		sbci r25,-4
+ 2684 1090 FC01      		movw r30,r24
+ 2685 1092 8081      		ld r24,Z
+ 2686 1094 9181      		ldd r25,Z+1
+ 2687 1096 A281      		ldd r26,Z+2
+ 2688 1098 B381      		ldd r27,Z+3
+ 2689 109a 49A5      		ldd r20,Y+41
+ 2690 109c 5AA5      		ldd r21,Y+42
+ 2691 109e 6F8D      		ldd r22,Y+31
+ 2692 10a0 78A1      		ldd r23,Y+32
+ 2693 10a2 EDA5      		ldd r30,Y+45
+ 2694 10a4 FEA5      		ldd r31,Y+46
+ 2695 10a6 1F92      		push __zero_reg__
+ 2696 10a8 12E0      		ldi r17,lo8(2)
+ 2697 10aa 1F93      		push r17
+ 2698 10ac 1F92      		push __zero_reg__
+ 2699 10ae 1F92      		push __zero_reg__
+ 2700 10b0 4901      		movw r8,r18
+ 2701 10b2 A12C      		mov r10,__zero_reg__
+ 2702 10b4 B12C      		mov r11,__zero_reg__
+ 2703 10b6 6501      		movw r12,r10
+ 2704 10b8 7C01      		movw r14,r24
+ 2705 10ba 8D01      		movw r16,r26
+ 2706 10bc 20E0      		ldi r18,0
+ 2707 10be 30E0      		ldi r19,0
+ 2708 10c0 CF01      		movw r24,r30
+ 2709 10c2 0E94 0000 		call prod_xA
+ 2710 10c6 0F90      		pop __tmp_reg__
+ 2711 10c8 0F90      		pop __tmp_reg__
+ 2712 10ca 0F90      		pop __tmp_reg__
+ 2713 10cc 0F90      		pop __tmp_reg__
+ 2714               	.L102:
+ 405:lp_solve_5.5/lp_pricePSE.c ****                              vEdge, NULL, MAT_ROUNDDEFAULT);
+ 406:lp_solve_5.5/lp_pricePSE.c ****     }
+ 407:lp_solve_5.5/lp_pricePSE.c **** 
+ 408:lp_solve_5.5/lp_pricePSE.c ****     /* Compute Sigma and then Alpha */
+ 409:lp_solve_5.5/lp_pricePSE.c ****     bsolve(lp, rownr, vTemp, NULL, 0*DOUBLEROUND, 0.0);
+ 2715               		.loc 1 409 0
+ 2716 10ce 49A5      		ldd r20,Y+41
+ 2717 10d0 5AA5      		ldd r21,Y+42
+ 2718 10d2 6FA5      		ldd r22,Y+47
+ 2719 10d4 78A9      		ldd r23,Y+48
+ 2720 10d6 8DA5      		ldd r24,Y+45
+ 2721 10d8 9EA5      		ldd r25,Y+46
+ 2722 10da A12C      		mov r10,__zero_reg__
+ 2723 10dc B12C      		mov r11,__zero_reg__
+ 2724 10de 6501      		movw r12,r10
+ 2725 10e0 E12C      		mov r14,__zero_reg__
+ 2726 10e2 F12C      		mov r15,__zero_reg__
+ 2727 10e4 8701      		movw r16,r14
+ 2728 10e6 20E0      		ldi r18,0
+ 2729 10e8 30E0      		ldi r19,0
+ 2730 10ea 0E94 0000 		call bsolve
+ 410:lp_solve_5.5/lp_pricePSE.c ****     vTemp[0] = 0;
+ 2731               		.loc 1 410 0
+ 2732 10ee 89A5      		ldd r24,Y+41
+ 2733 10f0 9AA5      		ldd r25,Y+42
+ 2734 10f2 FC01      		movw r30,r24
+ 2735 10f4 1082      		st Z,__zero_reg__
+ 2736 10f6 1182      		std Z+1,__zero_reg__
+ 2737 10f8 1282      		std Z+2,__zero_reg__
+ 2738 10fa 1382      		std Z+3,__zero_reg__
+ 411:lp_solve_5.5/lp_pricePSE.c ****     prod_xA(lp, coltarget, vTemp, NULL, lp->epsmachine, 0.0,
+ 2739               		.loc 1 411 0
+ 2740 10fc 2BA5      		ldd r18,Y+43
+ 2741 10fe 3CA5      		ldd r19,Y+44
+ 2742 1100 8DA5      		ldd r24,Y+45
+ 2743 1102 9EA5      		ldd r25,Y+46
+ 2744 1104 8E5E      		subi r24,-18
+ 2745 1106 9C4F      		sbci r25,-4
+ 2746 1108 FC01      		movw r30,r24
+ 2747 110a 8081      		ld r24,Z
+ 2748 110c 9181      		ldd r25,Z+1
+ 2749 110e A281      		ldd r26,Z+2
+ 2750 1110 B381      		ldd r27,Z+3
+ 2751 1112 49A5      		ldd r20,Y+41
+ 2752 1114 5AA5      		ldd r21,Y+42
+ 2753 1116 6F8D      		ldd r22,Y+31
+ 2754 1118 78A1      		ldd r23,Y+32
+ 2755 111a EDA5      		ldd r30,Y+45
+ 2756 111c FEA5      		ldd r31,Y+46
+ 2757 111e 1F92      		push __zero_reg__
+ 2758 1120 12E0      		ldi r17,lo8(2)
+ 2759 1122 1F93      		push r17
+ 2760 1124 1F92      		push __zero_reg__
+ 2761 1126 1F92      		push __zero_reg__
+ 2762 1128 4901      		movw r8,r18
+ 2763 112a A12C      		mov r10,__zero_reg__
+ 2764 112c B12C      		mov r11,__zero_reg__
+ 2765 112e 6501      		movw r12,r10
+ 2766 1130 7C01      		movw r14,r24
+ 2767 1132 8D01      		movw r16,r26
+ 2768 1134 20E0      		ldi r18,0
+ 2769 1136 30E0      		ldi r19,0
+ 2770 1138 CF01      		movw r24,r30
+ 2771 113a 0E94 0000 		call prod_xA
+ 2772 113e 0F90      		pop __tmp_reg__
+ 2773 1140 0F90      		pop __tmp_reg__
+ 2774 1142 0F90      		pop __tmp_reg__
+ 2775 1144 0F90      		pop __tmp_reg__
+ 412:lp_solve_5.5/lp_pricePSE.c ****                            vAlpha, NULL, MAT_ROUNDDEFAULT);
+ 413:lp_solve_5.5/lp_pricePSE.c ****     mempool_releaseVector(lp->workarrays, (char *) coltarget, FALSE);
+ 2776               		.loc 1 413 0
+ 2777 1146 8DA5      		ldd r24,Y+45
+ 2778 1148 9EA5      		ldd r25,Y+46
+ 2779 114a 8859      		subi r24,-104
+ 2780 114c 9C4F      		sbci r25,-4
+ 2781 114e FC01      		movw r30,r24
+ 2782 1150 8081      		ld r24,Z
+ 2783 1152 9181      		ldd r25,Z+1
+ 2784 1154 2F8D      		ldd r18,Y+31
+ 2785 1156 38A1      		ldd r19,Y+32
+ 2786 1158 40E0      		ldi r20,0
+ 2787 115a B901      		movw r22,r18
+ 2788 115c 0E94 0000 		call mempool_releaseVector
+ 414:lp_solve_5.5/lp_pricePSE.c **** 
+ 415:lp_solve_5.5/lp_pricePSE.c ****     /* Update the squared steepest edge norms; first store some constants */
+ 416:lp_solve_5.5/lp_pricePSE.c ****     cEdge = lp->edgeVector[colnr];
+ 2789               		.loc 1 416 0
+ 2790 1160 8DA5      		ldd r24,Y+45
+ 2791 1162 9EA5      		ldd r25,Y+46
+ 2792 1164 885E      		subi r24,-24
+ 2793 1166 9D4F      		sbci r25,-3
+ 2794 1168 FC01      		movw r30,r24
+ 2795 116a 2081      		ld r18,Z
+ 2796 116c 3181      		ldd r19,Z+1
+ 2797 116e 89A9      		ldd r24,Y+49
+ 2798 1170 9AA9      		ldd r25,Y+50
+ 2799 1172 880F      		lsl r24
+ 2800 1174 991F      		rol r25
+ 2801 1176 880F      		lsl r24
+ 2802 1178 991F      		rol r25
+ 2803 117a 820F      		add r24,r18
+ 2804 117c 931F      		adc r25,r19
+ 2805 117e FC01      		movw r30,r24
+ 2806 1180 8081      		ld r24,Z
+ 2807 1182 9181      		ldd r25,Z+1
+ 2808 1184 A281      		ldd r26,Z+2
+ 2809 1186 B381      		ldd r27,Z+3
+ 2810 1188 8B8B      		std Y+19,r24
+ 2811 118a 9C8B      		std Y+20,r25
+ 2812 118c AD8B      		std Y+21,r26
+ 2813 118e BE8B      		std Y+22,r27
+ 417:lp_solve_5.5/lp_pricePSE.c ****     cAlpha = vAlpha[colnr];
+ 2814               		.loc 1 417 0
+ 2815 1190 2BA5      		ldd r18,Y+43
+ 2816 1192 3CA5      		ldd r19,Y+44
+ 2817 1194 89A9      		ldd r24,Y+49
+ 2818 1196 9AA9      		ldd r25,Y+50
+ 2819 1198 880F      		lsl r24
+ 2820 119a 991F      		rol r25
+ 2821 119c 880F      		lsl r24
+ 2822 119e 991F      		rol r25
+ 2823 11a0 820F      		add r24,r18
+ 2824 11a2 931F      		adc r25,r19
+ 2825 11a4 FC01      		movw r30,r24
+ 2826 11a6 8081      		ld r24,Z
+ 2827 11a8 9181      		ldd r25,Z+1
+ 2828 11aa A281      		ldd r26,Z+2
+ 2829 11ac B381      		ldd r27,Z+3
+ 2830 11ae 89A3      		std Y+33,r24
+ 2831 11b0 9AA3      		std Y+34,r25
+ 2832 11b2 ABA3      		std Y+35,r26
+ 2833 11b4 BCA3      		std Y+36,r27
+ 418:lp_solve_5.5/lp_pricePSE.c ****     if(fabs(cAlpha) < lp->epspivot) {
+ 2834               		.loc 1 418 0
+ 2835 11b6 89A1      		ldd r24,Y+33
+ 2836 11b8 9AA1      		ldd r25,Y+34
+ 2837 11ba ABA1      		ldd r26,Y+35
+ 2838 11bc BCA1      		ldd r27,Y+36
+ 2839 11be BF77      		andi r27,0x7f
+ 2840 11c0 2DA5      		ldd r18,Y+45
+ 2841 11c2 3EA5      		ldd r19,Y+46
+ 2842 11c4 2E5D      		subi r18,-34
+ 2843 11c6 3C4F      		sbci r19,-4
+ 2844 11c8 F901      		movw r30,r18
+ 2845 11ca 2081      		ld r18,Z
+ 2846 11cc 3181      		ldd r19,Z+1
+ 2847 11ce 4281      		ldd r20,Z+2
+ 2848 11d0 5381      		ldd r21,Z+3
+ 2849 11d2 BC01      		movw r22,r24
+ 2850 11d4 CD01      		movw r24,r26
+ 2851 11d6 0E94 0000 		call __ltsf2
+ 2852 11da 8823      		tst r24
+ 2853 11dc 04F4      		brge .L134
+ 419:lp_solve_5.5/lp_pricePSE.c ****       forceRefresh = TRUE;
+ 2854               		.loc 1 419 0
+ 2855 11de 81E0      		ldi r24,lo8(1)
+ 2856 11e0 8B83      		std Y+3,r24
+ 420:lp_solve_5.5/lp_pricePSE.c ****       goto Finish1;
+ 2857               		.loc 1 420 0
+ 2858 11e2 00C0      		rjmp .L106
+ 2859               	.L134:
+ 421:lp_solve_5.5/lp_pricePSE.c ****     }
+ 422:lp_solve_5.5/lp_pricePSE.c **** 
+ 423:lp_solve_5.5/lp_pricePSE.c ****     /* Deal with the variable leaving the basis to become a new entry candidate */
+ 424:lp_solve_5.5/lp_pricePSE.c ****     hold = 1 / cAlpha;
+ 2860               		.loc 1 424 0
+ 2861 11e4 29A1      		ldd r18,Y+33
+ 2862 11e6 3AA1      		ldd r19,Y+34
+ 2863 11e8 4BA1      		ldd r20,Y+35
+ 2864 11ea 5CA1      		ldd r21,Y+36
+ 2865 11ec 60E0      		ldi r22,0
+ 2866 11ee 70E0      		ldi r23,0
+ 2867 11f0 80E8      		ldi r24,lo8(-128)
+ 2868 11f2 9FE3      		ldi r25,lo8(63)
+ 2869 11f4 0E94 0000 		call __divsf3
+ 2870 11f8 DC01      		movw r26,r24
+ 2871 11fa CB01      		movw r24,r22
+ 2872 11fc 8887      		std Y+8,r24
+ 2873 11fe 9987      		std Y+9,r25
+ 2874 1200 AA87      		std Y+10,r26
+ 2875 1202 BB87      		std Y+11,r27
+ 425:lp_solve_5.5/lp_pricePSE.c ****     lp->edgeVector[exitcol] = (hold*hold) * cEdge;
+ 2876               		.loc 1 425 0
+ 2877 1204 8DA5      		ldd r24,Y+45
+ 2878 1206 9EA5      		ldd r25,Y+46
+ 2879 1208 885E      		subi r24,-24
+ 2880 120a 9D4F      		sbci r25,-3
+ 2881 120c FC01      		movw r30,r24
+ 2882 120e 2081      		ld r18,Z
+ 2883 1210 3181      		ldd r19,Z+1
+ 2884 1212 8989      		ldd r24,Y+17
+ 2885 1214 9A89      		ldd r25,Y+18
+ 2886 1216 880F      		lsl r24
+ 2887 1218 991F      		rol r25
+ 2888 121a 880F      		lsl r24
+ 2889 121c 991F      		rol r25
+ 2890 121e 8901      		movw r16,r18
+ 2891 1220 080F      		add r16,r24
+ 2892 1222 191F      		adc r17,r25
+ 2893 1224 2885      		ldd r18,Y+8
+ 2894 1226 3985      		ldd r19,Y+9
+ 2895 1228 4A85      		ldd r20,Y+10
+ 2896 122a 5B85      		ldd r21,Y+11
+ 2897 122c 6885      		ldd r22,Y+8
+ 2898 122e 7985      		ldd r23,Y+9
+ 2899 1230 8A85      		ldd r24,Y+10
+ 2900 1232 9B85      		ldd r25,Y+11
+ 2901 1234 0E94 0000 		call __mulsf3
+ 2902 1238 DC01      		movw r26,r24
+ 2903 123a CB01      		movw r24,r22
+ 2904 123c 2B89      		ldd r18,Y+19
+ 2905 123e 3C89      		ldd r19,Y+20
+ 2906 1240 4D89      		ldd r20,Y+21
+ 2907 1242 5E89      		ldd r21,Y+22
+ 2908 1244 BC01      		movw r22,r24
+ 2909 1246 CD01      		movw r24,r26
+ 2910 1248 0E94 0000 		call __mulsf3
+ 2911 124c DC01      		movw r26,r24
+ 2912 124e CB01      		movw r24,r22
+ 2913 1250 F801      		movw r30,r16
+ 2914 1252 8083      		st Z,r24
+ 2915 1254 9183      		std Z+1,r25
+ 2916 1256 A283      		std Z+2,r26
+ 2917 1258 B383      		std Z+3,r27
+ 426:lp_solve_5.5/lp_pricePSE.c **** 
+ 427:lp_solve_5.5/lp_pricePSE.c **** #ifdef Paranoia
+ 428:lp_solve_5.5/lp_pricePSE.c ****     if(lp->edgeVector[exitcol] <= lp->epsmachine)
+ 429:lp_solve_5.5/lp_pricePSE.c ****       report(lp, errlevel, "updatePricer: Invalid primal norm %g at leaving index %d - iteration %.
+ 430:lp_solve_5.5/lp_pricePSE.c ****                           lp->edgeVector[exitcol], exitcol, (double) (lp->total_iter+lp->current_it
+ 431:lp_solve_5.5/lp_pricePSE.c **** #endif
+ 432:lp_solve_5.5/lp_pricePSE.c **** 
+ 433:lp_solve_5.5/lp_pricePSE.c ****     /* Then loop over all non-basic variables, but skip the entering column */
+ 434:lp_solve_5.5/lp_pricePSE.c ****     for(i = 1; i <= lp->sum; i++) {
+ 2918               		.loc 1 434 0
+ 2919 125a 81E0      		ldi r24,lo8(1)
+ 2920 125c 90E0      		ldi r25,0
+ 2921 125e 9A83      		std Y+2,r25
+ 2922 1260 8983      		std Y+1,r24
+ 2923 1262 00C0      		rjmp .L107
+ 2924               	.L118:
+ 435:lp_solve_5.5/lp_pricePSE.c ****       if(lp->is_basic[i] || (i == colnr))
+ 2925               		.loc 1 435 0
+ 2926 1264 8DA5      		ldd r24,Y+45
+ 2927 1266 9EA5      		ldd r25,Y+46
+ 2928 1268 8053      		subi r24,48
+ 2929 126a 9D4F      		sbci r25,-3
+ 2930 126c FC01      		movw r30,r24
+ 2931 126e 2081      		ld r18,Z
+ 2932 1270 3181      		ldd r19,Z+1
+ 2933 1272 8981      		ldd r24,Y+1
+ 2934 1274 9A81      		ldd r25,Y+2
+ 2935 1276 820F      		add r24,r18
+ 2936 1278 931F      		adc r25,r19
+ 2937 127a FC01      		movw r30,r24
+ 2938 127c 8081      		ld r24,Z
+ 2939 127e 8823      		tst r24
+ 2940 1280 01F0      		breq .+2
+ 2941 1282 00C0      		rjmp .L138
+ 2942               		.loc 1 435 0 is_stmt 0 discriminator 1
+ 2943 1284 2981      		ldd r18,Y+1
+ 2944 1286 3A81      		ldd r19,Y+2
+ 2945 1288 89A9      		ldd r24,Y+49
+ 2946 128a 9AA9      		ldd r25,Y+50
+ 2947 128c 2817      		cp r18,r24
+ 2948 128e 3907      		cpc r19,r25
+ 2949 1290 01F4      		brne .+2
+ 2950 1292 00C0      		rjmp .L138
+ 436:lp_solve_5.5/lp_pricePSE.c ****         continue;
+ 437:lp_solve_5.5/lp_pricePSE.c ****       hold = vAlpha[i];
+ 2951               		.loc 1 437 0 is_stmt 1
+ 2952 1294 2BA5      		ldd r18,Y+43
+ 2953 1296 3CA5      		ldd r19,Y+44
+ 2954 1298 8981      		ldd r24,Y+1
+ 2955 129a 9A81      		ldd r25,Y+2
+ 2956 129c 880F      		lsl r24
+ 2957 129e 991F      		rol r25
+ 2958 12a0 880F      		lsl r24
+ 2959 12a2 991F      		rol r25
+ 2960 12a4 820F      		add r24,r18
+ 2961 12a6 931F      		adc r25,r19
+ 2962 12a8 FC01      		movw r30,r24
+ 2963 12aa 8081      		ld r24,Z
+ 2964 12ac 9181      		ldd r25,Z+1
+ 2965 12ae A281      		ldd r26,Z+2
+ 2966 12b0 B381      		ldd r27,Z+3
+ 2967 12b2 8887      		std Y+8,r24
+ 2968 12b4 9987      		std Y+9,r25
+ 2969 12b6 AA87      		std Y+10,r26
+ 2970 12b8 BB87      		std Y+11,r27
+ 438:lp_solve_5.5/lp_pricePSE.c ****       if(hold == 0)
+ 2971               		.loc 1 438 0
+ 2972 12ba 20E0      		ldi r18,0
+ 2973 12bc 30E0      		ldi r19,0
+ 2974 12be A901      		movw r20,r18
+ 2975 12c0 6885      		ldd r22,Y+8
+ 2976 12c2 7985      		ldd r23,Y+9
+ 2977 12c4 8A85      		ldd r24,Y+10
+ 2978 12c6 9B85      		ldd r25,Y+11
+ 2979 12c8 0E94 0000 		call __eqsf2
+ 2980 12cc 8823      		tst r24
+ 2981 12ce 01F4      		brne .+2
+ 2982 12d0 00C0      		rjmp .L139
+ 439:lp_solve_5.5/lp_pricePSE.c ****         continue;
+ 440:lp_solve_5.5/lp_pricePSE.c ****       hold /= cAlpha;
+ 2983               		.loc 1 440 0
+ 2984 12d2 29A1      		ldd r18,Y+33
+ 2985 12d4 3AA1      		ldd r19,Y+34
+ 2986 12d6 4BA1      		ldd r20,Y+35
+ 2987 12d8 5CA1      		ldd r21,Y+36
+ 2988 12da 6885      		ldd r22,Y+8
+ 2989 12dc 7985      		ldd r23,Y+9
+ 2990 12de 8A85      		ldd r24,Y+10
+ 2991 12e0 9B85      		ldd r25,Y+11
+ 2992 12e2 0E94 0000 		call __divsf3
+ 2993 12e6 DC01      		movw r26,r24
+ 2994 12e8 CB01      		movw r24,r22
+ 2995 12ea 8887      		std Y+8,r24
+ 2996 12ec 9987      		std Y+9,r25
+ 2997 12ee AA87      		std Y+10,r26
+ 2998 12f0 BB87      		std Y+11,r27
+ 441:lp_solve_5.5/lp_pricePSE.c ****       if(fabs(hold) < lp->epsmachine)
+ 2999               		.loc 1 441 0
+ 3000 12f2 8885      		ldd r24,Y+8
+ 3001 12f4 9985      		ldd r25,Y+9
+ 3002 12f6 AA85      		ldd r26,Y+10
+ 3003 12f8 BB85      		ldd r27,Y+11
+ 3004 12fa BF77      		andi r27,0x7f
+ 3005 12fc 2DA5      		ldd r18,Y+45
+ 3006 12fe 3EA5      		ldd r19,Y+46
+ 3007 1300 2E5E      		subi r18,-18
+ 3008 1302 3C4F      		sbci r19,-4
+ 3009 1304 F901      		movw r30,r18
+ 3010 1306 2081      		ld r18,Z
+ 3011 1308 3181      		ldd r19,Z+1
+ 3012 130a 4281      		ldd r20,Z+2
+ 3013 130c 5381      		ldd r21,Z+3
+ 3014 130e BC01      		movw r22,r24
+ 3015 1310 CD01      		movw r24,r26
+ 3016 1312 0E94 0000 		call __ltsf2
+ 3017 1316 8823      		tst r24
+ 3018 1318 04F4      		brge .+2
+ 3019 131a 00C0      		rjmp .L140
+ 442:lp_solve_5.5/lp_pricePSE.c ****         continue;
+ 443:lp_solve_5.5/lp_pricePSE.c **** 
+ 444:lp_solve_5.5/lp_pricePSE.c ****       newEdge = &(lp->edgeVector[i]);
+ 3020               		.loc 1 444 0
+ 3021 131c 8DA5      		ldd r24,Y+45
+ 3022 131e 9EA5      		ldd r25,Y+46
+ 3023 1320 885E      		subi r24,-24
+ 3024 1322 9D4F      		sbci r25,-3
+ 3025 1324 FC01      		movw r30,r24
+ 3026 1326 2081      		ld r18,Z
+ 3027 1328 3181      		ldd r19,Z+1
+ 3028 132a 8981      		ldd r24,Y+1
+ 3029 132c 9A81      		ldd r25,Y+2
+ 3030 132e 880F      		lsl r24
+ 3031 1330 991F      		rol r25
+ 3032 1332 880F      		lsl r24
+ 3033 1334 991F      		rol r25
+ 3034 1336 820F      		add r24,r18
+ 3035 1338 931F      		adc r25,r19
+ 3036 133a 9E8F      		std Y+30,r25
+ 3037 133c 8D8F      		std Y+29,r24
+ 445:lp_solve_5.5/lp_pricePSE.c ****       *newEdge += (hold*hold) * cEdge;
+ 3038               		.loc 1 445 0
+ 3039 133e 8D8D      		ldd r24,Y+29
+ 3040 1340 9E8D      		ldd r25,Y+30
+ 3041 1342 FC01      		movw r30,r24
+ 3042 1344 C080      		ld r12,Z
+ 3043 1346 D180      		ldd r13,Z+1
+ 3044 1348 E280      		ldd r14,Z+2
+ 3045 134a F380      		ldd r15,Z+3
+ 3046 134c 2885      		ldd r18,Y+8
+ 3047 134e 3985      		ldd r19,Y+9
+ 3048 1350 4A85      		ldd r20,Y+10
+ 3049 1352 5B85      		ldd r21,Y+11
+ 3050 1354 6885      		ldd r22,Y+8
+ 3051 1356 7985      		ldd r23,Y+9
+ 3052 1358 8A85      		ldd r24,Y+10
+ 3053 135a 9B85      		ldd r25,Y+11
+ 3054 135c 0E94 0000 		call __mulsf3
+ 3055 1360 DC01      		movw r26,r24
+ 3056 1362 CB01      		movw r24,r22
+ 3057 1364 2B89      		ldd r18,Y+19
+ 3058 1366 3C89      		ldd r19,Y+20
+ 3059 1368 4D89      		ldd r20,Y+21
+ 3060 136a 5E89      		ldd r21,Y+22
+ 3061 136c BC01      		movw r22,r24
+ 3062 136e CD01      		movw r24,r26
+ 3063 1370 0E94 0000 		call __mulsf3
+ 3064 1374 DC01      		movw r26,r24
+ 3065 1376 CB01      		movw r24,r22
+ 3066 1378 9C01      		movw r18,r24
+ 3067 137a AD01      		movw r20,r26
+ 3068 137c C701      		movw r24,r14
+ 3069 137e B601      		movw r22,r12
+ 3070 1380 0E94 0000 		call __addsf3
+ 3071 1384 DC01      		movw r26,r24
+ 3072 1386 CB01      		movw r24,r22
+ 3073 1388 2D8D      		ldd r18,Y+29
+ 3074 138a 3E8D      		ldd r19,Y+30
+ 3075 138c F901      		movw r30,r18
+ 3076 138e 8083      		st Z,r24
+ 3077 1390 9183      		std Z+1,r25
+ 3078 1392 A283      		std Z+2,r26
+ 3079 1394 B383      		std Z+3,r27
+ 446:lp_solve_5.5/lp_pricePSE.c ****       if(isDEVEX) {
+ 3080               		.loc 1 446 0
+ 3081 1396 8C81      		ldd r24,Y+4
+ 3082 1398 8823      		tst r24
+ 3083 139a 01F0      		breq .L115
+ 447:lp_solve_5.5/lp_pricePSE.c ****         if((*newEdge) > DEVEX_RESTARTLIMIT) {
+ 3084               		.loc 1 447 0
+ 3085 139c 8D8D      		ldd r24,Y+29
+ 3086 139e 9E8D      		ldd r25,Y+30
+ 3087 13a0 FC01      		movw r30,r24
+ 3088 13a2 8081      		ld r24,Z
+ 3089 13a4 9181      		ldd r25,Z+1
+ 3090 13a6 A281      		ldd r26,Z+2
+ 3091 13a8 B381      		ldd r27,Z+3
+ 3092 13aa 28E2      		ldi r18,lo8(40)
+ 3093 13ac 3BE6      		ldi r19,lo8(107)
+ 3094 13ae 4EE6      		ldi r20,lo8(110)
+ 3095 13b0 5EE4      		ldi r21,lo8(78)
+ 3096 13b2 BC01      		movw r22,r24
+ 3097 13b4 CD01      		movw r24,r26
+ 3098 13b6 0E94 0000 		call __gtsf2
+ 3099 13ba 1816      		cp __zero_reg__,r24
+ 3100 13bc 04F0      		brlt .+2
+ 3101 13be 00C0      		rjmp .L110
+ 448:lp_solve_5.5/lp_pricePSE.c ****           forceRefresh = TRUE;
+ 3102               		.loc 1 448 0
+ 3103 13c0 81E0      		ldi r24,lo8(1)
+ 3104 13c2 8B83      		std Y+3,r24
+ 449:lp_solve_5.5/lp_pricePSE.c ****           break;
+ 3105               		.loc 1 449 0
+ 3106 13c4 00C0      		rjmp .L106
+ 3107               	.L115:
+ 450:lp_solve_5.5/lp_pricePSE.c ****         }
+ 451:lp_solve_5.5/lp_pricePSE.c ****       }
+ 452:lp_solve_5.5/lp_pricePSE.c ****       else {
+ 453:lp_solve_5.5/lp_pricePSE.c ****         *newEdge -= 2*hold*vEdge[i];
+ 3108               		.loc 1 453 0
+ 3109 13c6 8D8D      		ldd r24,Y+29
+ 3110 13c8 9E8D      		ldd r25,Y+30
+ 3111 13ca FC01      		movw r30,r24
+ 3112 13cc C080      		ld r12,Z
+ 3113 13ce D180      		ldd r13,Z+1
+ 3114 13d0 E280      		ldd r14,Z+2
+ 3115 13d2 F380      		ldd r15,Z+3
+ 3116 13d4 8885      		ldd r24,Y+8
+ 3117 13d6 9985      		ldd r25,Y+9
+ 3118 13d8 AA85      		ldd r26,Y+10
+ 3119 13da BB85      		ldd r27,Y+11
+ 3120 13dc 9C01      		movw r18,r24
+ 3121 13de AD01      		movw r20,r26
+ 3122 13e0 BC01      		movw r22,r24
+ 3123 13e2 CD01      		movw r24,r26
+ 3124 13e4 0E94 0000 		call __addsf3
+ 3125 13e8 DC01      		movw r26,r24
+ 3126 13ea CB01      		movw r24,r22
+ 3127 13ec 4C01      		movw r8,r24
+ 3128 13ee 5D01      		movw r10,r26
+ 3129 13f0 2DA1      		ldd r18,Y+37
+ 3130 13f2 3EA1      		ldd r19,Y+38
+ 3131 13f4 8981      		ldd r24,Y+1
+ 3132 13f6 9A81      		ldd r25,Y+2
+ 3133 13f8 880F      		lsl r24
+ 3134 13fa 991F      		rol r25
+ 3135 13fc 880F      		lsl r24
+ 3136 13fe 991F      		rol r25
+ 3137 1400 820F      		add r24,r18
+ 3138 1402 931F      		adc r25,r19
+ 3139 1404 FC01      		movw r30,r24
+ 3140 1406 8081      		ld r24,Z
+ 3141 1408 9181      		ldd r25,Z+1
+ 3142 140a A281      		ldd r26,Z+2
+ 3143 140c B381      		ldd r27,Z+3
+ 3144 140e 9C01      		movw r18,r24
+ 3145 1410 AD01      		movw r20,r26
+ 3146 1412 C501      		movw r24,r10
+ 3147 1414 B401      		movw r22,r8
+ 3148 1416 0E94 0000 		call __mulsf3
+ 3149 141a DC01      		movw r26,r24
+ 3150 141c CB01      		movw r24,r22
+ 3151 141e 9C01      		movw r18,r24
+ 3152 1420 AD01      		movw r20,r26
+ 3153 1422 C701      		movw r24,r14
+ 3154 1424 B601      		movw r22,r12
+ 3155 1426 0E94 0000 		call __subsf3
+ 3156 142a DC01      		movw r26,r24
+ 3157 142c CB01      		movw r24,r22
+ 3158 142e 2D8D      		ldd r18,Y+29
+ 3159 1430 3E8D      		ldd r19,Y+30
+ 3160 1432 F901      		movw r30,r18
+ 3161 1434 8083      		st Z,r24
+ 3162 1436 9183      		std Z+1,r25
+ 3163 1438 A283      		std Z+2,r26
+ 3164 143a B383      		std Z+3,r27
+ 454:lp_solve_5.5/lp_pricePSE.c **** #ifdef ApplySteepestEdgeMinimum
+ 455:lp_solve_5.5/lp_pricePSE.c ****         SETMAX(*newEdge, hold*hold+1);
+ 3165               		.loc 1 455 0
+ 3166 143c 8D8D      		ldd r24,Y+29
+ 3167 143e 9E8D      		ldd r25,Y+30
+ 3168 1440 FC01      		movw r30,r24
+ 3169 1442 C080      		ld r12,Z
+ 3170 1444 D180      		ldd r13,Z+1
+ 3171 1446 E280      		ldd r14,Z+2
+ 3172 1448 F380      		ldd r15,Z+3
+ 3173 144a 2885      		ldd r18,Y+8
+ 3174 144c 3985      		ldd r19,Y+9
+ 3175 144e 4A85      		ldd r20,Y+10
+ 3176 1450 5B85      		ldd r21,Y+11
+ 3177 1452 6885      		ldd r22,Y+8
+ 3178 1454 7985      		ldd r23,Y+9
+ 3179 1456 8A85      		ldd r24,Y+10
+ 3180 1458 9B85      		ldd r25,Y+11
+ 3181 145a 0E94 0000 		call __mulsf3
+ 3182 145e DC01      		movw r26,r24
+ 3183 1460 CB01      		movw r24,r22
+ 3184 1462 20E0      		ldi r18,0
+ 3185 1464 30E0      		ldi r19,0
+ 3186 1466 40E8      		ldi r20,lo8(-128)
+ 3187 1468 5FE3      		ldi r21,lo8(63)
+ 3188 146a BC01      		movw r22,r24
+ 3189 146c CD01      		movw r24,r26
+ 3190 146e 0E94 0000 		call __addsf3
+ 3191 1472 DC01      		movw r26,r24
+ 3192 1474 CB01      		movw r24,r22
+ 3193 1476 9C01      		movw r18,r24
+ 3194 1478 AD01      		movw r20,r26
+ 3195 147a C701      		movw r24,r14
+ 3196 147c B601      		movw r22,r12
+ 3197 147e 0E94 0000 		call __ltsf2
+ 3198 1482 8823      		tst r24
+ 3199 1484 04F4      		brge .L110
+ 3200               		.loc 1 455 0 is_stmt 0 discriminator 1
+ 3201 1486 2885      		ldd r18,Y+8
+ 3202 1488 3985      		ldd r19,Y+9
+ 3203 148a 4A85      		ldd r20,Y+10
+ 3204 148c 5B85      		ldd r21,Y+11
+ 3205 148e 6885      		ldd r22,Y+8
+ 3206 1490 7985      		ldd r23,Y+9
+ 3207 1492 8A85      		ldd r24,Y+10
+ 3208 1494 9B85      		ldd r25,Y+11
+ 3209 1496 0E94 0000 		call __mulsf3
+ 3210 149a DC01      		movw r26,r24
+ 3211 149c CB01      		movw r24,r22
+ 3212 149e 20E0      		ldi r18,0
+ 3213 14a0 30E0      		ldi r19,0
+ 3214 14a2 40E8      		ldi r20,lo8(-128)
+ 3215 14a4 5FE3      		ldi r21,lo8(63)
+ 3216 14a6 BC01      		movw r22,r24
+ 3217 14a8 CD01      		movw r24,r26
+ 3218 14aa 0E94 0000 		call __addsf3
+ 3219 14ae DC01      		movw r26,r24
+ 3220 14b0 CB01      		movw r24,r22
+ 3221 14b2 2D8D      		ldd r18,Y+29
+ 3222 14b4 3E8D      		ldd r19,Y+30
+ 3223 14b6 F901      		movw r30,r18
+ 3224 14b8 8083      		st Z,r24
+ 3225 14ba 9183      		std Z+1,r25
+ 3226 14bc A283      		std Z+2,r26
+ 3227 14be B383      		std Z+3,r27
+ 3228 14c0 00C0      		rjmp .L110
+ 3229               	.L138:
+ 436:lp_solve_5.5/lp_pricePSE.c ****       hold = vAlpha[i];
+ 3230               		.loc 1 436 0 is_stmt 1
+ 3231 14c2 0000      		nop
+ 3232 14c4 00C0      		rjmp .L110
+ 3233               	.L139:
+ 439:lp_solve_5.5/lp_pricePSE.c ****       hold /= cAlpha;
+ 3234               		.loc 1 439 0
+ 3235 14c6 0000      		nop
+ 3236 14c8 00C0      		rjmp .L110
+ 3237               	.L140:
+ 442:lp_solve_5.5/lp_pricePSE.c **** 
+ 3238               		.loc 1 442 0
+ 3239 14ca 0000      		nop
+ 3240               	.L110:
+ 434:lp_solve_5.5/lp_pricePSE.c ****       if(lp->is_basic[i] || (i == colnr))
+ 3241               		.loc 1 434 0 discriminator 2
+ 3242 14cc 8981      		ldd r24,Y+1
+ 3243 14ce 9A81      		ldd r25,Y+2
+ 3244 14d0 0196      		adiw r24,1
+ 3245 14d2 9A83      		std Y+2,r25
+ 3246 14d4 8983      		std Y+1,r24
+ 3247               	.L107:
+ 434:lp_solve_5.5/lp_pricePSE.c ****       if(lp->is_basic[i] || (i == colnr))
+ 3248               		.loc 1 434 0 is_stmt 0 discriminator 1
+ 3249 14d6 8DA5      		ldd r24,Y+45
+ 3250 14d8 9EA5      		ldd r25,Y+46
+ 3251 14da 8851      		subi r24,24
+ 3252 14dc 9E4F      		sbci r25,-2
+ 3253 14de FC01      		movw r30,r24
+ 3254 14e0 2081      		ld r18,Z
+ 3255 14e2 3181      		ldd r19,Z+1
+ 3256 14e4 8981      		ldd r24,Y+1
+ 3257 14e6 9A81      		ldd r25,Y+2
+ 3258 14e8 2817      		cp r18,r24
+ 3259 14ea 3907      		cpc r19,r25
+ 3260 14ec 04F0      		brlt .+2
+ 3261 14ee 00C0      		rjmp .L118
+ 3262               	.L106:
+ 456:lp_solve_5.5/lp_pricePSE.c **** #else
+ 457:lp_solve_5.5/lp_pricePSE.c ****         if(*newEdge < 0) {
+ 458:lp_solve_5.5/lp_pricePSE.c ****           report(lp, errlevel, "updatePricer: Invalid primal norm %g at index %d - iteration %.0f\n
+ 459:lp_solve_5.5/lp_pricePSE.c ****                                *newEdge, i, (double) (lp->total_iter+lp->current_iter));
+ 460:lp_solve_5.5/lp_pricePSE.c ****           if(lp->spx_trace)
+ 461:lp_solve_5.5/lp_pricePSE.c ****             report(lp, errlevel, "Error detail: (RelAlpha=%g, vEdge=%g, cEdge=%g)\n", hold, vEdge[i
+ 462:lp_solve_5.5/lp_pricePSE.c ****           forceRefresh = TRUE;
+ 463:lp_solve_5.5/lp_pricePSE.c ****           break;
+ 464:lp_solve_5.5/lp_pricePSE.c ****         }
+ 465:lp_solve_5.5/lp_pricePSE.c **** #endif
+ 466:lp_solve_5.5/lp_pricePSE.c ****       }
+ 467:lp_solve_5.5/lp_pricePSE.c ****     }
+ 468:lp_solve_5.5/lp_pricePSE.c **** 
+ 469:lp_solve_5.5/lp_pricePSE.c **** Finish1:
+ 470:lp_solve_5.5/lp_pricePSE.c ****     FREE(vAlpha);
+ 3263               		.loc 1 470 0 is_stmt 1
+ 3264 14f0 8BA5      		ldd r24,Y+43
+ 3265 14f2 9CA5      		ldd r25,Y+44
+ 3266 14f4 892B      		or r24,r25
+ 3267 14f6 01F0      		breq .L119
+ 3268               		.loc 1 470 0 is_stmt 0 discriminator 1
+ 3269 14f8 8BA5      		ldd r24,Y+43
+ 3270 14fa 9CA5      		ldd r25,Y+44
+ 3271 14fc 0E94 0000 		call free
+ 3272 1500 1CA6      		std Y+44,__zero_reg__
+ 3273 1502 1BA6      		std Y+43,__zero_reg__
+ 3274               	.L119:
+ 471:lp_solve_5.5/lp_pricePSE.c ****     FREE(vTemp);
+ 3275               		.loc 1 471 0 is_stmt 1
+ 3276 1504 89A5      		ldd r24,Y+41
+ 3277 1506 9AA5      		ldd r25,Y+42
+ 3278 1508 892B      		or r24,r25
+ 3279 150a 01F0      		breq .L83
+ 3280               		.loc 1 471 0 is_stmt 0 discriminator 1
+ 3281 150c 89A5      		ldd r24,Y+41
+ 3282 150e 9AA5      		ldd r25,Y+42
+ 3283 1510 0E94 0000 		call free
+ 3284 1514 1AA6      		std Y+42,__zero_reg__
+ 3285 1516 19A6      		std Y+41,__zero_reg__
+ 3286               	.L83:
+ 3287               	.LBE3:
+ 472:lp_solve_5.5/lp_pricePSE.c **** 
+ 473:lp_solve_5.5/lp_pricePSE.c ****   }
+ 474:lp_solve_5.5/lp_pricePSE.c **** 
+ 475:lp_solve_5.5/lp_pricePSE.c **** Finish2:
+ 476:lp_solve_5.5/lp_pricePSE.c ****   FREE(vEdge);
+ 3288               		.loc 1 476 0 is_stmt 1
+ 3289 1518 8DA1      		ldd r24,Y+37
+ 3290 151a 9EA1      		ldd r25,Y+38
+ 3291 151c 892B      		or r24,r25
+ 3292 151e 01F0      		breq .L121
+ 3293               		.loc 1 476 0 is_stmt 0 discriminator 1
+ 3294 1520 8DA1      		ldd r24,Y+37
+ 3295 1522 9EA1      		ldd r25,Y+38
+ 3296 1524 0E94 0000 		call free
+ 3297 1528 1EA2      		std Y+38,__zero_reg__
+ 3298 152a 1DA2      		std Y+37,__zero_reg__
+ 3299               	.L121:
+ 477:lp_solve_5.5/lp_pricePSE.c ****   freeWeights(w);
+ 3300               		.loc 1 477 0 is_stmt 1
+ 3301 152c 8FA1      		ldd r24,Y+39
+ 3302 152e 98A5      		ldd r25,Y+40
+ 3303 1530 0E94 0000 		call freeWeights
+ 478:lp_solve_5.5/lp_pricePSE.c **** 
+ 479:lp_solve_5.5/lp_pricePSE.c ****   if(forceRefresh)
+ 3304               		.loc 1 479 0
+ 3305 1534 8B81      		ldd r24,Y+3
+ 3306 1536 8823      		tst r24
+ 3307 1538 01F0      		breq .L122
+ 480:lp_solve_5.5/lp_pricePSE.c ****     ok = restartPricer(lp, AUTOMATIC);
+ 3308               		.loc 1 480 0
+ 3309 153a 8DA5      		ldd r24,Y+45
+ 3310 153c 9EA5      		ldd r25,Y+46
+ 3311 153e 62E0      		ldi r22,lo8(2)
+ 3312 1540 0E94 0000 		call restartPricer
+ 3313 1544 8D83      		std Y+5,r24
+ 3314 1546 00C0      		rjmp .L123
+ 3315               	.L122:
+ 481:lp_solve_5.5/lp_pricePSE.c ****   else
+ 482:lp_solve_5.5/lp_pricePSE.c ****     ok = TRUE;
+ 3316               		.loc 1 482 0
+ 3317 1548 81E0      		ldi r24,lo8(1)
+ 3318 154a 8D83      		std Y+5,r24
+ 3319               	.L123:
+ 483:lp_solve_5.5/lp_pricePSE.c **** 
+ 484:lp_solve_5.5/lp_pricePSE.c ****   return( ok );
+ 3320               		.loc 1 484 0
+ 3321 154c 8D81      		ldd r24,Y+5
+ 3322               	.L124:
+ 3323               	/* epilogue start */
+ 485:lp_solve_5.5/lp_pricePSE.c **** 
+ 486:lp_solve_5.5/lp_pricePSE.c **** }
+ 3324               		.loc 1 486 0 discriminator 1
+ 3325 154e E896      		adiw r28,56
+ 3326 1550 0FB6      		in __tmp_reg__,__SREG__
+ 3327 1552 F894      		cli
+ 3328 1554 DEBF      		out __SP_H__,r29
+ 3329 1556 0FBE      		out __SREG__,__tmp_reg__
+ 3330 1558 CDBF      		out __SP_L__,r28
+ 3331 155a DF91      		pop r29
+ 3332 155c CF91      		pop r28
+ 3333 155e 1F91      		pop r17
+ 3334 1560 0F91      		pop r16
+ 3335 1562 FF90      		pop r15
+ 3336 1564 EF90      		pop r14
+ 3337 1566 DF90      		pop r13
+ 3338 1568 CF90      		pop r12
+ 3339 156a BF90      		pop r11
+ 3340 156c AF90      		pop r10
+ 3341 156e 9F90      		pop r9
+ 3342 1570 8F90      		pop r8
+ 3343 1572 7F90      		pop r7
+ 3344 1574 6F90      		pop r6
+ 3345 1576 5F90      		pop r5
+ 3346 1578 4F90      		pop r4
+ 3347 157a 3F90      		pop r3
+ 3348 157c 2F90      		pop r2
+ 3349 157e 0895      		ret
+ 3350               		.cfi_endproc
+ 3351               	.LFE16:
+ 3353               	.global	verifyPricer
+ 3355               	verifyPricer:
+ 3356               	.LFB17:
+ 487:lp_solve_5.5/lp_pricePSE.c **** 
+ 488:lp_solve_5.5/lp_pricePSE.c **** 
+ 489:lp_solve_5.5/lp_pricePSE.c **** STATIC MYBOOL verifyPricer(lprec *lp)
+ 490:lp_solve_5.5/lp_pricePSE.c **** {
+ 3357               		.loc 1 490 0
+ 3358               		.cfi_startproc
+ 3359 1580 CF93      		push r28
+ 3360               	.LCFI76:
+ 3361               		.cfi_def_cfa_offset 3
+ 3362               		.cfi_offset 28, -2
+ 3363 1582 DF93      		push r29
+ 3364               	.LCFI77:
+ 3365               		.cfi_def_cfa_offset 4
+ 3366               		.cfi_offset 29, -3
+ 3367 1584 CDB7      		in r28,__SP_L__
+ 3368 1586 DEB7      		in r29,__SP_H__
+ 3369               	.LCFI78:
+ 3370               		.cfi_def_cfa_register 28
+ 3371 1588 2B97      		sbiw r28,11
+ 3372               	.LCFI79:
+ 3373               		.cfi_def_cfa_offset 15
+ 3374 158a 0FB6      		in __tmp_reg__,__SREG__
+ 3375 158c F894      		cli
+ 3376 158e DEBF      		out __SP_H__,r29
+ 3377 1590 0FBE      		out __SREG__,__tmp_reg__
+ 3378 1592 CDBF      		out __SP_L__,r28
+ 3379               	/* prologue: function */
+ 3380               	/* frame size = 11 */
+ 3381               	/* stack size = 13 */
+ 3382               	.L__stack_usage = 13
+ 3383 1594 9B87      		std Y+11,r25
+ 3384 1596 8A87      		std Y+10,r24
+ 491:lp_solve_5.5/lp_pricePSE.c ****   REAL value;
+ 492:lp_solve_5.5/lp_pricePSE.c ****   int  i, n;
+ 493:lp_solve_5.5/lp_pricePSE.c ****   MYBOOL ok = applyPricer(lp);
+ 3385               		.loc 1 493 0
+ 3386 1598 8A85      		ldd r24,Y+10
+ 3387 159a 9B85      		ldd r25,Y+11
+ 3388 159c 0E94 0000 		call applyPricer
+ 3389 15a0 8D83      		std Y+5,r24
+ 494:lp_solve_5.5/lp_pricePSE.c **** 
+ 495:lp_solve_5.5/lp_pricePSE.c ****   if(!ok)
+ 3390               		.loc 1 495 0
+ 3391 15a2 8D81      		ldd r24,Y+5
+ 3392 15a4 8823      		tst r24
+ 3393 15a6 01F4      		brne .L142
+ 496:lp_solve_5.5/lp_pricePSE.c ****     return( ok );
+ 3394               		.loc 1 496 0
+ 3395 15a8 8D81      		ldd r24,Y+5
+ 3396 15aa 00C0      		rjmp .L143
+ 3397               	.L142:
+ 497:lp_solve_5.5/lp_pricePSE.c ****   ok = FALSE;
+ 3398               		.loc 1 497 0
+ 3399 15ac 1D82      		std Y+5,__zero_reg__
+ 498:lp_solve_5.5/lp_pricePSE.c **** 
+ 499:lp_solve_5.5/lp_pricePSE.c ****   /* Verify */
+ 500:lp_solve_5.5/lp_pricePSE.c ****   if(lp->edgeVector == NULL)
+ 3400               		.loc 1 500 0
+ 3401 15ae 8A85      		ldd r24,Y+10
+ 3402 15b0 9B85      		ldd r25,Y+11
+ 3403 15b2 885E      		subi r24,-24
+ 3404 15b4 9D4F      		sbci r25,-3
+ 3405 15b6 FC01      		movw r30,r24
+ 3406 15b8 8081      		ld r24,Z
+ 3407 15ba 9181      		ldd r25,Z+1
+ 3408 15bc 892B      		or r24,r25
+ 3409 15be 01F4      		brne .L144
+ 501:lp_solve_5.5/lp_pricePSE.c ****     return( ok );
+ 3410               		.loc 1 501 0
+ 3411 15c0 8D81      		ldd r24,Y+5
+ 3412 15c2 00C0      		rjmp .L143
+ 3413               	.L144:
+ 502:lp_solve_5.5/lp_pricePSE.c ****   value = *lp->edgeVector;
+ 3414               		.loc 1 502 0
+ 3415 15c4 8A85      		ldd r24,Y+10
+ 3416 15c6 9B85      		ldd r25,Y+11
+ 3417 15c8 885E      		subi r24,-24
+ 3418 15ca 9D4F      		sbci r25,-3
+ 3419 15cc FC01      		movw r30,r24
+ 3420 15ce 8081      		ld r24,Z
+ 3421 15d0 9181      		ldd r25,Z+1
+ 3422 15d2 FC01      		movw r30,r24
+ 3423 15d4 8081      		ld r24,Z
+ 3424 15d6 9181      		ldd r25,Z+1
+ 3425 15d8 A281      		ldd r26,Z+2
+ 3426 15da B381      		ldd r27,Z+3
+ 3427 15dc 8E83      		std Y+6,r24
+ 3428 15de 9F83      		std Y+7,r25
+ 3429 15e0 A887      		std Y+8,r26
+ 3430 15e2 B987      		std Y+9,r27
+ 503:lp_solve_5.5/lp_pricePSE.c ****   if(value < 0)
+ 3431               		.loc 1 503 0
+ 3432 15e4 20E0      		ldi r18,0
+ 3433 15e6 30E0      		ldi r19,0
+ 3434 15e8 A901      		movw r20,r18
+ 3435 15ea 6E81      		ldd r22,Y+6
+ 3436 15ec 7F81      		ldd r23,Y+7
+ 3437 15ee 8885      		ldd r24,Y+8
+ 3438 15f0 9985      		ldd r25,Y+9
+ 3439 15f2 0E94 0000 		call __ltsf2
+ 3440 15f6 8823      		tst r24
+ 3441 15f8 04F4      		brge .L163
+ 504:lp_solve_5.5/lp_pricePSE.c ****     return( ok );
+ 3442               		.loc 1 504 0
+ 3443 15fa 8D81      		ldd r24,Y+5
+ 3444 15fc 00C0      		rjmp .L143
+ 3445               	.L163:
+ 505:lp_solve_5.5/lp_pricePSE.c **** 
+ 506:lp_solve_5.5/lp_pricePSE.c ****   /* Check the primal */
+ 507:lp_solve_5.5/lp_pricePSE.c ****   n = 1;
+ 3446               		.loc 1 507 0
+ 3447 15fe 81E0      		ldi r24,lo8(1)
+ 3448 1600 90E0      		ldi r25,0
+ 3449 1602 9C83      		std Y+4,r25
+ 3450 1604 8B83      		std Y+3,r24
+ 508:lp_solve_5.5/lp_pricePSE.c ****   if(value == 0) {
+ 3451               		.loc 1 508 0
+ 3452 1606 20E0      		ldi r18,0
+ 3453 1608 30E0      		ldi r19,0
+ 3454 160a A901      		movw r20,r18
+ 3455 160c 6E81      		ldd r22,Y+6
+ 3456 160e 7F81      		ldd r23,Y+7
+ 3457 1610 8885      		ldd r24,Y+8
+ 3458 1612 9985      		ldd r25,Y+9
+ 3459 1614 0E94 0000 		call __eqsf2
+ 3460 1618 8823      		tst r24
+ 3461 161a 01F0      		breq .+2
+ 3462 161c 00C0      		rjmp .L164
+ 509:lp_solve_5.5/lp_pricePSE.c **** 
+ 510:lp_solve_5.5/lp_pricePSE.c ****     for(n = lp->sum; n > 0; n--) {
+ 3463               		.loc 1 510 0
+ 3464 161e 8A85      		ldd r24,Y+10
+ 3465 1620 9B85      		ldd r25,Y+11
+ 3466 1622 8851      		subi r24,24
+ 3467 1624 9E4F      		sbci r25,-2
+ 3468 1626 FC01      		movw r30,r24
+ 3469 1628 8081      		ld r24,Z
+ 3470 162a 9181      		ldd r25,Z+1
+ 3471 162c 9C83      		std Y+4,r25
+ 3472 162e 8B83      		std Y+3,r24
+ 3473 1630 00C0      		rjmp .L149
+ 3474               	.L154:
+ 511:lp_solve_5.5/lp_pricePSE.c ****       if(lp->is_basic[n])
+ 3475               		.loc 1 511 0
+ 3476 1632 8A85      		ldd r24,Y+10
+ 3477 1634 9B85      		ldd r25,Y+11
+ 3478 1636 8053      		subi r24,48
+ 3479 1638 9D4F      		sbci r25,-3
+ 3480 163a FC01      		movw r30,r24
+ 3481 163c 2081      		ld r18,Z
+ 3482 163e 3181      		ldd r19,Z+1
+ 3483 1640 8B81      		ldd r24,Y+3
+ 3484 1642 9C81      		ldd r25,Y+4
+ 3485 1644 820F      		add r24,r18
+ 3486 1646 931F      		adc r25,r19
+ 3487 1648 FC01      		movw r30,r24
+ 3488 164a 8081      		ld r24,Z
+ 3489 164c 8823      		tst r24
+ 3490 164e 01F4      		brne .L165
+ 512:lp_solve_5.5/lp_pricePSE.c ****         continue;
+ 513:lp_solve_5.5/lp_pricePSE.c ****       value = lp->edgeVector[n];
+ 3491               		.loc 1 513 0
+ 3492 1650 8A85      		ldd r24,Y+10
+ 3493 1652 9B85      		ldd r25,Y+11
+ 3494 1654 885E      		subi r24,-24
+ 3495 1656 9D4F      		sbci r25,-3
+ 3496 1658 FC01      		movw r30,r24
+ 3497 165a 2081      		ld r18,Z
+ 3498 165c 3181      		ldd r19,Z+1
+ 3499 165e 8B81      		ldd r24,Y+3
+ 3500 1660 9C81      		ldd r25,Y+4
+ 3501 1662 880F      		lsl r24
+ 3502 1664 991F      		rol r25
+ 3503 1666 880F      		lsl r24
+ 3504 1668 991F      		rol r25
+ 3505 166a 820F      		add r24,r18
+ 3506 166c 931F      		adc r25,r19
+ 3507 166e FC01      		movw r30,r24
+ 3508 1670 8081      		ld r24,Z
+ 3509 1672 9181      		ldd r25,Z+1
+ 3510 1674 A281      		ldd r26,Z+2
+ 3511 1676 B381      		ldd r27,Z+3
+ 3512 1678 8E83      		std Y+6,r24
+ 3513 167a 9F83      		std Y+7,r25
+ 3514 167c A887      		std Y+8,r26
+ 3515 167e B987      		std Y+9,r27
+ 514:lp_solve_5.5/lp_pricePSE.c ****       if(value <= 0)
+ 3516               		.loc 1 514 0
+ 3517 1680 20E0      		ldi r18,0
+ 3518 1682 30E0      		ldi r19,0
+ 3519 1684 A901      		movw r20,r18
+ 3520 1686 6E81      		ldd r22,Y+6
+ 3521 1688 7F81      		ldd r23,Y+7
+ 3522 168a 8885      		ldd r24,Y+8
+ 3523 168c 9985      		ldd r25,Y+9
+ 3524 168e 0E94 0000 		call __lesf2
+ 3525 1692 1816      		cp __zero_reg__,r24
+ 3526 1694 04F0      		brlt .+2
+ 3527 1696 00C0      		rjmp .L166
+ 3528 1698 00C0      		rjmp .L151
+ 3529               	.L165:
+ 512:lp_solve_5.5/lp_pricePSE.c ****         continue;
+ 3530               		.loc 1 512 0
+ 3531 169a 0000      		nop
+ 3532               	.L151:
+ 510:lp_solve_5.5/lp_pricePSE.c ****       if(lp->is_basic[n])
+ 3533               		.loc 1 510 0 discriminator 2
+ 3534 169c 8B81      		ldd r24,Y+3
+ 3535 169e 9C81      		ldd r25,Y+4
+ 3536 16a0 0197      		sbiw r24,1
+ 3537 16a2 9C83      		std Y+4,r25
+ 3538 16a4 8B83      		std Y+3,r24
+ 3539               	.L149:
+ 510:lp_solve_5.5/lp_pricePSE.c ****       if(lp->is_basic[n])
+ 3540               		.loc 1 510 0 is_stmt 0 discriminator 1
+ 3541 16a6 8B81      		ldd r24,Y+3
+ 3542 16a8 9C81      		ldd r25,Y+4
+ 3543 16aa 1816      		cp __zero_reg__,r24
+ 3544 16ac 1906      		cpc __zero_reg__,r25
+ 3545 16ae 04F4      		brge .+2
+ 3546 16b0 00C0      		rjmp .L154
+ 3547 16b2 00C0      		rjmp .L155
+ 3548               	.L164:
+ 515:lp_solve_5.5/lp_pricePSE.c ****         break;
+ 516:lp_solve_5.5/lp_pricePSE.c ****     }
+ 517:lp_solve_5.5/lp_pricePSE.c ****   }
+ 518:lp_solve_5.5/lp_pricePSE.c ****   /* Check the dual */
+ 519:lp_solve_5.5/lp_pricePSE.c ****   else {
+ 520:lp_solve_5.5/lp_pricePSE.c ****     for(i = lp->rows; i > 0; i--) {
+ 3549               		.loc 1 520 0 is_stmt 1
+ 3550 16b4 8A85      		ldd r24,Y+10
+ 3551 16b6 9B85      		ldd r25,Y+11
+ 3552 16b8 8651      		subi r24,22
+ 3553 16ba 9E4F      		sbci r25,-2
+ 3554 16bc FC01      		movw r30,r24
+ 3555 16be 8081      		ld r24,Z
+ 3556 16c0 9181      		ldd r25,Z+1
+ 3557 16c2 9A83      		std Y+2,r25
+ 3558 16c4 8983      		std Y+1,r24
+ 3559 16c6 00C0      		rjmp .L156
+ 3560               	.L159:
+ 521:lp_solve_5.5/lp_pricePSE.c ****       n = lp->var_basic[i];
+ 3561               		.loc 1 521 0
+ 3562 16c8 8A85      		ldd r24,Y+10
+ 3563 16ca 9B85      		ldd r25,Y+11
+ 3564 16cc 8453      		subi r24,52
+ 3565 16ce 9D4F      		sbci r25,-3
+ 3566 16d0 FC01      		movw r30,r24
+ 3567 16d2 2081      		ld r18,Z
+ 3568 16d4 3181      		ldd r19,Z+1
+ 3569 16d6 8981      		ldd r24,Y+1
+ 3570 16d8 9A81      		ldd r25,Y+2
+ 3571 16da 880F      		lsl r24
+ 3572 16dc 991F      		rol r25
+ 3573 16de 820F      		add r24,r18
+ 3574 16e0 931F      		adc r25,r19
+ 3575 16e2 FC01      		movw r30,r24
+ 3576 16e4 8081      		ld r24,Z
+ 3577 16e6 9181      		ldd r25,Z+1
+ 3578 16e8 9C83      		std Y+4,r25
+ 3579 16ea 8B83      		std Y+3,r24
+ 522:lp_solve_5.5/lp_pricePSE.c ****       value = lp->edgeVector[n];
+ 3580               		.loc 1 522 0
+ 3581 16ec 8A85      		ldd r24,Y+10
+ 3582 16ee 9B85      		ldd r25,Y+11
+ 3583 16f0 885E      		subi r24,-24
+ 3584 16f2 9D4F      		sbci r25,-3
+ 3585 16f4 FC01      		movw r30,r24
+ 3586 16f6 2081      		ld r18,Z
+ 3587 16f8 3181      		ldd r19,Z+1
+ 3588 16fa 8B81      		ldd r24,Y+3
+ 3589 16fc 9C81      		ldd r25,Y+4
+ 3590 16fe 880F      		lsl r24
+ 3591 1700 991F      		rol r25
+ 3592 1702 880F      		lsl r24
+ 3593 1704 991F      		rol r25
+ 3594 1706 820F      		add r24,r18
+ 3595 1708 931F      		adc r25,r19
+ 3596 170a FC01      		movw r30,r24
+ 3597 170c 8081      		ld r24,Z
+ 3598 170e 9181      		ldd r25,Z+1
+ 3599 1710 A281      		ldd r26,Z+2
+ 3600 1712 B381      		ldd r27,Z+3
+ 3601 1714 8E83      		std Y+6,r24
+ 3602 1716 9F83      		std Y+7,r25
+ 3603 1718 A887      		std Y+8,r26
+ 3604 171a B987      		std Y+9,r27
+ 523:lp_solve_5.5/lp_pricePSE.c ****       if(value <= 0)
+ 3605               		.loc 1 523 0
+ 3606 171c 20E0      		ldi r18,0
+ 3607 171e 30E0      		ldi r19,0
+ 3608 1720 A901      		movw r20,r18
+ 3609 1722 6E81      		ldd r22,Y+6
+ 3610 1724 7F81      		ldd r23,Y+7
+ 3611 1726 8885      		ldd r24,Y+8
+ 3612 1728 9985      		ldd r25,Y+9
+ 3613 172a 0E94 0000 		call __lesf2
+ 3614 172e 1816      		cp __zero_reg__,r24
+ 3615 1730 04F4      		brge .L167
+ 520:lp_solve_5.5/lp_pricePSE.c ****       n = lp->var_basic[i];
+ 3616               		.loc 1 520 0 discriminator 2
+ 3617 1732 8981      		ldd r24,Y+1
+ 3618 1734 9A81      		ldd r25,Y+2
+ 3619 1736 0197      		sbiw r24,1
+ 3620 1738 9A83      		std Y+2,r25
+ 3621 173a 8983      		std Y+1,r24
+ 3622               	.L156:
+ 520:lp_solve_5.5/lp_pricePSE.c ****       n = lp->var_basic[i];
+ 3623               		.loc 1 520 0 is_stmt 0 discriminator 1
+ 3624 173c 8981      		ldd r24,Y+1
+ 3625 173e 9A81      		ldd r25,Y+2
+ 3626 1740 1816      		cp __zero_reg__,r24
+ 3627 1742 1906      		cpc __zero_reg__,r25
+ 3628 1744 04F4      		brge .+2
+ 3629 1746 00C0      		rjmp .L159
+ 3630 1748 00C0      		rjmp .L155
+ 3631               	.L166:
+ 515:lp_solve_5.5/lp_pricePSE.c ****     }
+ 3632               		.loc 1 515 0 is_stmt 1
+ 3633 174a 0000      		nop
+ 3634 174c 00C0      		rjmp .L155
+ 3635               	.L167:
+ 524:lp_solve_5.5/lp_pricePSE.c ****         break;
+ 3636               		.loc 1 524 0
+ 3637 174e 0000      		nop
+ 3638               	.L155:
+ 525:lp_solve_5.5/lp_pricePSE.c ****     }
+ 526:lp_solve_5.5/lp_pricePSE.c ****   }
+ 527:lp_solve_5.5/lp_pricePSE.c **** 
+ 528:lp_solve_5.5/lp_pricePSE.c ****   ok = (MYBOOL) (n == 0);
+ 3639               		.loc 1 528 0
+ 3640 1750 21E0      		ldi r18,lo8(1)
+ 3641 1752 8B81      		ldd r24,Y+3
+ 3642 1754 9C81      		ldd r25,Y+4
+ 3643 1756 892B      		or r24,r25
+ 3644 1758 01F0      		breq .L160
+ 3645 175a 20E0      		ldi r18,0
+ 3646               	.L160:
+ 3647 175c 2D83      		std Y+5,r18
+ 529:lp_solve_5.5/lp_pricePSE.c **** #ifdef Paranoia
+ 530:lp_solve_5.5/lp_pricePSE.c ****   if(!ok)
+ 531:lp_solve_5.5/lp_pricePSE.c ****     report(lp, SEVERE, "verifyPricer: Invalid norm %g at index %d\n",
+ 532:lp_solve_5.5/lp_pricePSE.c ****                        value, n);
+ 533:lp_solve_5.5/lp_pricePSE.c **** #endif
+ 534:lp_solve_5.5/lp_pricePSE.c ****   return( ok );
+ 3648               		.loc 1 534 0
+ 3649 175e 8D81      		ldd r24,Y+5
+ 3650               	.L143:
+ 3651               	/* epilogue start */
+ 535:lp_solve_5.5/lp_pricePSE.c **** }
+ 3652               		.loc 1 535 0
+ 3653 1760 2B96      		adiw r28,11
+ 3654 1762 0FB6      		in __tmp_reg__,__SREG__
+ 3655 1764 F894      		cli
+ 3656 1766 DEBF      		out __SP_H__,r29
+ 3657 1768 0FBE      		out __SREG__,__tmp_reg__
+ 3658 176a CDBF      		out __SP_L__,r28
+ 3659 176c DF91      		pop r29
+ 3660 176e CF91      		pop r28
+ 3661 1770 0895      		ret
+ 3662               		.cfi_endproc
+ 3663               	.LFE17:
+ 3665               	.Letext0:
+ 3666               		.file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\lib\\gc
+ 3667               		.file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 3668               		.file 4 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 3669               		.file 5 "lp_solve_5.5\\shared/commonlib.h"
+ 3670               		.file 6 "lp_solve_5.5/lp_types.h"
+ 3671               		.file 7 "lp_solve_5.5/lp_lib.h"
+ 3672               		.file 8 "lp_solve_5.5/lp_utils.h"
+ 3673               		.file 9 "lp_solve_5.5/lp_Hash.h"
+ 3674               		.file 10 "lp_solve_5.5/lp_matrix.h"
+ 3675               		.file 11 "lp_solve_5.5/lp_mipbb.h"
+ 3676               		.file 12 "lp_solve_5.5/lp_SOS.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 lp_pricePSE.c
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:2      *ABS*:0000003e __SP_H__
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:3      *ABS*:0000003d __SP_L__
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:4      *ABS*:0000003f __SREG__
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:12     .text:00000000 applyPricer
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:80     .text:00000044 simplexPricer
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:165    .text:000000ac freePricer
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:230    .text:000000f8 resizePricer
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:348    .text:000001a4 initPricer
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:412    .text:000001dc getPricer
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:661    .text:0000037a restartPricer
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:1369   .text:00000810 formWeights
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:1541   .text:000008f6 freeWeights
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:1600   .text:00000924 updatePricer
+C:\Users\GUILHE~1\AppData\Local\Temp\cc7EL9ig.s:3355   .text:00001580 verifyPricer
+
+UNDEFINED SYMBOLS
+get_piv_rule
+__floatunsisf
+free
+allocREAL
+memset
+__ltsf2
+__floatsisf
+__nesf2
+__eqsf2
+report
+sqrt
+__fixunssfsi
+__mulsf3
+__addsf3
+is_piv_rule
+is_piv_mode
+bsolve
+fsolve
+memcpy
+__gtsf2
+__divsf3
+__subsf3
+__lesf2
+__floatdisf
+__adddi3
+mempool_obtainVector
+get_colIndexA
+mempool_releaseVector
+prod_xA
+__do_copy_data

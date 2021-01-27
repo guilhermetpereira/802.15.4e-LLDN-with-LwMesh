@@ -1,0 +1,1921 @@
+   1               		.file	"lp_Hash.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               		.section	.rodata
+  12               	.LC0:
+  13 0000 1D00      		.word	29
+  14 0002 E500      		.word	229
+  15 0004 7303      		.word	883
+  16 0006 8706      		.word	1671
+  17 0008 E70A      		.word	2791
+  18 000a C112      		.word	4801
+  19 000c B521      		.word	8629
+  20 000e 1727      		.word	10007
+  21 0010 B93B      		.word	15289
+  22 0012 D762      		.word	25303
+  23 0014 1B88      		.word	-30693
+  24 0016 F5FE      		.word	-267
+  25 0018 7D85      		.word	-31363
+  26 001a 7BF9      		.word	-1669
+  27 001c D940      		.word	16601
+  28 001e 0D8B      		.word	-29939
+  29 0020 BB12      		.word	4795
+  30 0022 D363      		.word	25555
+  31 0024 29B4      		.word	-19415
+  32 0026 37FD      		.word	-713
+  33 0028 83A1      		.word	-24189
+  34 002a EDE2      		.word	-7443
+  35 002c 4925      		.word	9545
+  36 002e 8BA5      		.word	-23157
+  37 0030 C530      		.word	12485
+  38 0032 43B4      		.word	-19389
+  39 0034 E738      		.word	14567
+  40 0036 C7BD      		.word	-16953
+  41 0038 AB44      		.word	17579
+  42 003a 25CC      		.word	-13275
+  43 003c E750      		.word	20711
+  44 003e 35D6      		.word	-10699
+  45 0040 D15C      		.word	23761
+  46 0042 67E3      		.word	-7321
+  47 0044 F9B3      		.word	-19463
+  48 0046 8384      		.word	-31613
+  49 0048 A925      		.word	9641
+  50 004a D1C6      		.word	-14639
+  51 004c 2509      		.word	2341
+  52 004e 4B4B      		.word	19275
+  53 0050 8B8D      		.word	-29301
+  54 0052 C3CF      		.word	-12349
+  55 0054 0912      		.word	4617
+  56 0056 4B54      		.word	21579
+  57 0058 7796      		.word	-27017
+  58               		.text
+  59               	.global	create_hash_table
+  61               	create_hash_table:
+  62               	.LFB7:
+  63               		.file 1 "lp_solve_5.5/lp_Hash.c"
+   1:lp_solve_5.5/lp_Hash.c **** 
+   2:lp_solve_5.5/lp_Hash.c **** #include <stdlib.h>
+   3:lp_solve_5.5/lp_Hash.c **** #include <string.h>
+   4:lp_solve_5.5/lp_Hash.c **** #include "lp_lib.h"
+   5:lp_solve_5.5/lp_Hash.c **** #include "lp_utils.h"
+   6:lp_solve_5.5/lp_Hash.c **** #include "lp_report.h"
+   7:lp_solve_5.5/lp_Hash.c **** #include "lp_Hash.h"
+   8:lp_solve_5.5/lp_Hash.c **** 
+   9:lp_solve_5.5/lp_Hash.c **** #ifdef FORTIFY
+  10:lp_solve_5.5/lp_Hash.c **** # include "lp_fortify.h"
+  11:lp_solve_5.5/lp_Hash.c **** #endif
+  12:lp_solve_5.5/lp_Hash.c **** 
+  13:lp_solve_5.5/lp_Hash.c **** 
+  14:lp_solve_5.5/lp_Hash.c **** #define HASH_START_SIZE  5000  /* Hash table size for row and column name storage */
+  15:lp_solve_5.5/lp_Hash.c **** #define NUMHASHPRIMES      45
+  16:lp_solve_5.5/lp_Hash.c **** 
+  17:lp_solve_5.5/lp_Hash.c **** STATIC hashtable *create_hash_table(int size, int base)
+  18:lp_solve_5.5/lp_Hash.c **** {
+  64               		.loc 1 18 0
+  65               		.cfi_startproc
+  66 0000 CF93      		push r28
+  67               	.LCFI0:
+  68               		.cfi_def_cfa_offset 3
+  69               		.cfi_offset 28, -2
+  70 0002 DF93      		push r29
+  71               	.LCFI1:
+  72               		.cfi_def_cfa_offset 4
+  73               		.cfi_offset 29, -3
+  74 0004 CDB7      		in r28,__SP_L__
+  75 0006 DEB7      		in r29,__SP_H__
+  76               	.LCFI2:
+  77               		.cfi_def_cfa_register 28
+  78 0008 C256      		subi r28,98
+  79 000a D109      		sbc r29,__zero_reg__
+  80               	.LCFI3:
+  81               		.cfi_def_cfa_offset 102
+  82 000c 0FB6      		in __tmp_reg__,__SREG__
+  83 000e F894      		cli
+  84 0010 DEBF      		out __SP_H__,r29
+  85 0012 0FBE      		out __SREG__,__tmp_reg__
+  86 0014 CDBF      		out __SP_L__,r28
+  87               	/* prologue: function */
+  88               	/* frame size = 98 */
+  89               	/* stack size = 100 */
+  90               	.L__stack_usage = 100
+  91 0016 9E01      		movw r18,r28
+  92 0018 215A      		subi r18,-95
+  93 001a 3F4F      		sbci r19,-1
+  94 001c F901      		movw r30,r18
+  95 001e 9183      		std Z+1,r25
+  96 0020 8083      		st Z,r24
+  97 0022 CE01      		movw r24,r28
+  98 0024 8F59      		subi r24,-97
+  99 0026 9F4F      		sbci r25,-1
+ 100 0028 FC01      		movw r30,r24
+ 101 002a 7183      		std Z+1,r23
+ 102 002c 6083      		st Z,r22
+  19:lp_solve_5.5/lp_Hash.c ****   int i;
+  20:lp_solve_5.5/lp_Hash.c ****   int HashPrimes[ ] = {
+ 103               		.loc 1 20 0
+ 104 002e 8AE5      		ldi r24,lo8(90)
+ 105 0030 E0E0      		ldi r30,lo8(.LC0)
+ 106 0032 F0E0      		ldi r31,hi8(.LC0)
+ 107 0034 DE01      		movw r26,r28
+ 108 0036 1596      		adiw r26,5
+ 109               		0:
+ 110 0038 0190      		ld r0,Z+
+ 111 003a 0D92      		st X+,r0
+ 112 003c 8A95      		dec r24
+ 113 003e 01F4      		brne 0b
+  21:lp_solve_5.5/lp_Hash.c ****              29,     229,     883,    1671,    2791,    4801,    8629,   10007,
+  22:lp_solve_5.5/lp_Hash.c ****           15289,   25303,   34843,   65269,   99709,  129403,  147673,  166669,
+  23:lp_solve_5.5/lp_Hash.c ****          201403,  222163,  242729,  261431,  303491,  320237,  402761,  501131,
+  24:lp_solve_5.5/lp_Hash.c ****          602309,  701507,  800999,  900551, 1000619, 1100837, 1200359, 1300021,
+  25:lp_solve_5.5/lp_Hash.c ****         1400017, 1500007, 1750009, 2000003, 2500009, 3000017, 4000037, 5000011,
+  26:lp_solve_5.5/lp_Hash.c ****         6000011, 7000003, 8000009, 9000011, 9999991};
+  27:lp_solve_5.5/lp_Hash.c ****   hashtable *ht;
+  28:lp_solve_5.5/lp_Hash.c **** 
+  29:lp_solve_5.5/lp_Hash.c ****   /* Find a good size for the hash table */
+  30:lp_solve_5.5/lp_Hash.c ****   if(size < HASH_START_SIZE)
+ 114               		.loc 1 30 0
+ 115 0040 CE01      		movw r24,r28
+ 116 0042 815A      		subi r24,-95
+ 117 0044 9F4F      		sbci r25,-1
+ 118 0046 FC01      		movw r30,r24
+ 119 0048 8081      		ld r24,Z
+ 120 004a 9181      		ldd r25,Z+1
+ 121 004c 8838      		cpi r24,-120
+ 122 004e 9341      		sbci r25,19
+ 123 0050 04F4      		brge .L2
+  31:lp_solve_5.5/lp_Hash.c ****     size = HASH_START_SIZE;
+ 124               		.loc 1 31 0
+ 125 0052 CE01      		movw r24,r28
+ 126 0054 815A      		subi r24,-95
+ 127 0056 9F4F      		sbci r25,-1
+ 128 0058 28E8      		ldi r18,lo8(-120)
+ 129 005a 33E1      		ldi r19,lo8(19)
+ 130 005c FC01      		movw r30,r24
+ 131 005e 3183      		std Z+1,r19
+ 132 0060 2083      		st Z,r18
+ 133               	.L2:
+  32:lp_solve_5.5/lp_Hash.c ****   for(i = 0; i < NUMHASHPRIMES-1; i++)
+ 134               		.loc 1 32 0
+ 135 0062 1A82      		std Y+2,__zero_reg__
+ 136 0064 1982      		std Y+1,__zero_reg__
+ 137 0066 00C0      		rjmp .L3
+ 138               	.L6:
+  33:lp_solve_5.5/lp_Hash.c ****     if(HashPrimes[i] > size)
+ 139               		.loc 1 33 0
+ 140 0068 8981      		ldd r24,Y+1
+ 141 006a 9A81      		ldd r25,Y+2
+ 142 006c 880F      		lsl r24
+ 143 006e 991F      		rol r25
+ 144 0070 9E01      		movw r18,r28
+ 145 0072 2F5F      		subi r18,-1
+ 146 0074 3F4F      		sbci r19,-1
+ 147 0076 820F      		add r24,r18
+ 148 0078 931F      		adc r25,r19
+ 149 007a 0496      		adiw r24,4
+ 150 007c FC01      		movw r30,r24
+ 151 007e 2081      		ld r18,Z
+ 152 0080 3181      		ldd r19,Z+1
+ 153 0082 CE01      		movw r24,r28
+ 154 0084 815A      		subi r24,-95
+ 155 0086 9F4F      		sbci r25,-1
+ 156 0088 FC01      		movw r30,r24
+ 157 008a 8081      		ld r24,Z
+ 158 008c 9181      		ldd r25,Z+1
+ 159 008e 8217      		cp r24,r18
+ 160 0090 9307      		cpc r25,r19
+ 161 0092 04F0      		brlt .L8
+  32:lp_solve_5.5/lp_Hash.c ****   for(i = 0; i < NUMHASHPRIMES-1; i++)
+ 162               		.loc 1 32 0 discriminator 2
+ 163 0094 8981      		ldd r24,Y+1
+ 164 0096 9A81      		ldd r25,Y+2
+ 165 0098 0196      		adiw r24,1
+ 166 009a 9A83      		std Y+2,r25
+ 167 009c 8983      		std Y+1,r24
+ 168               	.L3:
+  32:lp_solve_5.5/lp_Hash.c ****   for(i = 0; i < NUMHASHPRIMES-1; i++)
+ 169               		.loc 1 32 0 is_stmt 0 discriminator 1
+ 170 009e 8981      		ldd r24,Y+1
+ 171 00a0 9A81      		ldd r25,Y+2
+ 172 00a2 8C97      		sbiw r24,44
+ 173 00a4 04F0      		brlt .L6
+ 174 00a6 00C0      		rjmp .L5
+ 175               	.L8:
+  34:lp_solve_5.5/lp_Hash.c ****       break;
+ 176               		.loc 1 34 0 is_stmt 1
+ 177 00a8 0000      		nop
+ 178               	.L5:
+  35:lp_solve_5.5/lp_Hash.c ****   size = HashPrimes[i];
+ 179               		.loc 1 35 0
+ 180 00aa CE01      		movw r24,r28
+ 181 00ac 815A      		subi r24,-95
+ 182 00ae 9F4F      		sbci r25,-1
+ 183 00b0 2981      		ldd r18,Y+1
+ 184 00b2 3A81      		ldd r19,Y+2
+ 185 00b4 220F      		lsl r18
+ 186 00b6 331F      		rol r19
+ 187 00b8 AE01      		movw r20,r28
+ 188 00ba 4F5F      		subi r20,-1
+ 189 00bc 5F4F      		sbci r21,-1
+ 190 00be 240F      		add r18,r20
+ 191 00c0 351F      		adc r19,r21
+ 192 00c2 2C5F      		subi r18,-4
+ 193 00c4 3F4F      		sbci r19,-1
+ 194 00c6 F901      		movw r30,r18
+ 195 00c8 2081      		ld r18,Z
+ 196 00ca 3181      		ldd r19,Z+1
+ 197 00cc FC01      		movw r30,r24
+ 198 00ce 3183      		std Z+1,r19
+ 199 00d0 2083      		st Z,r18
+  36:lp_solve_5.5/lp_Hash.c **** 
+  37:lp_solve_5.5/lp_Hash.c ****   /* Then allocate and initialize memory */
+  38:lp_solve_5.5/lp_Hash.c ****   ht = (hashtable *) calloc(1 , sizeof(*ht));
+ 200               		.loc 1 38 0
+ 201 00d2 6CE0      		ldi r22,lo8(12)
+ 202 00d4 70E0      		ldi r23,0
+ 203 00d6 81E0      		ldi r24,lo8(1)
+ 204 00d8 90E0      		ldi r25,0
+ 205 00da 0E94 0000 		call calloc
+ 206 00de 9C83      		std Y+4,r25
+ 207 00e0 8B83      		std Y+3,r24
+  39:lp_solve_5.5/lp_Hash.c ****   ht->table = (hashelem **) calloc(size, sizeof(*(ht->table)));
+ 208               		.loc 1 39 0
+ 209 00e2 CE01      		movw r24,r28
+ 210 00e4 815A      		subi r24,-95
+ 211 00e6 9F4F      		sbci r25,-1
+ 212 00e8 FC01      		movw r30,r24
+ 213 00ea 8081      		ld r24,Z
+ 214 00ec 9181      		ldd r25,Z+1
+ 215 00ee 62E0      		ldi r22,lo8(2)
+ 216 00f0 70E0      		ldi r23,0
+ 217 00f2 0E94 0000 		call calloc
+ 218 00f6 9C01      		movw r18,r24
+ 219 00f8 8B81      		ldd r24,Y+3
+ 220 00fa 9C81      		ldd r25,Y+4
+ 221 00fc FC01      		movw r30,r24
+ 222 00fe 3183      		std Z+1,r19
+ 223 0100 2083      		st Z,r18
+  40:lp_solve_5.5/lp_Hash.c ****   ht->size = size;
+ 224               		.loc 1 40 0
+ 225 0102 8B81      		ldd r24,Y+3
+ 226 0104 9C81      		ldd r25,Y+4
+ 227 0106 9E01      		movw r18,r28
+ 228 0108 215A      		subi r18,-95
+ 229 010a 3F4F      		sbci r19,-1
+ 230 010c F901      		movw r30,r18
+ 231 010e 2081      		ld r18,Z
+ 232 0110 3181      		ldd r19,Z+1
+ 233 0112 FC01      		movw r30,r24
+ 234 0114 3383      		std Z+3,r19
+ 235 0116 2283      		std Z+2,r18
+  41:lp_solve_5.5/lp_Hash.c ****   ht->base = base;
+ 236               		.loc 1 41 0
+ 237 0118 8B81      		ldd r24,Y+3
+ 238 011a 9C81      		ldd r25,Y+4
+ 239 011c 9E01      		movw r18,r28
+ 240 011e 2F59      		subi r18,-97
+ 241 0120 3F4F      		sbci r19,-1
+ 242 0122 F901      		movw r30,r18
+ 243 0124 2081      		ld r18,Z
+ 244 0126 3181      		ldd r19,Z+1
+ 245 0128 FC01      		movw r30,r24
+ 246 012a 3583      		std Z+5,r19
+ 247 012c 2483      		std Z+4,r18
+  42:lp_solve_5.5/lp_Hash.c ****   ht->count = base-1;
+ 248               		.loc 1 42 0
+ 249 012e CE01      		movw r24,r28
+ 250 0130 8F59      		subi r24,-97
+ 251 0132 9F4F      		sbci r25,-1
+ 252 0134 FC01      		movw r30,r24
+ 253 0136 8081      		ld r24,Z
+ 254 0138 9181      		ldd r25,Z+1
+ 255 013a 9C01      		movw r18,r24
+ 256 013c 2150      		subi r18,1
+ 257 013e 3109      		sbc r19,__zero_reg__
+ 258 0140 8B81      		ldd r24,Y+3
+ 259 0142 9C81      		ldd r25,Y+4
+ 260 0144 FC01      		movw r30,r24
+ 261 0146 3783      		std Z+7,r19
+ 262 0148 2683      		std Z+6,r18
+  43:lp_solve_5.5/lp_Hash.c **** 
+  44:lp_solve_5.5/lp_Hash.c ****   return(ht);
+ 263               		.loc 1 44 0
+ 264 014a 8B81      		ldd r24,Y+3
+ 265 014c 9C81      		ldd r25,Y+4
+ 266               	/* epilogue start */
+  45:lp_solve_5.5/lp_Hash.c **** }
+ 267               		.loc 1 45 0
+ 268 014e CE59      		subi r28,-98
+ 269 0150 DF4F      		sbci r29,-1
+ 270 0152 0FB6      		in __tmp_reg__,__SREG__
+ 271 0154 F894      		cli
+ 272 0156 DEBF      		out __SP_H__,r29
+ 273 0158 0FBE      		out __SREG__,__tmp_reg__
+ 274 015a CDBF      		out __SP_L__,r28
+ 275 015c DF91      		pop r29
+ 276 015e CF91      		pop r28
+ 277 0160 0895      		ret
+ 278               		.cfi_endproc
+ 279               	.LFE7:
+ 281               	.global	free_hash_item
+ 283               	free_hash_item:
+ 284               	.LFB8:
+  46:lp_solve_5.5/lp_Hash.c **** 
+  47:lp_solve_5.5/lp_Hash.c **** STATIC void free_hash_item(hashelem **hp)
+  48:lp_solve_5.5/lp_Hash.c **** {
+ 285               		.loc 1 48 0
+ 286               		.cfi_startproc
+ 287 0162 CF93      		push r28
+ 288               	.LCFI4:
+ 289               		.cfi_def_cfa_offset 3
+ 290               		.cfi_offset 28, -2
+ 291 0164 DF93      		push r29
+ 292               	.LCFI5:
+ 293               		.cfi_def_cfa_offset 4
+ 294               		.cfi_offset 29, -3
+ 295 0166 00D0      		rcall .
+ 296               	.LCFI6:
+ 297               		.cfi_def_cfa_offset 6
+ 298 0168 CDB7      		in r28,__SP_L__
+ 299 016a DEB7      		in r29,__SP_H__
+ 300               	.LCFI7:
+ 301               		.cfi_def_cfa_register 28
+ 302               	/* prologue: function */
+ 303               	/* frame size = 2 */
+ 304               	/* stack size = 4 */
+ 305               	.L__stack_usage = 4
+ 306 016c 9A83      		std Y+2,r25
+ 307 016e 8983      		std Y+1,r24
+  49:lp_solve_5.5/lp_Hash.c ****   free((*hp)->name);
+ 308               		.loc 1 49 0
+ 309 0170 8981      		ldd r24,Y+1
+ 310 0172 9A81      		ldd r25,Y+2
+ 311 0174 FC01      		movw r30,r24
+ 312 0176 8081      		ld r24,Z
+ 313 0178 9181      		ldd r25,Z+1
+ 314 017a FC01      		movw r30,r24
+ 315 017c 8081      		ld r24,Z
+ 316 017e 9181      		ldd r25,Z+1
+ 317 0180 0E94 0000 		call free
+  50:lp_solve_5.5/lp_Hash.c ****   free(*hp);
+ 318               		.loc 1 50 0
+ 319 0184 8981      		ldd r24,Y+1
+ 320 0186 9A81      		ldd r25,Y+2
+ 321 0188 FC01      		movw r30,r24
+ 322 018a 8081      		ld r24,Z
+ 323 018c 9181      		ldd r25,Z+1
+ 324 018e 0E94 0000 		call free
+  51:lp_solve_5.5/lp_Hash.c ****   *hp = NULL;
+ 325               		.loc 1 51 0
+ 326 0192 8981      		ldd r24,Y+1
+ 327 0194 9A81      		ldd r25,Y+2
+ 328 0196 FC01      		movw r30,r24
+ 329 0198 1182      		std Z+1,__zero_reg__
+ 330 019a 1082      		st Z,__zero_reg__
+  52:lp_solve_5.5/lp_Hash.c **** }
+ 331               		.loc 1 52 0
+ 332 019c 0000      		nop
+ 333               	/* epilogue start */
+ 334 019e 0F90      		pop __tmp_reg__
+ 335 01a0 0F90      		pop __tmp_reg__
+ 336 01a2 DF91      		pop r29
+ 337 01a4 CF91      		pop r28
+ 338 01a6 0895      		ret
+ 339               		.cfi_endproc
+ 340               	.LFE8:
+ 342               	.global	free_hash_table
+ 344               	free_hash_table:
+ 345               	.LFB9:
+  53:lp_solve_5.5/lp_Hash.c **** 
+  54:lp_solve_5.5/lp_Hash.c **** STATIC void free_hash_table(hashtable *ht)
+  55:lp_solve_5.5/lp_Hash.c **** {
+ 346               		.loc 1 55 0
+ 347               		.cfi_startproc
+ 348 01a8 CF93      		push r28
+ 349               	.LCFI8:
+ 350               		.cfi_def_cfa_offset 3
+ 351               		.cfi_offset 28, -2
+ 352 01aa DF93      		push r29
+ 353               	.LCFI9:
+ 354               		.cfi_def_cfa_offset 4
+ 355               		.cfi_offset 29, -3
+ 356 01ac 00D0      		rcall .
+ 357 01ae 00D0      		rcall .
+ 358 01b0 00D0      		rcall .
+ 359               	.LCFI10:
+ 360               		.cfi_def_cfa_offset 10
+ 361 01b2 CDB7      		in r28,__SP_L__
+ 362 01b4 DEB7      		in r29,__SP_H__
+ 363               	.LCFI11:
+ 364               		.cfi_def_cfa_register 28
+ 365               	/* prologue: function */
+ 366               	/* frame size = 6 */
+ 367               	/* stack size = 8 */
+ 368               	.L__stack_usage = 8
+ 369 01b6 9E83      		std Y+6,r25
+ 370 01b8 8D83      		std Y+5,r24
+  56:lp_solve_5.5/lp_Hash.c ****   hashelem *hp, *thp;
+  57:lp_solve_5.5/lp_Hash.c **** 
+  58:lp_solve_5.5/lp_Hash.c ****   hp = ht->first;
+ 371               		.loc 1 58 0
+ 372 01ba 8D81      		ldd r24,Y+5
+ 373 01bc 9E81      		ldd r25,Y+6
+ 374 01be FC01      		movw r30,r24
+ 375 01c0 8085      		ldd r24,Z+8
+ 376 01c2 9185      		ldd r25,Z+9
+ 377 01c4 9A83      		std Y+2,r25
+ 378 01c6 8983      		std Y+1,r24
+  59:lp_solve_5.5/lp_Hash.c ****   while(hp != NULL) {
+ 379               		.loc 1 59 0
+ 380 01c8 00C0      		rjmp .L11
+ 381               	.L12:
+  60:lp_solve_5.5/lp_Hash.c ****     thp = hp;
+ 382               		.loc 1 60 0
+ 383 01ca 8981      		ldd r24,Y+1
+ 384 01cc 9A81      		ldd r25,Y+2
+ 385 01ce 9C83      		std Y+4,r25
+ 386 01d0 8B83      		std Y+3,r24
+  61:lp_solve_5.5/lp_Hash.c ****     hp = hp->nextelem;
+ 387               		.loc 1 61 0
+ 388 01d2 8981      		ldd r24,Y+1
+ 389 01d4 9A81      		ldd r25,Y+2
+ 390 01d6 FC01      		movw r30,r24
+ 391 01d8 8681      		ldd r24,Z+6
+ 392 01da 9781      		ldd r25,Z+7
+ 393 01dc 9A83      		std Y+2,r25
+ 394 01de 8983      		std Y+1,r24
+  62:lp_solve_5.5/lp_Hash.c ****     free_hash_item(&thp);
+ 395               		.loc 1 62 0
+ 396 01e0 CE01      		movw r24,r28
+ 397 01e2 0396      		adiw r24,3
+ 398 01e4 0E94 0000 		call free_hash_item
+ 399               	.L11:
+  59:lp_solve_5.5/lp_Hash.c ****     thp = hp;
+ 400               		.loc 1 59 0
+ 401 01e8 8981      		ldd r24,Y+1
+ 402 01ea 9A81      		ldd r25,Y+2
+ 403 01ec 892B      		or r24,r25
+ 404 01ee 01F4      		brne .L12
+  63:lp_solve_5.5/lp_Hash.c ****   }
+  64:lp_solve_5.5/lp_Hash.c ****   free(ht->table);
+ 405               		.loc 1 64 0
+ 406 01f0 8D81      		ldd r24,Y+5
+ 407 01f2 9E81      		ldd r25,Y+6
+ 408 01f4 FC01      		movw r30,r24
+ 409 01f6 8081      		ld r24,Z
+ 410 01f8 9181      		ldd r25,Z+1
+ 411 01fa 0E94 0000 		call free
+  65:lp_solve_5.5/lp_Hash.c ****   free(ht);
+ 412               		.loc 1 65 0
+ 413 01fe 8D81      		ldd r24,Y+5
+ 414 0200 9E81      		ldd r25,Y+6
+ 415 0202 0E94 0000 		call free
+  66:lp_solve_5.5/lp_Hash.c **** }
+ 416               		.loc 1 66 0
+ 417 0206 0000      		nop
+ 418               	/* epilogue start */
+ 419 0208 2696      		adiw r28,6
+ 420 020a 0FB6      		in __tmp_reg__,__SREG__
+ 421 020c F894      		cli
+ 422 020e DEBF      		out __SP_H__,r29
+ 423 0210 0FBE      		out __SREG__,__tmp_reg__
+ 424 0212 CDBF      		out __SP_L__,r28
+ 425 0214 DF91      		pop r29
+ 426 0216 CF91      		pop r28
+ 427 0218 0895      		ret
+ 428               		.cfi_endproc
+ 429               	.LFE9:
+ 431               	.global	hashval
+ 433               	hashval:
+ 434               	.LFB10:
+  67:lp_solve_5.5/lp_Hash.c **** 
+  68:lp_solve_5.5/lp_Hash.c **** 
+  69:lp_solve_5.5/lp_Hash.c **** /* make a good hash function for any int size */
+  70:lp_solve_5.5/lp_Hash.c **** /* inspired by Aho, Sethi and Ullman, Compilers ..., p436 */
+  71:lp_solve_5.5/lp_Hash.c **** #define HASH_1 sizeof(unsigned int)
+  72:lp_solve_5.5/lp_Hash.c **** #define HASH_2 (sizeof(unsigned int) * 6)
+  73:lp_solve_5.5/lp_Hash.c **** #define HASH_3 (((unsigned int)0xF0) << ((sizeof(unsigned int) - 1) * CHAR_BIT))
+  74:lp_solve_5.5/lp_Hash.c **** 
+  75:lp_solve_5.5/lp_Hash.c **** STATIC int hashval(const char *string, int size)
+  76:lp_solve_5.5/lp_Hash.c **** {
+ 435               		.loc 1 76 0
+ 436               		.cfi_startproc
+ 437 021a CF93      		push r28
+ 438               	.LCFI12:
+ 439               		.cfi_def_cfa_offset 3
+ 440               		.cfi_offset 28, -2
+ 441 021c DF93      		push r29
+ 442               	.LCFI13:
+ 443               		.cfi_def_cfa_offset 4
+ 444               		.cfi_offset 29, -3
+ 445 021e CDB7      		in r28,__SP_L__
+ 446 0220 DEB7      		in r29,__SP_H__
+ 447               	.LCFI14:
+ 448               		.cfi_def_cfa_register 28
+ 449 0222 2897      		sbiw r28,8
+ 450               	.LCFI15:
+ 451               		.cfi_def_cfa_offset 12
+ 452 0224 0FB6      		in __tmp_reg__,__SREG__
+ 453 0226 F894      		cli
+ 454 0228 DEBF      		out __SP_H__,r29
+ 455 022a 0FBE      		out __SREG__,__tmp_reg__
+ 456 022c CDBF      		out __SP_L__,r28
+ 457               	/* prologue: function */
+ 458               	/* frame size = 8 */
+ 459               	/* stack size = 10 */
+ 460               	.L__stack_usage = 10
+ 461 022e 9E83      		std Y+6,r25
+ 462 0230 8D83      		std Y+5,r24
+ 463 0232 7887      		std Y+8,r23
+ 464 0234 6F83      		std Y+7,r22
+  77:lp_solve_5.5/lp_Hash.c ****   unsigned int result = 0, tmp;
+ 465               		.loc 1 77 0
+ 466 0236 1A82      		std Y+2,__zero_reg__
+ 467 0238 1982      		std Y+1,__zero_reg__
+  78:lp_solve_5.5/lp_Hash.c **** 
+  79:lp_solve_5.5/lp_Hash.c ****   for(; *string; string++) {
+ 468               		.loc 1 79 0
+ 469 023a 00C0      		rjmp .L14
+ 470               	.L16:
+  80:lp_solve_5.5/lp_Hash.c ****     result = (result << HASH_1) + *string;
+ 471               		.loc 1 80 0
+ 472 023c 8981      		ldd r24,Y+1
+ 473 023e 9A81      		ldd r25,Y+2
+ 474 0240 9C01      		movw r18,r24
+ 475 0242 220F      		lsl r18
+ 476 0244 331F      		rol r19
+ 477 0246 220F      		lsl r18
+ 478 0248 331F      		rol r19
+ 479 024a 8D81      		ldd r24,Y+5
+ 480 024c 9E81      		ldd r25,Y+6
+ 481 024e FC01      		movw r30,r24
+ 482 0250 8081      		ld r24,Z
+ 483 0252 882F      		mov r24,r24
+ 484 0254 90E0      		ldi r25,0
+ 485 0256 820F      		add r24,r18
+ 486 0258 931F      		adc r25,r19
+ 487 025a 9A83      		std Y+2,r25
+ 488 025c 8983      		std Y+1,r24
+  81:lp_solve_5.5/lp_Hash.c ****     if((tmp = result & HASH_3) != 0) {
+ 489               		.loc 1 81 0
+ 490 025e 8981      		ldd r24,Y+1
+ 491 0260 9A81      		ldd r25,Y+2
+ 492 0262 8827      		clr r24
+ 493 0264 907F      		andi r25,240
+ 494 0266 9C83      		std Y+4,r25
+ 495 0268 8B83      		std Y+3,r24
+ 496 026a 8B81      		ldd r24,Y+3
+ 497 026c 9C81      		ldd r25,Y+4
+ 498 026e 892B      		or r24,r25
+ 499 0270 01F0      		breq .L15
+  82:lp_solve_5.5/lp_Hash.c ****       /* if any of the most significant bits is on */
+  83:lp_solve_5.5/lp_Hash.c ****       result ^= tmp >> HASH_2; /* xor them in in a less significant part */
+ 500               		.loc 1 83 0
+ 501 0272 8B81      		ldd r24,Y+3
+ 502 0274 9C81      		ldd r25,Y+4
+ 503 0276 892F      		mov r24,r25
+ 504 0278 9927      		clr r25
+ 505 027a 8295      		swap r24
+ 506 027c 8F70      		andi r24,0x0f
+ 507 027e 2981      		ldd r18,Y+1
+ 508 0280 3A81      		ldd r19,Y+2
+ 509 0282 8227      		eor r24,r18
+ 510 0284 9327      		eor r25,r19
+ 511 0286 9A83      		std Y+2,r25
+ 512 0288 8983      		std Y+1,r24
+  84:lp_solve_5.5/lp_Hash.c ****       result ^= tmp; /* and reset the most significant bits to 0 */
+ 513               		.loc 1 84 0
+ 514 028a 2981      		ldd r18,Y+1
+ 515 028c 3A81      		ldd r19,Y+2
+ 516 028e 8B81      		ldd r24,Y+3
+ 517 0290 9C81      		ldd r25,Y+4
+ 518 0292 8227      		eor r24,r18
+ 519 0294 9327      		eor r25,r19
+ 520 0296 9A83      		std Y+2,r25
+ 521 0298 8983      		std Y+1,r24
+ 522               	.L15:
+  79:lp_solve_5.5/lp_Hash.c ****     result = (result << HASH_1) + *string;
+ 523               		.loc 1 79 0
+ 524 029a 8D81      		ldd r24,Y+5
+ 525 029c 9E81      		ldd r25,Y+6
+ 526 029e 0196      		adiw r24,1
+ 527 02a0 9E83      		std Y+6,r25
+ 528 02a2 8D83      		std Y+5,r24
+ 529               	.L14:
+  79:lp_solve_5.5/lp_Hash.c ****     result = (result << HASH_1) + *string;
+ 530               		.loc 1 79 0 is_stmt 0 discriminator 1
+ 531 02a4 8D81      		ldd r24,Y+5
+ 532 02a6 9E81      		ldd r25,Y+6
+ 533 02a8 FC01      		movw r30,r24
+ 534 02aa 8081      		ld r24,Z
+ 535 02ac 8823      		tst r24
+ 536 02ae 01F4      		brne .L16
+  85:lp_solve_5.5/lp_Hash.c ****     }
+  86:lp_solve_5.5/lp_Hash.c ****   }
+  87:lp_solve_5.5/lp_Hash.c ****   return(result % size);
+ 537               		.loc 1 87 0 is_stmt 1
+ 538 02b0 2F81      		ldd r18,Y+7
+ 539 02b2 3885      		ldd r19,Y+8
+ 540 02b4 8981      		ldd r24,Y+1
+ 541 02b6 9A81      		ldd r25,Y+2
+ 542 02b8 B901      		movw r22,r18
+ 543 02ba 0E94 0000 		call __udivmodhi4
+ 544               	/* epilogue start */
+  88:lp_solve_5.5/lp_Hash.c **** } /* hashval */
+ 545               		.loc 1 88 0
+ 546 02be 2896      		adiw r28,8
+ 547 02c0 0FB6      		in __tmp_reg__,__SREG__
+ 548 02c2 F894      		cli
+ 549 02c4 DEBF      		out __SP_H__,r29
+ 550 02c6 0FBE      		out __SREG__,__tmp_reg__
+ 551 02c8 CDBF      		out __SP_L__,r28
+ 552 02ca DF91      		pop r29
+ 553 02cc CF91      		pop r28
+ 554 02ce 0895      		ret
+ 555               		.cfi_endproc
+ 556               	.LFE10:
+ 558               	.global	findhash
+ 560               	findhash:
+ 561               	.LFB11:
+  89:lp_solve_5.5/lp_Hash.c **** 
+  90:lp_solve_5.5/lp_Hash.c **** 
+  91:lp_solve_5.5/lp_Hash.c **** STATIC hashelem *findhash(const char *name, hashtable *ht)
+  92:lp_solve_5.5/lp_Hash.c **** {
+ 562               		.loc 1 92 0
+ 563               		.cfi_startproc
+ 564 02d0 0F93      		push r16
+ 565               	.LCFI16:
+ 566               		.cfi_def_cfa_offset 3
+ 567               		.cfi_offset 16, -2
+ 568 02d2 1F93      		push r17
+ 569               	.LCFI17:
+ 570               		.cfi_def_cfa_offset 4
+ 571               		.cfi_offset 17, -3
+ 572 02d4 CF93      		push r28
+ 573               	.LCFI18:
+ 574               		.cfi_def_cfa_offset 5
+ 575               		.cfi_offset 28, -4
+ 576 02d6 DF93      		push r29
+ 577               	.LCFI19:
+ 578               		.cfi_def_cfa_offset 6
+ 579               		.cfi_offset 29, -5
+ 580 02d8 00D0      		rcall .
+ 581 02da 00D0      		rcall .
+ 582 02dc 00D0      		rcall .
+ 583               	.LCFI20:
+ 584               		.cfi_def_cfa_offset 12
+ 585 02de CDB7      		in r28,__SP_L__
+ 586 02e0 DEB7      		in r29,__SP_H__
+ 587               	.LCFI21:
+ 588               		.cfi_def_cfa_register 28
+ 589               	/* prologue: function */
+ 590               	/* frame size = 6 */
+ 591               	/* stack size = 10 */
+ 592               	.L__stack_usage = 10
+ 593 02e2 9C83      		std Y+4,r25
+ 594 02e4 8B83      		std Y+3,r24
+ 595 02e6 7E83      		std Y+6,r23
+ 596 02e8 6D83      		std Y+5,r22
+  93:lp_solve_5.5/lp_Hash.c ****   hashelem *h_tab_p;
+  94:lp_solve_5.5/lp_Hash.c ****   for(h_tab_p = ht->table[hashval(name, ht->size)];
+ 597               		.loc 1 94 0
+ 598 02ea 8D81      		ldd r24,Y+5
+ 599 02ec 9E81      		ldd r25,Y+6
+ 600 02ee FC01      		movw r30,r24
+ 601 02f0 0081      		ld r16,Z
+ 602 02f2 1181      		ldd r17,Z+1
+ 603 02f4 8D81      		ldd r24,Y+5
+ 604 02f6 9E81      		ldd r25,Y+6
+ 605 02f8 FC01      		movw r30,r24
+ 606 02fa 2281      		ldd r18,Z+2
+ 607 02fc 3381      		ldd r19,Z+3
+ 608 02fe 8B81      		ldd r24,Y+3
+ 609 0300 9C81      		ldd r25,Y+4
+ 610 0302 B901      		movw r22,r18
+ 611 0304 0E94 0000 		call hashval
+ 612 0308 880F      		lsl r24
+ 613 030a 991F      		rol r25
+ 614 030c 800F      		add r24,r16
+ 615 030e 911F      		adc r25,r17
+ 616 0310 FC01      		movw r30,r24
+ 617 0312 8081      		ld r24,Z
+ 618 0314 9181      		ldd r25,Z+1
+ 619 0316 9A83      		std Y+2,r25
+ 620 0318 8983      		std Y+1,r24
+ 621 031a 00C0      		rjmp .L19
+ 622               	.L22:
+  95:lp_solve_5.5/lp_Hash.c ****       h_tab_p != NULL;
+  96:lp_solve_5.5/lp_Hash.c ****       h_tab_p = h_tab_p->next)
+  97:lp_solve_5.5/lp_Hash.c ****     if(strcmp(name, h_tab_p->name) == 0) /* got it! */
+ 623               		.loc 1 97 0
+ 624 031c 8981      		ldd r24,Y+1
+ 625 031e 9A81      		ldd r25,Y+2
+ 626 0320 FC01      		movw r30,r24
+ 627 0322 2081      		ld r18,Z
+ 628 0324 3181      		ldd r19,Z+1
+ 629 0326 8B81      		ldd r24,Y+3
+ 630 0328 9C81      		ldd r25,Y+4
+ 631 032a B901      		movw r22,r18
+ 632 032c 0E94 0000 		call strcmp
+ 633 0330 892B      		or r24,r25
+ 634 0332 01F0      		breq .L24
+  96:lp_solve_5.5/lp_Hash.c ****     if(strcmp(name, h_tab_p->name) == 0) /* got it! */
+ 635               		.loc 1 96 0
+ 636 0334 8981      		ldd r24,Y+1
+ 637 0336 9A81      		ldd r25,Y+2
+ 638 0338 FC01      		movw r30,r24
+ 639 033a 8481      		ldd r24,Z+4
+ 640 033c 9581      		ldd r25,Z+5
+ 641 033e 9A83      		std Y+2,r25
+ 642 0340 8983      		std Y+1,r24
+ 643               	.L19:
+  94:lp_solve_5.5/lp_Hash.c ****       h_tab_p != NULL;
+ 644               		.loc 1 94 0 discriminator 1
+ 645 0342 8981      		ldd r24,Y+1
+ 646 0344 9A81      		ldd r25,Y+2
+ 647 0346 892B      		or r24,r25
+ 648 0348 01F4      		brne .L22
+ 649 034a 00C0      		rjmp .L21
+ 650               	.L24:
+  98:lp_solve_5.5/lp_Hash.c ****       break;
+ 651               		.loc 1 98 0
+ 652 034c 0000      		nop
+ 653               	.L21:
+  99:lp_solve_5.5/lp_Hash.c ****   return(h_tab_p);
+ 654               		.loc 1 99 0
+ 655 034e 8981      		ldd r24,Y+1
+ 656 0350 9A81      		ldd r25,Y+2
+ 657               	/* epilogue start */
+ 100:lp_solve_5.5/lp_Hash.c **** } /* findhash */
+ 658               		.loc 1 100 0
+ 659 0352 2696      		adiw r28,6
+ 660 0354 0FB6      		in __tmp_reg__,__SREG__
+ 661 0356 F894      		cli
+ 662 0358 DEBF      		out __SP_H__,r29
+ 663 035a 0FBE      		out __SREG__,__tmp_reg__
+ 664 035c CDBF      		out __SP_L__,r28
+ 665 035e DF91      		pop r29
+ 666 0360 CF91      		pop r28
+ 667 0362 1F91      		pop r17
+ 668 0364 0F91      		pop r16
+ 669 0366 0895      		ret
+ 670               		.cfi_endproc
+ 671               	.LFE11:
+ 673               	.global	puthash
+ 675               	puthash:
+ 676               	.LFB12:
+ 101:lp_solve_5.5/lp_Hash.c **** 
+ 102:lp_solve_5.5/lp_Hash.c **** 
+ 103:lp_solve_5.5/lp_Hash.c **** STATIC hashelem *puthash(const char *name, int index, hashelem **list, hashtable *ht)
+ 104:lp_solve_5.5/lp_Hash.c **** {
+ 677               		.loc 1 104 0
+ 678               		.cfi_startproc
+ 679 0368 CF93      		push r28
+ 680               	.LCFI22:
+ 681               		.cfi_def_cfa_offset 3
+ 682               		.cfi_offset 28, -2
+ 683 036a DF93      		push r29
+ 684               	.LCFI23:
+ 685               		.cfi_def_cfa_offset 4
+ 686               		.cfi_offset 29, -3
+ 687 036c CDB7      		in r28,__SP_L__
+ 688 036e DEB7      		in r29,__SP_H__
+ 689               	.LCFI24:
+ 690               		.cfi_def_cfa_register 28
+ 691 0370 2C97      		sbiw r28,12
+ 692               	.LCFI25:
+ 693               		.cfi_def_cfa_offset 16
+ 694 0372 0FB6      		in __tmp_reg__,__SREG__
+ 695 0374 F894      		cli
+ 696 0376 DEBF      		out __SP_H__,r29
+ 697 0378 0FBE      		out __SREG__,__tmp_reg__
+ 698 037a CDBF      		out __SP_L__,r28
+ 699               	/* prologue: function */
+ 700               	/* frame size = 12 */
+ 701               	/* stack size = 14 */
+ 702               	.L__stack_usage = 14
+ 703 037c 9E83      		std Y+6,r25
+ 704 037e 8D83      		std Y+5,r24
+ 705 0380 7887      		std Y+8,r23
+ 706 0382 6F83      		std Y+7,r22
+ 707 0384 5A87      		std Y+10,r21
+ 708 0386 4987      		std Y+9,r20
+ 709 0388 3C87      		std Y+12,r19
+ 710 038a 2B87      		std Y+11,r18
+ 105:lp_solve_5.5/lp_Hash.c ****   hashelem *hp = NULL;
+ 711               		.loc 1 105 0
+ 712 038c 1A82      		std Y+2,__zero_reg__
+ 713 038e 1982      		std Y+1,__zero_reg__
+ 106:lp_solve_5.5/lp_Hash.c ****   int      hashindex;
+ 107:lp_solve_5.5/lp_Hash.c **** 
+ 108:lp_solve_5.5/lp_Hash.c ****   if(list != NULL) {
+ 714               		.loc 1 108 0
+ 715 0390 8985      		ldd r24,Y+9
+ 716 0392 9A85      		ldd r25,Y+10
+ 717 0394 892B      		or r24,r25
+ 718 0396 01F0      		breq .L26
+ 109:lp_solve_5.5/lp_Hash.c ****     hp = list[index];
+ 719               		.loc 1 109 0
+ 720 0398 8F81      		ldd r24,Y+7
+ 721 039a 9885      		ldd r25,Y+8
+ 722 039c 880F      		lsl r24
+ 723 039e 991F      		rol r25
+ 724 03a0 2985      		ldd r18,Y+9
+ 725 03a2 3A85      		ldd r19,Y+10
+ 726 03a4 820F      		add r24,r18
+ 727 03a6 931F      		adc r25,r19
+ 728 03a8 FC01      		movw r30,r24
+ 729 03aa 8081      		ld r24,Z
+ 730 03ac 9181      		ldd r25,Z+1
+ 731 03ae 9A83      		std Y+2,r25
+ 732 03b0 8983      		std Y+1,r24
+ 110:lp_solve_5.5/lp_Hash.c ****     if(hp != NULL)
+ 733               		.loc 1 110 0
+ 734 03b2 8981      		ldd r24,Y+1
+ 735 03b4 9A81      		ldd r25,Y+2
+ 736 03b6 892B      		or r24,r25
+ 737 03b8 01F0      		breq .L26
+ 111:lp_solve_5.5/lp_Hash.c ****       list[index] = NULL;
+ 738               		.loc 1 111 0
+ 739 03ba 8F81      		ldd r24,Y+7
+ 740 03bc 9885      		ldd r25,Y+8
+ 741 03be 880F      		lsl r24
+ 742 03c0 991F      		rol r25
+ 743 03c2 2985      		ldd r18,Y+9
+ 744 03c4 3A85      		ldd r19,Y+10
+ 745 03c6 820F      		add r24,r18
+ 746 03c8 931F      		adc r25,r19
+ 747 03ca FC01      		movw r30,r24
+ 748 03cc 1182      		std Z+1,__zero_reg__
+ 749 03ce 1082      		st Z,__zero_reg__
+ 750               	.L26:
+ 112:lp_solve_5.5/lp_Hash.c ****   }
+ 113:lp_solve_5.5/lp_Hash.c **** 
+ 114:lp_solve_5.5/lp_Hash.c ****   if((hp = findhash(name, ht)) == NULL) {
+ 751               		.loc 1 114 0
+ 752 03d0 2B85      		ldd r18,Y+11
+ 753 03d2 3C85      		ldd r19,Y+12
+ 754 03d4 8D81      		ldd r24,Y+5
+ 755 03d6 9E81      		ldd r25,Y+6
+ 756 03d8 B901      		movw r22,r18
+ 757 03da 0E94 0000 		call findhash
+ 758 03de 9A83      		std Y+2,r25
+ 759 03e0 8983      		std Y+1,r24
+ 760 03e2 8981      		ldd r24,Y+1
+ 761 03e4 9A81      		ldd r25,Y+2
+ 762 03e6 892B      		or r24,r25
+ 763 03e8 01F0      		breq .+2
+ 764 03ea 00C0      		rjmp .L27
+ 115:lp_solve_5.5/lp_Hash.c **** 
+ 116:lp_solve_5.5/lp_Hash.c ****     hashindex = hashval(name, ht->size);
+ 765               		.loc 1 116 0
+ 766 03ec 8B85      		ldd r24,Y+11
+ 767 03ee 9C85      		ldd r25,Y+12
+ 768 03f0 FC01      		movw r30,r24
+ 769 03f2 2281      		ldd r18,Z+2
+ 770 03f4 3381      		ldd r19,Z+3
+ 771 03f6 8D81      		ldd r24,Y+5
+ 772 03f8 9E81      		ldd r25,Y+6
+ 773 03fa B901      		movw r22,r18
+ 774 03fc 0E94 0000 		call hashval
+ 775 0400 9C83      		std Y+4,r25
+ 776 0402 8B83      		std Y+3,r24
+ 117:lp_solve_5.5/lp_Hash.c ****     hp = (hashelem *) calloc(1, sizeof(*hp));
+ 777               		.loc 1 117 0
+ 778 0404 68E0      		ldi r22,lo8(8)
+ 779 0406 70E0      		ldi r23,0
+ 780 0408 81E0      		ldi r24,lo8(1)
+ 781 040a 90E0      		ldi r25,0
+ 782 040c 0E94 0000 		call calloc
+ 783 0410 9A83      		std Y+2,r25
+ 784 0412 8983      		std Y+1,r24
+ 118:lp_solve_5.5/lp_Hash.c ****     allocCHAR(NULL, &hp->name, (int) (strlen(name) + 1), FALSE);
+ 785               		.loc 1 118 0
+ 786 0414 8D81      		ldd r24,Y+5
+ 787 0416 9E81      		ldd r25,Y+6
+ 788 0418 0E94 0000 		call strlen
+ 789 041c 0196      		adiw r24,1
+ 790 041e AC01      		movw r20,r24
+ 791 0420 8981      		ldd r24,Y+1
+ 792 0422 9A81      		ldd r25,Y+2
+ 793 0424 20E0      		ldi r18,0
+ 794 0426 BC01      		movw r22,r24
+ 795 0428 80E0      		ldi r24,0
+ 796 042a 90E0      		ldi r25,0
+ 797 042c 0E94 0000 		call allocCHAR
+ 119:lp_solve_5.5/lp_Hash.c ****     strcpy(hp->name, name);
+ 798               		.loc 1 119 0
+ 799 0430 8981      		ldd r24,Y+1
+ 800 0432 9A81      		ldd r25,Y+2
+ 801 0434 FC01      		movw r30,r24
+ 802 0436 8081      		ld r24,Z
+ 803 0438 9181      		ldd r25,Z+1
+ 804 043a 2D81      		ldd r18,Y+5
+ 805 043c 3E81      		ldd r19,Y+6
+ 806 043e B901      		movw r22,r18
+ 807 0440 0E94 0000 		call strcpy
+ 120:lp_solve_5.5/lp_Hash.c ****     hp->index = index;
+ 808               		.loc 1 120 0
+ 809 0444 8981      		ldd r24,Y+1
+ 810 0446 9A81      		ldd r25,Y+2
+ 811 0448 2F81      		ldd r18,Y+7
+ 812 044a 3885      		ldd r19,Y+8
+ 813 044c FC01      		movw r30,r24
+ 814 044e 3383      		std Z+3,r19
+ 815 0450 2283      		std Z+2,r18
+ 121:lp_solve_5.5/lp_Hash.c ****     ht->count++;
+ 816               		.loc 1 121 0
+ 817 0452 8B85      		ldd r24,Y+11
+ 818 0454 9C85      		ldd r25,Y+12
+ 819 0456 FC01      		movw r30,r24
+ 820 0458 8681      		ldd r24,Z+6
+ 821 045a 9781      		ldd r25,Z+7
+ 822 045c 9C01      		movw r18,r24
+ 823 045e 2F5F      		subi r18,-1
+ 824 0460 3F4F      		sbci r19,-1
+ 825 0462 8B85      		ldd r24,Y+11
+ 826 0464 9C85      		ldd r25,Y+12
+ 827 0466 FC01      		movw r30,r24
+ 828 0468 3783      		std Z+7,r19
+ 829 046a 2683      		std Z+6,r18
+ 122:lp_solve_5.5/lp_Hash.c ****     if(list != NULL)
+ 830               		.loc 1 122 0
+ 831 046c 8985      		ldd r24,Y+9
+ 832 046e 9A85      		ldd r25,Y+10
+ 833 0470 892B      		or r24,r25
+ 834 0472 01F0      		breq .L28
+ 123:lp_solve_5.5/lp_Hash.c ****       list[index] = hp;
+ 835               		.loc 1 123 0
+ 836 0474 8F81      		ldd r24,Y+7
+ 837 0476 9885      		ldd r25,Y+8
+ 838 0478 880F      		lsl r24
+ 839 047a 991F      		rol r25
+ 840 047c 2985      		ldd r18,Y+9
+ 841 047e 3A85      		ldd r19,Y+10
+ 842 0480 820F      		add r24,r18
+ 843 0482 931F      		adc r25,r19
+ 844 0484 2981      		ldd r18,Y+1
+ 845 0486 3A81      		ldd r19,Y+2
+ 846 0488 FC01      		movw r30,r24
+ 847 048a 3183      		std Z+1,r19
+ 848 048c 2083      		st Z,r18
+ 849               	.L28:
+ 124:lp_solve_5.5/lp_Hash.c **** 
+ 125:lp_solve_5.5/lp_Hash.c ****     hp->next = ht->table[hashindex];
+ 850               		.loc 1 125 0
+ 851 048e 8B85      		ldd r24,Y+11
+ 852 0490 9C85      		ldd r25,Y+12
+ 853 0492 FC01      		movw r30,r24
+ 854 0494 2081      		ld r18,Z
+ 855 0496 3181      		ldd r19,Z+1
+ 856 0498 8B81      		ldd r24,Y+3
+ 857 049a 9C81      		ldd r25,Y+4
+ 858 049c 880F      		lsl r24
+ 859 049e 991F      		rol r25
+ 860 04a0 820F      		add r24,r18
+ 861 04a2 931F      		adc r25,r19
+ 862 04a4 FC01      		movw r30,r24
+ 863 04a6 2081      		ld r18,Z
+ 864 04a8 3181      		ldd r19,Z+1
+ 865 04aa 8981      		ldd r24,Y+1
+ 866 04ac 9A81      		ldd r25,Y+2
+ 867 04ae FC01      		movw r30,r24
+ 868 04b0 3583      		std Z+5,r19
+ 869 04b2 2483      		std Z+4,r18
+ 126:lp_solve_5.5/lp_Hash.c ****     ht->table[hashindex] = hp;
+ 870               		.loc 1 126 0
+ 871 04b4 8B85      		ldd r24,Y+11
+ 872 04b6 9C85      		ldd r25,Y+12
+ 873 04b8 FC01      		movw r30,r24
+ 874 04ba 2081      		ld r18,Z
+ 875 04bc 3181      		ldd r19,Z+1
+ 876 04be 8B81      		ldd r24,Y+3
+ 877 04c0 9C81      		ldd r25,Y+4
+ 878 04c2 880F      		lsl r24
+ 879 04c4 991F      		rol r25
+ 880 04c6 820F      		add r24,r18
+ 881 04c8 931F      		adc r25,r19
+ 882 04ca 2981      		ldd r18,Y+1
+ 883 04cc 3A81      		ldd r19,Y+2
+ 884 04ce FC01      		movw r30,r24
+ 885 04d0 3183      		std Z+1,r19
+ 886 04d2 2083      		st Z,r18
+ 127:lp_solve_5.5/lp_Hash.c ****     if(ht->first == NULL)
+ 887               		.loc 1 127 0
+ 888 04d4 8B85      		ldd r24,Y+11
+ 889 04d6 9C85      		ldd r25,Y+12
+ 890 04d8 FC01      		movw r30,r24
+ 891 04da 8085      		ldd r24,Z+8
+ 892 04dc 9185      		ldd r25,Z+9
+ 893 04de 892B      		or r24,r25
+ 894 04e0 01F4      		brne .L29
+ 128:lp_solve_5.5/lp_Hash.c ****       ht->first = hp;
+ 895               		.loc 1 128 0
+ 896 04e2 8B85      		ldd r24,Y+11
+ 897 04e4 9C85      		ldd r25,Y+12
+ 898 04e6 2981      		ldd r18,Y+1
+ 899 04e8 3A81      		ldd r19,Y+2
+ 900 04ea FC01      		movw r30,r24
+ 901 04ec 3187      		std Z+9,r19
+ 902 04ee 2087      		std Z+8,r18
+ 903               	.L29:
+ 129:lp_solve_5.5/lp_Hash.c ****     if(ht->last != NULL)
+ 904               		.loc 1 129 0
+ 905 04f0 8B85      		ldd r24,Y+11
+ 906 04f2 9C85      		ldd r25,Y+12
+ 907 04f4 FC01      		movw r30,r24
+ 908 04f6 8285      		ldd r24,Z+10
+ 909 04f8 9385      		ldd r25,Z+11
+ 910 04fa 892B      		or r24,r25
+ 911 04fc 01F0      		breq .L30
+ 130:lp_solve_5.5/lp_Hash.c ****       ht->last->nextelem = hp;
+ 912               		.loc 1 130 0
+ 913 04fe 8B85      		ldd r24,Y+11
+ 914 0500 9C85      		ldd r25,Y+12
+ 915 0502 FC01      		movw r30,r24
+ 916 0504 8285      		ldd r24,Z+10
+ 917 0506 9385      		ldd r25,Z+11
+ 918 0508 2981      		ldd r18,Y+1
+ 919 050a 3A81      		ldd r19,Y+2
+ 920 050c FC01      		movw r30,r24
+ 921 050e 3783      		std Z+7,r19
+ 922 0510 2683      		std Z+6,r18
+ 923               	.L30:
+ 131:lp_solve_5.5/lp_Hash.c ****     ht->last = hp;
+ 924               		.loc 1 131 0
+ 925 0512 8B85      		ldd r24,Y+11
+ 926 0514 9C85      		ldd r25,Y+12
+ 927 0516 2981      		ldd r18,Y+1
+ 928 0518 3A81      		ldd r19,Y+2
+ 929 051a FC01      		movw r30,r24
+ 930 051c 3387      		std Z+11,r19
+ 931 051e 2287      		std Z+10,r18
+ 932               	.L27:
+ 132:lp_solve_5.5/lp_Hash.c **** 
+ 133:lp_solve_5.5/lp_Hash.c ****   }
+ 134:lp_solve_5.5/lp_Hash.c ****   return(hp);
+ 933               		.loc 1 134 0
+ 934 0520 8981      		ldd r24,Y+1
+ 935 0522 9A81      		ldd r25,Y+2
+ 936               	/* epilogue start */
+ 135:lp_solve_5.5/lp_Hash.c **** }
+ 937               		.loc 1 135 0
+ 938 0524 2C96      		adiw r28,12
+ 939 0526 0FB6      		in __tmp_reg__,__SREG__
+ 940 0528 F894      		cli
+ 941 052a DEBF      		out __SP_H__,r29
+ 942 052c 0FBE      		out __SREG__,__tmp_reg__
+ 943 052e CDBF      		out __SP_L__,r28
+ 944 0530 DF91      		pop r29
+ 945 0532 CF91      		pop r28
+ 946 0534 0895      		ret
+ 947               		.cfi_endproc
+ 948               	.LFE12:
+ 950               	.global	drophash
+ 952               	drophash:
+ 953               	.LFB13:
+ 136:lp_solve_5.5/lp_Hash.c **** 
+ 137:lp_solve_5.5/lp_Hash.c **** STATIC void drophash(const char *name, hashelem **list, hashtable *ht) {
+ 954               		.loc 1 137 0
+ 955               		.cfi_startproc
+ 956 0536 CF93      		push r28
+ 957               	.LCFI26:
+ 958               		.cfi_def_cfa_offset 3
+ 959               		.cfi_offset 28, -2
+ 960 0538 DF93      		push r29
+ 961               	.LCFI27:
+ 962               		.cfi_def_cfa_offset 4
+ 963               		.cfi_offset 29, -3
+ 964 053a CDB7      		in r28,__SP_L__
+ 965 053c DEB7      		in r29,__SP_H__
+ 966               	.LCFI28:
+ 967               		.cfi_def_cfa_register 28
+ 968 053e 2E97      		sbiw r28,14
+ 969               	.LCFI29:
+ 970               		.cfi_def_cfa_offset 18
+ 971 0540 0FB6      		in __tmp_reg__,__SREG__
+ 972 0542 F894      		cli
+ 973 0544 DEBF      		out __SP_H__,r29
+ 974 0546 0FBE      		out __SREG__,__tmp_reg__
+ 975 0548 CDBF      		out __SP_L__,r28
+ 976               	/* prologue: function */
+ 977               	/* frame size = 14 */
+ 978               	/* stack size = 16 */
+ 979               	.L__stack_usage = 16
+ 980 054a 9A87      		std Y+10,r25
+ 981 054c 8987      		std Y+9,r24
+ 982 054e 7C87      		std Y+12,r23
+ 983 0550 6B87      		std Y+11,r22
+ 984 0552 5E87      		std Y+14,r21
+ 985 0554 4D87      		std Y+13,r20
+ 138:lp_solve_5.5/lp_Hash.c ****   hashelem *hp, *hp1, *hp2;
+ 139:lp_solve_5.5/lp_Hash.c ****   int      hashindex;
+ 140:lp_solve_5.5/lp_Hash.c **** 
+ 141:lp_solve_5.5/lp_Hash.c ****   if((hp = findhash(name, ht)) != NULL) {
+ 986               		.loc 1 141 0
+ 987 0556 2D85      		ldd r18,Y+13
+ 988 0558 3E85      		ldd r19,Y+14
+ 989 055a 8985      		ldd r24,Y+9
+ 990 055c 9A85      		ldd r25,Y+10
+ 991 055e B901      		movw r22,r18
+ 992 0560 0E94 0000 		call findhash
+ 993 0564 9887      		std Y+8,r25
+ 994 0566 8F83      		std Y+7,r24
+ 995 0568 8F81      		ldd r24,Y+7
+ 996 056a 9885      		ldd r25,Y+8
+ 997 056c 892B      		or r24,r25
+ 998 056e 01F4      		brne .+2
+ 999 0570 00C0      		rjmp .L45
+ 142:lp_solve_5.5/lp_Hash.c ****     hashindex = hashval(name, ht->size);
+ 1000               		.loc 1 142 0
+ 1001 0572 8D85      		ldd r24,Y+13
+ 1002 0574 9E85      		ldd r25,Y+14
+ 1003 0576 FC01      		movw r30,r24
+ 1004 0578 2281      		ldd r18,Z+2
+ 1005 057a 3381      		ldd r19,Z+3
+ 1006 057c 8985      		ldd r24,Y+9
+ 1007 057e 9A85      		ldd r25,Y+10
+ 1008 0580 B901      		movw r22,r18
+ 1009 0582 0E94 0000 		call hashval
+ 1010 0586 9E83      		std Y+6,r25
+ 1011 0588 8D83      		std Y+5,r24
+ 143:lp_solve_5.5/lp_Hash.c ****     if((hp1 = ht->table[hashindex]) != NULL) {
+ 1012               		.loc 1 143 0
+ 1013 058a 8D85      		ldd r24,Y+13
+ 1014 058c 9E85      		ldd r25,Y+14
+ 1015 058e FC01      		movw r30,r24
+ 1016 0590 2081      		ld r18,Z
+ 1017 0592 3181      		ldd r19,Z+1
+ 1018 0594 8D81      		ldd r24,Y+5
+ 1019 0596 9E81      		ldd r25,Y+6
+ 1020 0598 880F      		lsl r24
+ 1021 059a 991F      		rol r25
+ 1022 059c 820F      		add r24,r18
+ 1023 059e 931F      		adc r25,r19
+ 1024 05a0 FC01      		movw r30,r24
+ 1025 05a2 8081      		ld r24,Z
+ 1026 05a4 9181      		ldd r25,Z+1
+ 1027 05a6 9A83      		std Y+2,r25
+ 1028 05a8 8983      		std Y+1,r24
+ 1029 05aa 8981      		ldd r24,Y+1
+ 1030 05ac 9A81      		ldd r25,Y+2
+ 1031 05ae 892B      		or r24,r25
+ 1032 05b0 01F4      		brne .+2
+ 1033 05b2 00C0      		rjmp .L45
+ 144:lp_solve_5.5/lp_Hash.c ****       hp2 = NULL;
+ 1034               		.loc 1 144 0
+ 1035 05b4 1C82      		std Y+4,__zero_reg__
+ 1036 05b6 1B82      		std Y+3,__zero_reg__
+ 145:lp_solve_5.5/lp_Hash.c ****       while((hp1 != NULL) && (hp1 != hp)) {
+ 1037               		.loc 1 145 0
+ 1038 05b8 00C0      		rjmp .L34
+ 1039               	.L36:
+ 146:lp_solve_5.5/lp_Hash.c ****         hp2 = hp1;
+ 1040               		.loc 1 146 0
+ 1041 05ba 8981      		ldd r24,Y+1
+ 1042 05bc 9A81      		ldd r25,Y+2
+ 1043 05be 9C83      		std Y+4,r25
+ 1044 05c0 8B83      		std Y+3,r24
+ 147:lp_solve_5.5/lp_Hash.c ****         hp1 = hp1->next;
+ 1045               		.loc 1 147 0
+ 1046 05c2 8981      		ldd r24,Y+1
+ 1047 05c4 9A81      		ldd r25,Y+2
+ 1048 05c6 FC01      		movw r30,r24
+ 1049 05c8 8481      		ldd r24,Z+4
+ 1050 05ca 9581      		ldd r25,Z+5
+ 1051 05cc 9A83      		std Y+2,r25
+ 1052 05ce 8983      		std Y+1,r24
+ 1053               	.L34:
+ 145:lp_solve_5.5/lp_Hash.c ****       while((hp1 != NULL) && (hp1 != hp)) {
+ 1054               		.loc 1 145 0
+ 1055 05d0 8981      		ldd r24,Y+1
+ 1056 05d2 9A81      		ldd r25,Y+2
+ 1057 05d4 892B      		or r24,r25
+ 1058 05d6 01F0      		breq .L35
+ 145:lp_solve_5.5/lp_Hash.c ****       while((hp1 != NULL) && (hp1 != hp)) {
+ 1059               		.loc 1 145 0 is_stmt 0 discriminator 1
+ 1060 05d8 8F81      		ldd r24,Y+7
+ 1061 05da 9885      		ldd r25,Y+8
+ 1062 05dc 2981      		ldd r18,Y+1
+ 1063 05de 3A81      		ldd r19,Y+2
+ 1064 05e0 2817      		cp r18,r24
+ 1065 05e2 3907      		cpc r19,r25
+ 1066 05e4 01F4      		brne .L36
+ 1067               	.L35:
+ 148:lp_solve_5.5/lp_Hash.c ****       }
+ 149:lp_solve_5.5/lp_Hash.c ****       if(hp1 == hp) {
+ 1068               		.loc 1 149 0 is_stmt 1
+ 1069 05e6 8F81      		ldd r24,Y+7
+ 1070 05e8 9885      		ldd r25,Y+8
+ 1071 05ea 2981      		ldd r18,Y+1
+ 1072 05ec 3A81      		ldd r19,Y+2
+ 1073 05ee 2817      		cp r18,r24
+ 1074 05f0 3907      		cpc r19,r25
+ 1075 05f2 01F4      		brne .L37
+ 150:lp_solve_5.5/lp_Hash.c ****         if(hp2 != NULL)
+ 1076               		.loc 1 150 0
+ 1077 05f4 8B81      		ldd r24,Y+3
+ 1078 05f6 9C81      		ldd r25,Y+4
+ 1079 05f8 892B      		or r24,r25
+ 1080 05fa 01F0      		breq .L38
+ 151:lp_solve_5.5/lp_Hash.c ****           hp2->next = hp->next;
+ 1081               		.loc 1 151 0
+ 1082 05fc 8F81      		ldd r24,Y+7
+ 1083 05fe 9885      		ldd r25,Y+8
+ 1084 0600 FC01      		movw r30,r24
+ 1085 0602 2481      		ldd r18,Z+4
+ 1086 0604 3581      		ldd r19,Z+5
+ 1087 0606 8B81      		ldd r24,Y+3
+ 1088 0608 9C81      		ldd r25,Y+4
+ 1089 060a FC01      		movw r30,r24
+ 1090 060c 3583      		std Z+5,r19
+ 1091 060e 2483      		std Z+4,r18
+ 1092 0610 00C0      		rjmp .L37
+ 1093               	.L38:
+ 152:lp_solve_5.5/lp_Hash.c ****         else
+ 153:lp_solve_5.5/lp_Hash.c ****           ht->table[hashindex] = hp->next;
+ 1094               		.loc 1 153 0
+ 1095 0612 8D85      		ldd r24,Y+13
+ 1096 0614 9E85      		ldd r25,Y+14
+ 1097 0616 FC01      		movw r30,r24
+ 1098 0618 2081      		ld r18,Z
+ 1099 061a 3181      		ldd r19,Z+1
+ 1100 061c 8D81      		ldd r24,Y+5
+ 1101 061e 9E81      		ldd r25,Y+6
+ 1102 0620 880F      		lsl r24
+ 1103 0622 991F      		rol r25
+ 1104 0624 820F      		add r24,r18
+ 1105 0626 931F      		adc r25,r19
+ 1106 0628 2F81      		ldd r18,Y+7
+ 1107 062a 3885      		ldd r19,Y+8
+ 1108 062c F901      		movw r30,r18
+ 1109 062e 2481      		ldd r18,Z+4
+ 1110 0630 3581      		ldd r19,Z+5
+ 1111 0632 FC01      		movw r30,r24
+ 1112 0634 3183      		std Z+1,r19
+ 1113 0636 2083      		st Z,r18
+ 1114               	.L37:
+ 154:lp_solve_5.5/lp_Hash.c ****       }
+ 155:lp_solve_5.5/lp_Hash.c **** 
+ 156:lp_solve_5.5/lp_Hash.c ****       hp1 = ht->first;
+ 1115               		.loc 1 156 0
+ 1116 0638 8D85      		ldd r24,Y+13
+ 1117 063a 9E85      		ldd r25,Y+14
+ 1118 063c FC01      		movw r30,r24
+ 1119 063e 8085      		ldd r24,Z+8
+ 1120 0640 9185      		ldd r25,Z+9
+ 1121 0642 9A83      		std Y+2,r25
+ 1122 0644 8983      		std Y+1,r24
+ 157:lp_solve_5.5/lp_Hash.c ****       hp2 = NULL;
+ 1123               		.loc 1 157 0
+ 1124 0646 1C82      		std Y+4,__zero_reg__
+ 1125 0648 1B82      		std Y+3,__zero_reg__
+ 158:lp_solve_5.5/lp_Hash.c ****       while((hp1 != NULL) && (hp1 != hp)) {
+ 1126               		.loc 1 158 0
+ 1127 064a 00C0      		rjmp .L39
+ 1128               	.L41:
+ 159:lp_solve_5.5/lp_Hash.c ****         hp2 = hp1;
+ 1129               		.loc 1 159 0
+ 1130 064c 8981      		ldd r24,Y+1
+ 1131 064e 9A81      		ldd r25,Y+2
+ 1132 0650 9C83      		std Y+4,r25
+ 1133 0652 8B83      		std Y+3,r24
+ 160:lp_solve_5.5/lp_Hash.c ****         hp1 = hp1->nextelem;
+ 1134               		.loc 1 160 0
+ 1135 0654 8981      		ldd r24,Y+1
+ 1136 0656 9A81      		ldd r25,Y+2
+ 1137 0658 FC01      		movw r30,r24
+ 1138 065a 8681      		ldd r24,Z+6
+ 1139 065c 9781      		ldd r25,Z+7
+ 1140 065e 9A83      		std Y+2,r25
+ 1141 0660 8983      		std Y+1,r24
+ 1142               	.L39:
+ 158:lp_solve_5.5/lp_Hash.c ****       while((hp1 != NULL) && (hp1 != hp)) {
+ 1143               		.loc 1 158 0
+ 1144 0662 8981      		ldd r24,Y+1
+ 1145 0664 9A81      		ldd r25,Y+2
+ 1146 0666 892B      		or r24,r25
+ 1147 0668 01F0      		breq .L40
+ 158:lp_solve_5.5/lp_Hash.c ****       while((hp1 != NULL) && (hp1 != hp)) {
+ 1148               		.loc 1 158 0 is_stmt 0 discriminator 1
+ 1149 066a 8F81      		ldd r24,Y+7
+ 1150 066c 9885      		ldd r25,Y+8
+ 1151 066e 2981      		ldd r18,Y+1
+ 1152 0670 3A81      		ldd r19,Y+2
+ 1153 0672 2817      		cp r18,r24
+ 1154 0674 3907      		cpc r19,r25
+ 1155 0676 01F4      		brne .L41
+ 1156               	.L40:
+ 161:lp_solve_5.5/lp_Hash.c ****       }
+ 162:lp_solve_5.5/lp_Hash.c ****       if(hp1 == hp) {
+ 1157               		.loc 1 162 0 is_stmt 1
+ 1158 0678 8F81      		ldd r24,Y+7
+ 1159 067a 9885      		ldd r25,Y+8
+ 1160 067c 2981      		ldd r18,Y+1
+ 1161 067e 3A81      		ldd r19,Y+2
+ 1162 0680 2817      		cp r18,r24
+ 1163 0682 3907      		cpc r19,r25
+ 1164 0684 01F4      		brne .L42
+ 163:lp_solve_5.5/lp_Hash.c ****         if(hp2 != NULL)
+ 1165               		.loc 1 163 0
+ 1166 0686 8B81      		ldd r24,Y+3
+ 1167 0688 9C81      		ldd r25,Y+4
+ 1168 068a 892B      		or r24,r25
+ 1169 068c 01F0      		breq .L43
+ 164:lp_solve_5.5/lp_Hash.c ****           hp2->nextelem = hp->nextelem;
+ 1170               		.loc 1 164 0
+ 1171 068e 8F81      		ldd r24,Y+7
+ 1172 0690 9885      		ldd r25,Y+8
+ 1173 0692 FC01      		movw r30,r24
+ 1174 0694 2681      		ldd r18,Z+6
+ 1175 0696 3781      		ldd r19,Z+7
+ 1176 0698 8B81      		ldd r24,Y+3
+ 1177 069a 9C81      		ldd r25,Y+4
+ 1178 069c FC01      		movw r30,r24
+ 1179 069e 3783      		std Z+7,r19
+ 1180 06a0 2683      		std Z+6,r18
+ 1181 06a2 00C0      		rjmp .L42
+ 1182               	.L43:
+ 165:lp_solve_5.5/lp_Hash.c ****         else {
+ 166:lp_solve_5.5/lp_Hash.c ****           ht->first = hp->nextelem;
+ 1183               		.loc 1 166 0
+ 1184 06a4 8F81      		ldd r24,Y+7
+ 1185 06a6 9885      		ldd r25,Y+8
+ 1186 06a8 FC01      		movw r30,r24
+ 1187 06aa 2681      		ldd r18,Z+6
+ 1188 06ac 3781      		ldd r19,Z+7
+ 1189 06ae 8D85      		ldd r24,Y+13
+ 1190 06b0 9E85      		ldd r25,Y+14
+ 1191 06b2 FC01      		movw r30,r24
+ 1192 06b4 3187      		std Z+9,r19
+ 1193 06b6 2087      		std Z+8,r18
+ 167:lp_solve_5.5/lp_Hash.c ****           if (ht->first == NULL)
+ 1194               		.loc 1 167 0
+ 1195 06b8 8D85      		ldd r24,Y+13
+ 1196 06ba 9E85      		ldd r25,Y+14
+ 1197 06bc FC01      		movw r30,r24
+ 1198 06be 8085      		ldd r24,Z+8
+ 1199 06c0 9185      		ldd r25,Z+9
+ 1200 06c2 892B      		or r24,r25
+ 1201 06c4 01F4      		brne .L42
+ 168:lp_solve_5.5/lp_Hash.c ****             ht->last = NULL;
+ 1202               		.loc 1 168 0
+ 1203 06c6 8D85      		ldd r24,Y+13
+ 1204 06c8 9E85      		ldd r25,Y+14
+ 1205 06ca FC01      		movw r30,r24
+ 1206 06cc 1386      		std Z+11,__zero_reg__
+ 1207 06ce 1286      		std Z+10,__zero_reg__
+ 1208               	.L42:
+ 169:lp_solve_5.5/lp_Hash.c ****         }
+ 170:lp_solve_5.5/lp_Hash.c ****       }
+ 171:lp_solve_5.5/lp_Hash.c ****       if(list != NULL)
+ 1209               		.loc 1 171 0
+ 1210 06d0 8B85      		ldd r24,Y+11
+ 1211 06d2 9C85      		ldd r25,Y+12
+ 1212 06d4 892B      		or r24,r25
+ 1213 06d6 01F0      		breq .L44
+ 172:lp_solve_5.5/lp_Hash.c ****         list[hp->index] = NULL;
+ 1214               		.loc 1 172 0
+ 1215 06d8 8F81      		ldd r24,Y+7
+ 1216 06da 9885      		ldd r25,Y+8
+ 1217 06dc FC01      		movw r30,r24
+ 1218 06de 8281      		ldd r24,Z+2
+ 1219 06e0 9381      		ldd r25,Z+3
+ 1220 06e2 880F      		lsl r24
+ 1221 06e4 991F      		rol r25
+ 1222 06e6 2B85      		ldd r18,Y+11
+ 1223 06e8 3C85      		ldd r19,Y+12
+ 1224 06ea 820F      		add r24,r18
+ 1225 06ec 931F      		adc r25,r19
+ 1226 06ee FC01      		movw r30,r24
+ 1227 06f0 1182      		std Z+1,__zero_reg__
+ 1228 06f2 1082      		st Z,__zero_reg__
+ 1229               	.L44:
+ 173:lp_solve_5.5/lp_Hash.c ****       free_hash_item(&hp);
+ 1230               		.loc 1 173 0
+ 1231 06f4 CE01      		movw r24,r28
+ 1232 06f6 0796      		adiw r24,7
+ 1233 06f8 0E94 0000 		call free_hash_item
+ 174:lp_solve_5.5/lp_Hash.c ****       ht->count--;
+ 1234               		.loc 1 174 0
+ 1235 06fc 8D85      		ldd r24,Y+13
+ 1236 06fe 9E85      		ldd r25,Y+14
+ 1237 0700 FC01      		movw r30,r24
+ 1238 0702 8681      		ldd r24,Z+6
+ 1239 0704 9781      		ldd r25,Z+7
+ 1240 0706 9C01      		movw r18,r24
+ 1241 0708 2150      		subi r18,1
+ 1242 070a 3109      		sbc r19,__zero_reg__
+ 1243 070c 8D85      		ldd r24,Y+13
+ 1244 070e 9E85      		ldd r25,Y+14
+ 1245 0710 FC01      		movw r30,r24
+ 1246 0712 3783      		std Z+7,r19
+ 1247 0714 2683      		std Z+6,r18
+ 1248               	.L45:
+ 175:lp_solve_5.5/lp_Hash.c ****     }
+ 176:lp_solve_5.5/lp_Hash.c ****   }
+ 177:lp_solve_5.5/lp_Hash.c **** }
+ 1249               		.loc 1 177 0
+ 1250 0716 0000      		nop
+ 1251               	/* epilogue start */
+ 1252 0718 2E96      		adiw r28,14
+ 1253 071a 0FB6      		in __tmp_reg__,__SREG__
+ 1254 071c F894      		cli
+ 1255 071e DEBF      		out __SP_H__,r29
+ 1256 0720 0FBE      		out __SREG__,__tmp_reg__
+ 1257 0722 CDBF      		out __SP_L__,r28
+ 1258 0724 DF91      		pop r29
+ 1259 0726 CF91      		pop r28
+ 1260 0728 0895      		ret
+ 1261               		.cfi_endproc
+ 1262               	.LFE13:
+ 1264               	.global	copy_hash_table
+ 1266               	copy_hash_table:
+ 1267               	.LFB14:
+ 178:lp_solve_5.5/lp_Hash.c **** 
+ 179:lp_solve_5.5/lp_Hash.c **** STATIC hashtable *copy_hash_table(hashtable *ht, hashelem **list, int newsize)
+ 180:lp_solve_5.5/lp_Hash.c **** {
+ 1268               		.loc 1 180 0
+ 1269               		.cfi_startproc
+ 1270 072a CF93      		push r28
+ 1271               	.LCFI30:
+ 1272               		.cfi_def_cfa_offset 3
+ 1273               		.cfi_offset 28, -2
+ 1274 072c DF93      		push r29
+ 1275               	.LCFI31:
+ 1276               		.cfi_def_cfa_offset 4
+ 1277               		.cfi_offset 29, -3
+ 1278 072e CDB7      		in r28,__SP_L__
+ 1279 0730 DEB7      		in r29,__SP_H__
+ 1280               	.LCFI32:
+ 1281               		.cfi_def_cfa_register 28
+ 1282 0732 2C97      		sbiw r28,12
+ 1283               	.LCFI33:
+ 1284               		.cfi_def_cfa_offset 16
+ 1285 0734 0FB6      		in __tmp_reg__,__SREG__
+ 1286 0736 F894      		cli
+ 1287 0738 DEBF      		out __SP_H__,r29
+ 1288 073a 0FBE      		out __SREG__,__tmp_reg__
+ 1289 073c CDBF      		out __SP_L__,r28
+ 1290               	/* prologue: function */
+ 1291               	/* frame size = 12 */
+ 1292               	/* stack size = 14 */
+ 1293               	.L__stack_usage = 14
+ 1294 073e 9887      		std Y+8,r25
+ 1295 0740 8F83      		std Y+7,r24
+ 1296 0742 7A87      		std Y+10,r23
+ 1297 0744 6987      		std Y+9,r22
+ 1298 0746 5C87      		std Y+12,r21
+ 1299 0748 4B87      		std Y+11,r20
+ 181:lp_solve_5.5/lp_Hash.c ****   hashtable *copy;
+ 182:lp_solve_5.5/lp_Hash.c ****   hashelem  *elem, *new_elem;
+ 183:lp_solve_5.5/lp_Hash.c **** 
+ 184:lp_solve_5.5/lp_Hash.c ****   if(newsize < ht->size)
+ 1300               		.loc 1 184 0
+ 1301 074a 8F81      		ldd r24,Y+7
+ 1302 074c 9885      		ldd r25,Y+8
+ 1303 074e FC01      		movw r30,r24
+ 1304 0750 2281      		ldd r18,Z+2
+ 1305 0752 3381      		ldd r19,Z+3
+ 1306 0754 8B85      		ldd r24,Y+11
+ 1307 0756 9C85      		ldd r25,Y+12
+ 1308 0758 8217      		cp r24,r18
+ 1309 075a 9307      		cpc r25,r19
+ 1310 075c 04F4      		brge .L47
+ 185:lp_solve_5.5/lp_Hash.c ****     newsize = ht->size;
+ 1311               		.loc 1 185 0
+ 1312 075e 8F81      		ldd r24,Y+7
+ 1313 0760 9885      		ldd r25,Y+8
+ 1314 0762 FC01      		movw r30,r24
+ 1315 0764 8281      		ldd r24,Z+2
+ 1316 0766 9381      		ldd r25,Z+3
+ 1317 0768 9C87      		std Y+12,r25
+ 1318 076a 8B87      		std Y+11,r24
+ 1319               	.L47:
+ 186:lp_solve_5.5/lp_Hash.c **** 
+ 187:lp_solve_5.5/lp_Hash.c ****   copy = create_hash_table(newsize, ht->base);
+ 1320               		.loc 1 187 0
+ 1321 076c 8F81      		ldd r24,Y+7
+ 1322 076e 9885      		ldd r25,Y+8
+ 1323 0770 FC01      		movw r30,r24
+ 1324 0772 2481      		ldd r18,Z+4
+ 1325 0774 3581      		ldd r19,Z+5
+ 1326 0776 8B85      		ldd r24,Y+11
+ 1327 0778 9C85      		ldd r25,Y+12
+ 1328 077a B901      		movw r22,r18
+ 1329 077c 0E94 0000 		call create_hash_table
+ 1330 0780 9C83      		std Y+4,r25
+ 1331 0782 8B83      		std Y+3,r24
+ 188:lp_solve_5.5/lp_Hash.c ****   if (copy != NULL) {
+ 1332               		.loc 1 188 0
+ 1333 0784 8B81      		ldd r24,Y+3
+ 1334 0786 9C81      		ldd r25,Y+4
+ 1335 0788 892B      		or r24,r25
+ 1336 078a 01F0      		breq .L48
+ 189:lp_solve_5.5/lp_Hash.c ****     elem = ht->first;
+ 1337               		.loc 1 189 0
+ 1338 078c 8F81      		ldd r24,Y+7
+ 1339 078e 9885      		ldd r25,Y+8
+ 1340 0790 FC01      		movw r30,r24
+ 1341 0792 8085      		ldd r24,Z+8
+ 1342 0794 9185      		ldd r25,Z+9
+ 1343 0796 9A83      		std Y+2,r25
+ 1344 0798 8983      		std Y+1,r24
+ 190:lp_solve_5.5/lp_Hash.c ****     while (elem != NULL) {
+ 1345               		.loc 1 190 0
+ 1346 079a 00C0      		rjmp .L49
+ 1347               	.L52:
+ 191:lp_solve_5.5/lp_Hash.c ****       if((new_elem = puthash(elem->name, elem->index, list, copy)) == NULL) {
+ 1348               		.loc 1 191 0
+ 1349 079c 8981      		ldd r24,Y+1
+ 1350 079e 9A81      		ldd r25,Y+2
+ 1351 07a0 FC01      		movw r30,r24
+ 1352 07a2 6281      		ldd r22,Z+2
+ 1353 07a4 7381      		ldd r23,Z+3
+ 1354 07a6 8981      		ldd r24,Y+1
+ 1355 07a8 9A81      		ldd r25,Y+2
+ 1356 07aa FC01      		movw r30,r24
+ 1357 07ac 8081      		ld r24,Z
+ 1358 07ae 9181      		ldd r25,Z+1
+ 1359 07b0 2B81      		ldd r18,Y+3
+ 1360 07b2 3C81      		ldd r19,Y+4
+ 1361 07b4 4985      		ldd r20,Y+9
+ 1362 07b6 5A85      		ldd r21,Y+10
+ 1363 07b8 0E94 0000 		call puthash
+ 1364 07bc 9E83      		std Y+6,r25
+ 1365 07be 8D83      		std Y+5,r24
+ 1366 07c0 8D81      		ldd r24,Y+5
+ 1367 07c2 9E81      		ldd r25,Y+6
+ 1368 07c4 892B      		or r24,r25
+ 1369 07c6 01F4      		brne .L50
+ 192:lp_solve_5.5/lp_Hash.c ****         free_hash_table(copy);
+ 1370               		.loc 1 192 0
+ 1371 07c8 8B81      		ldd r24,Y+3
+ 1372 07ca 9C81      		ldd r25,Y+4
+ 1373 07cc 0E94 0000 		call free_hash_table
+ 193:lp_solve_5.5/lp_Hash.c ****         return(NULL);
+ 1374               		.loc 1 193 0
+ 1375 07d0 80E0      		ldi r24,0
+ 1376 07d2 90E0      		ldi r25,0
+ 1377 07d4 00C0      		rjmp .L51
+ 1378               	.L50:
+ 194:lp_solve_5.5/lp_Hash.c ****       }
+ 195:lp_solve_5.5/lp_Hash.c ****       elem = elem ->nextelem;
+ 1379               		.loc 1 195 0
+ 1380 07d6 8981      		ldd r24,Y+1
+ 1381 07d8 9A81      		ldd r25,Y+2
+ 1382 07da FC01      		movw r30,r24
+ 1383 07dc 8681      		ldd r24,Z+6
+ 1384 07de 9781      		ldd r25,Z+7
+ 1385 07e0 9A83      		std Y+2,r25
+ 1386 07e2 8983      		std Y+1,r24
+ 1387               	.L49:
+ 190:lp_solve_5.5/lp_Hash.c ****       if((new_elem = puthash(elem->name, elem->index, list, copy)) == NULL) {
+ 1388               		.loc 1 190 0
+ 1389 07e4 8981      		ldd r24,Y+1
+ 1390 07e6 9A81      		ldd r25,Y+2
+ 1391 07e8 892B      		or r24,r25
+ 1392 07ea 01F4      		brne .L52
+ 1393               	.L48:
+ 196:lp_solve_5.5/lp_Hash.c ****     }
+ 197:lp_solve_5.5/lp_Hash.c ****   }
+ 198:lp_solve_5.5/lp_Hash.c **** 
+ 199:lp_solve_5.5/lp_Hash.c ****   return(copy);
+ 1394               		.loc 1 199 0
+ 1395 07ec 8B81      		ldd r24,Y+3
+ 1396 07ee 9C81      		ldd r25,Y+4
+ 1397               	.L51:
+ 1398               	/* epilogue start */
+ 200:lp_solve_5.5/lp_Hash.c **** }
+ 1399               		.loc 1 200 0
+ 1400 07f0 2C96      		adiw r28,12
+ 1401 07f2 0FB6      		in __tmp_reg__,__SREG__
+ 1402 07f4 F894      		cli
+ 1403 07f6 DEBF      		out __SP_H__,r29
+ 1404 07f8 0FBE      		out __SREG__,__tmp_reg__
+ 1405 07fa CDBF      		out __SP_L__,r28
+ 1406 07fc DF91      		pop r29
+ 1407 07fe CF91      		pop r28
+ 1408 0800 0895      		ret
+ 1409               		.cfi_endproc
+ 1410               	.LFE14:
+ 1412               	.global	find_row
+ 1414               	find_row:
+ 1415               	.LFB15:
+ 201:lp_solve_5.5/lp_Hash.c **** 
+ 202:lp_solve_5.5/lp_Hash.c **** STATIC int find_row(lprec *lp, char *name, MYBOOL Unconstrained_rows_found)
+ 203:lp_solve_5.5/lp_Hash.c **** {
+ 1416               		.loc 1 203 0
+ 1417               		.cfi_startproc
+ 1418 0802 CF93      		push r28
+ 1419               	.LCFI34:
+ 1420               		.cfi_def_cfa_offset 3
+ 1421               		.cfi_offset 28, -2
+ 1422 0804 DF93      		push r29
+ 1423               	.LCFI35:
+ 1424               		.cfi_def_cfa_offset 4
+ 1425               		.cfi_offset 29, -3
+ 1426 0806 CDB7      		in r28,__SP_L__
+ 1427 0808 DEB7      		in r29,__SP_H__
+ 1428               	.LCFI36:
+ 1429               		.cfi_def_cfa_register 28
+ 1430 080a 2797      		sbiw r28,7
+ 1431               	.LCFI37:
+ 1432               		.cfi_def_cfa_offset 11
+ 1433 080c 0FB6      		in __tmp_reg__,__SREG__
+ 1434 080e F894      		cli
+ 1435 0810 DEBF      		out __SP_H__,r29
+ 1436 0812 0FBE      		out __SREG__,__tmp_reg__
+ 1437 0814 CDBF      		out __SP_L__,r28
+ 1438               	/* prologue: function */
+ 1439               	/* frame size = 7 */
+ 1440               	/* stack size = 9 */
+ 1441               	.L__stack_usage = 9
+ 1442 0816 9C83      		std Y+4,r25
+ 1443 0818 8B83      		std Y+3,r24
+ 1444 081a 7E83      		std Y+6,r23
+ 1445 081c 6D83      		std Y+5,r22
+ 1446 081e 4F83      		std Y+7,r20
+ 204:lp_solve_5.5/lp_Hash.c ****   hashelem *hp;
+ 205:lp_solve_5.5/lp_Hash.c **** 
+ 206:lp_solve_5.5/lp_Hash.c ****   if (lp->rowname_hashtab != NULL)
+ 1447               		.loc 1 206 0
+ 1448 0820 8B81      		ldd r24,Y+3
+ 1449 0822 9C81      		ldd r25,Y+4
+ 1450 0824 8258      		subi r24,-126
+ 1451 0826 9D4F      		sbci r25,-3
+ 1452 0828 FC01      		movw r30,r24
+ 1453 082a 8081      		ld r24,Z
+ 1454 082c 9181      		ldd r25,Z+1
+ 1455 082e 892B      		or r24,r25
+ 1456 0830 01F0      		breq .L54
+ 207:lp_solve_5.5/lp_Hash.c ****       hp = findhash(name, lp->rowname_hashtab);
+ 1457               		.loc 1 207 0
+ 1458 0832 8B81      		ldd r24,Y+3
+ 1459 0834 9C81      		ldd r25,Y+4
+ 1460 0836 8258      		subi r24,-126
+ 1461 0838 9D4F      		sbci r25,-3
+ 1462 083a FC01      		movw r30,r24
+ 1463 083c 2081      		ld r18,Z
+ 1464 083e 3181      		ldd r19,Z+1
+ 1465 0840 8D81      		ldd r24,Y+5
+ 1466 0842 9E81      		ldd r25,Y+6
+ 1467 0844 B901      		movw r22,r18
+ 1468 0846 0E94 0000 		call findhash
+ 1469 084a 9A83      		std Y+2,r25
+ 1470 084c 8983      		std Y+1,r24
+ 1471 084e 00C0      		rjmp .L55
+ 1472               	.L54:
+ 208:lp_solve_5.5/lp_Hash.c ****   else
+ 209:lp_solve_5.5/lp_Hash.c ****       hp = NULL;
+ 1473               		.loc 1 209 0
+ 1474 0850 1A82      		std Y+2,__zero_reg__
+ 1475 0852 1982      		std Y+1,__zero_reg__
+ 1476               	.L55:
+ 210:lp_solve_5.5/lp_Hash.c **** 
+ 211:lp_solve_5.5/lp_Hash.c ****   if (hp == NULL) {
+ 1477               		.loc 1 211 0
+ 1478 0854 8981      		ldd r24,Y+1
+ 1479 0856 9A81      		ldd r25,Y+2
+ 1480 0858 892B      		or r24,r25
+ 1481 085a 01F4      		brne .L56
+ 212:lp_solve_5.5/lp_Hash.c ****     if(Unconstrained_rows_found) { /* just ignore them in this case */
+ 1482               		.loc 1 212 0
+ 1483 085c 8F81      		ldd r24,Y+7
+ 1484 085e 8823      		tst r24
+ 1485 0860 01F0      		breq .L57
+ 213:lp_solve_5.5/lp_Hash.c ****          return(-1);
+ 1486               		.loc 1 213 0
+ 1487 0862 8FEF      		ldi r24,lo8(-1)
+ 1488 0864 9FEF      		ldi r25,lo8(-1)
+ 1489 0866 00C0      		rjmp .L58
+ 1490               	.L57:
+ 214:lp_solve_5.5/lp_Hash.c ****     }
+ 215:lp_solve_5.5/lp_Hash.c ****     else {
+ 216:lp_solve_5.5/lp_Hash.c ****       return(-1);
+ 1491               		.loc 1 216 0
+ 1492 0868 8FEF      		ldi r24,lo8(-1)
+ 1493 086a 9FEF      		ldi r25,lo8(-1)
+ 1494 086c 00C0      		rjmp .L58
+ 1495               	.L56:
+ 217:lp_solve_5.5/lp_Hash.c ****     }
+ 218:lp_solve_5.5/lp_Hash.c ****   }
+ 219:lp_solve_5.5/lp_Hash.c ****   return(hp->index);
+ 1496               		.loc 1 219 0
+ 1497 086e 8981      		ldd r24,Y+1
+ 1498 0870 9A81      		ldd r25,Y+2
+ 1499 0872 FC01      		movw r30,r24
+ 1500 0874 8281      		ldd r24,Z+2
+ 1501 0876 9381      		ldd r25,Z+3
+ 1502               	.L58:
+ 1503               	/* epilogue start */
+ 220:lp_solve_5.5/lp_Hash.c **** }
+ 1504               		.loc 1 220 0
+ 1505 0878 2796      		adiw r28,7
+ 1506 087a 0FB6      		in __tmp_reg__,__SREG__
+ 1507 087c F894      		cli
+ 1508 087e DEBF      		out __SP_H__,r29
+ 1509 0880 0FBE      		out __SREG__,__tmp_reg__
+ 1510 0882 CDBF      		out __SP_L__,r28
+ 1511 0884 DF91      		pop r29
+ 1512 0886 CF91      		pop r28
+ 1513 0888 0895      		ret
+ 1514               		.cfi_endproc
+ 1515               	.LFE15:
+ 1517               		.section	.rodata
+ 1518               	.LC1:
+ 1519 005a 6669 6E64 		.string	"find_var: Unknown variable name '%s'\n"
+ 1519      5F76 6172 
+ 1519      3A20 556E 
+ 1519      6B6E 6F77 
+ 1519      6E20 7661 
+ 1520               		.text
+ 1521               	.global	find_var
+ 1523               	find_var:
+ 1524               	.LFB16:
+ 221:lp_solve_5.5/lp_Hash.c **** 
+ 222:lp_solve_5.5/lp_Hash.c **** STATIC int find_var(lprec *lp, char *name, MYBOOL verbose)
+ 223:lp_solve_5.5/lp_Hash.c **** {
+ 1525               		.loc 1 223 0
+ 1526               		.cfi_startproc
+ 1527 088a CF93      		push r28
+ 1528               	.LCFI38:
+ 1529               		.cfi_def_cfa_offset 3
+ 1530               		.cfi_offset 28, -2
+ 1531 088c DF93      		push r29
+ 1532               	.LCFI39:
+ 1533               		.cfi_def_cfa_offset 4
+ 1534               		.cfi_offset 29, -3
+ 1535 088e CDB7      		in r28,__SP_L__
+ 1536 0890 DEB7      		in r29,__SP_H__
+ 1537               	.LCFI40:
+ 1538               		.cfi_def_cfa_register 28
+ 1539 0892 2797      		sbiw r28,7
+ 1540               	.LCFI41:
+ 1541               		.cfi_def_cfa_offset 11
+ 1542 0894 0FB6      		in __tmp_reg__,__SREG__
+ 1543 0896 F894      		cli
+ 1544 0898 DEBF      		out __SP_H__,r29
+ 1545 089a 0FBE      		out __SREG__,__tmp_reg__
+ 1546 089c CDBF      		out __SP_L__,r28
+ 1547               	/* prologue: function */
+ 1548               	/* frame size = 7 */
+ 1549               	/* stack size = 9 */
+ 1550               	.L__stack_usage = 9
+ 1551 089e 9C83      		std Y+4,r25
+ 1552 08a0 8B83      		std Y+3,r24
+ 1553 08a2 7E83      		std Y+6,r23
+ 1554 08a4 6D83      		std Y+5,r22
+ 1555 08a6 4F83      		std Y+7,r20
+ 224:lp_solve_5.5/lp_Hash.c ****   hashelem *hp;
+ 225:lp_solve_5.5/lp_Hash.c **** 
+ 226:lp_solve_5.5/lp_Hash.c ****   if (lp->colname_hashtab != NULL)
+ 1556               		.loc 1 226 0
+ 1557 08a8 8B81      		ldd r24,Y+3
+ 1558 08aa 9C81      		ldd r25,Y+4
+ 1559 08ac 8058      		subi r24,-128
+ 1560 08ae 9D4F      		sbci r25,-3
+ 1561 08b0 FC01      		movw r30,r24
+ 1562 08b2 8081      		ld r24,Z
+ 1563 08b4 9181      		ldd r25,Z+1
+ 1564 08b6 892B      		or r24,r25
+ 1565 08b8 01F0      		breq .L60
+ 227:lp_solve_5.5/lp_Hash.c ****       hp = findhash(name, lp->colname_hashtab);
+ 1566               		.loc 1 227 0
+ 1567 08ba 8B81      		ldd r24,Y+3
+ 1568 08bc 9C81      		ldd r25,Y+4
+ 1569 08be 8058      		subi r24,-128
+ 1570 08c0 9D4F      		sbci r25,-3
+ 1571 08c2 FC01      		movw r30,r24
+ 1572 08c4 2081      		ld r18,Z
+ 1573 08c6 3181      		ldd r19,Z+1
+ 1574 08c8 8D81      		ldd r24,Y+5
+ 1575 08ca 9E81      		ldd r25,Y+6
+ 1576 08cc B901      		movw r22,r18
+ 1577 08ce 0E94 0000 		call findhash
+ 1578 08d2 9A83      		std Y+2,r25
+ 1579 08d4 8983      		std Y+1,r24
+ 1580 08d6 00C0      		rjmp .L61
+ 1581               	.L60:
+ 228:lp_solve_5.5/lp_Hash.c ****   else
+ 229:lp_solve_5.5/lp_Hash.c ****       hp = NULL;
+ 1582               		.loc 1 229 0
+ 1583 08d8 1A82      		std Y+2,__zero_reg__
+ 1584 08da 1982      		std Y+1,__zero_reg__
+ 1585               	.L61:
+ 230:lp_solve_5.5/lp_Hash.c **** 
+ 231:lp_solve_5.5/lp_Hash.c ****   if (hp == NULL) {
+ 1586               		.loc 1 231 0
+ 1587 08dc 8981      		ldd r24,Y+1
+ 1588 08de 9A81      		ldd r25,Y+2
+ 1589 08e0 892B      		or r24,r25
+ 1590 08e2 01F4      		brne .L62
+ 232:lp_solve_5.5/lp_Hash.c ****     if(verbose)
+ 1591               		.loc 1 232 0
+ 1592 08e4 8F81      		ldd r24,Y+7
+ 1593 08e6 8823      		tst r24
+ 1594 08e8 01F0      		breq .L63
+ 233:lp_solve_5.5/lp_Hash.c ****       report(lp, SEVERE, "find_var: Unknown variable name '%s'\n", name);
+ 1595               		.loc 1 233 0
+ 1596 08ea 8E81      		ldd r24,Y+6
+ 1597 08ec 8F93      		push r24
+ 1598 08ee 8D81      		ldd r24,Y+5
+ 1599 08f0 8F93      		push r24
+ 1600 08f2 80E0      		ldi r24,lo8(.LC1)
+ 1601 08f4 90E0      		ldi r25,hi8(.LC1)
+ 1602 08f6 892F      		mov r24,r25
+ 1603 08f8 8F93      		push r24
+ 1604 08fa 80E0      		ldi r24,lo8(.LC1)
+ 1605 08fc 90E0      		ldi r25,hi8(.LC1)
+ 1606 08fe 8F93      		push r24
+ 1607 0900 1F92      		push __zero_reg__
+ 1608 0902 82E0      		ldi r24,lo8(2)
+ 1609 0904 8F93      		push r24
+ 1610 0906 8C81      		ldd r24,Y+4
+ 1611 0908 8F93      		push r24
+ 1612 090a 8B81      		ldd r24,Y+3
+ 1613 090c 8F93      		push r24
+ 1614 090e 0E94 0000 		call report
+ 1615 0912 8DB7      		in r24,__SP_L__
+ 1616 0914 9EB7      		in r25,__SP_H__
+ 1617 0916 0896      		adiw r24,8
+ 1618 0918 0FB6      		in __tmp_reg__,__SREG__
+ 1619 091a F894      		cli
+ 1620 091c DEBF      		out __SP_H__,r29
+ 1621 091e 0FBE      		out __SREG__,__tmp_reg__
+ 1622 0920 CDBF      		out __SP_L__,r28
+ 1623               	.L63:
+ 234:lp_solve_5.5/lp_Hash.c ****     return(-1);
+ 1624               		.loc 1 234 0
+ 1625 0922 8FEF      		ldi r24,lo8(-1)
+ 1626 0924 9FEF      		ldi r25,lo8(-1)
+ 1627 0926 00C0      		rjmp .L64
+ 1628               	.L62:
+ 235:lp_solve_5.5/lp_Hash.c ****   }
+ 236:lp_solve_5.5/lp_Hash.c ****   return(hp->index);
+ 1629               		.loc 1 236 0
+ 1630 0928 8981      		ldd r24,Y+1
+ 1631 092a 9A81      		ldd r25,Y+2
+ 1632 092c FC01      		movw r30,r24
+ 1633 092e 8281      		ldd r24,Z+2
+ 1634 0930 9381      		ldd r25,Z+3
+ 1635               	.L64:
+ 1636               	/* epilogue start */
+ 237:lp_solve_5.5/lp_Hash.c **** }
+ 1637               		.loc 1 237 0
+ 1638 0932 2796      		adiw r28,7
+ 1639 0934 0FB6      		in __tmp_reg__,__SREG__
+ 1640 0936 F894      		cli
+ 1641 0938 DEBF      		out __SP_H__,r29
+ 1642 093a 0FBE      		out __SREG__,__tmp_reg__
+ 1643 093c CDBF      		out __SP_L__,r28
+ 1644 093e DF91      		pop r29
+ 1645 0940 CF91      		pop r28
+ 1646 0942 0895      		ret
+ 1647               		.cfi_endproc
+ 1648               	.LFE16:
+ 1650               	.Letext0:
+ 1651               		.file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 1652               		.file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 1653               		.file 4 "lp_solve_5.5/lp_types.h"
+ 1654               		.file 5 "lp_solve_5.5/lp_lib.h"
+ 1655               		.file 6 "lp_solve_5.5/lp_utils.h"
+ 1656               		.file 7 "lp_solve_5.5/lp_Hash.h"
+ 1657               		.file 8 "lp_solve_5.5/lp_matrix.h"
+ 1658               		.file 9 "lp_solve_5.5/lp_mipbb.h"
+ 1659               		.file 10 "lp_solve_5.5/lp_SOS.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 lp_Hash.c
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:2      *ABS*:0000003e __SP_H__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:3      *ABS*:0000003d __SP_L__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:4      *ABS*:0000003f __SREG__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:61     .text:00000000 create_hash_table
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:283    .text:00000162 free_hash_item
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:344    .text:000001a8 free_hash_table
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:433    .text:0000021a hashval
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:560    .text:000002d0 findhash
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:675    .text:00000368 puthash
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:952    .text:00000536 drophash
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:1266   .text:0000072a copy_hash_table
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:1414   .text:00000802 find_row
+C:\Users\GUILHE~1\AppData\Local\Temp\ccSo10Fh.s:1523   .text:0000088a find_var
+
+UNDEFINED SYMBOLS
+calloc
+free
+__udivmodhi4
+strcmp
+strlen
+allocCHAR
+strcpy
+report
+__do_copy_data

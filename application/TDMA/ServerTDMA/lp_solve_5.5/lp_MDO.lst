@@ -1,0 +1,1994 @@
+   1               		.file	"lp_MDO.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               	.global	includeMDO
+  13               	includeMDO:
+  14               	.LFB7:
+  15               		.file 1 "lp_solve_5.5/lp_MDO.c"
+   1:lp_solve_5.5/lp_MDO.c **** /*
+   2:lp_solve_5.5/lp_MDO.c ****     Minimum matrix inverse fill-in modules - interface for lp_solve v5.0+
+   3:lp_solve_5.5/lp_MDO.c ****    ----------------------------------------------------------------------------------
+   4:lp_solve_5.5/lp_MDO.c ****     Author:        Kjell Eikland 
+   5:lp_solve_5.5/lp_MDO.c ****     Contact:       kjell.eikland@broadpark.no 
+   6:lp_solve_5.5/lp_MDO.c ****     License terms: LGPL.
+   7:lp_solve_5.5/lp_MDO.c ****     
+   8:lp_solve_5.5/lp_MDO.c ****     Requires:      string.h, colamd.h, lp_lib.h
+   9:lp_solve_5.5/lp_MDO.c **** 
+  10:lp_solve_5.5/lp_MDO.c ****     Release notes:
+  11:lp_solve_5.5/lp_MDO.c ****     v1.0    1 September 2003    Preprocessing routines for minimum fill-in column 
+  12:lp_solve_5.5/lp_MDO.c ****                                 ordering for inverse factorization using the open 
+  13:lp_solve_5.5/lp_MDO.c ****                                 source COLAMD library.  Suitable for the dense parts
+  14:lp_solve_5.5/lp_MDO.c ****                                 of both the product form and LU factorization inverse 
+  15:lp_solve_5.5/lp_MDO.c ****                                 methods.
+  16:lp_solve_5.5/lp_MDO.c ****     v1.1    1 July 2004         Renamed from lp_colamdMDO to lp_MDO.                               
+  17:lp_solve_5.5/lp_MDO.c **** 
+  18:lp_solve_5.5/lp_MDO.c ****    ---------------------------------------------------------------------------------- 
+  19:lp_solve_5.5/lp_MDO.c **** */
+  20:lp_solve_5.5/lp_MDO.c **** 
+  21:lp_solve_5.5/lp_MDO.c **** #include <string.h>
+  22:lp_solve_5.5/lp_MDO.c **** #include "commonlib.h"
+  23:lp_solve_5.5/lp_MDO.c **** #include "lp_lib.h"
+  24:lp_solve_5.5/lp_MDO.c **** #include "colamd.h"
+  25:lp_solve_5.5/lp_MDO.c **** #include "lp_MDO.h"
+  26:lp_solve_5.5/lp_MDO.c **** 
+  27:lp_solve_5.5/lp_MDO.c **** #ifdef FORTIFY
+  28:lp_solve_5.5/lp_MDO.c **** # include "lp_fortify.h"
+  29:lp_solve_5.5/lp_MDO.c **** #endif
+  30:lp_solve_5.5/lp_MDO.c **** 
+  31:lp_solve_5.5/lp_MDO.c **** STATIC MYBOOL includeMDO(MYBOOL *usedpos, int item)
+  32:lp_solve_5.5/lp_MDO.c **** {
+  16               		.loc 1 32 0
+  17               		.cfi_startproc
+  18 0000 CF93      		push r28
+  19               	.LCFI0:
+  20               		.cfi_def_cfa_offset 3
+  21               		.cfi_offset 28, -2
+  22 0002 DF93      		push r29
+  23               	.LCFI1:
+  24               		.cfi_def_cfa_offset 4
+  25               		.cfi_offset 29, -3
+  26 0004 00D0      		rcall .
+  27 0006 00D0      		rcall .
+  28 0008 1F92      		push __zero_reg__
+  29               	.LCFI2:
+  30               		.cfi_def_cfa_offset 9
+  31 000a CDB7      		in r28,__SP_L__
+  32 000c DEB7      		in r29,__SP_H__
+  33               	.LCFI3:
+  34               		.cfi_def_cfa_register 28
+  35               	/* prologue: function */
+  36               	/* frame size = 5 */
+  37               	/* stack size = 7 */
+  38               	.L__stack_usage = 7
+  39 000e 9B83      		std Y+3,r25
+  40 0010 8A83      		std Y+2,r24
+  41 0012 7D83      		std Y+5,r23
+  42 0014 6C83      		std Y+4,r22
+  33:lp_solve_5.5/lp_MDO.c **** /*  Legend:   TRUE            => A basic slack variable already in the basis
+  34:lp_solve_5.5/lp_MDO.c ****               FALSE           => A column free for being pivoted in
+  35:lp_solve_5.5/lp_MDO.c ****               AUTOMATIC+TRUE  => A row-singleton user column pivoted into the basis
+  36:lp_solve_5.5/lp_MDO.c ****               AUTOMATIC+FALSE => A column-singleton user column pivoted into the basis */
+  37:lp_solve_5.5/lp_MDO.c **** 
+  38:lp_solve_5.5/lp_MDO.c ****   /* Handle case where we are processing all columns */
+  39:lp_solve_5.5/lp_MDO.c ****   if(usedpos == NULL)
+  43               		.loc 1 39 0
+  44 0016 8A81      		ldd r24,Y+2
+  45 0018 9B81      		ldd r25,Y+3
+  46 001a 892B      		or r24,r25
+  47 001c 01F4      		brne .L2
+  40:lp_solve_5.5/lp_MDO.c ****     return( TRUE );
+  48               		.loc 1 40 0
+  49 001e 81E0      		ldi r24,lo8(1)
+  50 0020 00C0      		rjmp .L3
+  51               	.L2:
+  52               	.LBB2:
+  41:lp_solve_5.5/lp_MDO.c ****     
+  42:lp_solve_5.5/lp_MDO.c ****   else {
+  43:lp_solve_5.5/lp_MDO.c ****   /* Otherwise do the selective case */
+  44:lp_solve_5.5/lp_MDO.c ****     MYBOOL test = usedpos[item];
+  53               		.loc 1 44 0
+  54 0022 8C81      		ldd r24,Y+4
+  55 0024 9D81      		ldd r25,Y+5
+  56 0026 2A81      		ldd r18,Y+2
+  57 0028 3B81      		ldd r19,Y+3
+  58 002a 820F      		add r24,r18
+  59 002c 931F      		adc r25,r19
+  60 002e FC01      		movw r30,r24
+  61 0030 8081      		ld r24,Z
+  62 0032 8983      		std Y+1,r24
+  45:lp_solve_5.5/lp_MDO.c **** #if 1
+  46:lp_solve_5.5/lp_MDO.c ****     return( test != TRUE );
+  63               		.loc 1 46 0
+  64 0034 81E0      		ldi r24,lo8(1)
+  65 0036 9981      		ldd r25,Y+1
+  66 0038 9130      		cpi r25,lo8(1)
+  67 003a 01F4      		brne .L3
+  68 003c 80E0      		ldi r24,0
+  69               	.L3:
+  70               	/* epilogue start */
+  71               	.LBE2:
+  47:lp_solve_5.5/lp_MDO.c **** #else
+  48:lp_solve_5.5/lp_MDO.c ****     test = test & TRUE;
+  49:lp_solve_5.5/lp_MDO.c ****     return( test == FALSE );
+  50:lp_solve_5.5/lp_MDO.c **** #endif
+  51:lp_solve_5.5/lp_MDO.c ****   }
+  52:lp_solve_5.5/lp_MDO.c **** }
+  72               		.loc 1 52 0
+  73 003e 0F90      		pop __tmp_reg__
+  74 0040 0F90      		pop __tmp_reg__
+  75 0042 0F90      		pop __tmp_reg__
+  76 0044 0F90      		pop __tmp_reg__
+  77 0046 0F90      		pop __tmp_reg__
+  78 0048 DF91      		pop r29
+  79 004a CF91      		pop r28
+  80 004c 0895      		ret
+  81               		.cfi_endproc
+  82               	.LFE7:
+  84               	.global	prepareMDO
+  86               	prepareMDO:
+  87               	.LFB8:
+  53:lp_solve_5.5/lp_MDO.c **** 
+  54:lp_solve_5.5/lp_MDO.c **** STATIC int prepareMDO(lprec *lp, MYBOOL *usedpos, int *colorder, int *data, int *rowmap)
+  55:lp_solve_5.5/lp_MDO.c **** /* This routine prepares data structures for colamd().  It is called twice, the first
+  56:lp_solve_5.5/lp_MDO.c ****    time to count applicable non-zero elements by column, and the second time to fill in 
+  57:lp_solve_5.5/lp_MDO.c ****    the row indexes of the non-zero values from the first call.  Note that the colamd() 
+  58:lp_solve_5.5/lp_MDO.c ****    row index base is 0 (which suits lp_solve fine). */
+  59:lp_solve_5.5/lp_MDO.c **** {
+  88               		.loc 1 59 0
+  89               		.cfi_startproc
+  90 004e 0F93      		push r16
+  91               	.LCFI4:
+  92               		.cfi_def_cfa_offset 3
+  93               		.cfi_offset 16, -2
+  94 0050 1F93      		push r17
+  95               	.LCFI5:
+  96               		.cfi_def_cfa_offset 4
+  97               		.cfi_offset 17, -3
+  98 0052 CF93      		push r28
+  99               	.LCFI6:
+ 100               		.cfi_def_cfa_offset 5
+ 101               		.cfi_offset 28, -4
+ 102 0054 DF93      		push r29
+ 103               	.LCFI7:
+ 104               		.cfi_def_cfa_offset 6
+ 105               		.cfi_offset 29, -5
+ 106 0056 CDB7      		in r28,__SP_L__
+ 107 0058 DEB7      		in r29,__SP_H__
+ 108               	.LCFI8:
+ 109               		.cfi_def_cfa_register 28
+ 110 005a A997      		sbiw r28,41
+ 111               	.LCFI9:
+ 112               		.cfi_def_cfa_offset 47
+ 113 005c 0FB6      		in __tmp_reg__,__SREG__
+ 114 005e F894      		cli
+ 115 0060 DEBF      		out __SP_H__,r29
+ 116 0062 0FBE      		out __SREG__,__tmp_reg__
+ 117 0064 CDBF      		out __SP_L__,r28
+ 118               	/* prologue: function */
+ 119               	/* frame size = 41 */
+ 120               	/* stack size = 45 */
+ 121               	.L__stack_usage = 45
+ 122 0066 99A3      		std Y+33,r25
+ 123 0068 88A3      		std Y+32,r24
+ 124 006a 7BA3      		std Y+35,r23
+ 125 006c 6AA3      		std Y+34,r22
+ 126 006e 5DA3      		std Y+37,r21
+ 127 0070 4CA3      		std Y+36,r20
+ 128 0072 3FA3      		std Y+39,r19
+ 129 0074 2EA3      		std Y+38,r18
+ 130 0076 19A7      		std Y+41,r17
+ 131 0078 08A7      		std Y+40,r16
+  60:lp_solve_5.5/lp_MDO.c ****   int     i, ii, j, k, kk;
+  61:lp_solve_5.5/lp_MDO.c ****   int     nrows = lp->rows+1, ncols = colorder[0];
+ 132               		.loc 1 61 0
+ 133 007a 88A1      		ldd r24,Y+32
+ 134 007c 99A1      		ldd r25,Y+33
+ 135 007e 8651      		subi r24,22
+ 136 0080 9E4F      		sbci r25,-2
+ 137 0082 FC01      		movw r30,r24
+ 138 0084 8081      		ld r24,Z
+ 139 0086 9181      		ldd r25,Z+1
+ 140 0088 0196      		adiw r24,1
+ 141 008a 9E87      		std Y+14,r25
+ 142 008c 8D87      		std Y+13,r24
+ 143 008e 8CA1      		ldd r24,Y+36
+ 144 0090 9DA1      		ldd r25,Y+37
+ 145 0092 FC01      		movw r30,r24
+ 146 0094 8081      		ld r24,Z
+ 147 0096 9181      		ldd r25,Z+1
+ 148 0098 988B      		std Y+16,r25
+ 149 009a 8F87      		std Y+15,r24
+  62:lp_solve_5.5/lp_MDO.c ****   int     offset = 0, Bnz = 0, Tnz;
+ 150               		.loc 1 62 0
+ 151 009c 1A8A      		std Y+18,__zero_reg__
+ 152 009e 198A      		std Y+17,__zero_reg__
+ 153 00a0 1E82      		std Y+6,__zero_reg__
+ 154 00a2 1D82      		std Y+5,__zero_reg__
+  63:lp_solve_5.5/lp_MDO.c ****   MYBOOL  dotally = (MYBOOL) (rowmap == NULL);
+ 155               		.loc 1 63 0
+ 156 00a4 21E0      		ldi r18,lo8(1)
+ 157 00a6 88A5      		ldd r24,Y+40
+ 158 00a8 99A5      		ldd r25,Y+41
+ 159 00aa 892B      		or r24,r25
+ 160 00ac 01F0      		breq .L6
+ 161 00ae 20E0      		ldi r18,0
+ 162               	.L6:
+ 163 00b0 2B8B      		std Y+19,r18
+  64:lp_solve_5.5/lp_MDO.c ****   MATrec  *mat = lp->matA;
+ 164               		.loc 1 64 0
+ 165 00b2 88A1      		ldd r24,Y+32
+ 166 00b4 99A1      		ldd r25,Y+33
+ 167 00b6 8A54      		subi r24,74
+ 168 00b8 9D4F      		sbci r25,-3
+ 169 00ba FC01      		movw r30,r24
+ 170 00bc 8081      		ld r24,Z
+ 171 00be 9181      		ldd r25,Z+1
+ 172 00c0 9D8B      		std Y+21,r25
+ 173 00c2 8C8B      		std Y+20,r24
+  65:lp_solve_5.5/lp_MDO.c ****   REAL    hold;
+  66:lp_solve_5.5/lp_MDO.c ****   REAL    *value;
+  67:lp_solve_5.5/lp_MDO.c ****   int     *rownr;
+  68:lp_solve_5.5/lp_MDO.c **** 
+  69:lp_solve_5.5/lp_MDO.c ****   if(dotally)
+ 174               		.loc 1 69 0
+ 175 00c4 8B89      		ldd r24,Y+19
+ 176 00c6 8823      		tst r24
+ 177 00c8 01F0      		breq .L7
+  70:lp_solve_5.5/lp_MDO.c ****     data[0] = 0;
+ 178               		.loc 1 70 0
+ 179 00ca 8EA1      		ldd r24,Y+38
+ 180 00cc 9FA1      		ldd r25,Y+39
+ 181 00ce FC01      		movw r30,r24
+ 182 00d0 1182      		std Z+1,__zero_reg__
+ 183 00d2 1082      		st Z,__zero_reg__
+ 184               	.L7:
+  71:lp_solve_5.5/lp_MDO.c **** 
+  72:lp_solve_5.5/lp_MDO.c ****   Tnz = nrows - ncols;
+ 185               		.loc 1 72 0
+ 186 00d4 2D85      		ldd r18,Y+13
+ 187 00d6 3E85      		ldd r19,Y+14
+ 188 00d8 8F85      		ldd r24,Y+15
+ 189 00da 9889      		ldd r25,Y+16
+ 190 00dc A901      		movw r20,r18
+ 191 00de 481B      		sub r20,r24
+ 192 00e0 590B      		sbc r21,r25
+ 193 00e2 CA01      		movw r24,r20
+ 194 00e4 9887      		std Y+8,r25
+ 195 00e6 8F83      		std Y+7,r24
+  73:lp_solve_5.5/lp_MDO.c ****   for(j = 1; j <= ncols; j++) {
+ 196               		.loc 1 73 0
+ 197 00e8 81E0      		ldi r24,lo8(1)
+ 198 00ea 90E0      		ldi r25,0
+ 199 00ec 9C83      		std Y+4,r25
+ 200 00ee 8B83      		std Y+3,r24
+ 201 00f0 00C0      		rjmp .L8
+ 202               	.L22:
+  74:lp_solve_5.5/lp_MDO.c ****     kk = colorder[j];
+ 203               		.loc 1 74 0
+ 204 00f2 8B81      		ldd r24,Y+3
+ 205 00f4 9C81      		ldd r25,Y+4
+ 206 00f6 880F      		lsl r24
+ 207 00f8 991F      		rol r25
+ 208 00fa 2CA1      		ldd r18,Y+36
+ 209 00fc 3DA1      		ldd r19,Y+37
+ 210 00fe 820F      		add r24,r18
+ 211 0100 931F      		adc r25,r19
+ 212 0102 FC01      		movw r30,r24
+ 213 0104 8081      		ld r24,Z
+ 214 0106 9181      		ldd r25,Z+1
+ 215 0108 9F8B      		std Y+23,r25
+ 216 010a 8E8B      		std Y+22,r24
+  75:lp_solve_5.5/lp_MDO.c **** 
+  76:lp_solve_5.5/lp_MDO.c ****     /* Process slacks */
+  77:lp_solve_5.5/lp_MDO.c ****     if(kk <= lp->rows) {
+ 217               		.loc 1 77 0
+ 218 010c 88A1      		ldd r24,Y+32
+ 219 010e 99A1      		ldd r25,Y+33
+ 220 0110 8651      		subi r24,22
+ 221 0112 9E4F      		sbci r25,-2
+ 222 0114 FC01      		movw r30,r24
+ 223 0116 2081      		ld r18,Z
+ 224 0118 3181      		ldd r19,Z+1
+ 225 011a 8E89      		ldd r24,Y+22
+ 226 011c 9F89      		ldd r25,Y+23
+ 227 011e 2817      		cp r18,r24
+ 228 0120 3907      		cpc r19,r25
+ 229 0122 04F0      		brlt .L9
+  78:lp_solve_5.5/lp_MDO.c ****       if(includeMDO(usedpos, kk)) {
+ 230               		.loc 1 78 0
+ 231 0124 2E89      		ldd r18,Y+22
+ 232 0126 3F89      		ldd r19,Y+23
+ 233 0128 8AA1      		ldd r24,Y+34
+ 234 012a 9BA1      		ldd r25,Y+35
+ 235 012c B901      		movw r22,r18
+ 236 012e 0E94 0000 		call includeMDO
+ 237 0132 8823      		tst r24
+ 238 0134 01F0      		breq .L10
+  79:lp_solve_5.5/lp_MDO.c ****         if(!dotally)
+ 239               		.loc 1 79 0
+ 240 0136 8B89      		ldd r24,Y+19
+ 241 0138 8823      		tst r24
+ 242 013a 01F4      		brne .L11
+  80:lp_solve_5.5/lp_MDO.c ****           data[Bnz] = rowmap[kk]+offset;
+ 243               		.loc 1 80 0
+ 244 013c 8D81      		ldd r24,Y+5
+ 245 013e 9E81      		ldd r25,Y+6
+ 246 0140 880F      		lsl r24
+ 247 0142 991F      		rol r25
+ 248 0144 2EA1      		ldd r18,Y+38
+ 249 0146 3FA1      		ldd r19,Y+39
+ 250 0148 820F      		add r24,r18
+ 251 014a 931F      		adc r25,r19
+ 252 014c 2E89      		ldd r18,Y+22
+ 253 014e 3F89      		ldd r19,Y+23
+ 254 0150 220F      		lsl r18
+ 255 0152 331F      		rol r19
+ 256 0154 48A5      		ldd r20,Y+40
+ 257 0156 59A5      		ldd r21,Y+41
+ 258 0158 240F      		add r18,r20
+ 259 015a 351F      		adc r19,r21
+ 260 015c F901      		movw r30,r18
+ 261 015e 4081      		ld r20,Z
+ 262 0160 5181      		ldd r21,Z+1
+ 263 0162 2989      		ldd r18,Y+17
+ 264 0164 3A89      		ldd r19,Y+18
+ 265 0166 240F      		add r18,r20
+ 266 0168 351F      		adc r19,r21
+ 267 016a FC01      		movw r30,r24
+ 268 016c 3183      		std Z+1,r19
+ 269 016e 2083      		st Z,r18
+ 270               	.L11:
+  81:lp_solve_5.5/lp_MDO.c ****         Bnz++;
+ 271               		.loc 1 81 0
+ 272 0170 8D81      		ldd r24,Y+5
+ 273 0172 9E81      		ldd r25,Y+6
+ 274 0174 0196      		adiw r24,1
+ 275 0176 9E83      		std Y+6,r25
+ 276 0178 8D83      		std Y+5,r24
+ 277               	.L10:
+  82:lp_solve_5.5/lp_MDO.c ****       }
+  83:lp_solve_5.5/lp_MDO.c ****       Tnz++;
+ 278               		.loc 1 83 0
+ 279 017a 8F81      		ldd r24,Y+7
+ 280 017c 9885      		ldd r25,Y+8
+ 281 017e 0196      		adiw r24,1
+ 282 0180 9887      		std Y+8,r25
+ 283 0182 8F83      		std Y+7,r24
+ 284 0184 00C0      		rjmp .L12
+ 285               	.L9:
+  84:lp_solve_5.5/lp_MDO.c ****     }
+  85:lp_solve_5.5/lp_MDO.c ****     /* Process user columns */
+  86:lp_solve_5.5/lp_MDO.c ****     else {
+  87:lp_solve_5.5/lp_MDO.c ****       k = kk - lp->rows;
+ 286               		.loc 1 87 0
+ 287 0186 88A1      		ldd r24,Y+32
+ 288 0188 99A1      		ldd r25,Y+33
+ 289 018a 8651      		subi r24,22
+ 290 018c 9E4F      		sbci r25,-2
+ 291 018e FC01      		movw r30,r24
+ 292 0190 8081      		ld r24,Z
+ 293 0192 9181      		ldd r25,Z+1
+ 294 0194 2E89      		ldd r18,Y+22
+ 295 0196 3F89      		ldd r19,Y+23
+ 296 0198 A901      		movw r20,r18
+ 297 019a 481B      		sub r20,r24
+ 298 019c 590B      		sbc r21,r25
+ 299 019e CA01      		movw r24,r20
+ 300 01a0 998F      		std Y+25,r25
+ 301 01a2 888F      		std Y+24,r24
+  88:lp_solve_5.5/lp_MDO.c ****       i = mat->col_end[k-1];
+ 302               		.loc 1 88 0
+ 303 01a4 8C89      		ldd r24,Y+20
+ 304 01a6 9D89      		ldd r25,Y+21
+ 305 01a8 FC01      		movw r30,r24
+ 306 01aa 2289      		ldd r18,Z+18
+ 307 01ac 3389      		ldd r19,Z+19
+ 308 01ae 888D      		ldd r24,Y+24
+ 309 01b0 998D      		ldd r25,Y+25
+ 310 01b2 8150      		subi r24,1
+ 311 01b4 9048      		sbci r25,-128
+ 312 01b6 880F      		lsl r24
+ 313 01b8 991F      		rol r25
+ 314 01ba 820F      		add r24,r18
+ 315 01bc 931F      		adc r25,r19
+ 316 01be FC01      		movw r30,r24
+ 317 01c0 8081      		ld r24,Z
+ 318 01c2 9181      		ldd r25,Z+1
+ 319 01c4 9A83      		std Y+2,r25
+ 320 01c6 8983      		std Y+1,r24
+  89:lp_solve_5.5/lp_MDO.c ****       ii= mat->col_end[k];
+ 321               		.loc 1 89 0
+ 322 01c8 8C89      		ldd r24,Y+20
+ 323 01ca 9D89      		ldd r25,Y+21
+ 324 01cc FC01      		movw r30,r24
+ 325 01ce 2289      		ldd r18,Z+18
+ 326 01d0 3389      		ldd r19,Z+19
+ 327 01d2 888D      		ldd r24,Y+24
+ 328 01d4 998D      		ldd r25,Y+25
+ 329 01d6 880F      		lsl r24
+ 330 01d8 991F      		rol r25
+ 331 01da 820F      		add r24,r18
+ 332 01dc 931F      		adc r25,r19
+ 333 01de FC01      		movw r30,r24
+ 334 01e0 8081      		ld r24,Z
+ 335 01e2 9181      		ldd r25,Z+1
+ 336 01e4 9B8F      		std Y+27,r25
+ 337 01e6 8A8F      		std Y+26,r24
+  90:lp_solve_5.5/lp_MDO.c ****       Tnz += ii-i;
+ 338               		.loc 1 90 0
+ 339 01e8 2A8D      		ldd r18,Y+26
+ 340 01ea 3B8D      		ldd r19,Y+27
+ 341 01ec 8981      		ldd r24,Y+1
+ 342 01ee 9A81      		ldd r25,Y+2
+ 343 01f0 A901      		movw r20,r18
+ 344 01f2 481B      		sub r20,r24
+ 345 01f4 590B      		sbc r21,r25
+ 346 01f6 CA01      		movw r24,r20
+ 347 01f8 2F81      		ldd r18,Y+7
+ 348 01fa 3885      		ldd r19,Y+8
+ 349 01fc 820F      		add r24,r18
+ 350 01fe 931F      		adc r25,r19
+ 351 0200 9887      		std Y+8,r25
+ 352 0202 8F83      		std Y+7,r24
+  91:lp_solve_5.5/lp_MDO.c **** #ifdef Paranoia
+  92:lp_solve_5.5/lp_MDO.c ****       if(i >= ii)
+  93:lp_solve_5.5/lp_MDO.c ****         lp->report(lp, SEVERE, "prepareMDO: Encountered empty basic column %d\n", k);
+  94:lp_solve_5.5/lp_MDO.c **** #endif
+  95:lp_solve_5.5/lp_MDO.c **** 
+  96:lp_solve_5.5/lp_MDO.c ****       /* Detect if we need to do phase 1 adjustments of zero-valued OF variable */
+  97:lp_solve_5.5/lp_MDO.c ****       rownr = &COL_MAT_ROWNR(i);
+ 353               		.loc 1 97 0
+ 354 0204 8C89      		ldd r24,Y+20
+ 355 0206 9D89      		ldd r25,Y+21
+ 356 0208 FC01      		movw r30,r24
+ 357 020a 2685      		ldd r18,Z+14
+ 358 020c 3785      		ldd r19,Z+15
+ 359 020e 8981      		ldd r24,Y+1
+ 360 0210 9A81      		ldd r25,Y+2
+ 361 0212 880F      		lsl r24
+ 362 0214 991F      		rol r25
+ 363 0216 820F      		add r24,r18
+ 364 0218 931F      		adc r25,r19
+ 365 021a 9C87      		std Y+12,r25
+ 366 021c 8B87      		std Y+11,r24
+  98:lp_solve_5.5/lp_MDO.c ****       value = &COL_MAT_VALUE(i);
+ 367               		.loc 1 98 0
+ 368 021e 8C89      		ldd r24,Y+20
+ 369 0220 9D89      		ldd r25,Y+21
+ 370 0222 FC01      		movw r30,r24
+ 371 0224 2089      		ldd r18,Z+16
+ 372 0226 3189      		ldd r19,Z+17
+ 373 0228 8981      		ldd r24,Y+1
+ 374 022a 9A81      		ldd r25,Y+2
+ 375 022c 880F      		lsl r24
+ 376 022e 991F      		rol r25
+ 377 0230 880F      		lsl r24
+ 378 0232 991F      		rol r25
+ 379 0234 820F      		add r24,r18
+ 380 0236 931F      		adc r25,r19
+ 381 0238 9A87      		std Y+10,r25
+ 382 023a 8987      		std Y+9,r24
+  99:lp_solve_5.5/lp_MDO.c ****       hold = 0;
+ 383               		.loc 1 99 0
+ 384 023c 1C8E      		std Y+28,__zero_reg__
+ 385 023e 1D8E      		std Y+29,__zero_reg__
+ 386 0240 1E8E      		std Y+30,__zero_reg__
+ 387 0242 1F8E      		std Y+31,__zero_reg__
+ 100:lp_solve_5.5/lp_MDO.c ****       if((*rownr > 0) && includeMDO(usedpos, 0) && modifyOF1(lp, kk, &hold, 1.0)) {
+ 388               		.loc 1 100 0
+ 389 0244 8B85      		ldd r24,Y+11
+ 390 0246 9C85      		ldd r25,Y+12
+ 391 0248 FC01      		movw r30,r24
+ 392 024a 8081      		ld r24,Z
+ 393 024c 9181      		ldd r25,Z+1
+ 394 024e 1816      		cp __zero_reg__,r24
+ 395 0250 1906      		cpc __zero_reg__,r25
+ 396 0252 04F0      		brlt .+2
+ 397 0254 00C0      		rjmp .L15
+ 398               		.loc 1 100 0 is_stmt 0 discriminator 1
+ 399 0256 8AA1      		ldd r24,Y+34
+ 400 0258 9BA1      		ldd r25,Y+35
+ 401 025a 60E0      		ldi r22,0
+ 402 025c 70E0      		ldi r23,0
+ 403 025e 0E94 0000 		call includeMDO
+ 404 0262 8823      		tst r24
+ 405 0264 01F4      		brne .+2
+ 406 0266 00C0      		rjmp .L15
+ 407               		.loc 1 100 0 discriminator 2
+ 408 0268 AE01      		movw r20,r28
+ 409 026a 445E      		subi r20,-28
+ 410 026c 5F4F      		sbci r21,-1
+ 411 026e 6E89      		ldd r22,Y+22
+ 412 0270 7F89      		ldd r23,Y+23
+ 413 0272 88A1      		ldd r24,Y+32
+ 414 0274 99A1      		ldd r25,Y+33
+ 415 0276 00E0      		ldi r16,0
+ 416 0278 10E0      		ldi r17,0
+ 417 027a 20E8      		ldi r18,lo8(-128)
+ 418 027c 3FE3      		ldi r19,lo8(63)
+ 419 027e 0E94 0000 		call modifyOF1
+ 420 0282 8823      		tst r24
+ 421 0284 01F4      		brne .+2
+ 422 0286 00C0      		rjmp .L15
+ 101:lp_solve_5.5/lp_MDO.c ****         if(!dotally)
+ 423               		.loc 1 101 0 is_stmt 1
+ 424 0288 8B89      		ldd r24,Y+19
+ 425 028a 8823      		tst r24
+ 426 028c 01F4      		brne .L14
+ 102:lp_solve_5.5/lp_MDO.c ****           data[Bnz] = offset;
+ 427               		.loc 1 102 0
+ 428 028e 8D81      		ldd r24,Y+5
+ 429 0290 9E81      		ldd r25,Y+6
+ 430 0292 880F      		lsl r24
+ 431 0294 991F      		rol r25
+ 432 0296 2EA1      		ldd r18,Y+38
+ 433 0298 3FA1      		ldd r19,Y+39
+ 434 029a 820F      		add r24,r18
+ 435 029c 931F      		adc r25,r19
+ 436 029e 2989      		ldd r18,Y+17
+ 437 02a0 3A89      		ldd r19,Y+18
+ 438 02a2 FC01      		movw r30,r24
+ 439 02a4 3183      		std Z+1,r19
+ 440 02a6 2083      		st Z,r18
+ 441               	.L14:
+ 103:lp_solve_5.5/lp_MDO.c ****         Bnz++;
+ 442               		.loc 1 103 0
+ 443 02a8 8D81      		ldd r24,Y+5
+ 444 02aa 9E81      		ldd r25,Y+6
+ 445 02ac 0196      		adiw r24,1
+ 446 02ae 9E83      		std Y+6,r25
+ 447 02b0 8D83      		std Y+5,r24
+ 104:lp_solve_5.5/lp_MDO.c ****       }
+ 105:lp_solve_5.5/lp_MDO.c ****       /* Loop over all NZ-variables */
+ 106:lp_solve_5.5/lp_MDO.c ****       for(; i < ii; 
+ 448               		.loc 1 106 0
+ 449 02b2 00C0      		rjmp .L15
+ 450               	.L20:
+ 107:lp_solve_5.5/lp_MDO.c ****           i++, value += matValueStep, rownr += matRowColStep) {
+ 108:lp_solve_5.5/lp_MDO.c ****         if(!includeMDO(usedpos, *rownr))
+ 451               		.loc 1 108 0
+ 452 02b4 8B85      		ldd r24,Y+11
+ 453 02b6 9C85      		ldd r25,Y+12
+ 454 02b8 FC01      		movw r30,r24
+ 455 02ba 2081      		ld r18,Z
+ 456 02bc 3181      		ldd r19,Z+1
+ 457 02be 8AA1      		ldd r24,Y+34
+ 458 02c0 9BA1      		ldd r25,Y+35
+ 459 02c2 B901      		movw r22,r18
+ 460 02c4 0E94 0000 		call includeMDO
+ 461 02c8 8823      		tst r24
+ 462 02ca 01F4      		brne .+2
+ 463 02cc 00C0      		rjmp .L24
+ 109:lp_solve_5.5/lp_MDO.c ****           continue;
+ 110:lp_solve_5.5/lp_MDO.c ****         /* See if we need to change phase 1 OF value */
+ 111:lp_solve_5.5/lp_MDO.c ****         if(*rownr == 0) {
+ 464               		.loc 1 111 0
+ 465 02ce 8B85      		ldd r24,Y+11
+ 466 02d0 9C85      		ldd r25,Y+12
+ 467 02d2 FC01      		movw r30,r24
+ 468 02d4 8081      		ld r24,Z
+ 469 02d6 9181      		ldd r25,Z+1
+ 470 02d8 892B      		or r24,r25
+ 471 02da 01F4      		brne .L18
+ 112:lp_solve_5.5/lp_MDO.c ****           hold = *value;
+ 472               		.loc 1 112 0
+ 473 02dc 8985      		ldd r24,Y+9
+ 474 02de 9A85      		ldd r25,Y+10
+ 475 02e0 FC01      		movw r30,r24
+ 476 02e2 8081      		ld r24,Z
+ 477 02e4 9181      		ldd r25,Z+1
+ 478 02e6 A281      		ldd r26,Z+2
+ 479 02e8 B381      		ldd r27,Z+3
+ 480 02ea 8C8F      		std Y+28,r24
+ 481 02ec 9D8F      		std Y+29,r25
+ 482 02ee AE8F      		std Y+30,r26
+ 483 02f0 BF8F      		std Y+31,r27
+ 113:lp_solve_5.5/lp_MDO.c ****           if(!modifyOF1(lp, kk, &hold, 1.0)) 
+ 484               		.loc 1 113 0
+ 485 02f2 AE01      		movw r20,r28
+ 486 02f4 445E      		subi r20,-28
+ 487 02f6 5F4F      		sbci r21,-1
+ 488 02f8 6E89      		ldd r22,Y+22
+ 489 02fa 7F89      		ldd r23,Y+23
+ 490 02fc 88A1      		ldd r24,Y+32
+ 491 02fe 99A1      		ldd r25,Y+33
+ 492 0300 00E0      		ldi r16,0
+ 493 0302 10E0      		ldi r17,0
+ 494 0304 20E8      		ldi r18,lo8(-128)
+ 495 0306 3FE3      		ldi r19,lo8(63)
+ 496 0308 0E94 0000 		call modifyOF1
+ 497 030c 8823      		tst r24
+ 498 030e 01F0      		breq .L25
+ 499               	.L18:
+ 114:lp_solve_5.5/lp_MDO.c ****             continue;
+ 115:lp_solve_5.5/lp_MDO.c ****         }
+ 116:lp_solve_5.5/lp_MDO.c ****         /* Tally uneliminated constraint row values */
+ 117:lp_solve_5.5/lp_MDO.c ****         if(!dotally)
+ 500               		.loc 1 117 0
+ 501 0310 8B89      		ldd r24,Y+19
+ 502 0312 8823      		tst r24
+ 503 0314 01F4      		brne .L19
+ 118:lp_solve_5.5/lp_MDO.c ****           data[Bnz] = rowmap[*rownr]+offset;
+ 504               		.loc 1 118 0
+ 505 0316 8D81      		ldd r24,Y+5
+ 506 0318 9E81      		ldd r25,Y+6
+ 507 031a 880F      		lsl r24
+ 508 031c 991F      		rol r25
+ 509 031e 2EA1      		ldd r18,Y+38
+ 510 0320 3FA1      		ldd r19,Y+39
+ 511 0322 820F      		add r24,r18
+ 512 0324 931F      		adc r25,r19
+ 513 0326 2B85      		ldd r18,Y+11
+ 514 0328 3C85      		ldd r19,Y+12
+ 515 032a F901      		movw r30,r18
+ 516 032c 2081      		ld r18,Z
+ 517 032e 3181      		ldd r19,Z+1
+ 518 0330 220F      		lsl r18
+ 519 0332 331F      		rol r19
+ 520 0334 48A5      		ldd r20,Y+40
+ 521 0336 59A5      		ldd r21,Y+41
+ 522 0338 240F      		add r18,r20
+ 523 033a 351F      		adc r19,r21
+ 524 033c F901      		movw r30,r18
+ 525 033e 4081      		ld r20,Z
+ 526 0340 5181      		ldd r21,Z+1
+ 527 0342 2989      		ldd r18,Y+17
+ 528 0344 3A89      		ldd r19,Y+18
+ 529 0346 240F      		add r18,r20
+ 530 0348 351F      		adc r19,r21
+ 531 034a FC01      		movw r30,r24
+ 532 034c 3183      		std Z+1,r19
+ 533 034e 2083      		st Z,r18
+ 534               	.L19:
+ 119:lp_solve_5.5/lp_MDO.c ****         Bnz++;
+ 535               		.loc 1 119 0
+ 536 0350 8D81      		ldd r24,Y+5
+ 537 0352 9E81      		ldd r25,Y+6
+ 538 0354 0196      		adiw r24,1
+ 539 0356 9E83      		std Y+6,r25
+ 540 0358 8D83      		std Y+5,r24
+ 541 035a 00C0      		rjmp .L17
+ 542               	.L24:
+ 109:lp_solve_5.5/lp_MDO.c ****         /* See if we need to change phase 1 OF value */
+ 543               		.loc 1 109 0
+ 544 035c 0000      		nop
+ 545 035e 00C0      		rjmp .L17
+ 546               	.L25:
+ 114:lp_solve_5.5/lp_MDO.c ****         }
+ 547               		.loc 1 114 0
+ 548 0360 0000      		nop
+ 549               	.L17:
+ 107:lp_solve_5.5/lp_MDO.c ****         if(!includeMDO(usedpos, *rownr))
+ 550               		.loc 1 107 0
+ 551 0362 8981      		ldd r24,Y+1
+ 552 0364 9A81      		ldd r25,Y+2
+ 553 0366 0196      		adiw r24,1
+ 554 0368 9A83      		std Y+2,r25
+ 555 036a 8983      		std Y+1,r24
+ 556 036c 8985      		ldd r24,Y+9
+ 557 036e 9A85      		ldd r25,Y+10
+ 558 0370 0496      		adiw r24,4
+ 559 0372 9A87      		std Y+10,r25
+ 560 0374 8987      		std Y+9,r24
+ 561 0376 8B85      		ldd r24,Y+11
+ 562 0378 9C85      		ldd r25,Y+12
+ 563 037a 0296      		adiw r24,2
+ 564 037c 9C87      		std Y+12,r25
+ 565 037e 8B87      		std Y+11,r24
+ 566               	.L15:
+ 106:lp_solve_5.5/lp_MDO.c ****           i++, value += matValueStep, rownr += matRowColStep) {
+ 567               		.loc 1 106 0
+ 568 0380 2981      		ldd r18,Y+1
+ 569 0382 3A81      		ldd r19,Y+2
+ 570 0384 8A8D      		ldd r24,Y+26
+ 571 0386 9B8D      		ldd r25,Y+27
+ 572 0388 2817      		cp r18,r24
+ 573 038a 3907      		cpc r19,r25
+ 574 038c 04F4      		brge .+2
+ 575 038e 00C0      		rjmp .L20
+ 576               	.L12:
+ 120:lp_solve_5.5/lp_MDO.c ****       }
+ 121:lp_solve_5.5/lp_MDO.c ****     }
+ 122:lp_solve_5.5/lp_MDO.c ****     if(dotally)
+ 577               		.loc 1 122 0
+ 578 0390 8B89      		ldd r24,Y+19
+ 579 0392 8823      		tst r24
+ 580 0394 01F0      		breq .L21
+ 123:lp_solve_5.5/lp_MDO.c ****       data[j] = Bnz;
+ 581               		.loc 1 123 0
+ 582 0396 8B81      		ldd r24,Y+3
+ 583 0398 9C81      		ldd r25,Y+4
+ 584 039a 880F      		lsl r24
+ 585 039c 991F      		rol r25
+ 586 039e 2EA1      		ldd r18,Y+38
+ 587 03a0 3FA1      		ldd r19,Y+39
+ 588 03a2 820F      		add r24,r18
+ 589 03a4 931F      		adc r25,r19
+ 590 03a6 2D81      		ldd r18,Y+5
+ 591 03a8 3E81      		ldd r19,Y+6
+ 592 03aa FC01      		movw r30,r24
+ 593 03ac 3183      		std Z+1,r19
+ 594 03ae 2083      		st Z,r18
+ 595               	.L21:
+  73:lp_solve_5.5/lp_MDO.c ****     kk = colorder[j];
+ 596               		.loc 1 73 0 discriminator 2
+ 597 03b0 8B81      		ldd r24,Y+3
+ 598 03b2 9C81      		ldd r25,Y+4
+ 599 03b4 0196      		adiw r24,1
+ 600 03b6 9C83      		std Y+4,r25
+ 601 03b8 8B83      		std Y+3,r24
+ 602               	.L8:
+  73:lp_solve_5.5/lp_MDO.c ****     kk = colorder[j];
+ 603               		.loc 1 73 0 is_stmt 0 discriminator 1
+ 604 03ba 2B81      		ldd r18,Y+3
+ 605 03bc 3C81      		ldd r19,Y+4
+ 606 03be 8F85      		ldd r24,Y+15
+ 607 03c0 9889      		ldd r25,Y+16
+ 608 03c2 8217      		cp r24,r18
+ 609 03c4 9307      		cpc r25,r19
+ 610 03c6 04F0      		brlt .+2
+ 611 03c8 00C0      		rjmp .L22
+ 124:lp_solve_5.5/lp_MDO.c ****   }
+ 125:lp_solve_5.5/lp_MDO.c ****   return( Tnz );
+ 612               		.loc 1 125 0 is_stmt 1
+ 613 03ca 8F81      		ldd r24,Y+7
+ 614 03cc 9885      		ldd r25,Y+8
+ 615               	/* epilogue start */
+ 126:lp_solve_5.5/lp_MDO.c **** }
+ 616               		.loc 1 126 0
+ 617 03ce A996      		adiw r28,41
+ 618 03d0 0FB6      		in __tmp_reg__,__SREG__
+ 619 03d2 F894      		cli
+ 620 03d4 DEBF      		out __SP_H__,r29
+ 621 03d6 0FBE      		out __SREG__,__tmp_reg__
+ 622 03d8 CDBF      		out __SP_L__,r28
+ 623 03da DF91      		pop r29
+ 624 03dc CF91      		pop r28
+ 625 03de 1F91      		pop r17
+ 626 03e0 0F91      		pop r16
+ 627 03e2 0895      		ret
+ 628               		.cfi_endproc
+ 629               	.LFE8:
+ 631               		.section	.rodata
+ 632               	.LC0:
+ 633 0000 7665 7269 		.string	"verifyMDO: Invalid MDO input structure generated (error %d)\n"
+ 633      6679 4D44 
+ 633      4F3A 2049 
+ 633      6E76 616C 
+ 633      6964 204D 
+ 634               		.text
+ 635               	.global	verifyMDO
+ 637               	verifyMDO:
+ 638               	.LFB9:
+ 127:lp_solve_5.5/lp_MDO.c **** 
+ 128:lp_solve_5.5/lp_MDO.c **** STATIC MYBOOL verifyMDO(lprec *lp, int *col_end, int *row_nr, int rowmax, int colmax)
+ 129:lp_solve_5.5/lp_MDO.c **** {
+ 639               		.loc 1 129 0
+ 640               		.cfi_startproc
+ 641 03e4 0F93      		push r16
+ 642               	.LCFI10:
+ 643               		.cfi_def_cfa_offset 3
+ 644               		.cfi_offset 16, -2
+ 645 03e6 1F93      		push r17
+ 646               	.LCFI11:
+ 647               		.cfi_def_cfa_offset 4
+ 648               		.cfi_offset 17, -3
+ 649 03e8 CF93      		push r28
+ 650               	.LCFI12:
+ 651               		.cfi_def_cfa_offset 5
+ 652               		.cfi_offset 28, -4
+ 653 03ea DF93      		push r29
+ 654               	.LCFI13:
+ 655               		.cfi_def_cfa_offset 6
+ 656               		.cfi_offset 29, -5
+ 657 03ec CDB7      		in r28,__SP_L__
+ 658 03ee DEB7      		in r29,__SP_H__
+ 659               	.LCFI14:
+ 660               		.cfi_def_cfa_register 28
+ 661 03f0 6297      		sbiw r28,18
+ 662               	.LCFI15:
+ 663               		.cfi_def_cfa_offset 24
+ 664 03f2 0FB6      		in __tmp_reg__,__SREG__
+ 665 03f4 F894      		cli
+ 666 03f6 DEBF      		out __SP_H__,r29
+ 667 03f8 0FBE      		out __SREG__,__tmp_reg__
+ 668 03fa CDBF      		out __SP_L__,r28
+ 669               	/* prologue: function */
+ 670               	/* frame size = 18 */
+ 671               	/* stack size = 22 */
+ 672               	.L__stack_usage = 22
+ 673 03fc 9A87      		std Y+10,r25
+ 674 03fe 8987      		std Y+9,r24
+ 675 0400 7C87      		std Y+12,r23
+ 676 0402 6B87      		std Y+11,r22
+ 677 0404 5E87      		std Y+14,r21
+ 678 0406 4D87      		std Y+13,r20
+ 679 0408 388B      		std Y+16,r19
+ 680 040a 2F87      		std Y+15,r18
+ 681 040c 1A8B      		std Y+18,r17
+ 682 040e 098B      		std Y+17,r16
+ 130:lp_solve_5.5/lp_MDO.c ****   int i, j, n, err = 0;
+ 683               		.loc 1 130 0
+ 684 0410 1886      		std Y+8,__zero_reg__
+ 685 0412 1F82      		std Y+7,__zero_reg__
+ 131:lp_solve_5.5/lp_MDO.c **** 
+ 132:lp_solve_5.5/lp_MDO.c ****   for(i = 1; i <= colmax; i++) {
+ 686               		.loc 1 132 0
+ 687 0414 81E0      		ldi r24,lo8(1)
+ 688 0416 90E0      		ldi r25,0
+ 689 0418 9A83      		std Y+2,r25
+ 690 041a 8983      		std Y+1,r24
+ 691 041c 00C0      		rjmp .L27
+ 692               	.L34:
+ 133:lp_solve_5.5/lp_MDO.c ****     n = 0;
+ 693               		.loc 1 133 0
+ 694 041e 1E82      		std Y+6,__zero_reg__
+ 695 0420 1D82      		std Y+5,__zero_reg__
+ 134:lp_solve_5.5/lp_MDO.c ****     for(j = col_end[i-1]; (j < col_end[i]) && (err == 0); j++, n++) {
+ 696               		.loc 1 134 0
+ 697 0422 8981      		ldd r24,Y+1
+ 698 0424 9A81      		ldd r25,Y+2
+ 699 0426 8150      		subi r24,1
+ 700 0428 9048      		sbci r25,-128
+ 701 042a 880F      		lsl r24
+ 702 042c 991F      		rol r25
+ 703 042e 2B85      		ldd r18,Y+11
+ 704 0430 3C85      		ldd r19,Y+12
+ 705 0432 820F      		add r24,r18
+ 706 0434 931F      		adc r25,r19
+ 707 0436 FC01      		movw r30,r24
+ 708 0438 8081      		ld r24,Z
+ 709 043a 9181      		ldd r25,Z+1
+ 710 043c 9C83      		std Y+4,r25
+ 711 043e 8B83      		std Y+3,r24
+ 712 0440 00C0      		rjmp .L28
+ 713               	.L33:
+ 135:lp_solve_5.5/lp_MDO.c ****       if(row_nr[j] < 0 || row_nr[j] > rowmax)
+ 714               		.loc 1 135 0
+ 715 0442 8B81      		ldd r24,Y+3
+ 716 0444 9C81      		ldd r25,Y+4
+ 717 0446 880F      		lsl r24
+ 718 0448 991F      		rol r25
+ 719 044a 2D85      		ldd r18,Y+13
+ 720 044c 3E85      		ldd r19,Y+14
+ 721 044e 820F      		add r24,r18
+ 722 0450 931F      		adc r25,r19
+ 723 0452 FC01      		movw r30,r24
+ 724 0454 8081      		ld r24,Z
+ 725 0456 9181      		ldd r25,Z+1
+ 726 0458 9923      		tst r25
+ 727 045a 04F0      		brlt .L29
+ 728               		.loc 1 135 0 is_stmt 0 discriminator 1
+ 729 045c 8B81      		ldd r24,Y+3
+ 730 045e 9C81      		ldd r25,Y+4
+ 731 0460 880F      		lsl r24
+ 732 0462 991F      		rol r25
+ 733 0464 2D85      		ldd r18,Y+13
+ 734 0466 3E85      		ldd r19,Y+14
+ 735 0468 820F      		add r24,r18
+ 736 046a 931F      		adc r25,r19
+ 737 046c FC01      		movw r30,r24
+ 738 046e 2081      		ld r18,Z
+ 739 0470 3181      		ldd r19,Z+1
+ 740 0472 8F85      		ldd r24,Y+15
+ 741 0474 9889      		ldd r25,Y+16
+ 742 0476 8217      		cp r24,r18
+ 743 0478 9307      		cpc r25,r19
+ 744 047a 04F4      		brge .L30
+ 745               	.L29:
+ 136:lp_solve_5.5/lp_MDO.c ****         err = 1;
+ 746               		.loc 1 136 0 is_stmt 1
+ 747 047c 81E0      		ldi r24,lo8(1)
+ 748 047e 90E0      		ldi r25,0
+ 749 0480 9887      		std Y+8,r25
+ 750 0482 8F83      		std Y+7,r24
+ 751               	.L30:
+ 137:lp_solve_5.5/lp_MDO.c ****       if(n > 0 && row_nr[j] <= row_nr[j-1])
+ 752               		.loc 1 137 0
+ 753 0484 8D81      		ldd r24,Y+5
+ 754 0486 9E81      		ldd r25,Y+6
+ 755 0488 1816      		cp __zero_reg__,r24
+ 756 048a 1906      		cpc __zero_reg__,r25
+ 757 048c 04F4      		brge .L31
+ 758               		.loc 1 137 0 is_stmt 0 discriminator 1
+ 759 048e 8B81      		ldd r24,Y+3
+ 760 0490 9C81      		ldd r25,Y+4
+ 761 0492 880F      		lsl r24
+ 762 0494 991F      		rol r25
+ 763 0496 2D85      		ldd r18,Y+13
+ 764 0498 3E85      		ldd r19,Y+14
+ 765 049a 820F      		add r24,r18
+ 766 049c 931F      		adc r25,r19
+ 767 049e FC01      		movw r30,r24
+ 768 04a0 2081      		ld r18,Z
+ 769 04a2 3181      		ldd r19,Z+1
+ 770 04a4 8B81      		ldd r24,Y+3
+ 771 04a6 9C81      		ldd r25,Y+4
+ 772 04a8 8150      		subi r24,1
+ 773 04aa 9048      		sbci r25,-128
+ 774 04ac 880F      		lsl r24
+ 775 04ae 991F      		rol r25
+ 776 04b0 4D85      		ldd r20,Y+13
+ 777 04b2 5E85      		ldd r21,Y+14
+ 778 04b4 840F      		add r24,r20
+ 779 04b6 951F      		adc r25,r21
+ 780 04b8 FC01      		movw r30,r24
+ 781 04ba 8081      		ld r24,Z
+ 782 04bc 9181      		ldd r25,Z+1
+ 783 04be 8217      		cp r24,r18
+ 784 04c0 9307      		cpc r25,r19
+ 785 04c2 04F0      		brlt .L31
+ 138:lp_solve_5.5/lp_MDO.c ****         err = 2;
+ 786               		.loc 1 138 0 is_stmt 1
+ 787 04c4 82E0      		ldi r24,lo8(2)
+ 788 04c6 90E0      		ldi r25,0
+ 789 04c8 9887      		std Y+8,r25
+ 790 04ca 8F83      		std Y+7,r24
+ 791               	.L31:
+ 139:lp_solve_5.5/lp_MDO.c ****       n++;
+ 792               		.loc 1 139 0 discriminator 2
+ 793 04cc 8D81      		ldd r24,Y+5
+ 794 04ce 9E81      		ldd r25,Y+6
+ 795 04d0 0196      		adiw r24,1
+ 796 04d2 9E83      		std Y+6,r25
+ 797 04d4 8D83      		std Y+5,r24
+ 134:lp_solve_5.5/lp_MDO.c ****       if(row_nr[j] < 0 || row_nr[j] > rowmax)
+ 798               		.loc 1 134 0 discriminator 2
+ 799 04d6 8B81      		ldd r24,Y+3
+ 800 04d8 9C81      		ldd r25,Y+4
+ 801 04da 0196      		adiw r24,1
+ 802 04dc 9C83      		std Y+4,r25
+ 803 04de 8B83      		std Y+3,r24
+ 804 04e0 8D81      		ldd r24,Y+5
+ 805 04e2 9E81      		ldd r25,Y+6
+ 806 04e4 0196      		adiw r24,1
+ 807 04e6 9E83      		std Y+6,r25
+ 808 04e8 8D83      		std Y+5,r24
+ 809               	.L28:
+ 134:lp_solve_5.5/lp_MDO.c ****       if(row_nr[j] < 0 || row_nr[j] > rowmax)
+ 810               		.loc 1 134 0 is_stmt 0 discriminator 1
+ 811 04ea 8981      		ldd r24,Y+1
+ 812 04ec 9A81      		ldd r25,Y+2
+ 813 04ee 880F      		lsl r24
+ 814 04f0 991F      		rol r25
+ 815 04f2 2B85      		ldd r18,Y+11
+ 816 04f4 3C85      		ldd r19,Y+12
+ 817 04f6 820F      		add r24,r18
+ 818 04f8 931F      		adc r25,r19
+ 819 04fa FC01      		movw r30,r24
+ 820 04fc 2081      		ld r18,Z
+ 821 04fe 3181      		ldd r19,Z+1
+ 822 0500 8B81      		ldd r24,Y+3
+ 823 0502 9C81      		ldd r25,Y+4
+ 824 0504 8217      		cp r24,r18
+ 825 0506 9307      		cpc r25,r19
+ 826 0508 04F4      		brge .L32
+ 134:lp_solve_5.5/lp_MDO.c ****       if(row_nr[j] < 0 || row_nr[j] > rowmax)
+ 827               		.loc 1 134 0 discriminator 3
+ 828 050a 8F81      		ldd r24,Y+7
+ 829 050c 9885      		ldd r25,Y+8
+ 830 050e 892B      		or r24,r25
+ 831 0510 01F4      		brne .+2
+ 832 0512 00C0      		rjmp .L33
+ 833               	.L32:
+ 132:lp_solve_5.5/lp_MDO.c ****     n = 0;
+ 834               		.loc 1 132 0 is_stmt 1 discriminator 2
+ 835 0514 8981      		ldd r24,Y+1
+ 836 0516 9A81      		ldd r25,Y+2
+ 837 0518 0196      		adiw r24,1
+ 838 051a 9A83      		std Y+2,r25
+ 839 051c 8983      		std Y+1,r24
+ 840               	.L27:
+ 132:lp_solve_5.5/lp_MDO.c ****     n = 0;
+ 841               		.loc 1 132 0 is_stmt 0 discriminator 1
+ 842 051e 2981      		ldd r18,Y+1
+ 843 0520 3A81      		ldd r19,Y+2
+ 844 0522 8989      		ldd r24,Y+17
+ 845 0524 9A89      		ldd r25,Y+18
+ 846 0526 8217      		cp r24,r18
+ 847 0528 9307      		cpc r25,r19
+ 848 052a 04F0      		brlt .+2
+ 849 052c 00C0      		rjmp .L34
+ 140:lp_solve_5.5/lp_MDO.c ****     }
+ 141:lp_solve_5.5/lp_MDO.c ****   }
+ 142:lp_solve_5.5/lp_MDO.c ****   if(err != 0)
+ 850               		.loc 1 142 0 is_stmt 1
+ 851 052e 8F81      		ldd r24,Y+7
+ 852 0530 9885      		ldd r25,Y+8
+ 853 0532 892B      		or r24,r25
+ 854 0534 01F0      		breq .L35
+ 143:lp_solve_5.5/lp_MDO.c ****     lp->report(lp, SEVERE, "verifyMDO: Invalid MDO input structure generated (error %d)\n", err);
+ 855               		.loc 1 143 0
+ 856 0536 8985      		ldd r24,Y+9
+ 857 0538 9A85      		ldd r25,Y+10
+ 858 053a 8E51      		subi r24,30
+ 859 053c 9C4F      		sbci r25,-4
+ 860 053e FC01      		movw r30,r24
+ 861 0540 8081      		ld r24,Z
+ 862 0542 9181      		ldd r25,Z+1
+ 863 0544 2885      		ldd r18,Y+8
+ 864 0546 2F93      		push r18
+ 865 0548 2F81      		ldd r18,Y+7
+ 866 054a 2F93      		push r18
+ 867 054c 20E0      		ldi r18,lo8(.LC0)
+ 868 054e 30E0      		ldi r19,hi8(.LC0)
+ 869 0550 232F      		mov r18,r19
+ 870 0552 2F93      		push r18
+ 871 0554 20E0      		ldi r18,lo8(.LC0)
+ 872 0556 30E0      		ldi r19,hi8(.LC0)
+ 873 0558 2F93      		push r18
+ 874 055a 1F92      		push __zero_reg__
+ 875 055c 22E0      		ldi r18,lo8(2)
+ 876 055e 2F93      		push r18
+ 877 0560 2A85      		ldd r18,Y+10
+ 878 0562 2F93      		push r18
+ 879 0564 2985      		ldd r18,Y+9
+ 880 0566 2F93      		push r18
+ 881 0568 FC01      		movw r30,r24
+ 882 056a 0995      		icall
+ 883 056c 8DB7      		in r24,__SP_L__
+ 884 056e 9EB7      		in r25,__SP_H__
+ 885 0570 0896      		adiw r24,8
+ 886 0572 0FB6      		in __tmp_reg__,__SREG__
+ 887 0574 F894      		cli
+ 888 0576 DEBF      		out __SP_H__,r29
+ 889 0578 0FBE      		out __SREG__,__tmp_reg__
+ 890 057a CDBF      		out __SP_L__,r28
+ 891               	.L35:
+ 144:lp_solve_5.5/lp_MDO.c ****   return( (MYBOOL) (err == 0) );
+ 892               		.loc 1 144 0
+ 893 057c 21E0      		ldi r18,lo8(1)
+ 894 057e 8F81      		ldd r24,Y+7
+ 895 0580 9885      		ldd r25,Y+8
+ 896 0582 892B      		or r24,r25
+ 897 0584 01F0      		breq .L36
+ 898 0586 20E0      		ldi r18,0
+ 899               	.L36:
+ 900 0588 822F      		mov r24,r18
+ 901               	/* epilogue start */
+ 145:lp_solve_5.5/lp_MDO.c **** }
+ 902               		.loc 1 145 0
+ 903 058a 6296      		adiw r28,18
+ 904 058c 0FB6      		in __tmp_reg__,__SREG__
+ 905 058e F894      		cli
+ 906 0590 DEBF      		out __SP_H__,r29
+ 907 0592 0FBE      		out __SREG__,__tmp_reg__
+ 908 0594 CDBF      		out __SP_L__,r28
+ 909 0596 DF91      		pop r29
+ 910 0598 CF91      		pop r28
+ 911 059a 1F91      		pop r17
+ 912 059c 0F91      		pop r16
+ 913 059e 0895      		ret
+ 914               		.cfi_endproc
+ 915               	.LFE9:
+ 917               	.global	mdo_calloc
+ 919               	mdo_calloc:
+ 920               	.LFB10:
+ 146:lp_solve_5.5/lp_MDO.c **** 
+ 147:lp_solve_5.5/lp_MDO.c **** void *mdo_calloc(size_t size, size_t count)
+ 148:lp_solve_5.5/lp_MDO.c **** {
+ 921               		.loc 1 148 0
+ 922               		.cfi_startproc
+ 923 05a0 CF93      		push r28
+ 924               	.LCFI16:
+ 925               		.cfi_def_cfa_offset 3
+ 926               		.cfi_offset 28, -2
+ 927 05a2 DF93      		push r29
+ 928               	.LCFI17:
+ 929               		.cfi_def_cfa_offset 4
+ 930               		.cfi_offset 29, -3
+ 931 05a4 00D0      		rcall .
+ 932 05a6 00D0      		rcall .
+ 933               	.LCFI18:
+ 934               		.cfi_def_cfa_offset 8
+ 935 05a8 CDB7      		in r28,__SP_L__
+ 936 05aa DEB7      		in r29,__SP_H__
+ 937               	.LCFI19:
+ 938               		.cfi_def_cfa_register 28
+ 939               	/* prologue: function */
+ 940               	/* frame size = 4 */
+ 941               	/* stack size = 6 */
+ 942               	.L__stack_usage = 6
+ 943 05ac 9A83      		std Y+2,r25
+ 944 05ae 8983      		std Y+1,r24
+ 945 05b0 7C83      		std Y+4,r23
+ 946 05b2 6B83      		std Y+3,r22
+ 149:lp_solve_5.5/lp_MDO.c ****   return ( calloc(size, count) );
+ 947               		.loc 1 149 0
+ 948 05b4 2B81      		ldd r18,Y+3
+ 949 05b6 3C81      		ldd r19,Y+4
+ 950 05b8 8981      		ldd r24,Y+1
+ 951 05ba 9A81      		ldd r25,Y+2
+ 952 05bc B901      		movw r22,r18
+ 953 05be 0E94 0000 		call calloc
+ 954               	/* epilogue start */
+ 150:lp_solve_5.5/lp_MDO.c **** }
+ 955               		.loc 1 150 0
+ 956 05c2 0F90      		pop __tmp_reg__
+ 957 05c4 0F90      		pop __tmp_reg__
+ 958 05c6 0F90      		pop __tmp_reg__
+ 959 05c8 0F90      		pop __tmp_reg__
+ 960 05ca DF91      		pop r29
+ 961 05cc CF91      		pop r28
+ 962 05ce 0895      		ret
+ 963               		.cfi_endproc
+ 964               	.LFE10:
+ 966               	.global	mdo_free
+ 968               	mdo_free:
+ 969               	.LFB11:
+ 151:lp_solve_5.5/lp_MDO.c **** void mdo_free(void *mem)
+ 152:lp_solve_5.5/lp_MDO.c **** {
+ 970               		.loc 1 152 0
+ 971               		.cfi_startproc
+ 972 05d0 CF93      		push r28
+ 973               	.LCFI20:
+ 974               		.cfi_def_cfa_offset 3
+ 975               		.cfi_offset 28, -2
+ 976 05d2 DF93      		push r29
+ 977               	.LCFI21:
+ 978               		.cfi_def_cfa_offset 4
+ 979               		.cfi_offset 29, -3
+ 980 05d4 00D0      		rcall .
+ 981               	.LCFI22:
+ 982               		.cfi_def_cfa_offset 6
+ 983 05d6 CDB7      		in r28,__SP_L__
+ 984 05d8 DEB7      		in r29,__SP_H__
+ 985               	.LCFI23:
+ 986               		.cfi_def_cfa_register 28
+ 987               	/* prologue: function */
+ 988               	/* frame size = 2 */
+ 989               	/* stack size = 4 */
+ 990               	.L__stack_usage = 4
+ 991 05da 9A83      		std Y+2,r25
+ 992 05dc 8983      		std Y+1,r24
+ 153:lp_solve_5.5/lp_MDO.c ****   free( mem );
+ 993               		.loc 1 153 0
+ 994 05de 8981      		ldd r24,Y+1
+ 995 05e0 9A81      		ldd r25,Y+2
+ 996 05e2 0E94 0000 		call free
+ 154:lp_solve_5.5/lp_MDO.c **** }
+ 997               		.loc 1 154 0
+ 998 05e6 0000      		nop
+ 999               	/* epilogue start */
+ 1000 05e8 0F90      		pop __tmp_reg__
+ 1001 05ea 0F90      		pop __tmp_reg__
+ 1002 05ec DF91      		pop r29
+ 1003 05ee CF91      		pop r28
+ 1004 05f0 0895      		ret
+ 1005               		.cfi_endproc
+ 1006               	.LFE11:
+ 1008               	.global	getMDO
+ 1010               	getMDO:
+ 1011               	.LFB12:
+ 155:lp_solve_5.5/lp_MDO.c **** 
+ 156:lp_solve_5.5/lp_MDO.c **** 
+ 157:lp_solve_5.5/lp_MDO.c **** int __WINAPI getMDO(lprec *lp, MYBOOL *usedpos, int *colorder, int *size, MYBOOL symmetric)
+ 158:lp_solve_5.5/lp_MDO.c **** {
+ 1012               		.loc 1 158 0
+ 1013               		.cfi_startproc
+ 1014 05f2 AF92      		push r10
+ 1015               	.LCFI24:
+ 1016               		.cfi_def_cfa_offset 3
+ 1017               		.cfi_offset 10, -2
+ 1018 05f4 BF92      		push r11
+ 1019               	.LCFI25:
+ 1020               		.cfi_def_cfa_offset 4
+ 1021               		.cfi_offset 11, -3
+ 1022 05f6 CF92      		push r12
+ 1023               	.LCFI26:
+ 1024               		.cfi_def_cfa_offset 5
+ 1025               		.cfi_offset 12, -4
+ 1026 05f8 DF92      		push r13
+ 1027               	.LCFI27:
+ 1028               		.cfi_def_cfa_offset 6
+ 1029               		.cfi_offset 13, -5
+ 1030 05fa EF92      		push r14
+ 1031               	.LCFI28:
+ 1032               		.cfi_def_cfa_offset 7
+ 1033               		.cfi_offset 14, -6
+ 1034 05fc FF92      		push r15
+ 1035               	.LCFI29:
+ 1036               		.cfi_def_cfa_offset 8
+ 1037               		.cfi_offset 15, -7
+ 1038 05fe 0F93      		push r16
+ 1039               	.LCFI30:
+ 1040               		.cfi_def_cfa_offset 9
+ 1041               		.cfi_offset 16, -8
+ 1042 0600 1F93      		push r17
+ 1043               	.LCFI31:
+ 1044               		.cfi_def_cfa_offset 10
+ 1045               		.cfi_offset 17, -9
+ 1046 0602 CF93      		push r28
+ 1047               	.LCFI32:
+ 1048               		.cfi_def_cfa_offset 11
+ 1049               		.cfi_offset 28, -10
+ 1050 0604 DF93      		push r29
+ 1051               	.LCFI33:
+ 1052               		.cfi_def_cfa_offset 12
+ 1053               		.cfi_offset 29, -11
+ 1054 0606 CDB7      		in r28,__SP_L__
+ 1055 0608 DEB7      		in r29,__SP_H__
+ 1056               	.LCFI34:
+ 1057               		.cfi_def_cfa_register 28
+ 1058 060a CB59      		subi r28,-101
+ 1059 060c D109      		sbc r29,__zero_reg__
+ 1060               	.LCFI35:
+ 1061               		.cfi_def_cfa_offset 167
+ 1062 060e 0FB6      		in __tmp_reg__,__SREG__
+ 1063 0610 F894      		cli
+ 1064 0612 DEBF      		out __SP_H__,r29
+ 1065 0614 0FBE      		out __SREG__,__tmp_reg__
+ 1066 0616 CDBF      		out __SP_L__,r28
+ 1067               	/* prologue: function */
+ 1068               	/* frame size = 155 */
+ 1069               	/* stack size = 165 */
+ 1070               	.L__stack_usage = 165
+ 1071 0618 FE01      		movw r30,r28
+ 1072 061a EF56      		subi r30,111
+ 1073 061c FF4F      		sbci r31,-1
+ 1074 061e 9183      		std Z+1,r25
+ 1075 0620 8083      		st Z,r24
+ 1076 0622 CE01      		movw r24,r28
+ 1077 0624 8D56      		subi r24,109
+ 1078 0626 9F4F      		sbci r25,-1
+ 1079 0628 DC01      		movw r26,r24
+ 1080 062a 6D93      		st X+,r22
+ 1081 062c 7C93      		st X,r23
+ 1082 062e CE01      		movw r24,r28
+ 1083 0630 8B56      		subi r24,107
+ 1084 0632 9F4F      		sbci r25,-1
+ 1085 0634 FC01      		movw r30,r24
+ 1086 0636 5183      		std Z+1,r21
+ 1087 0638 4083      		st Z,r20
+ 1088 063a CE01      		movw r24,r28
+ 1089 063c 8956      		subi r24,105
+ 1090 063e 9F4F      		sbci r25,-1
+ 1091 0640 DC01      		movw r26,r24
+ 1092 0642 2D93      		st X+,r18
+ 1093 0644 3C93      		st X,r19
+ 1094 0646 CE01      		movw r24,r28
+ 1095 0648 8756      		subi r24,103
+ 1096 064a 9F4F      		sbci r25,-1
+ 1097 064c FC01      		movw r30,r24
+ 1098 064e 0083      		st Z,r16
+ 159:lp_solve_5.5/lp_MDO.c ****   int    error = FALSE;
+ 1099               		.loc 1 159 0
+ 1100 0650 1A82      		std Y+2,__zero_reg__
+ 1101 0652 1982      		std Y+1,__zero_reg__
+ 160:lp_solve_5.5/lp_MDO.c ****   int    nrows = lp->rows+1, ncols = colorder[0];
+ 1102               		.loc 1 160 0
+ 1103 0654 CE01      		movw r24,r28
+ 1104 0656 8F56      		subi r24,111
+ 1105 0658 9F4F      		sbci r25,-1
+ 1106 065a DC01      		movw r26,r24
+ 1107 065c 8D91      		ld r24,X+
+ 1108 065e 9C91      		ld r25,X
+ 1109 0660 8651      		subi r24,22
+ 1110 0662 9E4F      		sbci r25,-2
+ 1111 0664 FC01      		movw r30,r24
+ 1112 0666 8081      		ld r24,Z
+ 1113 0668 9181      		ldd r25,Z+1
+ 1114 066a 0196      		adiw r24,1
+ 1115 066c 9C83      		std Y+4,r25
+ 1116 066e 8B83      		std Y+3,r24
+ 1117 0670 CE01      		movw r24,r28
+ 1118 0672 8B56      		subi r24,107
+ 1119 0674 9F4F      		sbci r25,-1
+ 1120 0676 DC01      		movw r26,r24
+ 1121 0678 8D91      		ld r24,X+
+ 1122 067a 9C91      		ld r25,X
+ 1123 067c FC01      		movw r30,r24
+ 1124 067e 8081      		ld r24,Z
+ 1125 0680 9181      		ldd r25,Z+1
+ 1126 0682 9A87      		std Y+10,r25
+ 1127 0684 8987      		std Y+9,r24
+ 161:lp_solve_5.5/lp_MDO.c ****   int    i, j, kk, n;
+ 162:lp_solve_5.5/lp_MDO.c ****   int    *col_end, *row_map = NULL;
+ 1128               		.loc 1 162 0
+ 1129 0686 1E8A      		std Y+22,__zero_reg__
+ 1130 0688 1D8A      		std Y+21,__zero_reg__
+ 163:lp_solve_5.5/lp_MDO.c ****   int    Bnz, Blen, *Brows = NULL;
+ 1131               		.loc 1 163 0
+ 1132 068a 188E      		std Y+24,__zero_reg__
+ 1133 068c 1F8A      		std Y+23,__zero_reg__
+ 164:lp_solve_5.5/lp_MDO.c ****   int    stats[COLAMD_STATS];
+ 165:lp_solve_5.5/lp_MDO.c ****   double knobs[COLAMD_KNOBS];
+ 166:lp_solve_5.5/lp_MDO.c **** 
+ 167:lp_solve_5.5/lp_MDO.c ****  /* Tally the non-zero counts of the unused columns/rows of the 
+ 168:lp_solve_5.5/lp_MDO.c ****     basis matrix and store corresponding "net" starting positions */
+ 169:lp_solve_5.5/lp_MDO.c ****   allocINT(lp, &col_end, ncols+1, FALSE);
+ 1134               		.loc 1 169 0
+ 1135 068e 8985      		ldd r24,Y+9
+ 1136 0690 9A85      		ldd r25,Y+10
+ 1137 0692 AC01      		movw r20,r24
+ 1138 0694 4F5F      		subi r20,-1
+ 1139 0696 5F4F      		sbci r21,-1
+ 1140 0698 BE01      		movw r22,r28
+ 1141 069a 6D5E      		subi r22,-19
+ 1142 069c 7F4F      		sbci r23,-1
+ 1143 069e CE01      		movw r24,r28
+ 1144 06a0 8F56      		subi r24,111
+ 1145 06a2 9F4F      		sbci r25,-1
+ 1146 06a4 DC01      		movw r26,r24
+ 1147 06a6 8D91      		ld r24,X+
+ 1148 06a8 9C91      		ld r25,X
+ 1149 06aa 20E0      		ldi r18,0
+ 1150 06ac 0E94 0000 		call allocINT
+ 170:lp_solve_5.5/lp_MDO.c ****   n = prepareMDO(lp, usedpos, colorder, col_end, NULL);
+ 1151               		.loc 1 170 0
+ 1152 06b0 2B89      		ldd r18,Y+19
+ 1153 06b2 3C89      		ldd r19,Y+20
+ 1154 06b4 CE01      		movw r24,r28
+ 1155 06b6 8B56      		subi r24,107
+ 1156 06b8 9F4F      		sbci r25,-1
+ 1157 06ba FC01      		movw r30,r24
+ 1158 06bc 4081      		ld r20,Z
+ 1159 06be 5181      		ldd r21,Z+1
+ 1160 06c0 CE01      		movw r24,r28
+ 1161 06c2 8D56      		subi r24,109
+ 1162 06c4 9F4F      		sbci r25,-1
+ 1163 06c6 DC01      		movw r26,r24
+ 1164 06c8 6D91      		ld r22,X+
+ 1165 06ca 7C91      		ld r23,X
+ 1166 06cc CE01      		movw r24,r28
+ 1167 06ce 8F56      		subi r24,111
+ 1168 06d0 9F4F      		sbci r25,-1
+ 1169 06d2 FC01      		movw r30,r24
+ 1170 06d4 8081      		ld r24,Z
+ 1171 06d6 9181      		ldd r25,Z+1
+ 1172 06d8 00E0      		ldi r16,0
+ 1173 06da 10E0      		ldi r17,0
+ 1174 06dc 0E94 0000 		call prepareMDO
+ 1175 06e0 9C87      		std Y+12,r25
+ 1176 06e2 8B87      		std Y+11,r24
+ 171:lp_solve_5.5/lp_MDO.c ****   Bnz = col_end[ncols];
+ 1177               		.loc 1 171 0
+ 1178 06e4 2B89      		ldd r18,Y+19
+ 1179 06e6 3C89      		ldd r19,Y+20
+ 1180 06e8 8985      		ldd r24,Y+9
+ 1181 06ea 9A85      		ldd r25,Y+10
+ 1182 06ec 880F      		lsl r24
+ 1183 06ee 991F      		rol r25
+ 1184 06f0 820F      		add r24,r18
+ 1185 06f2 931F      		adc r25,r19
+ 1186 06f4 DC01      		movw r26,r24
+ 1187 06f6 8D91      		ld r24,X+
+ 1188 06f8 9C91      		ld r25,X
+ 1189 06fa 9E87      		std Y+14,r25
+ 1190 06fc 8D87      		std Y+13,r24
+ 172:lp_solve_5.5/lp_MDO.c **** 
+ 173:lp_solve_5.5/lp_MDO.c ****  /* Check that we have unused basic columns, otherwise skip analysis */  
+ 174:lp_solve_5.5/lp_MDO.c ****   if(ncols == 0 || Bnz == 0) 
+ 1191               		.loc 1 174 0
+ 1192 06fe 8985      		ldd r24,Y+9
+ 1193 0700 9A85      		ldd r25,Y+10
+ 1194 0702 892B      		or r24,r25
+ 1195 0704 01F4      		brne .+2
+ 1196 0706 00C0      		rjmp .L42
+ 1197               		.loc 1 174 0 is_stmt 0 discriminator 1
+ 1198 0708 8D85      		ldd r24,Y+13
+ 1199 070a 9E85      		ldd r25,Y+14
+ 1200 070c 892B      		or r24,r25
+ 1201 070e 01F4      		brne .+2
+ 1202 0710 00C0      		rjmp .L42
+ 175:lp_solve_5.5/lp_MDO.c ****     goto Transfer;
+ 176:lp_solve_5.5/lp_MDO.c **** 
+ 177:lp_solve_5.5/lp_MDO.c ****  /* Get net number of rows and fill mapper */
+ 178:lp_solve_5.5/lp_MDO.c ****   allocINT(lp, &row_map, nrows, FALSE);
+ 1203               		.loc 1 178 0 is_stmt 1
+ 1204 0712 4B81      		ldd r20,Y+3
+ 1205 0714 5C81      		ldd r21,Y+4
+ 1206 0716 BE01      		movw r22,r28
+ 1207 0718 6B5E      		subi r22,-21
+ 1208 071a 7F4F      		sbci r23,-1
+ 1209 071c CE01      		movw r24,r28
+ 1210 071e 8F56      		subi r24,111
+ 1211 0720 9F4F      		sbci r25,-1
+ 1212 0722 FC01      		movw r30,r24
+ 1213 0724 8081      		ld r24,Z
+ 1214 0726 9181      		ldd r25,Z+1
+ 1215 0728 20E0      		ldi r18,0
+ 1216 072a 0E94 0000 		call allocINT
+ 179:lp_solve_5.5/lp_MDO.c ****   nrows = 0;
+ 1217               		.loc 1 179 0
+ 1218 072e 1C82      		std Y+4,__zero_reg__
+ 1219 0730 1B82      		std Y+3,__zero_reg__
+ 180:lp_solve_5.5/lp_MDO.c ****   for(i = 0; i <= lp->rows; i++) {
+ 1220               		.loc 1 180 0
+ 1221 0732 1E82      		std Y+6,__zero_reg__
+ 1222 0734 1D82      		std Y+5,__zero_reg__
+ 1223 0736 00C0      		rjmp .L43
+ 1224               	.L45:
+ 181:lp_solve_5.5/lp_MDO.c ****     row_map[i] = i-nrows;
+ 1225               		.loc 1 181 0
+ 1226 0738 2D89      		ldd r18,Y+21
+ 1227 073a 3E89      		ldd r19,Y+22
+ 1228 073c 8D81      		ldd r24,Y+5
+ 1229 073e 9E81      		ldd r25,Y+6
+ 1230 0740 880F      		lsl r24
+ 1231 0742 991F      		rol r25
+ 1232 0744 820F      		add r24,r18
+ 1233 0746 931F      		adc r25,r19
+ 1234 0748 4D81      		ldd r20,Y+5
+ 1235 074a 5E81      		ldd r21,Y+6
+ 1236 074c 2B81      		ldd r18,Y+3
+ 1237 074e 3C81      		ldd r19,Y+4
+ 1238 0750 BA01      		movw r22,r20
+ 1239 0752 621B      		sub r22,r18
+ 1240 0754 730B      		sbc r23,r19
+ 1241 0756 9B01      		movw r18,r22
+ 1242 0758 DC01      		movw r26,r24
+ 1243 075a 2D93      		st X+,r18
+ 1244 075c 3C93      		st X,r19
+ 182:lp_solve_5.5/lp_MDO.c ****    /* Increment eliminated row counter if necessary */
+ 183:lp_solve_5.5/lp_MDO.c ****     if(!includeMDO(usedpos, i)) 
+ 1245               		.loc 1 183 0
+ 1246 075e 2D81      		ldd r18,Y+5
+ 1247 0760 3E81      		ldd r19,Y+6
+ 1248 0762 CE01      		movw r24,r28
+ 1249 0764 8D56      		subi r24,109
+ 1250 0766 9F4F      		sbci r25,-1
+ 1251 0768 FC01      		movw r30,r24
+ 1252 076a 8081      		ld r24,Z
+ 1253 076c 9181      		ldd r25,Z+1
+ 1254 076e B901      		movw r22,r18
+ 1255 0770 0E94 0000 		call includeMDO
+ 1256 0774 8823      		tst r24
+ 1257 0776 01F4      		brne .L44
+ 184:lp_solve_5.5/lp_MDO.c ****       nrows++;
+ 1258               		.loc 1 184 0
+ 1259 0778 8B81      		ldd r24,Y+3
+ 1260 077a 9C81      		ldd r25,Y+4
+ 1261 077c 0196      		adiw r24,1
+ 1262 077e 9C83      		std Y+4,r25
+ 1263 0780 8B83      		std Y+3,r24
+ 1264               	.L44:
+ 180:lp_solve_5.5/lp_MDO.c ****     row_map[i] = i-nrows;
+ 1265               		.loc 1 180 0 discriminator 2
+ 1266 0782 8D81      		ldd r24,Y+5
+ 1267 0784 9E81      		ldd r25,Y+6
+ 1268 0786 0196      		adiw r24,1
+ 1269 0788 9E83      		std Y+6,r25
+ 1270 078a 8D83      		std Y+5,r24
+ 1271               	.L43:
+ 180:lp_solve_5.5/lp_MDO.c ****     row_map[i] = i-nrows;
+ 1272               		.loc 1 180 0 is_stmt 0 discriminator 1
+ 1273 078c CE01      		movw r24,r28
+ 1274 078e 8F56      		subi r24,111
+ 1275 0790 9F4F      		sbci r25,-1
+ 1276 0792 DC01      		movw r26,r24
+ 1277 0794 8D91      		ld r24,X+
+ 1278 0796 9C91      		ld r25,X
+ 1279 0798 8651      		subi r24,22
+ 1280 079a 9E4F      		sbci r25,-2
+ 1281 079c FC01      		movw r30,r24
+ 1282 079e 2081      		ld r18,Z
+ 1283 07a0 3181      		ldd r19,Z+1
+ 1284 07a2 8D81      		ldd r24,Y+5
+ 1285 07a4 9E81      		ldd r25,Y+6
+ 1286 07a6 2817      		cp r18,r24
+ 1287 07a8 3907      		cpc r19,r25
+ 1288 07aa 04F4      		brge .L45
+ 185:lp_solve_5.5/lp_MDO.c ****   }
+ 186:lp_solve_5.5/lp_MDO.c ****   nrows = lp->rows+1 - nrows;
+ 1289               		.loc 1 186 0 is_stmt 1
+ 1290 07ac CE01      		movw r24,r28
+ 1291 07ae 8F56      		subi r24,111
+ 1292 07b0 9F4F      		sbci r25,-1
+ 1293 07b2 DC01      		movw r26,r24
+ 1294 07b4 8D91      		ld r24,X+
+ 1295 07b6 9C91      		ld r25,X
+ 1296 07b8 8651      		subi r24,22
+ 1297 07ba 9E4F      		sbci r25,-2
+ 1298 07bc FC01      		movw r30,r24
+ 1299 07be 8081      		ld r24,Z
+ 1300 07c0 9181      		ldd r25,Z+1
+ 1301 07c2 9C01      		movw r18,r24
+ 1302 07c4 2F5F      		subi r18,-1
+ 1303 07c6 3F4F      		sbci r19,-1
+ 1304 07c8 8B81      		ldd r24,Y+3
+ 1305 07ca 9C81      		ldd r25,Y+4
+ 1306 07cc A901      		movw r20,r18
+ 1307 07ce 481B      		sub r20,r24
+ 1308 07d0 590B      		sbc r21,r25
+ 1309 07d2 CA01      		movw r24,r20
+ 1310 07d4 9C83      		std Y+4,r25
+ 1311 07d6 8B83      		std Y+3,r24
+ 187:lp_solve_5.5/lp_MDO.c **** 
+ 188:lp_solve_5.5/lp_MDO.c ****  /* Store row indeces of non-zero values in the basic columns */
+ 189:lp_solve_5.5/lp_MDO.c ****   Blen = colamd_recommended(Bnz, nrows, ncols);
+ 1312               		.loc 1 189 0
+ 1313 07d8 4985      		ldd r20,Y+9
+ 1314 07da 5A85      		ldd r21,Y+10
+ 1315 07dc 2B81      		ldd r18,Y+3
+ 1316 07de 3C81      		ldd r19,Y+4
+ 1317 07e0 8D85      		ldd r24,Y+13
+ 1318 07e2 9E85      		ldd r25,Y+14
+ 1319 07e4 B901      		movw r22,r18
+ 1320 07e6 0E94 0000 		call colamd_recommended
+ 1321 07ea 988B      		std Y+16,r25
+ 1322 07ec 8F87      		std Y+15,r24
+ 190:lp_solve_5.5/lp_MDO.c ****   allocINT(lp, &Brows, Blen, FALSE);
+ 1323               		.loc 1 190 0
+ 1324 07ee 4F85      		ldd r20,Y+15
+ 1325 07f0 5889      		ldd r21,Y+16
+ 1326 07f2 BE01      		movw r22,r28
+ 1327 07f4 695E      		subi r22,-23
+ 1328 07f6 7F4F      		sbci r23,-1
+ 1329 07f8 CE01      		movw r24,r28
+ 1330 07fa 8F56      		subi r24,111
+ 1331 07fc 9F4F      		sbci r25,-1
+ 1332 07fe DC01      		movw r26,r24
+ 1333 0800 8D91      		ld r24,X+
+ 1334 0802 9C91      		ld r25,X
+ 1335 0804 20E0      		ldi r18,0
+ 1336 0806 0E94 0000 		call allocINT
+ 191:lp_solve_5.5/lp_MDO.c ****   prepareMDO(lp, usedpos, colorder, Brows, row_map);
+ 1337               		.loc 1 191 0
+ 1338 080a ED89      		ldd r30,Y+21
+ 1339 080c FE89      		ldd r31,Y+22
+ 1340 080e 2F89      		ldd r18,Y+23
+ 1341 0810 388D      		ldd r19,Y+24
+ 1342 0812 CE01      		movw r24,r28
+ 1343 0814 8B56      		subi r24,107
+ 1344 0816 9F4F      		sbci r25,-1
+ 1345 0818 DC01      		movw r26,r24
+ 1346 081a 4D91      		ld r20,X+
+ 1347 081c 5C91      		ld r21,X
+ 1348 081e CE01      		movw r24,r28
+ 1349 0820 8D56      		subi r24,109
+ 1350 0822 9F4F      		sbci r25,-1
+ 1351 0824 DC01      		movw r26,r24
+ 1352 0826 6D91      		ld r22,X+
+ 1353 0828 7C91      		ld r23,X
+ 1354 082a CE01      		movw r24,r28
+ 1355 082c 8F56      		subi r24,111
+ 1356 082e 9F4F      		sbci r25,-1
+ 1357 0830 DC01      		movw r26,r24
+ 1358 0832 8D91      		ld r24,X+
+ 1359 0834 9C91      		ld r25,X
+ 1360 0836 8F01      		movw r16,r30
+ 1361 0838 0E94 0000 		call prepareMDO
+ 192:lp_solve_5.5/lp_MDO.c **** #ifdef Paranoia
+ 193:lp_solve_5.5/lp_MDO.c ****   verifyMDO(lp, col_end, Brows, nrows, ncols);
+ 194:lp_solve_5.5/lp_MDO.c **** #endif
+ 195:lp_solve_5.5/lp_MDO.c **** 
+ 196:lp_solve_5.5/lp_MDO.c ****  /* Compute the MDO */
+ 197:lp_solve_5.5/lp_MDO.c **** #if 1
+ 198:lp_solve_5.5/lp_MDO.c ****   colamd_set_defaults(knobs);
+ 1362               		.loc 1 198 0
+ 1363 083c CE01      		movw r24,r28
+ 1364 083e 8F5B      		subi r24,-65
+ 1365 0840 9F4F      		sbci r25,-1
+ 1366 0842 0E94 0000 		call colamd_set_defaults
+ 199:lp_solve_5.5/lp_MDO.c ****   knobs [COLAMD_DENSE_ROW] = 0.2+0.2 ;    /* default changed for UMFPACK */
+ 1367               		.loc 1 199 0
+ 1368 0846 9E01      		movw r18,r28
+ 1369 0848 2F5B      		subi r18,-65
+ 1370 084a 3F4F      		sbci r19,-1
+ 1371 084c 8DEC      		ldi r24,lo8(-51)
+ 1372 084e 9CEC      		ldi r25,lo8(-52)
+ 1373 0850 ACEC      		ldi r26,lo8(-52)
+ 1374 0852 BEE3      		ldi r27,lo8(62)
+ 1375 0854 F901      		movw r30,r18
+ 1376 0856 8083      		st Z,r24
+ 1377 0858 9183      		std Z+1,r25
+ 1378 085a A283      		std Z+2,r26
+ 1379 085c B383      		std Z+3,r27
+ 200:lp_solve_5.5/lp_MDO.c ****   knobs [COLAMD_DENSE_COL] = knobs [COLAMD_DENSE_ROW];    
+ 1380               		.loc 1 200 0
+ 1381 085e CE01      		movw r24,r28
+ 1382 0860 8F5B      		subi r24,-65
+ 1383 0862 9F4F      		sbci r25,-1
+ 1384 0864 FC01      		movw r30,r24
+ 1385 0866 8081      		ld r24,Z
+ 1386 0868 9181      		ldd r25,Z+1
+ 1387 086a A281      		ldd r26,Z+2
+ 1388 086c B381      		ldd r27,Z+3
+ 1389 086e 9E01      		movw r18,r28
+ 1390 0870 2F5B      		subi r18,-65
+ 1391 0872 3F4F      		sbci r19,-1
+ 1392 0874 F901      		movw r30,r18
+ 1393 0876 8483      		std Z+4,r24
+ 1394 0878 9583      		std Z+5,r25
+ 1395 087a A683      		std Z+6,r26
+ 1396 087c B783      		std Z+7,r27
+ 201:lp_solve_5.5/lp_MDO.c ****   if(symmetric && (nrows == ncols)) {
+ 1397               		.loc 1 201 0
+ 1398 087e CE01      		movw r24,r28
+ 1399 0880 8756      		subi r24,103
+ 1400 0882 9F4F      		sbci r25,-1
+ 1401 0884 DC01      		movw r26,r24
+ 1402 0886 8C91      		ld r24,X
+ 1403 0888 8823      		tst r24
+ 1404 088a 01F4      		brne .+2
+ 1405 088c 00C0      		rjmp .L46
+ 1406               		.loc 1 201 0 is_stmt 0 discriminator 1
+ 1407 088e 2B81      		ldd r18,Y+3
+ 1408 0890 3C81      		ldd r19,Y+4
+ 1409 0892 8985      		ldd r24,Y+9
+ 1410 0894 9A85      		ldd r25,Y+10
+ 1411 0896 2817      		cp r18,r24
+ 1412 0898 3907      		cpc r19,r25
+ 1413 089a 01F0      		breq .+2
+ 1414 089c 00C0      		rjmp .L46
+ 202:lp_solve_5.5/lp_MDO.c ****     MEMCOPY(colorder, Brows, ncols + 1);
+ 1415               		.loc 1 202 0 is_stmt 1
+ 1416 089e 8985      		ldd r24,Y+9
+ 1417 08a0 9A85      		ldd r25,Y+10
+ 1418 08a2 0196      		adiw r24,1
+ 1419 08a4 AC01      		movw r20,r24
+ 1420 08a6 440F      		lsl r20
+ 1421 08a8 551F      		rol r21
+ 1422 08aa 2F89      		ldd r18,Y+23
+ 1423 08ac 388D      		ldd r19,Y+24
+ 1424 08ae CE01      		movw r24,r28
+ 1425 08b0 8B56      		subi r24,107
+ 1426 08b2 9F4F      		sbci r25,-1
+ 1427 08b4 FC01      		movw r30,r24
+ 1428 08b6 8081      		ld r24,Z
+ 1429 08b8 9181      		ldd r25,Z+1
+ 1430 08ba B901      		movw r22,r18
+ 1431 08bc 0E94 0000 		call memcpy
+ 203:lp_solve_5.5/lp_MDO.c ****     error = !symamd(nrows, colorder, col_end, Brows, knobs, stats, mdo_calloc, mdo_free);
+ 1432               		.loc 1 203 0
+ 1433 08c0 2F89      		ldd r18,Y+23
+ 1434 08c2 388D      		ldd r19,Y+24
+ 1435 08c4 4B89      		ldd r20,Y+19
+ 1436 08c6 5C89      		ldd r21,Y+20
+ 1437 08c8 DE01      		movw r26,r28
+ 1438 08ca 5996      		adiw r26,25
+ 1439 08cc BE01      		movw r22,r28
+ 1440 08ce 6F5B      		subi r22,-65
+ 1441 08d0 7F4F      		sbci r23,-1
+ 1442 08d2 C656      		subi r28,lo8(-154)
+ 1443 08d4 DF4F      		sbci r29,hi8(-154)
+ 1444 08d6 7983      		std Y+1,r23
+ 1445 08d8 6883      		st Y,r22
+ 1446 08da CA59      		subi r28,lo8(154)
+ 1447 08dc D040      		sbci r29,hi8(154)
+ 1448 08de CE01      		movw r24,r28
+ 1449 08e0 8B56      		subi r24,107
+ 1450 08e2 9F4F      		sbci r25,-1
+ 1451 08e4 FC01      		movw r30,r24
+ 1452 08e6 6081      		ld r22,Z
+ 1453 08e8 7181      		ldd r23,Z+1
+ 1454 08ea 8B81      		ldd r24,Y+3
+ 1455 08ec 9C81      		ldd r25,Y+4
+ 1456 08ee 0F2E      		mov __tmp_reg__,r31
+ 1457 08f0 F0E0      		ldi r31,lo8(gs(mdo_free))
+ 1458 08f2 AF2E      		mov r10,r31
+ 1459 08f4 F0E0      		ldi r31,hi8(gs(mdo_free))
+ 1460 08f6 BF2E      		mov r11,r31
+ 1461 08f8 F02D      		mov r31,__tmp_reg__
+ 1462 08fa 0F2E      		mov __tmp_reg__,r31
+ 1463 08fc F0E0      		ldi r31,lo8(gs(mdo_calloc))
+ 1464 08fe CF2E      		mov r12,r31
+ 1465 0900 F0E0      		ldi r31,hi8(gs(mdo_calloc))
+ 1466 0902 DF2E      		mov r13,r31
+ 1467 0904 F02D      		mov r31,__tmp_reg__
+ 1468 0906 7D01      		movw r14,r26
+ 1469 0908 C656      		subi r28,lo8(-154)
+ 1470 090a DF4F      		sbci r29,hi8(-154)
+ 1471 090c 0881      		ld r16,Y
+ 1472 090e 1981      		ldd r17,Y+1
+ 1473 0910 CA59      		subi r28,lo8(154)
+ 1474 0912 D040      		sbci r29,hi8(154)
+ 1475 0914 0E94 0000 		call symamd
+ 1476 0918 21E0      		ldi r18,lo8(1)
+ 1477 091a 892B      		or r24,r25
+ 1478 091c 01F0      		breq .L47
+ 1479 091e 20E0      		ldi r18,0
+ 1480               	.L47:
+ 1481 0920 822F      		mov r24,r18
+ 1482 0922 90E0      		ldi r25,0
+ 1483 0924 9A83      		std Y+2,r25
+ 1484 0926 8983      		std Y+1,r24
+ 1485 0928 00C0      		rjmp .L42
+ 1486               	.L46:
+ 204:lp_solve_5.5/lp_MDO.c ****   }
+ 205:lp_solve_5.5/lp_MDO.c ****   else
+ 206:lp_solve_5.5/lp_MDO.c ****     error = !colamd(nrows, ncols, Blen, Brows, col_end, knobs, stats);
+ 1487               		.loc 1 206 0
+ 1488 092a EB89      		ldd r30,Y+19
+ 1489 092c FC89      		ldd r31,Y+20
+ 1490 092e 2F89      		ldd r18,Y+23
+ 1491 0930 388D      		ldd r19,Y+24
+ 1492 0932 8E01      		movw r16,r28
+ 1493 0934 075E      		subi r16,-25
+ 1494 0936 1F4F      		sbci r17,-1
+ 1495 0938 DE01      		movw r26,r28
+ 1496 093a AF5B      		subi r26,-65
+ 1497 093c BF4F      		sbci r27,-1
+ 1498 093e 4F85      		ldd r20,Y+15
+ 1499 0940 5889      		ldd r21,Y+16
+ 1500 0942 6985      		ldd r22,Y+9
+ 1501 0944 7A85      		ldd r23,Y+10
+ 1502 0946 8B81      		ldd r24,Y+3
+ 1503 0948 9C81      		ldd r25,Y+4
+ 1504 094a 6801      		movw r12,r16
+ 1505 094c 7D01      		movw r14,r26
+ 1506 094e 8F01      		movw r16,r30
+ 1507 0950 0E94 0000 		call colamd
+ 1508 0954 21E0      		ldi r18,lo8(1)
+ 1509 0956 892B      		or r24,r25
+ 1510 0958 01F0      		breq .L48
+ 1511 095a 20E0      		ldi r18,0
+ 1512               	.L48:
+ 1513 095c 822F      		mov r24,r18
+ 1514 095e 90E0      		ldi r25,0
+ 1515 0960 9A83      		std Y+2,r25
+ 1516 0962 8983      		std Y+1,r24
+ 1517               	.L42:
+ 207:lp_solve_5.5/lp_MDO.c **** #else
+ 208:lp_solve_5.5/lp_MDO.c ****   if(symmetric && (nrows == ncols)) {
+ 209:lp_solve_5.5/lp_MDO.c ****     MEMCOPY(colorder, Brows, ncols + 1);
+ 210:lp_solve_5.5/lp_MDO.c ****     error = !symamd(nrows, colorder, col_end, Brows, knobs, stats, mdo_calloc, mdo_free);
+ 211:lp_solve_5.5/lp_MDO.c ****   }
+ 212:lp_solve_5.5/lp_MDO.c ****   else
+ 213:lp_solve_5.5/lp_MDO.c ****     error = !colamd(nrows, ncols, Blen, Brows, col_end, (double *) NULL, stats);
+ 214:lp_solve_5.5/lp_MDO.c **** #endif
+ 215:lp_solve_5.5/lp_MDO.c **** 
+ 216:lp_solve_5.5/lp_MDO.c ****  /* Transfer the estimated optimal ordering, adjusting for index offsets */
+ 217:lp_solve_5.5/lp_MDO.c **** Transfer:
+ 218:lp_solve_5.5/lp_MDO.c ****   if(error) 
+ 1518               		.loc 1 218 0
+ 1519 0964 8981      		ldd r24,Y+1
+ 1520 0966 9A81      		ldd r25,Y+2
+ 1521 0968 892B      		or r24,r25
+ 1522 096a 01F0      		breq .L49
+ 219:lp_solve_5.5/lp_MDO.c ****     error = stats[COLAMD_STATUS];
+ 1523               		.loc 1 219 0
+ 1524 096c 8F8D      		ldd r24,Y+31
+ 1525 096e 98A1      		ldd r25,Y+32
+ 1526 0970 9A83      		std Y+2,r25
+ 1527 0972 8983      		std Y+1,r24
+ 1528 0974 00C0      		rjmp .L50
+ 1529               	.L49:
+ 220:lp_solve_5.5/lp_MDO.c ****   else {
+ 221:lp_solve_5.5/lp_MDO.c ****     MEMCOPY(Brows, colorder, ncols + 1);
+ 1530               		.loc 1 221 0
+ 1531 0976 8985      		ldd r24,Y+9
+ 1532 0978 9A85      		ldd r25,Y+10
+ 1533 097a 0196      		adiw r24,1
+ 1534 097c AC01      		movw r20,r24
+ 1535 097e 440F      		lsl r20
+ 1536 0980 551F      		rol r21
+ 1537 0982 2F89      		ldd r18,Y+23
+ 1538 0984 388D      		ldd r19,Y+24
+ 1539 0986 CE01      		movw r24,r28
+ 1540 0988 8B56      		subi r24,107
+ 1541 098a 9F4F      		sbci r25,-1
+ 1542 098c DC01      		movw r26,r24
+ 1543 098e 8D91      		ld r24,X+
+ 1544 0990 9C91      		ld r25,X
+ 1545 0992 BC01      		movw r22,r24
+ 1546 0994 C901      		movw r24,r18
+ 1547 0996 0E94 0000 		call memcpy
+ 222:lp_solve_5.5/lp_MDO.c ****     for(j = 0; j < ncols; j++) {
+ 1548               		.loc 1 222 0
+ 1549 099a 1886      		std Y+8,__zero_reg__
+ 1550 099c 1F82      		std Y+7,__zero_reg__
+ 1551 099e 00C0      		rjmp .L51
+ 1552               	.L52:
+ 223:lp_solve_5.5/lp_MDO.c ****       kk = col_end[j];
+ 1553               		.loc 1 223 0 discriminator 3
+ 1554 09a0 2B89      		ldd r18,Y+19
+ 1555 09a2 3C89      		ldd r19,Y+20
+ 1556 09a4 8F81      		ldd r24,Y+7
+ 1557 09a6 9885      		ldd r25,Y+8
+ 1558 09a8 880F      		lsl r24
+ 1559 09aa 991F      		rol r25
+ 1560 09ac 820F      		add r24,r18
+ 1561 09ae 931F      		adc r25,r19
+ 1562 09b0 FC01      		movw r30,r24
+ 1563 09b2 8081      		ld r24,Z
+ 1564 09b4 9181      		ldd r25,Z+1
+ 1565 09b6 9A8B      		std Y+18,r25
+ 1566 09b8 898B      		std Y+17,r24
+ 224:lp_solve_5.5/lp_MDO.c ****       n = Brows[kk+1];
+ 1567               		.loc 1 224 0 discriminator 3
+ 1568 09ba 2F89      		ldd r18,Y+23
+ 1569 09bc 388D      		ldd r19,Y+24
+ 1570 09be 8989      		ldd r24,Y+17
+ 1571 09c0 9A89      		ldd r25,Y+18
+ 1572 09c2 0196      		adiw r24,1
+ 1573 09c4 880F      		lsl r24
+ 1574 09c6 991F      		rol r25
+ 1575 09c8 820F      		add r24,r18
+ 1576 09ca 931F      		adc r25,r19
+ 1577 09cc DC01      		movw r26,r24
+ 1578 09ce 8D91      		ld r24,X+
+ 1579 09d0 9C91      		ld r25,X
+ 1580 09d2 9C87      		std Y+12,r25
+ 1581 09d4 8B87      		std Y+11,r24
+ 225:lp_solve_5.5/lp_MDO.c ****       colorder[j+1] = n;
+ 1582               		.loc 1 225 0 discriminator 3
+ 1583 09d6 8F81      		ldd r24,Y+7
+ 1584 09d8 9885      		ldd r25,Y+8
+ 1585 09da 0196      		adiw r24,1
+ 1586 09dc 880F      		lsl r24
+ 1587 09de 991F      		rol r25
+ 1588 09e0 9E01      		movw r18,r28
+ 1589 09e2 2B56      		subi r18,107
+ 1590 09e4 3F4F      		sbci r19,-1
+ 1591 09e6 F901      		movw r30,r18
+ 1592 09e8 2081      		ld r18,Z
+ 1593 09ea 3181      		ldd r19,Z+1
+ 1594 09ec 820F      		add r24,r18
+ 1595 09ee 931F      		adc r25,r19
+ 1596 09f0 2B85      		ldd r18,Y+11
+ 1597 09f2 3C85      		ldd r19,Y+12
+ 1598 09f4 DC01      		movw r26,r24
+ 1599 09f6 2D93      		st X+,r18
+ 1600 09f8 3C93      		st X,r19
+ 222:lp_solve_5.5/lp_MDO.c ****       kk = col_end[j];
+ 1601               		.loc 1 222 0 discriminator 3
+ 1602 09fa 8F81      		ldd r24,Y+7
+ 1603 09fc 9885      		ldd r25,Y+8
+ 1604 09fe 0196      		adiw r24,1
+ 1605 0a00 9887      		std Y+8,r25
+ 1606 0a02 8F83      		std Y+7,r24
+ 1607               	.L51:
+ 222:lp_solve_5.5/lp_MDO.c ****       kk = col_end[j];
+ 1608               		.loc 1 222 0 is_stmt 0 discriminator 1
+ 1609 0a04 2F81      		ldd r18,Y+7
+ 1610 0a06 3885      		ldd r19,Y+8
+ 1611 0a08 8985      		ldd r24,Y+9
+ 1612 0a0a 9A85      		ldd r25,Y+10
+ 1613 0a0c 2817      		cp r18,r24
+ 1614 0a0e 3907      		cpc r19,r25
+ 1615 0a10 04F0      		brlt .L52
+ 1616               	.L50:
+ 226:lp_solve_5.5/lp_MDO.c ****     }
+ 227:lp_solve_5.5/lp_MDO.c ****   }
+ 228:lp_solve_5.5/lp_MDO.c **** 
+ 229:lp_solve_5.5/lp_MDO.c ****   /* Free temporary vectors */
+ 230:lp_solve_5.5/lp_MDO.c ****   FREE(col_end);
+ 1617               		.loc 1 230 0 is_stmt 1
+ 1618 0a12 8B89      		ldd r24,Y+19
+ 1619 0a14 9C89      		ldd r25,Y+20
+ 1620 0a16 892B      		or r24,r25
+ 1621 0a18 01F0      		breq .L53
+ 1622               		.loc 1 230 0 is_stmt 0 discriminator 1
+ 1623 0a1a 8B89      		ldd r24,Y+19
+ 1624 0a1c 9C89      		ldd r25,Y+20
+ 1625 0a1e 0E94 0000 		call free
+ 1626 0a22 1C8A      		std Y+20,__zero_reg__
+ 1627 0a24 1B8A      		std Y+19,__zero_reg__
+ 1628               	.L53:
+ 231:lp_solve_5.5/lp_MDO.c ****   if(row_map != NULL)
+ 1629               		.loc 1 231 0 is_stmt 1
+ 1630 0a26 8D89      		ldd r24,Y+21
+ 1631 0a28 9E89      		ldd r25,Y+22
+ 1632 0a2a 892B      		or r24,r25
+ 1633 0a2c 01F0      		breq .L54
+ 232:lp_solve_5.5/lp_MDO.c ****     FREE(row_map);
+ 1634               		.loc 1 232 0
+ 1635 0a2e 8D89      		ldd r24,Y+21
+ 1636 0a30 9E89      		ldd r25,Y+22
+ 1637 0a32 892B      		or r24,r25
+ 1638 0a34 01F0      		breq .L54
+ 1639               		.loc 1 232 0 is_stmt 0 discriminator 1
+ 1640 0a36 8D89      		ldd r24,Y+21
+ 1641 0a38 9E89      		ldd r25,Y+22
+ 1642 0a3a 0E94 0000 		call free
+ 1643 0a3e 1E8A      		std Y+22,__zero_reg__
+ 1644 0a40 1D8A      		std Y+21,__zero_reg__
+ 1645               	.L54:
+ 233:lp_solve_5.5/lp_MDO.c ****   if(Brows != NULL)
+ 1646               		.loc 1 233 0 is_stmt 1
+ 1647 0a42 8F89      		ldd r24,Y+23
+ 1648 0a44 988D      		ldd r25,Y+24
+ 1649 0a46 892B      		or r24,r25
+ 1650 0a48 01F0      		breq .L55
+ 234:lp_solve_5.5/lp_MDO.c ****     FREE(Brows);
+ 1651               		.loc 1 234 0
+ 1652 0a4a 8F89      		ldd r24,Y+23
+ 1653 0a4c 988D      		ldd r25,Y+24
+ 1654 0a4e 892B      		or r24,r25
+ 1655 0a50 01F0      		breq .L55
+ 1656               		.loc 1 234 0 is_stmt 0 discriminator 1
+ 1657 0a52 8F89      		ldd r24,Y+23
+ 1658 0a54 988D      		ldd r25,Y+24
+ 1659 0a56 0E94 0000 		call free
+ 1660 0a5a 188E      		std Y+24,__zero_reg__
+ 1661 0a5c 1F8A      		std Y+23,__zero_reg__
+ 1662               	.L55:
+ 235:lp_solve_5.5/lp_MDO.c **** 
+ 236:lp_solve_5.5/lp_MDO.c ****   if(size != NULL)
+ 1663               		.loc 1 236 0 is_stmt 1
+ 1664 0a5e CE01      		movw r24,r28
+ 1665 0a60 8956      		subi r24,105
+ 1666 0a62 9F4F      		sbci r25,-1
+ 1667 0a64 FC01      		movw r30,r24
+ 1668 0a66 8081      		ld r24,Z
+ 1669 0a68 9181      		ldd r25,Z+1
+ 1670 0a6a 892B      		or r24,r25
+ 1671 0a6c 01F0      		breq .L56
+ 237:lp_solve_5.5/lp_MDO.c ****     *size = ncols;
+ 1672               		.loc 1 237 0
+ 1673 0a6e CE01      		movw r24,r28
+ 1674 0a70 8956      		subi r24,105
+ 1675 0a72 9F4F      		sbci r25,-1
+ 1676 0a74 DC01      		movw r26,r24
+ 1677 0a76 8D91      		ld r24,X+
+ 1678 0a78 9C91      		ld r25,X
+ 1679 0a7a 2985      		ldd r18,Y+9
+ 1680 0a7c 3A85      		ldd r19,Y+10
+ 1681 0a7e FC01      		movw r30,r24
+ 1682 0a80 3183      		std Z+1,r19
+ 1683 0a82 2083      		st Z,r18
+ 1684               	.L56:
+ 238:lp_solve_5.5/lp_MDO.c ****   return( error );
+ 1685               		.loc 1 238 0
+ 1686 0a84 8981      		ldd r24,Y+1
+ 1687 0a86 9A81      		ldd r25,Y+2
+ 1688               	/* epilogue start */
+ 239:lp_solve_5.5/lp_MDO.c **** }
+ 1689               		.loc 1 239 0
+ 1690 0a88 C556      		subi r28,101
+ 1691 0a8a DF4F      		sbci r29,-1
+ 1692 0a8c 0FB6      		in __tmp_reg__,__SREG__
+ 1693 0a8e F894      		cli
+ 1694 0a90 DEBF      		out __SP_H__,r29
+ 1695 0a92 0FBE      		out __SREG__,__tmp_reg__
+ 1696 0a94 CDBF      		out __SP_L__,r28
+ 1697 0a96 DF91      		pop r29
+ 1698 0a98 CF91      		pop r28
+ 1699 0a9a 1F91      		pop r17
+ 1700 0a9c 0F91      		pop r16
+ 1701 0a9e FF90      		pop r15
+ 1702 0aa0 EF90      		pop r14
+ 1703 0aa2 DF90      		pop r13
+ 1704 0aa4 CF90      		pop r12
+ 1705 0aa6 BF90      		pop r11
+ 1706 0aa8 AF90      		pop r10
+ 1707 0aaa 0895      		ret
+ 1708               		.cfi_endproc
+ 1709               	.LFE12:
+ 1711               	.Letext0:
+ 1712               		.file 2 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\lib\\gc
+ 1713               		.file 3 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 1714               		.file 4 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 1715               		.file 5 "lp_solve_5.5\\shared/commonlib.h"
+ 1716               		.file 6 "lp_solve_5.5/lp_types.h"
+ 1717               		.file 7 "lp_solve_5.5/lp_lib.h"
+ 1718               		.file 8 "lp_solve_5.5/lp_utils.h"
+ 1719               		.file 9 "lp_solve_5.5/lp_Hash.h"
+ 1720               		.file 10 "lp_solve_5.5/lp_matrix.h"
+ 1721               		.file 11 "lp_solve_5.5/lp_mipbb.h"
+ 1722               		.file 12 "lp_solve_5.5/lp_SOS.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 lp_MDO.c
+C:\Users\GUILHE~1\AppData\Local\Temp\ccl4UyXd.s:2      *ABS*:0000003e __SP_H__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccl4UyXd.s:3      *ABS*:0000003d __SP_L__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccl4UyXd.s:4      *ABS*:0000003f __SREG__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccl4UyXd.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccl4UyXd.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccl4UyXd.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccl4UyXd.s:13     .text:00000000 includeMDO
+C:\Users\GUILHE~1\AppData\Local\Temp\ccl4UyXd.s:86     .text:0000004e prepareMDO
+C:\Users\GUILHE~1\AppData\Local\Temp\ccl4UyXd.s:637    .text:000003e4 verifyMDO
+C:\Users\GUILHE~1\AppData\Local\Temp\ccl4UyXd.s:919    .text:000005a0 mdo_calloc
+C:\Users\GUILHE~1\AppData\Local\Temp\ccl4UyXd.s:968    .text:000005d0 mdo_free
+C:\Users\GUILHE~1\AppData\Local\Temp\ccl4UyXd.s:1010   .text:000005f2 getMDO
+
+UNDEFINED SYMBOLS
+modifyOF1
+calloc
+free
+allocINT
+colamd_recommended
+colamd_set_defaults
+memcpy
+symamd
+colamd
+__do_copy_data

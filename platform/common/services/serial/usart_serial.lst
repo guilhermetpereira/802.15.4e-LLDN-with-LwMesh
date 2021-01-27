@@ -1,0 +1,509 @@
+   1               		.file	"usart_serial.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               		.section	.progmem.data.baudctrl_1mhz,"a",@progbits
+  14               	baudctrl_1mhz:
+  15 0000 3300      		.word	51
+  16 0002 1900      		.word	25
+  17 0004 0C00      		.word	12
+  18 0006 0600      		.word	6
+  19 0008 0300      		.word	3
+  20 000a 0200      		.word	2
+  21 000c 0100      		.word	1
+  22 000e FF00      		.word	255
+  23               		.section	.progmem.data.baudctrl_8mhz,"a",@progbits
+  26               	baudctrl_8mhz:
+  27 0000 A001      		.word	416
+  28 0002 CF00      		.word	207
+  29 0004 6700      		.word	103
+  30 0006 3300      		.word	51
+  31 0008 1900      		.word	25
+  32 000a 0C00      		.word	12
+  33 000c 0700      		.word	7
+  34 000e 0800      		.word	8
+  35               		.section	.progmem.data.baudctrl_16mhz,"a",@progbits
+  38               	baudctrl_16mhz:
+  39 0000 4003      		.word	832
+  40 0002 A001      		.word	416
+  41 0004 CF00      		.word	207
+  42 0006 6700      		.word	103
+  43 0008 3300      		.word	51
+  44 000a 1900      		.word	25
+  45 000c 1000      		.word	16
+  46 000e 1000      		.word	16
+  47               		.text
+  49               	usart_serial_putchar:
+  50               	.LFB96:
+  51               		.file 1 "../../../platform/common/services/serial/megarf_usart/usart_serial.h"
+   1:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /**
+   2:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \file
+   3:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+   4:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \brief This file defines a useful set of functions for the Serial interface on 
+   5:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * AVR MEGARF devices.
+   6:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+   7:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * Copyright (c) 2013 Atmel Corporation. All rights reserved.
+   8:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+   9:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \asf_license_start
+  10:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+  11:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \page License
+  12:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+  13:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * Redistribution and use in source and binary forms, with or without
+  14:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * modification, are permitted provided that the following conditions are met:
+  15:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+  16:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * 1. Redistributions of source code must retain the above copyright notice,
+  17:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    this list of conditions and the following disclaimer.
+  18:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+  19:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  20:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    this list of conditions and the following disclaimer in the documentation
+  21:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    and/or other materials provided with the distribution.
+  22:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+  23:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  24:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    from this software without specific prior written permission.
+  25:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+  26:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * 4. This software may only be redistributed and used in connection with an
+  27:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *    Atmel microcontroller product.
+  28:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+  29:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  30:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  31:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  32:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  33:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  34:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  35:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  36:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  37:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  38:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  39:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * POSSIBILITY OF SUCH DAMAGE.
+  40:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+  41:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \asf_license_stop
+  42:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+  43:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
+  44:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #ifndef _USART_SERIAL_H_
+  45:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #define _USART_SERIAL_H_
+  46:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
+  47:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #ifdef __cplusplus
+  48:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** extern "C" {
+  49:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #endif
+  50:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
+  51:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "compiler.h"
+  52:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "sysclk.h"
+  53:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "status_codes.h"
+  54:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "usart_megarf.h"
+  55:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
+  56:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /*! \name Serial Management Configuration
+  57:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
+  58:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /* ! @{ */
+  59:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** #include "conf_usart_serial.h"
+  60:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /* ! @} */
+  61:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
+  62:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** typedef usart_rs232_options_t usart_serial_options_t;
+  63:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
+  64:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** typedef USART_t *usart_if;
+  65:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
+  66:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /*! \brief Initializes the Usart in master mode.
+  67:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+  68:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param usart       Base address of the USART instance.
+  69:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param options     Options needed to set up RS232 communication (see \ref
+  70:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * usart_serial_options_t).
+  71:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+  72:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \retval true if the initialization was successful
+  73:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \retval false if initialization failed (error in baud rate calculation)
+  74:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
+  75:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** static inline bool usart_serial_init(usart_if usart, const
+  76:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 		usart_serial_options_t *options)
+  77:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** {
+  78:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	/* USART options. */
+  79:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options_t usart_rs232_options;
+  80:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options.charlength   = options->charlength;
+  81:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options.paritytype   = options->paritytype;
+  82:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options.stopbits     = options->stopbits;
+  83:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	usart_rs232_options.baudrate     = options->baudrate;
+  84:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
+  85:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	if (usart_init_rs232(usart, &usart_rs232_options)) {
+  86:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 		return true;
+  87:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	} else {
+  88:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 		return false;
+  89:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	}
+  90:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** }
+  91:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
+  92:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /*! \brief Sends a character with the USART.
+  93:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+  94:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param usart   Base address of the USART instance.
+  95:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param c       Character to write.
+  96:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+  97:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \return Status code
+  98:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
+  99:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** static inline status_code_t usart_serial_putchar(usart_if usart, uint8_t c)
+ 100:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** {
+  52               		.loc 1 100 0
+  53               		.cfi_startproc
+  54 0000 CF93      		push r28
+  55               	.LCFI0:
+  56               		.cfi_def_cfa_offset 3
+  57               		.cfi_offset 28, -2
+  58 0002 DF93      		push r29
+  59               	.LCFI1:
+  60               		.cfi_def_cfa_offset 4
+  61               		.cfi_offset 29, -3
+  62 0004 00D0      		rcall .
+  63 0006 1F92      		push __zero_reg__
+  64               	.LCFI2:
+  65               		.cfi_def_cfa_offset 7
+  66 0008 CDB7      		in r28,__SP_L__
+  67 000a DEB7      		in r29,__SP_H__
+  68               	.LCFI3:
+  69               		.cfi_def_cfa_register 28
+  70               	/* prologue: function */
+  71               	/* frame size = 3 */
+  72               	/* stack size = 5 */
+  73               	.L__stack_usage = 5
+  74 000c 9A83      		std Y+2,r25
+  75 000e 8983      		std Y+1,r24
+  76 0010 6B83      		std Y+3,r22
+ 101:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	return usart_putchar(usart, c);
+  77               		.loc 1 101 0
+  78 0012 8981      		ldd r24,Y+1
+  79 0014 9A81      		ldd r25,Y+2
+  80 0016 6B81      		ldd r22,Y+3
+  81 0018 0E94 0000 		call usart_putchar
+  82               	/* epilogue start */
+ 102:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** }
+  83               		.loc 1 102 0
+  84 001c 0F90      		pop __tmp_reg__
+  85 001e 0F90      		pop __tmp_reg__
+  86 0020 0F90      		pop __tmp_reg__
+  87 0022 DF91      		pop r29
+  88 0024 CF91      		pop r28
+  89 0026 0895      		ret
+  90               		.cfi_endproc
+  91               	.LFE96:
+  94               	usart_serial_getchar:
+  95               	.LFB97:
+ 103:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 
+ 104:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** /*! \brief Waits until a character is received, and returns it.
+ 105:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+ 106:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param usart   Base address of the USART instance.
+ 107:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  * \param data   Data to read
+ 108:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  *
+ 109:../../../platform/common/services/serial/megarf_usart/usart_serial.h ****  */
+ 110:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** static inline void usart_serial_getchar(usart_if usart, uint8_t *data)
+ 111:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** {
+  96               		.loc 1 111 0
+  97               		.cfi_startproc
+  98 0028 CF93      		push r28
+  99               	.LCFI4:
+ 100               		.cfi_def_cfa_offset 3
+ 101               		.cfi_offset 28, -2
+ 102 002a DF93      		push r29
+ 103               	.LCFI5:
+ 104               		.cfi_def_cfa_offset 4
+ 105               		.cfi_offset 29, -3
+ 106 002c 00D0      		rcall .
+ 107 002e 00D0      		rcall .
+ 108               	.LCFI6:
+ 109               		.cfi_def_cfa_offset 8
+ 110 0030 CDB7      		in r28,__SP_L__
+ 111 0032 DEB7      		in r29,__SP_H__
+ 112               	.LCFI7:
+ 113               		.cfi_def_cfa_register 28
+ 114               	/* prologue: function */
+ 115               	/* frame size = 4 */
+ 116               	/* stack size = 6 */
+ 117               	.L__stack_usage = 6
+ 118 0034 9A83      		std Y+2,r25
+ 119 0036 8983      		std Y+1,r24
+ 120 0038 7C83      		std Y+4,r23
+ 121 003a 6B83      		std Y+3,r22
+ 112:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** 	*data = usart_getchar(usart);
+ 122               		.loc 1 112 0
+ 123 003c 8981      		ldd r24,Y+1
+ 124 003e 9A81      		ldd r25,Y+2
+ 125 0040 0E94 0000 		call usart_getchar
+ 126 0044 282F      		mov r18,r24
+ 127 0046 8B81      		ldd r24,Y+3
+ 128 0048 9C81      		ldd r25,Y+4
+ 129 004a FC01      		movw r30,r24
+ 130 004c 2083      		st Z,r18
+ 113:../../../platform/common/services/serial/megarf_usart/usart_serial.h **** }
+ 131               		.loc 1 113 0
+ 132 004e 0000      		nop
+ 133               	/* epilogue start */
+ 134 0050 0F90      		pop __tmp_reg__
+ 135 0052 0F90      		pop __tmp_reg__
+ 136 0054 0F90      		pop __tmp_reg__
+ 137 0056 0F90      		pop __tmp_reg__
+ 138 0058 DF91      		pop r29
+ 139 005a CF91      		pop r28
+ 140 005c 0895      		ret
+ 141               		.cfi_endproc
+ 142               	.LFE97:
+ 144               	.global	usart_serial_write_packet
+ 146               	usart_serial_write_packet:
+ 147               	.LFB98:
+ 148               		.file 2 "../../../platform/common/services/serial/usart_serial.c"
+   1:../../../platform/common/services/serial/usart_serial.c **** /**
+   2:../../../platform/common/services/serial/usart_serial.c ****  *
+   3:../../../platform/common/services/serial/usart_serial.c ****  * \file
+   4:../../../platform/common/services/serial/usart_serial.c ****  *
+   5:../../../platform/common/services/serial/usart_serial.c ****  * \brief USART Serial driver functions.
+   6:../../../platform/common/services/serial/usart_serial.c ****  *
+   7:../../../platform/common/services/serial/usart_serial.c ****  *
+   8:../../../platform/common/services/serial/usart_serial.c ****  * Copyright (c) 2010-2013 Atmel Corporation. All rights reserved.
+   9:../../../platform/common/services/serial/usart_serial.c ****  *
+  10:../../../platform/common/services/serial/usart_serial.c ****  * \asf_license_start
+  11:../../../platform/common/services/serial/usart_serial.c ****  *
+  12:../../../platform/common/services/serial/usart_serial.c ****  * \page License
+  13:../../../platform/common/services/serial/usart_serial.c ****  *
+  14:../../../platform/common/services/serial/usart_serial.c ****  * Redistribution and use in source and binary forms, with or without
+  15:../../../platform/common/services/serial/usart_serial.c ****  * modification, are permitted provided that the following conditions are met:
+  16:../../../platform/common/services/serial/usart_serial.c ****  *
+  17:../../../platform/common/services/serial/usart_serial.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  18:../../../platform/common/services/serial/usart_serial.c ****  *    this list of conditions and the following disclaimer.
+  19:../../../platform/common/services/serial/usart_serial.c ****  *
+  20:../../../platform/common/services/serial/usart_serial.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  21:../../../platform/common/services/serial/usart_serial.c ****  *    this list of conditions and the following disclaimer in the documentation
+  22:../../../platform/common/services/serial/usart_serial.c ****  *    and/or other materials provided with the distribution.
+  23:../../../platform/common/services/serial/usart_serial.c ****  *
+  24:../../../platform/common/services/serial/usart_serial.c ****  * 3. The name of Atmel may not be used to endorse or promote products derived
+  25:../../../platform/common/services/serial/usart_serial.c ****  *    from this software without specific prior written permission.
+  26:../../../platform/common/services/serial/usart_serial.c ****  *
+  27:../../../platform/common/services/serial/usart_serial.c ****  * 4. This software may only be redistributed and used in connection with an
+  28:../../../platform/common/services/serial/usart_serial.c ****  *    Atmel microcontroller product.
+  29:../../../platform/common/services/serial/usart_serial.c ****  *
+  30:../../../platform/common/services/serial/usart_serial.c ****  * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
+  31:../../../platform/common/services/serial/usart_serial.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  32:../../../platform/common/services/serial/usart_serial.c ****  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+  33:../../../platform/common/services/serial/usart_serial.c ****  * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
+  34:../../../platform/common/services/serial/usart_serial.c ****  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  35:../../../platform/common/services/serial/usart_serial.c ****  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+  36:../../../platform/common/services/serial/usart_serial.c ****  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  37:../../../platform/common/services/serial/usart_serial.c ****  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  38:../../../platform/common/services/serial/usart_serial.c ****  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  39:../../../platform/common/services/serial/usart_serial.c ****  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  40:../../../platform/common/services/serial/usart_serial.c ****  * POSSIBILITY OF SUCH DAMAGE.
+  41:../../../platform/common/services/serial/usart_serial.c ****  *
+  42:../../../platform/common/services/serial/usart_serial.c ****  * \asf_license_stop
+  43:../../../platform/common/services/serial/usart_serial.c ****  *
+  44:../../../platform/common/services/serial/usart_serial.c ****  */
+  45:../../../platform/common/services/serial/usart_serial.c **** #include "serial.h"
+  46:../../../platform/common/services/serial/usart_serial.c **** 
+  47:../../../platform/common/services/serial/usart_serial.c **** /**
+  48:../../../platform/common/services/serial/usart_serial.c ****  * \brief Send a sequence of bytes to USART device
+  49:../../../platform/common/services/serial/usart_serial.c ****  *
+  50:../../../platform/common/services/serial/usart_serial.c ****  * \param usart  Base address of the USART instance.
+  51:../../../platform/common/services/serial/usart_serial.c ****  * \param data   Data buffer to read
+  52:../../../platform/common/services/serial/usart_serial.c ****  * \param len    Length of data
+  53:../../../platform/common/services/serial/usart_serial.c ****  *
+  54:../../../platform/common/services/serial/usart_serial.c ****  */
+  55:../../../platform/common/services/serial/usart_serial.c **** status_code_t usart_serial_write_packet(usart_if usart, const uint8_t *data,
+  56:../../../platform/common/services/serial/usart_serial.c **** 		size_t len)
+  57:../../../platform/common/services/serial/usart_serial.c **** {
+ 149               		.loc 2 57 0
+ 150               		.cfi_startproc
+ 151 005e CF93      		push r28
+ 152               	.LCFI8:
+ 153               		.cfi_def_cfa_offset 3
+ 154               		.cfi_offset 28, -2
+ 155 0060 DF93      		push r29
+ 156               	.LCFI9:
+ 157               		.cfi_def_cfa_offset 4
+ 158               		.cfi_offset 29, -3
+ 159 0062 00D0      		rcall .
+ 160 0064 00D0      		rcall .
+ 161 0066 00D0      		rcall .
+ 162               	.LCFI10:
+ 163               		.cfi_def_cfa_offset 10
+ 164 0068 CDB7      		in r28,__SP_L__
+ 165 006a DEB7      		in r29,__SP_H__
+ 166               	.LCFI11:
+ 167               		.cfi_def_cfa_register 28
+ 168               	/* prologue: function */
+ 169               	/* frame size = 6 */
+ 170               	/* stack size = 8 */
+ 171               	.L__stack_usage = 8
+ 172 006c 9A83      		std Y+2,r25
+ 173 006e 8983      		std Y+1,r24
+ 174 0070 7C83      		std Y+4,r23
+ 175 0072 6B83      		std Y+3,r22
+ 176 0074 5E83      		std Y+6,r21
+ 177 0076 4D83      		std Y+5,r20
+  58:../../../platform/common/services/serial/usart_serial.c **** 	while (len) {
+ 178               		.loc 2 58 0
+ 179 0078 00C0      		rjmp .L5
+ 180               	.L6:
+  59:../../../platform/common/services/serial/usart_serial.c **** 		usart_serial_putchar(usart, *data);
+ 181               		.loc 2 59 0
+ 182 007a 8B81      		ldd r24,Y+3
+ 183 007c 9C81      		ldd r25,Y+4
+ 184 007e FC01      		movw r30,r24
+ 185 0080 2081      		ld r18,Z
+ 186 0082 8981      		ldd r24,Y+1
+ 187 0084 9A81      		ldd r25,Y+2
+ 188 0086 622F      		mov r22,r18
+ 189 0088 0E94 0000 		call usart_serial_putchar
+  60:../../../platform/common/services/serial/usart_serial.c **** 		len--;
+ 190               		.loc 2 60 0
+ 191 008c 8D81      		ldd r24,Y+5
+ 192 008e 9E81      		ldd r25,Y+6
+ 193 0090 0197      		sbiw r24,1
+ 194 0092 9E83      		std Y+6,r25
+ 195 0094 8D83      		std Y+5,r24
+  61:../../../platform/common/services/serial/usart_serial.c **** 		data++;
+ 196               		.loc 2 61 0
+ 197 0096 8B81      		ldd r24,Y+3
+ 198 0098 9C81      		ldd r25,Y+4
+ 199 009a 0196      		adiw r24,1
+ 200 009c 9C83      		std Y+4,r25
+ 201 009e 8B83      		std Y+3,r24
+ 202               	.L5:
+  58:../../../platform/common/services/serial/usart_serial.c **** 		usart_serial_putchar(usart, *data);
+ 203               		.loc 2 58 0
+ 204 00a0 8D81      		ldd r24,Y+5
+ 205 00a2 9E81      		ldd r25,Y+6
+ 206 00a4 892B      		or r24,r25
+ 207 00a6 01F4      		brne .L6
+  62:../../../platform/common/services/serial/usart_serial.c **** 	}
+  63:../../../platform/common/services/serial/usart_serial.c **** 	return STATUS_OK;
+ 208               		.loc 2 63 0
+ 209 00a8 80E0      		ldi r24,0
+ 210               	/* epilogue start */
+  64:../../../platform/common/services/serial/usart_serial.c **** }
+ 211               		.loc 2 64 0
+ 212 00aa 2696      		adiw r28,6
+ 213 00ac 0FB6      		in __tmp_reg__,__SREG__
+ 214 00ae F894      		cli
+ 215 00b0 DEBF      		out __SP_H__,r29
+ 216 00b2 0FBE      		out __SREG__,__tmp_reg__
+ 217 00b4 CDBF      		out __SP_L__,r28
+ 218 00b6 DF91      		pop r29
+ 219 00b8 CF91      		pop r28
+ 220 00ba 0895      		ret
+ 221               		.cfi_endproc
+ 222               	.LFE98:
+ 224               	.global	usart_serial_read_packet
+ 226               	usart_serial_read_packet:
+ 227               	.LFB99:
+  65:../../../platform/common/services/serial/usart_serial.c **** 
+  66:../../../platform/common/services/serial/usart_serial.c **** 
+  67:../../../platform/common/services/serial/usart_serial.c **** /**
+  68:../../../platform/common/services/serial/usart_serial.c ****  * \brief Receive a sequence of bytes from USART device
+  69:../../../platform/common/services/serial/usart_serial.c ****  *
+  70:../../../platform/common/services/serial/usart_serial.c ****  * \param usart  Base address of the USART instance.
+  71:../../../platform/common/services/serial/usart_serial.c ****  * \param data   Data buffer to write
+  72:../../../platform/common/services/serial/usart_serial.c ****  * \param len    Length of data
+  73:../../../platform/common/services/serial/usart_serial.c ****  *
+  74:../../../platform/common/services/serial/usart_serial.c ****  */
+  75:../../../platform/common/services/serial/usart_serial.c **** status_code_t usart_serial_read_packet(usart_if usart, uint8_t *data,
+  76:../../../platform/common/services/serial/usart_serial.c **** 		size_t len)
+  77:../../../platform/common/services/serial/usart_serial.c **** {
+ 228               		.loc 2 77 0
+ 229               		.cfi_startproc
+ 230 00bc CF93      		push r28
+ 231               	.LCFI12:
+ 232               		.cfi_def_cfa_offset 3
+ 233               		.cfi_offset 28, -2
+ 234 00be DF93      		push r29
+ 235               	.LCFI13:
+ 236               		.cfi_def_cfa_offset 4
+ 237               		.cfi_offset 29, -3
+ 238 00c0 00D0      		rcall .
+ 239 00c2 00D0      		rcall .
+ 240 00c4 00D0      		rcall .
+ 241               	.LCFI14:
+ 242               		.cfi_def_cfa_offset 10
+ 243 00c6 CDB7      		in r28,__SP_L__
+ 244 00c8 DEB7      		in r29,__SP_H__
+ 245               	.LCFI15:
+ 246               		.cfi_def_cfa_register 28
+ 247               	/* prologue: function */
+ 248               	/* frame size = 6 */
+ 249               	/* stack size = 8 */
+ 250               	.L__stack_usage = 8
+ 251 00ca 9A83      		std Y+2,r25
+ 252 00cc 8983      		std Y+1,r24
+ 253 00ce 7C83      		std Y+4,r23
+ 254 00d0 6B83      		std Y+3,r22
+ 255 00d2 5E83      		std Y+6,r21
+ 256 00d4 4D83      		std Y+5,r20
+  78:../../../platform/common/services/serial/usart_serial.c **** 	while (len) {
+ 257               		.loc 2 78 0
+ 258 00d6 00C0      		rjmp .L9
+ 259               	.L10:
+  79:../../../platform/common/services/serial/usart_serial.c **** 		usart_serial_getchar(usart, data);
+ 260               		.loc 2 79 0
+ 261 00d8 2B81      		ldd r18,Y+3
+ 262 00da 3C81      		ldd r19,Y+4
+ 263 00dc 8981      		ldd r24,Y+1
+ 264 00de 9A81      		ldd r25,Y+2
+ 265 00e0 B901      		movw r22,r18
+ 266 00e2 0E94 0000 		call usart_serial_getchar
+  80:../../../platform/common/services/serial/usart_serial.c **** 		len--;
+ 267               		.loc 2 80 0
+ 268 00e6 8D81      		ldd r24,Y+5
+ 269 00e8 9E81      		ldd r25,Y+6
+ 270 00ea 0197      		sbiw r24,1
+ 271 00ec 9E83      		std Y+6,r25
+ 272 00ee 8D83      		std Y+5,r24
+  81:../../../platform/common/services/serial/usart_serial.c **** 		data++;
+ 273               		.loc 2 81 0
+ 274 00f0 8B81      		ldd r24,Y+3
+ 275 00f2 9C81      		ldd r25,Y+4
+ 276 00f4 0196      		adiw r24,1
+ 277 00f6 9C83      		std Y+4,r25
+ 278 00f8 8B83      		std Y+3,r24
+ 279               	.L9:
+  78:../../../platform/common/services/serial/usart_serial.c **** 		usart_serial_getchar(usart, data);
+ 280               		.loc 2 78 0
+ 281 00fa 8D81      		ldd r24,Y+5
+ 282 00fc 9E81      		ldd r25,Y+6
+ 283 00fe 892B      		or r24,r25
+ 284 0100 01F4      		brne .L10
+  82:../../../platform/common/services/serial/usart_serial.c **** 	}
+  83:../../../platform/common/services/serial/usart_serial.c **** 	return STATUS_OK;
+ 285               		.loc 2 83 0
+ 286 0102 80E0      		ldi r24,0
+ 287               	/* epilogue start */
+  84:../../../platform/common/services/serial/usart_serial.c **** }
+ 288               		.loc 2 84 0
+ 289 0104 2696      		adiw r28,6
+ 290 0106 0FB6      		in __tmp_reg__,__SREG__
+ 291 0108 F894      		cli
+ 292 010a DEBF      		out __SP_H__,r29
+ 293 010c 0FBE      		out __SREG__,__tmp_reg__
+ 294 010e CDBF      		out __SP_L__,r28
+ 295 0110 DF91      		pop r29
+ 296 0112 CF91      		pop r28
+ 297 0114 0895      		ret
+ 298               		.cfi_endproc
+ 299               	.LFE99:
+ 301               	.Letext0:
+ 302               		.file 3 "../../../platform/mega_rf/utils/status_codes.h"
+ 303               		.file 4 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\avr\\in
+ 304               		.file 5 "c:\\program files (x86)\\atmel\\studio\\7.0\\toolchain\\avr8\\avr8-gnu-toolchain\\lib\\gc
+ 305               		.file 6 "../../../platform/mega_rf/drivers/usart/usart_megarf.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 usart_serial.c
+C:\Users\GUILHE~1\AppData\Local\Temp\ccDTG7O8.s:2      *ABS*:0000003e __SP_H__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccDTG7O8.s:3      *ABS*:0000003d __SP_L__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccDTG7O8.s:4      *ABS*:0000003f __SREG__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccDTG7O8.s:5      *ABS*:0000003b __RAMPZ__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccDTG7O8.s:6      *ABS*:00000000 __tmp_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccDTG7O8.s:7      *ABS*:00000001 __zero_reg__
+C:\Users\GUILHE~1\AppData\Local\Temp\ccDTG7O8.s:14     .progmem.data.baudctrl_1mhz:00000000 baudctrl_1mhz
+C:\Users\GUILHE~1\AppData\Local\Temp\ccDTG7O8.s:26     .progmem.data.baudctrl_8mhz:00000000 baudctrl_8mhz
+C:\Users\GUILHE~1\AppData\Local\Temp\ccDTG7O8.s:38     .progmem.data.baudctrl_16mhz:00000000 baudctrl_16mhz
+C:\Users\GUILHE~1\AppData\Local\Temp\ccDTG7O8.s:49     .text:00000000 usart_serial_putchar
+C:\Users\GUILHE~1\AppData\Local\Temp\ccDTG7O8.s:94     .text:00000028 usart_serial_getchar
+C:\Users\GUILHE~1\AppData\Local\Temp\ccDTG7O8.s:146    .text:0000005e usart_serial_write_packet
+C:\Users\GUILHE~1\AppData\Local\Temp\ccDTG7O8.s:226    .text:000000bc usart_serial_read_packet
+
+UNDEFINED SYMBOLS
+usart_putchar
+usart_getchar

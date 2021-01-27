@@ -74,7 +74,7 @@
 #define USART_HOST_BAUDRATE       115200
 #define USART_HOST_CHAR_LENGTH    USART_CHSIZE_8BIT_gc
 #define USART_HOST_PARITY         USART_PMODE_DISABLED_gc
-#define USART_HOST_STOP_BITS      false
+#define USART_HOST_STOP_BITS      true
 
 #define USART_HOST_RX_ISR_ENABLE() usart_rx_complete_interrupt_enable(USART_HOST)
 #define USART_HOST_ISR_VECT()      ISR(USART0_RX_vect)
