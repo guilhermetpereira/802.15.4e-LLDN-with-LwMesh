@@ -636,8 +636,7 @@ static uint8_t PanId;
 		
 	static void online_time_hndlr(void)
 	{
-		printf("\ndata_msg");
-		NWK_DataReq(&msgReqData);
+		appState = APP_STATE_WAKEUP_AND_SEND;
 		macsc_set_cmp1_int_cb(0);		
 	}
 	
@@ -647,7 +646,7 @@ static uint8_t PanId;
 		rec_beacon = *tmp_beacon;
 		PanId = tmp_beacon->PanId;
 		tTS =  ((p_var*sp + (m+ tmp_beacon->TimeSlotSize )*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
-		printf("\nBE %f", tTS);
+		// printf("\nBE %f", tTS);
 		if(rec_beacon.Flags.txState == STATE && rec_beacon.confSeqNumber == 0)
 		{
 			if(STATE == DISC_MODE) 
@@ -662,7 +661,11 @@ static uint8_t PanId;
 			if(STATE == ONLINE_MODE)
 			{
 				msg_wait_time = (2*rec_beacon.Flags.numBaseMgmtTimeslots + assTimeSlot) * tTS /*+ 80 + 45*assTimeSlot*/;
-				printf("msg_wait %d", msg_wait_time);
+				#if COOP_RT
+				#else
+				appState = APP_STATE_SLEEP_PREPARE;
+				#endif
+				// printf("msg_wait %d", msg_wait_time);
 			}
 			else	
 				msg_wait_time = tTS * rec_beacon.Flags.numBaseMgmtTimeslots; 
@@ -719,17 +722,9 @@ static uint8_t PanId;
 				{
 				
 					int retransmition_slot = 0;
-					
-
 					for(int i = 0; i < assTimeSlot && i < (rec_beacon.NumberOfBaseTimeslotsinSuperframe - 3)/2; i++) // -3 because of 2 mgmt and 1 gack
 						if( !check_ack(i+1) )
 							retransmition_slot++;
-					
-					
-// 					if( retransmition_slot > (rec_beacon.NumberOfBaseTimeslotsinSuperframe - 3)/2 - 1)
-// 						return false;
-										
-					
 					if(retransmition_slot == 0)
 					{
 						NWK_DataReq(&msgReqData);
@@ -1142,10 +1137,30 @@ static void APP_TaskHandler(void)
 			appState = APP_STATE_IDLE;
 			break;
 		}
-		case APP_STATE_PREP_DATA_FRAME:
+		case APP_STATE_SLEEP_PREPARE:
 		{
-			appPrepareDataFrame();
-			appState = APP_STATE_IDLE;
+			if(!NWK_Busy())
+			{
+				irqflags_t flags = cpu_irq_save();
+				NWK_SleepReq();
+				appState		= APP_STATE_SLEEP;
+				cpu_irq_restore(flags);
+			}
+			break;
+		}
+		case APP_STATE_SLEEP:
+		{
+			sleep_enable();
+			sleep_enter();
+			sleep_disable();
+			break;
+		}
+		case APP_STATE_WAKEUP_AND_SEND:
+		{
+			NWK_WakeupReq();
+			NWK_DataReq(&msgReqData);
+
+			appState			= APP_STATE_IDLE;
 			break;
 		}
 		case APP_STATE_RETRANSMIT_DATA:
