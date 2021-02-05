@@ -492,7 +492,7 @@ static uint8_t PanId;
 			macLLDNRetransmitTS = assTimeSlot;
 			macLLDNnumTimeSlots = macLLDNnumUplinkTS + 2 *MacLLDNMgmtTS;			
 			
-// 			printf("\nmacLLDNnumUplinkTS : %d\nmacLLDNRetransmitTS : %d\nmacLLDNnumTimeSlots : %d",macLLDNnumUplinkTS,macLLDNRetransmitTS,macLLDNnumTimeSlots );
+ 			// printf("\nmacLLDNnumUplinkTS : %d\nmacLLDNRetransmitTS : %d\nmacLLDNnumTimeSlots : %d",macLLDNnumUplinkTS,macLLDNRetransmitTS,macLLDNnumTimeSlots );
 			
 			config_request_frame.conf.tsDuration = 75;
 
@@ -588,13 +588,7 @@ static uint8_t PanId;
 	bool associated = 0;
 	int ts_time;
 	uint8_t STATE = DISC_MODE;
-	int tmr_error = 0;
-	float delta_error = 0;
-	bool beacon_tmr = false;
-	uint32_t be_read = 0;
-	uint32_t tmr_read= 0;
-	int msg_wait_time;
-	int ok_seq = -1;
+
 	static void send_message_timeHandler(void)
 	{
 		appSendData();
@@ -606,14 +600,7 @@ static uint8_t PanId;
 	
 	}
 
-	static void node_time_handler(void)
-	{
-		beacon_tmr = true;
-		tmr_read = macsc_read_count();
-		return;
-	}
-	
-	
+
 	static void disc_time_hndlr(void)
 	{
 		printf("\nDisc");
@@ -646,29 +633,26 @@ static uint8_t PanId;
 		rec_beacon = *tmp_beacon;
 		PanId = tmp_beacon->PanId;
 		tTS =  ((p_var*sp + (m+ tmp_beacon->TimeSlotSize )*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
-		// printf("\nBE %f", tTS);
 		if(rec_beacon.Flags.txState == STATE && rec_beacon.confSeqNumber == 0)
 		{
+			int msg_wait_time = tTS * rec_beacon.Flags.numBaseMgmtTimeslots;
+			int ack_wait_time;
 			if(STATE == DISC_MODE) 
 				macsc_set_cmp1_int_cb(disc_time_hndlr);
 			else if(STATE == CONFIG_MODE)
 				macsc_set_cmp1_int_cb(config_time_hndlr);
 			else if(STATE == ONLINE_MODE)
-				macsc_set_cmp1_int_cb(online_time_hndlr);
-					
-			
-			
-			if(STATE == ONLINE_MODE)
 			{
+				macsc_set_cmp1_int_cb(online_time_hndlr);
 				msg_wait_time = (2*rec_beacon.Flags.numBaseMgmtTimeslots + assTimeSlot) * tTS /*+ 80 + 45*assTimeSlot*/;
+				
 				#if COOP_RT
 				#else
+				ack_wait_time = (rec_beacon.NumberOfBaseTimeslotsinSuperframe);
 				appState = APP_STATE_SLEEP_PREPARE;
 				#endif
-				// printf("msg_wait %d", msg_wait_time);
 			}
-			else	
-				msg_wait_time = tTS * rec_beacon.Flags.numBaseMgmtTimeslots; 
+
 			macsc_enable_cmp_int(MACSC_CC1);
 			macsc_use_cmp(MACSC_RELATIVE_CMP, msg_wait_time - 150, MACSC_CC1);
  			macsc_enable_manual_bts();
@@ -697,7 +681,6 @@ static uint8_t PanId;
 			pos =  addr / 8;
 			bit_shift = 8 - addr % 8;
 		}
-		printf("\n ack rec %hhx ", ackframe->ackFlags[pos]);
 		if( ackframe->ackFlags[pos] & 1 << bit_shift)
 		{
 			return true;
@@ -722,7 +705,7 @@ static uint8_t PanId;
 				{
 				
 					int retransmition_slot = 0;
-					for(int i = 0; i < assTimeSlot && i < (rec_beacon.NumberOfBaseTimeslotsinSuperframe - 3)/2; i++) // -3 because of 2 mgmt and 1 gack
+					for(int i = 0; i < assTimeSlot && i < (rec_beacon.NumberOfBaseTimeslotsinSuperframe - 2*rec_beacon.Flags.numBaseMgmtTimeslots - 1)/2; i++) // -3 because of 2 mgmt and 1 gack
 						if( !check_ack(i+1) )
 							retransmition_slot++;
 					if(retransmition_slot == 0)
@@ -738,7 +721,6 @@ static uint8_t PanId;
 						macsc_use_cmp(MACSC_RELATIVE_CMP, tTS * retransmition_slot - 40, MACSC_CC1);
 						#endif
 					}					
-					printf("\nretransmition_slot %d , %f", retransmition_slot, tTS);
 
 				}				
 			}
@@ -771,7 +753,6 @@ static uint8_t PanId;
 				associated = 1;
 				STATE = ONLINE_MODE;
 				PHY_SetTdmaMode(true);
-				printf("\n asstimeslot %d, tsDuration %hhx", assTimeSlot, n);
 			}
 		}
 		return true;
