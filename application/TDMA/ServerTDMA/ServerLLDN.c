@@ -619,12 +619,17 @@ static uint8_t PanId;
 		macsc_set_cmp1_int_cb(0);
 		
 	}
-	
-		
+			
 	static void online_time_hndlr(void)
 	{
 		appState = APP_STATE_WAKEUP_AND_SEND;
 		macsc_set_cmp1_int_cb(0);		
+	}
+	
+	static void beacon_interval_time_hndlr(void)
+	{
+		appState  = APP_STATE_WAKEUP_AND_WAIT;
+		macsc_set_cmp2_int_cb(0);		
 	}
 	
 	static bool appBeaconInd(NWK_DataInd_t *ind)
@@ -635,6 +640,8 @@ static uint8_t PanId;
 		tTS =  ((p_var*sp + (m+ tmp_beacon->TimeSlotSize )*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
 		if(rec_beacon.Flags.txState == STATE && rec_beacon.confSeqNumber == 0)
 		{
+// 				beaconInterval= (macLLDNnumUplinkTS + 2*MacLLDNMgmtTS*numBaseTimeSlotperMgmt_online) * tTS / (SYMBOL_TIME);
+
 			int msg_wait_time = tTS * rec_beacon.Flags.numBaseMgmtTimeslots;
 			int ack_wait_time;
 			if(STATE == DISC_MODE) 
@@ -643,8 +650,17 @@ static uint8_t PanId;
 				macsc_set_cmp1_int_cb(config_time_hndlr);
 			else if(STATE == ONLINE_MODE)
 			{
+				int beacon_interval = macLLDNnumTimeSlots*tTS;
+							
+				
 				macsc_set_cmp1_int_cb(online_time_hndlr);
+				
+				macsc_set_cmp2_int_cb(beacon_interval_time_hndlr);
+				macsc_enable_cmp_int(MACSC_CC2);
+				macsc_use_cmp(MACSC_RELATIVE_CMP, beacon_interval, MACSC_CC2);
+
 				msg_wait_time = (2*rec_beacon.Flags.numBaseMgmtTimeslots + assTimeSlot) * tTS /*+ 80 + 45*assTimeSlot*/;
+				
 				
 				#if COOP_RT
 				#else
@@ -1142,9 +1158,14 @@ static void APP_TaskHandler(void)
 			NWK_DataReq(&msgReqData);
 			#if COOP_RT
 			#else
-			appState			= APP_STATE_SLEEP_PREPARE;
+			appState			= APP_STATE_IDLE;
 			#endif
 			break;
+		}
+		case APP_STATE_WAKEUP_AND_WAIT:
+		{
+			NWK_WakeupReq();
+			appState			= APP_STATE_SLEEP_PREPARE;
 		}
 		case APP_STATE_RETRANSMIT_DATA:
 		{
