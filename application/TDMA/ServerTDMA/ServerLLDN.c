@@ -1140,8 +1140,10 @@ static void APP_TaskHandler(void)
 		{
 			NWK_WakeupReq();
 			NWK_DataReq(&msgReqData);
-
-			appState			= APP_STATE_IDLE;
+			#if COOP_RT
+			#else
+			appState			= APP_STATE_SLEEP_PREPARE;
+			#endif
 			break;
 		}
 		case APP_STATE_RETRANSMIT_DATA:
