@@ -194,6 +194,7 @@ static uint8_t PanId;
 	{
 
 		uint8_t i;
+		/*check if mac addres is already associated*/ 
 		for (int j = 0; j <= assTimeSlot ; j++)
 		{
 			if (nodes_info_arr[j].mac_addr == node->macAddr)
@@ -201,7 +202,8 @@ static uint8_t PanId;
 				return;
 			}
 		}
-		for (i= 0;i < 256 && nodes_info_arr[i].mac_addr != 0; i++);
+		/*find first available timeslot*/
+		for (i= 0;i < 50 && nodes_info_arr[i].mac_addr != 0; i++);
 		
 		assTimeSlot++;
 	

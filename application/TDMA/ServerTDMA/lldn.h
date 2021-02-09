@@ -69,6 +69,7 @@ typedef enum {
 		
 		unsigned int msg_rec;
 		unsigned int msg_not_rec;
+		unsigned int energy;
 		// uint8_t DATA_PAYLOAD[127];
 		bool coop;
 		

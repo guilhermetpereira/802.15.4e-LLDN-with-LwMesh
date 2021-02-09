@@ -55,9 +55,39 @@ static SYS_Timer_t				tmrComputeData;				// Compute data
 static SYS_Timer_t tmrDelay;	
 AppState_t	appState = APP_STATE_INITIAL;
 
+uint8_t assTimeslot=1;
+nodes_info_t nodes_info_arr[50];
+
+
+
+
+
+static void send_info_serial(void)
+{
+	/*prints # nodes*/
+	printf("S%hhx",assTimeslot);
+	
+	for (int i = 0; i < assTimeslot;i++)
+	{
+		/* prints N<assigned ts><energy> */ 
+		printf("N%hhx%02X%02X%02X%02X"
+		,nodes_info_arr[i].assigned_time_slot
+		,(nodes_info_arr[i].energy>>24)&0xFF
+		,(nodes_info_arr[i].energy>>16)&0xFF
+		,(nodes_info_arr[i].energy>>8)&0xFF
+		,nodes_info_arr[i].energy&0xFF);
+		for (int j=0; j < (int)ceil(assTimeslot/8.0);j++)
+		{
+			printf("%01x", nodes_info_arr[i].neighbors[j]);
+		}
+		printf("F");
+	}
+	printf("T");
+}
+
 static void tmrDelayHandler(SYS_Timer_t *timer)
 {
-	printf("\nA");
+	send_info_serial();
 	appState = APP_STATE_INITIAL;
 }
 
@@ -67,6 +97,9 @@ static void APP_TaskHandler(void)
 	switch (appState){
 		case APP_STATE_INITIAL:
 		{
+			nodes_info_arr[0].assigned_time_slot = 0x03;
+			nodes_info_arr[0].energy= 35;
+			nodes_info_arr[0].neighbors[0] = 0x01;
 			SYS_TimerStart(&tmrDelay);
 			appState = APP_STATE_IDLE;
 		}
