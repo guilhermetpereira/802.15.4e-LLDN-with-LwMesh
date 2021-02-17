@@ -52,26 +52,29 @@ static SYS_Timer_t				tmrBeaconInterval;			// Beacon
 static SYS_Timer_t				tmrComputeData;				// Compute data
 #endif
 
-static SYS_Timer_t tmrDelay;	
+static SYS_Timer_t tmrDelay;
+static SYS_Timer_t tmrScanf;
+	
 AppState_t	appState = APP_STATE_INITIAL;
 
-uint8_t assTimeslot=1;
+uint8_t assTimeslot=7;
 nodes_info_t nodes_info_arr[50];
 
 
 
 
-
+uint32_t cmp_value;
 static void send_info_serial(void)
 {
+	macsc_enable_manual_bts();
+	 cmp_value = macsc_read_count();
 	/*prints # nodes*/
-	printf("S%hhx",assTimeslot);
-	
+	printf("SSSS%hhx",assTimeslot);
 	for (int i = 0; i < assTimeslot;i++)
 	{
 		/* prints N<assigned ts><energy> */ 
 		printf("N%hhx%02X%02X%02X%02X"
-		,nodes_info_arr[i].assigned_time_slot
+		,/*nodes_info_arr[i].assigned_time_slot*/i
 		,(nodes_info_arr[i].energy>>24)&0xFF
 		,(nodes_info_arr[i].energy>>16)&0xFF
 		,(nodes_info_arr[i].energy>>8)&0xFF
@@ -80,9 +83,9 @@ static void send_info_serial(void)
 		{
 			printf("%01x", nodes_info_arr[i].neighbors[j]);
 		}
-		printf("F");
 	}
 	printf("T");
+	
 }
 
 static void tmrDelayHandler(SYS_Timer_t *timer)
@@ -91,16 +94,35 @@ static void tmrDelayHandler(SYS_Timer_t *timer)
 	appState = APP_STATE_INITIAL;
 }
 
+static void tmrScanfHandler(SYS_Timer_t *timer)
+{
+	char c;
+	
+	if( usart_rx_is_complete(USART_HOST) )
+	{
+		scanf("%c",&c);
+		uint32_t cmp_value_after = macsc_read_count();
+		printf("%d", cmp_value_after - cmp_value);
+	}
+	else
+	printf("no scanf");
+}
 
 static void APP_TaskHandler(void)
 {
 	switch (appState){
 		case APP_STATE_INITIAL:
 		{
-			nodes_info_arr[0].assigned_time_slot = 0x03;
-			nodes_info_arr[0].energy= 35;
-			nodes_info_arr[0].neighbors[0] = 0x01;
-			SYS_TimerStart(&tmrDelay);
+			nodes_info_arr[0].assigned_time_slot = 0x00;
+			nodes_info_arr[1].assigned_time_slot = 0x01;
+
+			nodes_info_arr[0].energy= 30;
+			nodes_info_arr[1].energy= 30;
+			nodes_info_arr[0].neighbors[0] = 0x07;
+			nodes_info_arr[1].neighbors[0] = 0x02;
+
+			
+
 			appState = APP_STATE_IDLE;
 		}
 		
@@ -125,8 +147,15 @@ static void APP_TaskHandler(void)
 		sm_init();
 
 		tmrDelay.interval = 3*1000;
-		tmrDelay.mode = SYS_TIMER_INTERVAL_MODE;
+		tmrDelay.mode = SYS_TIMER_PERIODIC_MODE;
 		tmrDelay.handler = tmrDelayHandler;
+
+		tmrScanf.interval = 4*1000;
+		tmrScanf.mode = SYS_TIMER_PERIODIC_MODE;
+		tmrScanf.handler = tmrScanfHandler;
+
+		SYS_TimerStart(&tmrDelay);
+		SYS_TimerStart(&tmrScanf);
 
 		// Initialize interrupt vector table support.
 	#if (SIO2HOST_CHANNEL == SIO_USB)
@@ -138,6 +167,9 @@ static void APP_TaskHandler(void)
 	#if (SIO2HOST_CHANNEL == SIO_USB)
 		stdio_usb_init();
 	#else
+		ioport_configure_pin(GPIO_TOGGLE_PIN, IOPORT_DIR_OUTPUT | IOPORT_INIT_LOW);
+		ioport_set_pin_dir(GPIO_TOGGLE_PIN, IOPORT_DIR_OUTPUT);
+		ioport_set_pin_level(GPIO_TOGGLE_PIN, IOPORT_PIN_LEVEL_HIGH);
 		const usart_serial_options_t usart_serial_options =
 		{
 			.baudrate     = USART_HOST_BAUDRATE,
