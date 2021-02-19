@@ -44,7 +44,8 @@ static NWK_DataReq_t msgReqData = { .dstAddr =0,
 
 static void online_time_hndlr(void)
 {
-	/* TOGGLE PIN HERE */ 
+	/* TOGGLE PIN HERE */
+	PIND |= (1 << PIND7); 
 	appState = APP_STATE_WAKEUP_AND_SEND;
 }
 
@@ -55,7 +56,7 @@ static void APP_TaskHandler(void)
 		case APP_STATE_INITIAL:
 		{
 			macsc_set_cmp1_int_cb(online_time_hndlr);
-			macsc_enable_cmp_int(MACSC_CC2);
+			macsc_enable_cmp_int(MACSC_CC1);
 			macsc_use_cmp(MACSC_RELATIVE_CMP, DELAY_INTERVAL / SYMBOL_TIME , MACSC_CC1);
  			macsc_enable_manual_bts();
 			appState = APP_STATE_SLEEP_PREPARE;
