@@ -844,14 +844,10 @@ static void appInit(void)
 		PHY_SetOptimizedCSMAValues();
 		
 		
-		
-		payloadSize = 127;
 		NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);
 		NWK_OpenEndpoint(APP_ACK_ENDPOINT, appAckInd);
 		NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appCommandInd);
-		/*
-		* Configure interrupts callback functions
-		*/
+
 		
 	#endif // APP_COORDENATOR
 	PHY_SetPromiscuousMode(true);

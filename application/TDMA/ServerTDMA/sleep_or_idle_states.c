@@ -29,11 +29,22 @@
 #include "macsc_megarf.h"
 
 AppState_t appState = APP_STATE_SLEEP_PREPARE; 
-// AppState_t appState = APP_STATE_WAKEUP_AND_WAIT;
+// AppState_t appState = APP_STATE_INITIAL;
+
 
 static void APP_TaskHandler(void)
 {
 	switch (appState){
+		case APP_STATE_INITIAL:
+		{
+			/* Init Radio Module */ 
+			NWK_SetAddr(APP_ADDR);
+			PHY_SetChannel(APP_CHANNEL);
+			PHY_SetRxState(true);
+			PHY_SetTdmaMode(true);
+			PHY_SetPromiscuousMode(true);
+			appState = APP_STATE_IDLE;
+		}
 		case APP_STATE_SLEEP_PREPARE:
 		{
 			if(!NWK_Busy())
