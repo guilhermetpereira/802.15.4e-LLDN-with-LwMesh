@@ -52,7 +52,7 @@ static void online_time_hndlr(void)
 	appState = APP_STATE_WAKEUP_AND_SEND;  /* FAKE NEWS Ñ ENVIA NADA */
 	
 	uint32_t cmp_value_tmr = macsc_read_count();
-	printf("\nTMR : %x",cmp_value_tmr);
+	/*printf("\nTMR : %x",cmp_value_tmr);*/
 	
 	#endif
 	return;
@@ -62,7 +62,7 @@ static bool appBeaconInd(NWK_DataInd_t *ind)
 {
 	(void)ind;
 	cmp_value = macsc_read_count();
- 	printf("\nMSG : %x",cmp_value);
+ 	/*printf("\nMSG : %x",cmp_value);*/
 	macsc_enable_manual_bts();
 
 	PIND &= ~(1 << PIND7);
