@@ -88,7 +88,7 @@ static void APP_TaskHandler(void)
 			NWK_DataReq(&msgReqData);
 			macsc_enable_manual_bts();
 			appState			= APP_STATE_SLEEP_PREPARE;
-			
+			break;
 		}
 		default:
 		break;

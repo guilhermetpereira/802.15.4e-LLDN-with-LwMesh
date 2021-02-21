@@ -51,22 +51,21 @@ static void online_time_hndlr(void)
 	PIND |= (1 << PIND7);
 	appState = APP_STATE_WAKEUP_AND_SEND;  /* FAKE NEWS Ñ ENVIA NADA */
 	
-	uint32_t cmp_value_tmr = macsc_read_count();
-	printf("\nTMR : %x",cmp_value_tmr);
+// 	uint32_t cmp_value_tmr = macsc_read_count();
+// 	printf("\nTMR : %x",cmp_value_tmr);
 	
 	#endif
-	return;
 }
 
 static bool appBeaconInd(NWK_DataInd_t *ind)
 {
 	(void)ind;
-	cmp_value = macsc_read_count();
- 	printf("\nMSG : %x",cmp_value);
+// 	cmp_value = macsc_read_count();
+// 	printf("\nMSG : %x",cmp_value);
 	macsc_enable_manual_bts();
 
 	PIND &= ~(1 << PIND7);
-	appState = APP_STATE_PREP_TMR;
+	appState = APP_STATE_SLEEP_PREPARE;
 	return true;
 }
 
@@ -84,11 +83,11 @@ static void APP_TaskHandler(void)
 
 			NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);
 
-			#if APP_COORDINATOR
 			macsc_set_cmp1_int_cb(online_time_hndlr);
 			macsc_enable_cmp_int(MACSC_CC1);
 			macsc_use_cmp(MACSC_RELATIVE_CMP, (DELAY_INTERVAL)/ SYMBOL_TIME , MACSC_CC1);
 			
+			#if APP_COORDINATOR
 			macsc_enable_manual_bts();
 			#endif
 			
@@ -123,19 +122,8 @@ static void APP_TaskHandler(void)
 			appState			= APP_STATE_IDLE;
 			break;
 		}
-		case APP_STATE_PREP_TMR:
-		{
-			macsc_set_cmp1_int_cb(online_time_hndlr);
-			macsc_enable_cmp_int(MACSC_CC1);
-			macsc_use_cmp(0, cmp_value + (DELAY_INTERVAL)/ SYMBOL_TIME , MACSC_CC1);
-			appState = APP_STATE_SLEEP_PREPARE;
-			break;
-		}
-		case APP_STATE_IDLE:
-		{
-			break;
-		}
-
+		default:
+		break;
 	}
 }
 
