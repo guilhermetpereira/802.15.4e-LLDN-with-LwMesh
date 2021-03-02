@@ -27,7 +27,7 @@
 #include "conf_sio2host.h"
 #include "macsc_megarf.h"
 
-#define DELAY_INTERVAL 0.05 // (seconds)
+#define DELAY_INTERVAL 0.5 // (seconds)
 
 AppState_t appState = APP_STATE_INITIAL; 
 
@@ -41,42 +41,73 @@ static NWK_DataReq_t msgReqData = { .dstAddr =0,
 									.data = (uint8_t*)&data_payload,
 									.size = sizeof(data_payload)};
 
-
+uint32_t cmp_value;
+int a = 1;
 static void online_time_hndlr(void)
 {
 	/* TOGGLE PIN HERE */
-	PIND |= (1 << PIND7); 
-	appState = APP_STATE_WAKEUP_AND_SEND;
+ 	PORTD= 0xff;
+	cmp_value = macsc_read_count();
+	// appState = APP_STATE_WAKEUP_AND_SEND;
+	macsc_use_cmp(0, cmp_value + DELAY_INTERVAL / SYMBOL_TIME , MACSC_CC1);
+	if(a==1)
+	{
+		macsc_use_cmp(0,cmp_value + (DELAY_INTERVAL / 2 )/ SYMBOL_TIME , MACSC_CC2);
+		a = 0;
+	}
+	else
+	a = 1;
+	printf("\nA");
+
 }
 
+static void online_time_hndlr_df(void)
+{
+	printf("\nB");
 
+}
 static void APP_TaskHandler(void)
 {
 	switch (appState){
 		case APP_STATE_INITIAL:
 		{
+			NWK_SetAddr(APP_ADDR);
+			PHY_SetChannel(APP_CHANNEL);
+			PHY_SetRxState(true);
+			PHY_SetTdmaMode(true);
+			PHY_SetPromiscuousMode(true);
+			
 			macsc_set_cmp1_int_cb(online_time_hndlr);
 			macsc_enable_cmp_int(MACSC_CC1);
-			macsc_use_cmp(MACSC_RELATIVE_CMP, DELAY_INTERVAL / SYMBOL_TIME , MACSC_CC1);
+				cmp_value = macsc_read_count();
+
+			macsc_use_cmp(1, DELAY_INTERVAL / SYMBOL_TIME , MACSC_CC1);
+			
+			macsc_set_cmp2_int_cb(online_time_hndlr_df);
+			macsc_enable_cmp_int(MACSC_CC2);
+			
  			macsc_enable_manual_bts();
 			appState = APP_STATE_SLEEP_PREPARE;
 			break;
 		}
 		case APP_STATE_SLEEP_PREPARE:
-		{
-			/* TOGGLE PIN HERE */
-		
-			if(!NWK_Busy())
+		{		
+			
+			if(/*!NWK_Busy()*/0)
 			{
+				DDRD = 0x00;
 				irqflags_t flags = cpu_irq_save();
 				NWK_SleepReq();
 				appState		= APP_STATE_SLEEP;
 				cpu_irq_restore(flags);
 			}
+			else
+				appState = APP_STATE_IDLE;
 			break;
 		}
 		case APP_STATE_SLEEP:
 		{
+			
 			sleep_enable();
 			sleep_enter();
 			sleep_disable();
@@ -106,6 +137,8 @@ int main(void)
 	
 	/* TOGGLE PIN HERE */
 
+	PORTD	= 0xFF;
+	DDRD = 0xFF;
 	
 	SYS_Init();
 	/* Disable CSMA/CA

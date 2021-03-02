@@ -30,12 +30,19 @@
 #include "macsc_megarf.h"
 
 #if APP_COORDINATOR
-#define DELAY_INTERVAL 0.05 // (seconds)
+#define DELAY_INTERVAL 0.02 // (seconds)
 #else
-#define DELAY_INTERVAL 0.05 - 0.002 // (seconds)
+#define DELAY_INTERVAL 0.02 - 0.001 // (seconds)
 #endif
 uint32_t cmp_value;
-static NWK_DataReq_t msgReq;
+
+uint8_t data_payload[4] = {APP_ADDR,APP_ADDR,APP_ADDR,APP_ADDR};
+static NWK_DataReq_t msgReqData = { .dstAddr =0,
+							.dstEndpoint = APP_COMMAND_ENDPOINT,
+							.srcEndpoint = APP_COMMAND_ENDPOINT,
+							.options = NWK_OPT_LLDN_DATA,
+							.data = (uint8_t*)&data_payload,
+							.size = sizeof(data_payload)};
 
 
 AppState_t appState = APP_STATE_INITIAL;
@@ -44,15 +51,15 @@ static void online_time_hndlr(void)
 {
 	/* TOGGLE PIN HERE */
 	#if APP_COORDINATOR
-	NWK_DataReq(&msgReq);
+	NWK_DataReq(&msgReqData);
 	macsc_enable_manual_bts();
 	printf("s");
 	#else
-	PIND |= (1 << PIND7);
+	PORTD = 0xFF;
 	appState = APP_STATE_WAKEUP_AND_SEND;  /* FAKE NEWS Ñ ENVIA NADA */
 	
 	uint32_t cmp_value_tmr = macsc_read_count();
-	/*printf("\nTMR : %x",cmp_value_tmr);*/
+	printf("\nTMR : %x",cmp_value_tmr);
 	
 	#endif
 	return;
@@ -62,10 +69,10 @@ static bool appBeaconInd(NWK_DataInd_t *ind)
 {
 	(void)ind;
 	cmp_value = macsc_read_count();
- 	/*printf("\nMSG : %x",cmp_value);*/
+ 	printf("\nMSG : %x",cmp_value);
 	macsc_enable_manual_bts();
 
-	PIND &= ~(1 << PIND7);
+	
 	appState = APP_STATE_PREP_TMR;
 	return true;
 }
@@ -83,6 +90,8 @@ static void APP_TaskHandler(void)
 			PHY_SetPromiscuousMode(true);
 
 			NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);
+			NWK_OpenEndpoint(APP_DATA_ENDPOINT, appBeaconInd);
+
 
 			#if APP_COORDINATOR
 			macsc_set_cmp1_int_cb(online_time_hndlr);
@@ -92,9 +101,7 @@ static void APP_TaskHandler(void)
 			macsc_enable_manual_bts();
 			#endif
 			
-			msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_CONFIG_STATE;
-			msgReq.data = NULL;
-			msgReq.size = 0;
+
 				
 			appState = APP_STATE_IDLE;
 			break;
@@ -128,6 +135,7 @@ static void APP_TaskHandler(void)
 			macsc_set_cmp1_int_cb(online_time_hndlr);
 			macsc_enable_cmp_int(MACSC_CC1);
 			macsc_use_cmp(0, cmp_value + (DELAY_INTERVAL)/ SYMBOL_TIME , MACSC_CC1);
+			PORTD = 0x00;
 			appState = APP_STATE_SLEEP_PREPARE;
 			break;
 		}
@@ -156,7 +164,7 @@ static void APP_TaskHandler(void)
 		sm_init();
 
 		DDRD	= 0xFF;
-
+		PORTD = 0x00;
 		// Initialize interrupt vector table support.
 	#if (SIO2HOST_CHANNEL == SIO_USB)
 		irq_initialize_vectors();

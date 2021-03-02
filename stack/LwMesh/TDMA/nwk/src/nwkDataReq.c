@@ -141,7 +141,8 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 				memcpy(frame->payload, req->data, req->size);
 				frame->size += req->size;
 			}
-			frame->LLbeacon.Flags.txState = 0b000; // online mode
+			frame->LLbeacon.Flags.txState = (req->options & NWK_OPT_SECOND_BEACON) ? 0b000 : 0b001; // online mode
+			
 		}
 		else if (req->options & NWK_OPT_DISCOVERY_STATE)
 			frame->LLbeacon.Flags.txState = 0b100; // discovery mode

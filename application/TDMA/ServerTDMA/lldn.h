@@ -21,6 +21,8 @@ typedef enum {
 	APP_STATE_SLEEP,
 	APP_STATE_WAKEUP_AND_SEND,
 	APP_STATE_WAKEUP_AND_WAIT,
+	APP_STATE_PREP_TMR_ONLINE,
+	APP_STATE_PREP_TMR_ASS,
 	APP_STATE_PREP_TMR
 } AppState_t;
 
@@ -30,7 +32,7 @@ typedef enum {
 	#define DELAY 75 // symbols
 	#define MacLLDNMgmtTS 0x01
 
-	#define NUMERO_CICLOS_ONLINE 5
+	#define NUMERO_CICLOS_ONLINE 1000
 	#define GROUP_ACK 0
 
 
@@ -49,7 +51,8 @@ typedef enum {
 		APP_PAN_STATE_CHECK_TS,
 		APP_PAN_STATE_ONLINE_PREPARE_ACK_GROUP,
 		APP_PAN_STATE_IDLE,
-
+		APP_PAN_STATE_SETUP_NEIG_BEACON,
+		APP_PAN_STATE_ATT_NEIG_STATE
 	} AppPanState_t;
 	
 	typedef struct nodes_info_t{
@@ -91,7 +94,7 @@ typedef enum {
 	#define CONFIG_MODE 0b110
 	#define RESET_MODE	0b111
 	#define ONLINE_MODE 0b000
-	#define SYNC_TIMER  0b1000
+	#define NEIG_MODE  0b001
 #endif
 
 

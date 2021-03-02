@@ -352,7 +352,7 @@ static uint8_t nwkTxConvertPhyStatus(uint8_t status)
 *****************************************************************************/
 void PHY_DataConf(uint8_t status)
 {
-	// PIND &= ~(1 << PIND7);
+	PORTD = 0x00;
 	nwkTxPhyActiveFrame->tx.status = nwkTxConvertPhyStatus(status);
 	nwkTxPhyActiveFrame->state = NWK_TX_STATE_SENT;
 	nwkTxPhyActiveFrame = NULL;

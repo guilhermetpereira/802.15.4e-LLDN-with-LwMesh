@@ -33,7 +33,7 @@
 #if APP_COORDINATOR
 #define DELAY_INTERVAL 0.05 // (seconds)
 #else
-#define DELAY_INTERVAL 0.05 - 0.002 // (seconds)
+#define DELAY_INTERVAL 0.05 - 0.001 // (seconds)
 #endif
 uint32_t cmp_value;
 static NWK_DataReq_t msgReq;
@@ -55,8 +55,8 @@ int count = 10;
 static void beacon_interval_hndlr(void)
 {
 	/* TOGGLE PIN HERE */
-	if(count-- == 0)
-		return;
+// 	if(count-- == 0)
+// 		return;
 	
 	NWK_DataReq(&msgReq);
 	macsc_enable_manual_bts();
@@ -84,8 +84,11 @@ static void config_beacon(void)
 
 static void send_gack(void)
 {
-	if(count == 10)
-		return;
+	if(count-- == 10)
+	return;
+	else
+	count = 9;
+	
 	msgReqGACK.size = sizeof(uint8_t)*(macLLDNRetransmitTS + 1);
 	NWK_DataReq(&msgReqGACK);
 	printf("\ng");
@@ -97,6 +100,7 @@ static void config_tmrs(void)
 	int beaconInterval= (macLLDNnumUplinkTS + 2*MacLLDNMgmtTS*numBaseTimeSlotperMgmt_online) * tTS / (SYMBOL_TIME);
 	int GACK_tTS = (assTimeSlot + 0.2 + 2*MacLLDNMgmtTS*numBaseTimeSlotperMgmt_online) * tTS / (SYMBOL_TIME);
 	
+	printf("\nbeacon interval %d", beaconInterval);
 	
 	macsc_set_cmp1_int_cb(beacon_interval_hndlr);
 	macsc_set_cmp2_int_cb(send_gack);
@@ -120,38 +124,63 @@ static NWK_DataReq_t msgReqData = { .dstAddr =0,
 					.data = (uint8_t*)&data_payload,
 					.size = sizeof(data_payload)};
 
+static bool closeEndPoint(NWK_DataInd_t *ind)
+{
+	(void)ind;
+	return true;
+}
+	
+static bool appAckInd(NWK_DataInd_t *ind)
+{
+	// 	PIND &= ~(1 << PIND7);
+	NWK_OpenEndpoint(APP_ACK_ENDPOINT, closeEndPoint);
+	PORTD = 0xFF;
+	printf("\na");
+	appState = APP_STATE_SLEEP_PREPARE;
+	return true;
+}	
 	
 static bool appBeaconInd(NWK_DataInd_t *ind)
 {
 	cmp_value = macsc_read_count();
-	// 	printf("\nMSG : %x",cmp_value);
+	uint32_t sfd_timestamp = macsc_read_ts();
+	NWK_OpenEndpoint(APP_ACK_ENDPOINT, appAckInd);
+// 	macsc_disable_cmp_int(MACSC_CC1);
+// 	macsc_disable_cmp_int(MACSC_CC2);
+// 	macsc_disable_cmp_int(MACSC_CC3);
+	
+	macsc_set_cmp1_int_cb(0);
+	macsc_set_cmp2_int_cb(0);
+	macsc_set_cmp3_int_cb(0);
+	
+// 	printf("\nMSG : %x",cmp_value);
+// 	printf("\nSFD TS : %x",sfd_timestamp);
+
 	
 	rec_beacon = *(NwkFrameBeaconHeaderLLDN_t*)ind->data;
 	printf("\nb");
+	PORTD = 0xFF;
 	// 	PIND &= ~(1 << PIND7);
 	appState = APP_STATE_PREP_TMR;
 	return true;
 }
 
-static bool appAckInd(NWK_DataInd_t *ind)
-{	
-	// 	PIND &= ~(1 << PIND7);
-	printf("\na");
-	appState = APP_STATE_SLEEP_PREPARE;
-	return true;
-}
+
 
 static void wake_up_hnldr(void)
 {
+	// PORTD = 0xFF;
 	appState = APP_STATE_WAKEUP_AND_WAIT;
 	return;
 }
 
 static void wake_n_send_hndlr(void)
 {
+	PORTD = 0xFF;
+	printf("\ns");
 	NWK_WakeupReq();
 	NWK_DataReq(&msgReqData);
-	printf("\ns");
+	
 	appState			= APP_STATE_SLEEP_PREPARE;
  	//appState = APP_STATE_WAKEUP_AND_SEND;
 }
@@ -173,9 +202,9 @@ static void config_tmrs(void)
 	macsc_enable_cmp_int(MACSC_CC2);
 	macsc_enable_cmp_int(MACSC_CC3);
 
-	macsc_use_cmp(MACSC_ABSOLUTE_CMP, cmp_value + beacon_interval - 50, MACSC_CC1);
-	macsc_use_cmp(MACSC_ABSOLUTE_CMP, cmp_value + send_msg - 50, MACSC_CC2);
-	macsc_use_cmp(MACSC_ABSOLUTE_CMP, cmp_value + GACK_tTS - 80, MACSC_CC3);
+	macsc_use_cmp(MACSC_RELATIVE_CMP, beacon_interval - 50, MACSC_CC1);
+	macsc_use_cmp(MACSC_RELATIVE_CMP, send_msg - 50, MACSC_CC2);
+	macsc_use_cmp(MACSC_RELATIVE_CMP, GACK_tTS - 80, MACSC_CC3);
 	
 	
 	macsc_enable_manual_bts();
@@ -205,7 +234,7 @@ static void APP_TaskHandler(void)
 			config_tmrs();
 			#else			
 			NWK_OpenEndpoint(APP_BEACON_ENDPOINT, appBeaconInd);
-			NWK_OpenEndpoint(APP_ACK_ENDPOINT, appAckInd);
+			
 			#endif
 		
 			appState = APP_STATE_IDLE;
@@ -213,8 +242,12 @@ static void APP_TaskHandler(void)
 		}
 		case APP_STATE_SLEEP_PREPARE:
 		{
+			PORTD = 0x00;
+			appState = APP_STATE_IDLE;
+			break;
 			if(!NWK_Busy())
 			{
+				printf("\nSLEEP_PREP");
 				irqflags_t flags = cpu_irq_save();
 				NWK_SleepReq();
 				appState		= APP_STATE_SLEEP;

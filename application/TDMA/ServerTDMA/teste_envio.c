@@ -58,39 +58,46 @@ static SYS_Timer_t tmrScanf;
 AppState_t	appState = APP_STATE_IDLE;
 
 uint8_t assTimeslot=7;
-nodes_info_t nodes_info_arr[50];
+// nodes_info_t nodes_info_arr[50];
 
+
+static NWK_DataReq_t msgReqData = { .dstAddr =0,
+	.dstEndpoint = APP_COMMAND_ENDPOINT,
+	.srcEndpoint = APP_COMMAND_ENDPOINT,
+	.options = NWK_OPT_LLDN_DATA,
+	.data = (uint8_t*)&data_payload,
+.size = sizeof(data_payload)};
 
 
 
 uint32_t cmp_value;
-static void send_info_serial(void)
-{
-	macsc_enable_manual_bts();
-	 cmp_value = macsc_read_count();
-	/*prints # nodes*/
-	printf("SSSS%hhx",assTimeslot);
-	for (int i = 0; i < assTimeslot;i++)
-	{
-		/* prints N<assigned ts><energy> */ 
-		printf("N%hhx%02X%02X%02X%02X"
-		,/*nodes_info_arr[i].assigned_time_slot*/i
-		,(nodes_info_arr[i].energy>>24)&0xFF
-		,(nodes_info_arr[i].energy>>16)&0xFF
-		,(nodes_info_arr[i].energy>>8)&0xFF
-		,nodes_info_arr[i].energy&0xFF);
-		for (int j=0; j < (int)ceil(assTimeslot/8.0);j++)
-		{
-			printf("%01x", nodes_info_arr[i].neighbors[j]);
-		}
-	}
-	printf("T");
-	
-}
+// static void send_info_serial(void)
+// {
+// 	macsc_enable_manual_bts();
+// 	 cmp_value = macsc_read_count();
+// 	/*prints # nodes*/
+// 	printf("SSSS%hhx",assTimeslot);
+// 	for (int i = 0; i < assTimeslot;i++)
+// 	{
+// 		/* prints N<assigned ts><energy> */ 
+// 		printf("N%hhx%02X%02X%02X%02X"
+// 		,/*nodes_info_arr[i].assigned_time_slot*/i
+// 		,(nodes_info_arr[i].energy>>24)&0xFF
+// 		,(nodes_info_arr[i].energy>>16)&0xFF
+// 		,(nodes_info_arr[i].energy>>8)&0xFF
+// 		,nodes_info_arr[i].energy&0xFF);
+// 		for (int j=0; j < (int)ceil(assTimeslot/8.0);j++)
+// 		{
+// 			printf("%01x", nodes_info_arr[i].neighbors[j]);
+// 		}
+// 	}
+// 	printf("T");
+// 	
+// }
 
 static void tmrDelayHandler(SYS_Timer_t *timer)
 {
-	send_info_serial();
+//	send_info_serial();
 	appState = APP_STATE_INITIAL;
 }
 
@@ -117,15 +124,15 @@ static void APP_TaskHandler(void)
 	switch (appState){
 		case APP_STATE_INITIAL:
 		{
-			nodes_info_arr[0].assigned_time_slot = 0x00;
-			nodes_info_arr[1].assigned_time_slot = 0x01;
-
-			nodes_info_arr[0].energy= 30;
-			nodes_info_arr[1].energy= 30;
-			nodes_info_arr[0].neighbors[0] = 0x07;
-			nodes_info_arr[1].neighbors[0] = 0x02;
-
-			
+// 			nodes_info_arr[0].assigned_time_slot = 0x00;
+// 			nodes_info_arr[1].assigned_time_slot = 0x01;
+// 
+// 			nodes_info_arr[0].energy= 30;
+// 			nodes_info_arr[1].energy= 30;
+// 			nodes_info_arr[0].neighbors[0] = 0x07;
+// 			nodes_info_arr[1].neighbors[0] = 0x02;
+// 
+// 			
 
 			appState = APP_STATE_IDLE;
 		}
@@ -156,7 +163,7 @@ static void APP_TaskHandler(void)
 		tmrDelay.mode = SYS_TIMER_PERIODIC_MODE;
 		tmrDelay.handler = tmrDelayHandler;
 
-		tmrScanf.interval = 6*1000;
+		tmrScanf.interval = 1;
 		tmrScanf.mode = SYS_TIMER_PERIODIC_MODE;
 		tmrScanf.handler = tmrScanfHandler;
 
