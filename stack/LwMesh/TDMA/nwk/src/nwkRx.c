@@ -129,7 +129,7 @@ void __attribute__((weak)) PHY_DataInd(PHY_DataInd_t *ind)
 	// check frame control for a LL-Beacon frame
 	if(ind->size > 25)
 	return;
-// 	printf("\n");
+// 	printf("\nrx %x",ind->data[0]);
 // 	for (int i = 0; i < ind->size; i++)
 // 	{
 // 		printf("%hhx",ind->data[i]);

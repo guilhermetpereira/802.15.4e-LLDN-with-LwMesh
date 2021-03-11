@@ -136,7 +136,7 @@ typedef struct  NwkFrameBeaconHeaderLLDN_t {
 	uint8_t confSeqNumber;
 	uint8_t TimeSlotSize;
 	uint8_t NumberOfBaseTimeslotsinSuperframe;
-
+	uint8_t 
 } NwkFrameBeaconHeaderLLDN_t;
 
 typedef struct  NwkFrameGeneralHeaderLLDN_t {

@@ -136,13 +136,7 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 		// Set Flag depending on current state of coordinator
 		if (req->options & NWK_OPT_ONLINE_STATE)
 		{
-			if(macLLDNRetransmitTS > 0)
-			{
-				memcpy(frame->payload, req->data, req->size);
-				frame->size += req->size;
-			}
-			frame->LLbeacon.Flags.txState = (req->options & NWK_OPT_SECOND_BEACON) ? 0b000 : 0b001; // online mode
-			
+			frame->LLbeacon.Flags.txState = (req->options & NWK_OPT_SECOND_BEACON) ? 0b001 : 0b000; // online mode	
 		}
 		else if (req->options & NWK_OPT_DISCOVERY_STATE)
 			frame->LLbeacon.Flags.txState = 0b100; // discovery mode
@@ -167,6 +161,8 @@ static void nwkDataReqSendFrame(NWK_DataReq_t *req)
 		frame->LLbeacon.NumberOfBaseTimeslotsinSuperframe = macLLDNnumTimeSlots;
 		
 		frame->LLbeacon.PanId = APP_PANID;
+		memcpy(frame->payload, req->data, req->size);
+		frame->size += req->size;
 		// set Frame Control, Security Header and Sequence Number fields
 	}
 	else if(req->options & NWK_OPT_MAC_COMMAND 

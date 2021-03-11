@@ -65,7 +65,7 @@ static uint8_t PanId;
 	if(msgReq.options != 0)
 	{
 		NWK_DataReq(&msgReq);
-		printf("\nREQ:%d",msgReq.options);
+		// printf("REQ:%d (%d) ",msgReq.options,macLLDNnumTimeSlots);
 	}
 }
 
@@ -82,11 +82,11 @@ static uint8_t PanId;
 												 .s_macAddr = APP_ADDR,
 												 .tx_channel = APP_CHANNEL,
 												 .conf.macLLDNmgmtTS = MacLLDNMgmtTS };
-
+	NWK_BeaconPayload_t beacon_payload = {.coop_map = {0,0,0},
+											.total_associated_nodes = 0 };
 
 
 	nodes_info_list_t *conf_req_list = NULL;
-	uint8_t stack_conf_req[20];
 	
 	/* Acknowledge Frame and Array */
 	NWK_ACKFormat_t ACKFrame;	
@@ -117,7 +117,7 @@ static uint8_t PanId;
 	float count_up = 0;
 	float count_lost_superframe = 0;
 	
-	int neig_counter = 4;
+	int neig_counter = NEIG_CICLOS;
 	
 	static NWK_DataReq_t msgReqGACK = { .dstAddr = 0,
 										.dstEndpoint = APP_BEACON_ENDPOINT,
@@ -128,11 +128,47 @@ static uint8_t PanId;
 	
 	static void lldn_server_beacon(void)
 	{
+		uint32_t tmp = cmp_value_start_superframe;
 		cmp_value_start_superframe = macsc_read_count();
+		int tmp_abc = cmp_value_start_superframe - tmp;
+// 		printf("\n%d",tmp_abc);
 		macsc_enable_manual_bts();
 		appState = APP_STATE_SEND;
 	}
 	
+	
+	static void send_serial_handler(void)
+	{
+		/*prints # nodes*/
+		printf("SSSS%hhx",assTimeSlot);
+		for (int i = 0; i < assTimeSlot;i++)
+		{
+			int percent_energy = 100*(nodes_info_arr[i].energy / INIT_ENERGY);
+			/* prints N<assigned ts><energy> */
+			printf("N%hhx%03d"
+			,nodes_info_arr[i].assigned_time_slot
+			,percent_energy);
+			for (int j=0; j < (int)ceil(assTimeSlot/8.0);j++)
+			{
+				printf("%02x", nodes_info_arr[i].neighbors[j]);
+			}
+		}
+		printf("T");
+	}
+
+
+	static void read_serial_handler(void)
+	{
+		
+		if( usart_rx_is_complete(USART_HOST) )
+		{
+			char d;
+			scanf("%c",&d);
+			beacon_payload.coop_map[0] = 0x01 << ( 8 - (int)(d - 0x30));
+		}
+	}
+
+
 
 	static void downlink_delay_handler(void)
 	{
@@ -145,22 +181,15 @@ static uint8_t PanId;
 	
 	static bool addToAckArray(uint8_t addres)
 	{	
-		int pos,bit_shift;
-		if(addres == 8)
-		{
-			pos = 0;
-			bit_shift = 0;
-		}
-		else
-		{
-			pos =  addres / 8;
-			bit_shift = 8 - addres % 8;
-		}
+		int pos			= (addres == 8) ? 0 :  addres / 8;
+		int bit_shift	= (addres == 8) ? 0 : 8 - addres % 8;
+		
 		if(ACKFrame.ackFlags[pos] & 1 << bit_shift)
 		{
 			return false;
 		}
 		ACKFrame.ackFlags[pos] |= 1 << bit_shift;
+		
 		if (pos + 1 > ACKFrame_size)
 			ACKFrame_size = pos + 1;
 		return true;
@@ -245,82 +274,34 @@ static uint8_t PanId;
 	
 	bool check_ack_pan(int addr)
 	{
-		int pos,bit_shift;
-		if(addr == 8)
-		{
-			pos = 0;
-			bit_shift = 0;
-		}
-		else
-		{
-			pos =  addr / 8;
-			bit_shift = 8 - addr % 8;
-		}
-		if( ACKFrame.ackFlags[pos] & 1 << bit_shift)
-		{
-			return true;
-		}
-		else
-			return false;
+		int pos			= (addr == 8) ? 0 :  addr / 8;
+		int bit_shift	= (addr == 8) ? 0 : 8 - addr % 8;
+		return  ACKFrame.ackFlags[pos] & 1 << bit_shift;
 	}
 	
 	bool check_ack_aux(int addr)
 	{
-		int pos,bit_shift;
-		if(addr == 8)
-		{
-			pos = 0;
-			bit_shift = 0;
-		}
-		else
-		{
-			pos =  addr / 8;
-			bit_shift = 8 - addr % 8;
-		}
-		if( ACKFrame_aux.ackFlags[pos] & 1 << bit_shift)
-		{
-			return true;
-		}
-		else
-		return false;
+		int pos			= (addr == 8) ? 0 :  addr / 8;
+		int bit_shift	= (addr == 8) ? 0 : 8 - addr % 8;
+		return  ACKFrame_aux.ackFlags[pos] & 1 << bit_shift;
 	}
 	
 	static bool appDataInd(NWK_DataInd_t *ind)
 	{
 		uint32_t cmp_value = macsc_read_count();
-		int relative_cmp =  cmp_value - cmp_value_start_superframe - 40;
-		
-
+		int relative_cmp =  cmp_value - cmp_value_start_superframe;
 		int curr_up_ts = (relative_cmp)/(tTS / (SYMBOL_TIME)) - 2*MacLLDNMgmtTS*numBaseTimeSlotperMgmt_online;
-		if(curr_up_ts > assTimeSlot)
+// 		printf("\ncurr_ts %d",relative_cmp);
+		nodes_payload_t *msg = (nodes_payload_t*)ind->data;
+		
+		if( msg->assigned_time_slot == curr_up_ts + 1)
 		{
-			
-			int i;
-			curr_up_ts -= assTimeSlot+1;
-			for (i = 0; i < assTimeSlot && curr_up_ts > 0; ++i)
-			{
-				if(!check_ack_aux(i+1))
-				{
-					curr_up_ts--;
-				}
-			}
-			curr_up_ts = i-1*(i!=0);
+			nodes_info_arr[curr_up_ts].energy = msg->energy;
+			for(int i = 0; i < 3; i++)
+				nodes_info_arr[curr_up_ts].neighbors[i] = msg->neighbors[i];
 		}
-	
-		if(nodes_info_arr[curr_up_ts].mac_addr != ind->data[0])
-			return false;
-		nodes_info_arr[curr_up_ts].rssi = ind->rssi;
-		nodes_info_arr[curr_up_ts].average_rssi = (nodes_info_arr[curr_up_ts].rssi + nodes_info_arr[curr_up_ts].average_rssi*nodes_info_arr[curr_up_ts].msg_rec)
-																				/(nodes_info_arr[curr_up_ts].msg_rec + 1);
-		nodes_info_arr[curr_up_ts].msg_rec++;
-		count_up++;
-		addToAckArray(curr_up_ts+1);
-
-		for (int i = 0; i < ind->size; i++)
-		{
-			msg_info_array[curr_up_ts].data_payload[i] = ind->data[i];
-
-		}		
+		// printf("\ndata : %lu %x", nodes_info_arr[curr_up_ts].energy, nodes_info_arr[curr_up_ts].neighbors[0]);
+				
 		return true;
 	}
 	
@@ -342,8 +323,14 @@ static uint8_t PanId;
 		msgReq.dstEndpoint	= APP_BEACON_ENDPOINT;
 		msgReq.srcEndpoint	= APP_BEACON_ENDPOINT;
 		msgReq.options		= NWK_OPT_LLDN_BEACON | NWK_OPT_RESET_STATE;
-		msgReq.data			= NULL;
-		msgReq.size			= 0;
+		msgReq.data			= (uint8_t *)&beacon_payload;
+		msgReq.size			= sizeof(beacon_payload);
+
+		beacon_payload.coop_map[0] = 0;
+		beacon_payload.coop_map[1] = 0;
+		beacon_payload.coop_map[2] = 0;
+
+		beacon_payload.total_associated_nodes = 0;
 
 		for(int i = 0; i < 32; i++)
 			ACKFrame.ackFlags[i] = 0;
@@ -374,8 +361,8 @@ static uint8_t PanId;
 		msgReq.dstEndpoint			= APP_BEACON_ENDPOINT;
 		msgReq.srcEndpoint			= APP_BEACON_ENDPOINT;
 		msgReq.options				= NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE;
-		msgReq.data					= NULL;
-		msgReq.size					= 0;
+		msgReq.data = (uint8_t*)&beacon_payload;
+		msgReq.size = sizeof(beacon_payload);
 		
 		macLLDNnumTimeSlots = 2;
 		accepting_requests = 1;
@@ -408,13 +395,6 @@ static uint8_t PanId;
 
 			macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval_association , MACSC_CC1);
 			
-			/* Timer used in testing */
-			#if TIMESLOT_TIMER
-			macsc_set_cmp2_int_cb(teste_handler);	
-			macsc_enable_cmp_int(MACSC_CC2);
-			macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval_association / 2, MACSC_CC2);
-			#endif
-			
 		#endif
 		}
 	}
@@ -423,18 +403,20 @@ static uint8_t PanId;
 	{
 		macLLDNnumUplinkTS = (assTimeSlot) * 2 + 1;
 		macLLDNRetransmitTS = assTimeSlot;
-		macLLDNnumTimeSlots = macLLDNnumUplinkTS + 2 *MacLLDNMgmtTS;	
+		macLLDNnumTimeSlots = macLLDNnumUplinkTS + 2 *MacLLDNMgmtTS*numBaseTimeSlotperMgmt_online;	
 // 		printf("\nmacLLDNnumUplinkTS : %d\nmacLLDNRetransmitTS : %d\nmacLLDNnumTimeSlots : %d",macLLDNnumUplinkTS,macLLDNRetransmitTS,macLLDNnumTimeSlots );
 		
 		n = 75;
 		tTS =  ((p_var*sp + ( m + n )*sm + macMinLIFSPeriod)/v_var);
 		
-		beaconInterval= (macLLDNnumUplinkTS + 2*MacLLDNMgmtTS*numBaseTimeSlotperMgmt_online) * tTS / (SYMBOL_TIME);
+		beaconInterval= (macLLDNnumTimeSlots) * tTS / (SYMBOL_TIME);
 		GACK_tTS = (assTimeSlot + 0.2 + 2*MacLLDNMgmtTS*numBaseTimeSlotperMgmt_online) * tTS / (SYMBOL_TIME);
 		
-		msgReq.options = NWK_OPT_ONLINE_STATE | NWK_OPT_SECOND_BEACON;
-
-		neig_counter = 4;
+		msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_ONLINE_STATE | NWK_OPT_SECOND_BEACON;
+		msgReq.data = (uint8_t*)&beacon_payload;
+		msgReq.size = sizeof(beacon_payload);
+		
+		neig_counter = NEIG_CICLOS;
 
 		macsc_enable_cmp_int(MACSC_CC1);
 		macsc_set_cmp1_int_cb(lldn_server_beacon);
@@ -444,11 +426,25 @@ static uint8_t PanId;
 		return;
 	}
 	
+	void setup_orst(void)
+	{
+		float send_serial_tTS = (assTimeSlot + 0.5 + 2*MacLLDNMgmtTS*numBaseTimeSlotperMgmt_online) * tTS / (SYMBOL_TIME);
+		
+		macsc_enable_cmp_int(MACSC_CC2);
+		macsc_set_cmp2_int_cb(send_serial_handler);
+		macsc_use_cmp(0,cmp_value_start_superframe + send_serial_tTS, MACSC_CC2);
+		
+		macsc_enable_cmp_int(MACSC_CC3);
+		macsc_set_cmp3_int_cb(read_serial_handler);
+		macsc_use_cmp(0,cmp_value_start_superframe + beaconInterval - 75, MACSC_CC3);
+				
+	}
+	
 #else 
-	uint8_t payloadSize = 50;
 	uint8_t assTimeSlot = 0xFF;
 	uint8_t n = 0;
-	uint8_t data_payload = APP_ADDR;
+	nodes_payload_t data_payload = { .energy = INIT_ENERGY,
+									.assigned_time_slot = 0xFF };
 	uint32_t cmp_value = 0x00;
 
 	
@@ -485,6 +481,7 @@ static uint8_t PanId;
 									.options = NWK_OPT_LLDN_DATA,
 									.data = (uint8_t*)&data_payload,
 									.size = sizeof(data_payload)};
+	NWK_BeaconPayload_t BeaconPayload;
 
 	static bool ack_received = false;
 	bool MacLLDNMgmtTS = 0; 
@@ -505,6 +502,12 @@ static uint8_t PanId;
 		macsc_disable_cmp_int(MACSC_CC1);
 	}
 
+	static void online_timer_hndlr(void)
+	{
+		printf("\nDT %x", data_payload.neighbors[0]);
+		NWK_DataReq(&msgReqData);
+	}
+
 	static bool appBeaconInd(NWK_DataInd_t *ind)
 	{
 		NwkFrameBeaconHeaderLLDN_t *tmp_beacon = (NwkFrameBeaconHeaderLLDN_t*)ind->data;
@@ -513,42 +516,41 @@ static uint8_t PanId;
 		tTS =  ((p_var*sp + (m+ tmp_beacon->TimeSlotSize )*sm + macMinLIFSPeriod)/v_var)  / (SYMBOL_TIME);
 		cmp_value = macsc_read_count();
 		
+		BeaconPayload.total_associated_nodes = ind->data[sizeof(NwkFrameBeaconHeaderLLDN_t)];
+		BeaconPayload.coop_map[0] = ind->data[sizeof(NwkFrameBeaconHeaderLLDN_t)+1];
+		BeaconPayload.coop_map[1] = ind->data[sizeof(NwkFrameBeaconHeaderLLDN_t)+2];
+		BeaconPayload.coop_map[2] = ind->data[sizeof(NwkFrameBeaconHeaderLLDN_t)+3];
+
+		printf("\nBE %x",rec_beacon.Flags.txState);
+		printf("\nONLINE %hhx",BeaconPayload.coop_map[0]);
+
 		if(rec_beacon.Flags.txState == STATE)
 		{
 			appState = (STATE == ONLINE_MODE) ? APP_STATE_PREP_TMR_ONLINE : APP_STATE_PREP_TMR_ASS;
 		}
-		else if (rec_beacon.Flags.txState == NEIG_MODE)
+		else if (rec_beacon.Flags.txState == NEIG_MODE && STATE == ONLINE_MODE)
 		{
-			/* todo */ 
+			appState = APP_STATE_PREP_NEIG_DATA;
 		}
 		else if (rec_beacon.Flags.txState == RESET_MODE)
 		{
-			PHY_SetTdmaMode(false);
-			ack_received = 0;
-			STATE = DISC_MODE;
+			appState = APP_STATE_RESET;
 		}
 		return true;
 	}
 	
+	static void calculate_remaining_energy(void)
+	{
+		data_payload.energy = (unsigned long int)INIT_ENERGY;
+		return;
+	}
+	
 	bool check_ack(int addr)
 	{
-		int pos,bit_shift;
-		if(addr == 8)
-		{
-			pos = 0;
-			bit_shift = 0;
-		}
-		else
-		{
-			pos =  addr / 8;
-			bit_shift = 8 - addr % 8;
-		}
-		if( ackframe->ackFlags[pos] & 1 << bit_shift)
-		{
-			return true;
-		}
-		else
-			return false;
+		int pos			= (addr == 8) ? 0 :  addr / 8;
+		int bit_shift	= (addr == 8) ? 0 : 8 - addr % 8;
+
+		return ackframe->ackFlags[pos] & 1 << bit_shift;
 	}
 	
 	static bool appAckInd(NWK_DataInd_t *ind)
@@ -598,10 +600,6 @@ static uint8_t PanId;
 	
 	static bool appCommandInd(NWK_DataInd_t *ind)
 	{
-		#if !MASTER_MACSC
-		ind->data = ind->data - (uint8_t) 1;
-		#endif
-		
 		if(ind->data[0] == LL_CONFIGURATION_REQUEST)
 		{
 			NWK_ConfigRequest_t *msg = (NWK_ConfigRequest_t*)ind->data;
@@ -613,10 +611,32 @@ static uint8_t PanId;
 				assTimeSlot = msg->assTimeSlot;
 				n = msg->conf.tsDuration;
 				associated = 1;
+				int pos			= (msg->assTimeSlot == 8) ? 0 :  msg->assTimeSlot / 8;
+				int bit_shift	= (msg->assTimeSlot == 8) ? 0 :  (msg->assTimeSlot + 1) % 8;
+				data_payload.neighbors[pos] |= 0x01 <<  (8 - bit_shift);
+				printf("\nbit %d",bit_shift);
 				STATE = ONLINE_MODE;
 				PHY_SetTdmaMode(true);
 			}
 		}
+		return true;
+	}
+	
+	static bool appDataInd(NWK_DataInd_t *ind)
+	{
+		uint32_t cmp_value_now = macsc_read_count();
+		int relative_cmp =  cmp_value_now - cmp_value + 110;
+		int curr_up_ts = (relative_cmp)/(tTS) - 2*rec_beacon.Flags.numBaseMgmtTimeslots ;
+		
+		nodes_payload_t *msg = (nodes_payload_t*)ind->data;
+		if(msg->assigned_time_slot == curr_up_ts + 1)
+		{
+			int pos			= (msg->assigned_time_slot == 8) ? 0 :  msg->assigned_time_slot / 8;
+			int bit_shift	= (msg->assigned_time_slot == 8) ? 0 : msg->assigned_time_slot % 8;
+
+			data_payload.neighbors[pos] |= 1 << ( 8 - bit_shift);
+		}
+
 		return true;
 	}
 	
@@ -637,7 +657,9 @@ static void appInit(void)
 		PanId = APP_PANID;
 		ACKFrame.sourceId = APP_PANID;
 		PHY_SetTdmaMode(true);
-	NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appCommandInd);
+		NWK_OpenEndpoint(APP_COMMAND_ENDPOINT, appCommandInd);
+		NWK_OpenEndpoint(APP_DATA_ENDPOINT, appDataInd);
+
 	#else
 		/*
 		 * Enable CSMA/CA
@@ -702,21 +724,22 @@ static void APP_TaskHandler(void)
 					 * this implementation was done as is to be used in tests, for real network functionality 
 					 * the number of max association processes must be done through macLLDNdiscoveryModeTimeout
 					 */
-					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 1)
+					if(counter_associados == NODOS_ASSOCIADOS_ESPERADOS || cycles_counter >= 2)
 					{	
-						printf("\n%d, %d", cycles_counter, counter_associados);
+						printf("%d, %d", cycles_counter, counter_associados);
 						counter_associados = 0;
 						/* if all nodes expected were associated stop beacon generation interruptions */
 						macsc_disable_cmp_int(MACSC_CC1);
 						macsc_disable_cmp_int(MACSC_CC2);
 						msgReq.options = 0;
-						
+						beacon_payload.total_associated_nodes = assTimeSlot;
 						/* reseting ack bitmap */
 						for(int i = 0; i < 32; i++)
 							ACKFrame.ackFlags[i] = 0;
 							
 						ACKFrame_size = 0;
 						accepting_requests = 0;
+						NWK_OpenEndpoint(APP_DATA_ENDPOINT, appDataInd);
 						appState = APP_STATE_ATT_PAN_STATE;
 						appPanState = APP_PAN_STATE_SETUP_NEIG_BEACON; // APP_PAN_STATE_ONLINE_INIT
 						cycles_counter = NUMERO_CICLOS_ONLINE;
@@ -735,9 +758,7 @@ static void APP_TaskHandler(void)
 				{
 					/* Prepares message as: Discovery Beacon and Second Beacon */
 					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_DISCOVERY_STATE | NWK_OPT_SECOND_BEACON ;
-					msgReq.data = NULL;
-					msgReq.size = 0;
-					
+
 					appState	= APP_STATE_IDLE;
 					appPanState = APP_PAN_STATE_DISC_PREPARE_ACK;
 					break;
@@ -758,9 +779,7 @@ static void APP_TaskHandler(void)
 				{
 					/* Prepares the message as: Configuration Beacon and First State Beacon */
 					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_CONFIG_STATE;
-					msgReq.data = NULL;
-					msgReq.size = 0;
-					
+
 					appState	= APP_STATE_IDLE;
 					appPanState = APP_PAN_STATE_CONFIG_SECOND_BEACON;
 					break;
@@ -770,9 +789,7 @@ static void APP_TaskHandler(void)
 				{
 					/* Prepares the message as: Configuration Beacon and Second State Beacon */
 					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_CONFIG_STATE | NWK_OPT_SECOND_BEACON;
-					msgReq.data = NULL;
-					msgReq.size = 0;
-					
+
 					counter_delay_msg = 0;
 					
 					appState	= APP_STATE_IDLE;
@@ -827,8 +844,6 @@ static void APP_TaskHandler(void)
 				case APP_PAN_STATE_CONFIG_THIRD_BEACON:
 				{
 					msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_CONFIG_STATE | NWK_OPT_THIRD_BEACON;
-					msgReq.data = NULL;
-					msgReq.size = 0;
 					
 					appState	= APP_STATE_IDLE;
 					appPanState = APP_PAN_STATE_DISC_INITIAL;
@@ -845,12 +860,28 @@ static void APP_TaskHandler(void)
 				}
 				case APP_PAN_STATE_ATT_NEIG_STATE:
 				{
-					if(--neig_counter == 0)
+					if(--neig_counter == -1)
 					{
+						beaconInterval= (macLLDNnumTimeSlots) * tTS / (SYMBOL_TIME);
+						macsc_use_cmp(MACSC_RELATIVE_CMP, beaconInterval, MACSC_CC1);
+						setup_orst();
+						macLLDNnumTimeSlots -= 4;
+						msgReq.options = NWK_OPT_LLDN_BEACON | NWK_OPT_ONLINE_STATE;
+						/* AQUI TEM QUE MUDAR PRO ESTADO ATT ONLINE */ 
+					}
+					else if (neig_counter == 0)
+					{
+						macLLDNnumTimeSlots += 4;
+					}
+					else if(neig_counter == -2)
+					{		
+						/* DEPOIS DE IMPLEMENTAR ATT ONLINE PODE TIRAR ESSE IF */ 
 						macsc_disable_cmp_int(MACSC_CC1);
 						macsc_disable_cmp_int(MACSC_CC2);
 						appPanState = APP_PAN_STATE_IDLE;
+
 					}
+
 					appState	= APP_STATE_IDLE;
 					
 
@@ -870,7 +901,6 @@ static void APP_TaskHandler(void)
 		case APP_STATE_PREP_TMR_ASS:
 		{
 			unsigned int mgmt_ts_time = tTS * rec_beacon.Flags.numBaseMgmtTimeslots;
-			
 			macsc_set_cmp1_int_cb(ass_timer_hndlr);
 			macsc_enable_cmp_int(MACSC_CC1);
 			macsc_use_cmp(0,cmp_value + mgmt_ts_time - 150, MACSC_CC1);
@@ -878,7 +908,51 @@ static void APP_TaskHandler(void)
 			appState = APP_STATE_IDLE;
 			break;
 		}
-
+		case APP_STATE_PREP_NEIG_DATA:
+		{
+			calculate_remaining_energy();
+			data_payload.assigned_time_slot = assTimeSlot+1;
+			NWK_OpenEndpoint(APP_DATA_ENDPOINT, appDataInd);
+			
+			unsigned int mgmt_ts_time = (2*rec_beacon.Flags.numBaseMgmtTimeslots + assTimeSlot) * tTS;
+			
+			macsc_set_cmp1_int_cb(online_timer_hndlr);
+			macsc_enable_cmp_int(MACSC_CC1);
+			macsc_use_cmp(0,cmp_value + mgmt_ts_time - 150, MACSC_CC1);
+			appState = APP_STATE_IDLE;
+			break;
+		}
+		case APP_STATE_PREP_TMR_ONLINE:
+		{
+			unsigned int mgmt_ts_time = (2*rec_beacon.Flags.numBaseMgmtTimeslots + assTimeSlot) * tTS;			
+			
+			macsc_set_cmp1_int_cb(online_timer_hndlr);
+			macsc_enable_cmp_int(MACSC_CC1);
+			macsc_use_cmp(0,cmp_value + mgmt_ts_time - 150, MACSC_CC1);
+			if(1 << (7 - assTimeSlot & 8) & BeaconPayload.coop_map[(int)(assTimeSlot/8)])
+			{
+				printf("\nI am COOP");
+			}
+			appState = APP_STATE_IDLE;
+			break;
+		}
+		case APP_STATE_RESET:
+		{
+			assTimeSlot = 0xff;
+			n = 0;
+			ack_received = 0;
+			associated = 0;
+			data_payload.energy = INIT_ENERGY;
+			data_payload.assigned_time_slot = 0xff;
+			for(int i = 0; i < 3 ; i++)
+			{
+				data_payload.neighbors[i] = 0x00;
+			}
+			STATE = DISC_MODE;
+			PHY_SetTdmaMode(false);
+			appState = APP_STATE_IDLE;
+			break;
+		}
 		#endif
 		default:
 		{

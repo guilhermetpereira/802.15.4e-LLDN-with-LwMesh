@@ -23,16 +23,21 @@ typedef enum {
 	APP_STATE_WAKEUP_AND_WAIT,
 	APP_STATE_PREP_TMR_ONLINE,
 	APP_STATE_PREP_TMR_ASS,
-	APP_STATE_PREP_TMR
+	APP_STATE_PREP_TMR,
+	APP_STATE_PREP_NEIG_DATA,
+	APP_STATE_RESET
 } AppState_t;
 
 #define COOP_RT 0
+
+#define INIT_ENERGY ((unsigned long int)1872000000)// ( 10^-5 joule )
 
 #if APP_COORDINATOR
 	#define DELAY 75 // symbols
 	#define MacLLDNMgmtTS 0x01
 
 	#define NUMERO_CICLOS_ONLINE 1000
+	#define NEIG_CICLOS  3
 	#define GROUP_ACK 0
 
 
@@ -71,7 +76,7 @@ typedef enum {
 		
 		unsigned int msg_rec;
 		unsigned int msg_not_rec;
-		unsigned int energy;
+		unsigned long int energy;
 		// uint8_t DATA_PAYLOAD[127];
 		bool coop;
 		
@@ -97,11 +102,19 @@ typedef enum {
 	#define NEIG_MODE  0b001
 #endif
 
-
-
 #define LL_DISCOVER_RESPONSE		0x0d
 #define LL_CONFIGURATION_STATUS		0x0e
 #define LL_CONFIGURATION_REQUEST	0x0f
+
+// payload structure for Data Frame
+typedef struct nodes_payload_t{
+
+	uint8_t neighbors[3]; // size limited by hardware
+	uint8_t assigned_time_slot;
+	long unsigned int energy;
+	
+}nodes_payload_t;
+
 
 // payload structure for Discovery Response Frame
 typedef struct NWK_DiscoverResponse_t {
@@ -145,6 +158,14 @@ typedef struct NWK_ACKFormat_t{
 	uint8_t ackFlags[32];
 } NWK_ACKFormat_t;
 
+
+
+typedef struct NWK_BeaconPayload_t{
+	uint8_t total_associated_nodes;
+	// 127: maximum size avaible on buffer
+	// 4: size of NwkFrameGeneralHeaderLLDN_t
+	uint8_t coop_map[3];
+} NWK_BeaconPayload_t;
 
 
 #endif /* LLDN_H_ */
